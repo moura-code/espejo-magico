@@ -1,5 +1,5 @@
 node_modules/
-vendor/mediapipe/
+vendor/
 .perfil-chrome/
 contenido/videos/
 .DS_Store
