@@ -45,12 +45,16 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 
 ## Atajos, en la PC del espejo
 
+La tuerca de la esquina superior derecha abre un panel para elegir la cámara y
+alternar el modo demo, el avance manual y la malla de diagnóstico.
+
 | Tecla | Qué hace |
 |---|---|
 | `ESPACIO` | Avanza al estado siguiente (modo manual) |
 | `A` | Alterna avance manual / automático |
 | `1`–`6` | Fuerza una carrera y salta a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
+| `C` | Cambia a la siguiente cámara disponible |
 | `D` | Modo demo: funciona sin cámara |
 | `M` | Muestra los puntos que el sistema detecta en cara y manos |
 | `P` | Panel de estado y FPS |

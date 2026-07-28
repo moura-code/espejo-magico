@@ -6,7 +6,12 @@
 import { CONFIG } from './config.js';
 import { cargarContenido } from './contenido.js';
 import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
-import { abrirCamara, crearReintentador, dormir } from './camara.js';
+import {
+  abrirCamara,
+  crearReintentador,
+  crearSelectorDeCamara,
+  dormir,
+} from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
 import { crearDetectorDeManosMediaPipe } from './manos.js';
 import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from './suavizado.js';
@@ -29,6 +34,7 @@ import {
 } from './escena.js';
 import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
+import { instalarPanelConfiguracion } from './panel-configuracion.js';
 import { mensajeCarrera, mensajeReposo } from '../comun/protocolo.js';
 
 // ---------- lienzos ----------
@@ -79,13 +85,27 @@ if (informe.faltantes.length > 0) {
 let modo = 'camara';
 let estadoDeCamara = { lista: false };
 
-const camara = crearReintentador({
-  abrir: () =>
+const CLAVE_CAMARA = 'espejo.camara';
+const selectorDeCamara = crearSelectorDeCamara({
+  abrir: (dispositivoId) =>
     abrirCamara({
       ancho: CONFIG.deteccion.anchoCamara,
       alto: CONFIG.deteccion.altoCamara,
+      dispositivoId,
       obtenerMedia: (pedido) => navigator.mediaDevices.getUserMedia(pedido),
+      alPerderse: () => camara?.perdida(),
     }),
+  enumerarDispositivos: () => navigator.mediaDevices.enumerateDevices(),
+  seleccionGuardada: localStorage.getItem(CLAVE_CAMARA),
+  alGuardar: (dispositivoId) => {
+    if (dispositivoId) localStorage.setItem(CLAVE_CAMARA, dispositivoId);
+    else localStorage.removeItem(CLAVE_CAMARA);
+  },
+});
+
+let camara = null;
+camara = crearReintentador({
+  abrir: () => selectorDeCamara.abrir(),
   reintentoMs: 5000,
   alEstado: (estado) => {
     estadoDeCamara = estado;
@@ -427,7 +447,7 @@ function cuadro(ahora) {
     ctx.fillText(
       'MODO MANUAL — ESPACIO para avanzar, A para automático',
       disposicion.ancho - 24,
-      36,
+      96,
     );
     ctx.restore();
   }
@@ -447,6 +467,26 @@ function cuadro(ahora) {
   }
 }
 
+let cambioDeCamaraEnCurso = false;
+
+async function cambiarDispositivoDeCamara(elegir) {
+  if (cambioDeCamaraEnCurso) return false;
+  cambioDeCamaraEnCurso = true;
+
+  try {
+    const dispositivoActual =
+      camara.obtener()?.dispositivoId ?? selectorDeCamara.seleccionada();
+    const siguiente = await elegir(dispositivoActual);
+    if (!siguiente) return false;
+
+    filtro.reiniciar();
+    camara.reabrir();
+    return true;
+  } finally {
+    cambioDeCamaraEnCurso = false;
+  }
+}
+
 window.espejo = {
   maquina,
   contenido,
@@ -455,6 +495,15 @@ window.espejo = {
   bus,
   detector,
   estadoDeCamara: () => estadoDeCamara,
+  listarCamaras: () => selectorDeCamara.disponibles(),
+  cambiarCamara: () =>
+    cambiarDispositivoDeCamara((dispositivoActual) =>
+      selectorDeCamara.siguiente(dispositivoActual),
+    ),
+  seleccionarCamara: (dispositivoId) =>
+    cambiarDispositivoDeCamara((dispositivoActual) =>
+      selectorDeCamara.seleccionar(dispositivoId, dispositivoActual),
+    ),
   manos: () => manos,
   manosCrudas: () => detectorDeManos?.crudasDetectadas() ?? 0,
   modo: () => modo,
@@ -465,6 +514,7 @@ window.espejo = {
   alternarMalla: () => {
     verMalla = !verMalla;
   },
+  mallaVisible: () => verMalla,
   // Los atajos tienen que pasar por atender(): si no, forzar una carrera con las
   // teclas no le avisa a las tablets ni limpia los objetos de la sesion anterior.
   avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos, ahora),
@@ -472,6 +522,7 @@ window.espejo = {
   reiniciar: (ahora) => atender(maquina.reiniciar(ahora).eventos, ahora),
 };
 
+instalarPanelConfiguracion({ espejo: window.espejo });
 const operacion = instalarOperacion({ espejo: window.espejo, tiempos: CONFIG.operacion });
 
 requestAnimationFrame(cuadro);

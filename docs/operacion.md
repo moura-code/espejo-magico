@@ -28,10 +28,15 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 
 ## Atajos, en la PC del espejo
 
+La tuerca de la esquina superior derecha abre la configuración. Desde ahí se
+puede elegir la cámara y activar el modo demo, el avance manual o la malla de
+diagnóstico sin usar el teclado.
+
 | Tecla | Qué hace |
 |---|---|
 | `1` a `6` | Fuerza una carrera y salta directo a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
+| `C` | Cambia a la siguiente cámara disponible |
 | `D` | Modo demo: funciona sin cámara, con un rostro simulado |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
@@ -39,6 +44,9 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 
 El orden de las teclas `1` a `6` es el mismo que el de las carreras en
 `contenido/carreras.json`.
+
+La cámara elegida con `C` queda guardada aunque Chrome se recargue. Para confirmar
+cuál está activa, apretar `P` y mirar la línea `camara`.
 
 ---
 

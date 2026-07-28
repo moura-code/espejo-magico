@@ -19,6 +19,8 @@ describe('interpretarTecla', () => {
     expect(interpretarTecla('r', IDS)).toEqual({ accion: 'reiniciar' });
     expect(interpretarTecla('R', IDS)).toEqual({ accion: 'reiniciar' });
     expect(interpretarTecla('d', IDS)).toEqual({ accion: 'demo' });
+    expect(interpretarTecla('c', IDS)).toEqual({ accion: 'camara' });
+    expect(interpretarTecla('C', IDS)).toEqual({ accion: 'camara' });
     expect(interpretarTecla('P', IDS)).toEqual({ accion: 'panel' });
     expect(interpretarTecla('m', IDS)).toEqual({ accion: 'malla' });
     expect(interpretarTecla('a', IDS)).toEqual({ accion: 'alternarManual' });

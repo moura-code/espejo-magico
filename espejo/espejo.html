@@ -4,12 +4,356 @@
   <meta charset="utf-8">
   <title>Espejo Mágico</title>
   <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    button, select, input { font: inherit; }
     canvas { display: block; width: 100vw; height: 100vh; }
+
+    .boton-configuracion {
+      position: fixed;
+      top: max(20px, env(safe-area-inset-top));
+      right: max(20px, env(safe-area-inset-right));
+      z-index: 18;
+      display: grid;
+      width: 54px;
+      height: 54px;
+      padding: 0;
+      place-items: center;
+      color: rgba(255, 255, 255, 0.92);
+      background: rgba(16, 20, 24, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(14px);
+      cursor: pointer;
+      opacity: 0.72;
+      transition: opacity 160ms ease, transform 220ms ease, background 160ms ease;
+    }
+    .boton-configuracion:hover,
+    .boton-configuracion:focus-visible {
+      color: #fff;
+      background: rgba(25, 31, 37, 0.88);
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    .boton-configuracion:focus-visible,
+    .boton-cerrar:focus-visible,
+    .boton-recargar:focus-visible,
+    select:focus-visible,
+    .interruptor input:focus-visible + .pista {
+      outline: 3px solid rgba(116, 210, 255, 0.72);
+      outline-offset: 3px;
+    }
+    .boton-configuracion svg {
+      width: 25px;
+      height: 25px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
+      transition: transform 350ms ease;
+    }
+    .configuracion-abierta .boton-configuracion svg { transform: rotate(55deg); }
+
+    .fondo-configuracion {
+      position: fixed;
+      inset: 0;
+      z-index: 19;
+      background: rgba(0, 0, 0, 0.42);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 240ms ease;
+    }
+    .panel-configuracion {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      bottom: 16px;
+      z-index: 20;
+      display: flex;
+      width: min(390px, calc(100vw - 32px));
+      padding: 26px;
+      flex-direction: column;
+      gap: 24px;
+      color: #f4f7f9;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(67, 151, 194, 0.18), transparent 36%),
+        rgba(15, 19, 23, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 24px;
+      box-shadow: -20px 0 70px rgba(0, 0, 0, 0.44);
+      backdrop-filter: blur(24px);
+      opacity: 0;
+      overflow-y: auto;
+      pointer-events: none;
+      transform: translateX(calc(100% + 32px));
+      transition: opacity 220ms ease, transform 280ms cubic-bezier(.2, .8, .2, 1);
+    }
+    .configuracion-abierta .fondo-configuracion {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .configuracion-abierta .panel-configuracion {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .cabecera-configuracion {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .cabecera-configuracion h1 {
+      margin: 0 0 5px;
+      font-size: 25px;
+      font-weight: 680;
+      letter-spacing: -0.025em;
+    }
+    .cabecera-configuracion p,
+    .ayuda-control {
+      margin: 0;
+      color: rgba(227, 235, 240, 0.63);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .boton-cerrar,
+    .boton-recargar {
+      flex: none;
+      color: rgba(255, 255, 255, 0.82);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+    }
+    .boton-cerrar {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 24px;
+      line-height: 1;
+    }
+    .boton-cerrar:hover,
+    .boton-recargar:hover { background: rgba(255, 255, 255, 0.14); }
+
+    .grupo-configuracion {
+      display: grid;
+      gap: 12px;
+    }
+    .titulo-control {
+      color: rgba(255, 255, 255, 0.74);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+    .fila-camara {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 9px;
+    }
+    select {
+      width: 100%;
+      min-width: 0;
+      height: 46px;
+      padding: 0 38px 0 13px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    select:disabled { cursor: wait; opacity: 0.5; }
+    .boton-recargar {
+      width: 46px;
+      height: 46px;
+      padding: 0;
+      border-radius: 12px;
+      font-size: 21px;
+    }
+
+    .lista-ajustes {
+      display: grid;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .ajuste {
+      display: flex;
+      min-height: 74px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+    }
+    .ajuste strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 15px;
+      font-weight: 620;
+    }
+    .ajuste small {
+      display: block;
+      color: rgba(227, 235, 240, 0.56);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .interruptor { position: relative; flex: none; }
+    .interruptor input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+    .pista {
+      display: block;
+      width: 46px;
+      height: 26px;
+      padding: 3px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      transition: background 180ms ease;
+    }
+    .pista::after {
+      display: block;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.34);
+      content: "";
+      transition: transform 180ms ease;
+    }
+    .interruptor input:checked + .pista { background: #279bc9; }
+    .interruptor input:checked + .pista::after { transform: translateX(20px); }
+
+    .pie-configuracion {
+      margin-top: auto;
+      padding: 14px 16px;
+      color: rgba(227, 235, 240, 0.58);
+      background: rgba(255, 255, 255, 0.045);
+      border-radius: 14px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 600px) {
+      .boton-configuracion { top: 14px; right: 14px; }
+      .panel-configuracion {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(420px, 100vw);
+        border-radius: 0;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .boton-configuracion,
+      .boton-configuracion svg,
+      .fondo-configuracion,
+      .panel-configuracion,
+      .pista,
+      .pista::after { transition: none; }
+    }
   </style>
 </head>
 <body>
   <canvas id="lienzo"></canvas>
+  <button
+    id="abrir-configuracion"
+    class="boton-configuracion"
+    type="button"
+    aria-label="Abrir configuración"
+    aria-controls="panel-configuracion"
+    aria-expanded="false"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"/>
+      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06-1.87 1.87-.06-.06A1.7 1.7 0 0 0 16 18.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V20h-5v-.1A1.7 1.7 0 0 0 8.6 18.4a1.7 1.7 0 0 0-1.87.34l-.06.06-1.87-1.87.06-.06A1.7 1.7 0 0 0 5.2 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4h-.1v-2.7h.1A1.7 1.7 0 0 0 5.2 9.5a1.7 1.7 0 0 0-.34-1.87L4.8 7.57 6.67 5.7l.06.06A1.7 1.7 0 0 0 8.6 6.1a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1v-.1h4.6v.1A1.7 1.7 0 0 0 16 6.1a1.7 1.7 0 0 0 1.87-.34l.06-.06 1.87 1.87-.06.06A1.7 1.7 0 0 0 19.4 9.5a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v2.7h-.1a1.7 1.7 0 0 0-1.7 1.4Z"/>
+    </svg>
+  </button>
+
+  <div id="fondo-configuracion" class="fondo-configuracion" aria-hidden="true"></div>
+  <aside
+    id="panel-configuracion"
+    class="panel-configuracion"
+    aria-labelledby="titulo-configuracion"
+    aria-hidden="true"
+    inert
+  >
+    <header class="cabecera-configuracion">
+      <div>
+        <h1 id="titulo-configuracion">Configuración</h1>
+        <p>Ajustes rápidos del espejo</p>
+      </div>
+      <button
+        id="cerrar-configuracion"
+        class="boton-cerrar"
+        type="button"
+        aria-label="Cerrar configuración"
+      >×</button>
+    </header>
+
+    <section class="grupo-configuracion" aria-labelledby="titulo-camara">
+      <span id="titulo-camara" class="titulo-control">Cámara</span>
+      <div class="fila-camara">
+        <select id="selector-camara" aria-label="Cámara activa"></select>
+        <button
+          id="recargar-camaras"
+          class="boton-recargar"
+          type="button"
+          aria-label="Buscar cámaras nuevamente"
+          title="Buscar cámaras nuevamente"
+        >↻</button>
+      </div>
+      <p id="estado-camara-configuracion" class="ayuda-control" aria-live="polite">
+        Buscando cámaras...
+      </p>
+    </section>
+
+    <section class="lista-ajustes" aria-label="Opciones">
+      <label class="ajuste">
+        <span>
+          <strong>Modo demo</strong>
+          <small>Simula una persona sin usar la cámara.</small>
+        </span>
+        <span class="interruptor">
+          <input id="modo-demo" type="checkbox">
+          <span class="pista" aria-hidden="true"></span>
+        </span>
+      </label>
+      <label class="ajuste">
+        <span>
+          <strong>Avance manual</strong>
+          <small>Espera ESPACIO antes de cambiar de escena.</small>
+        </span>
+        <span class="interruptor">
+          <input id="avance-manual" type="checkbox">
+          <span class="pista" aria-hidden="true"></span>
+        </span>
+      </label>
+      <label class="ajuste">
+        <span>
+          <strong>Malla de diagnóstico</strong>
+          <small>Muestra los puntos detectados en cara y manos.</small>
+        </span>
+        <span class="interruptor">
+          <input id="mostrar-malla" type="checkbox">
+          <span class="pista" aria-hidden="true"></span>
+        </span>
+      </label>
+    </section>
+
+    <div class="pie-configuracion">
+      Los atajos de teclado siguen disponibles: <strong>C</strong> cambia de cámara,
+      <strong>D</strong> activa demo y <strong>P</strong> abre el diagnóstico.
+    </div>
+  </aside>
   <script type="module" src="./main.js"></script>
 </body>
 </html>
