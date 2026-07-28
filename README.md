@@ -24,6 +24,7 @@ npm test             # 412 pruebas
 Para levantarlo:
 
 ```bash
+npm run dev          # desarrollo: reinicia el servidor cuando cambia su código
 npm start            # después, abrir http://localhost:8080/espejo/espejo.html
 ```
 
@@ -41,6 +42,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | `npm test` | ¿Funciona el código? 412 pruebas. Tiene que estar en verde siempre. |
 | `npm run listo` | ¿Se puede montar el stand? Verifica que el contenido real esté completo. Está en rojo hasta que lleguen los PNG y los videos, y eso es lo esperado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro y manos. |
+| `npm run dev` | Levanta el servidor en modo desarrollo con reinicio automático. |
 | `npm start` | Levanta el servidor local. |
 
 ## Atajos, en la PC del espejo
