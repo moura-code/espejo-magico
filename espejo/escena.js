@@ -165,6 +165,23 @@ export function dibujarManos(ctx, manos, color) {
   ctx.restore();
 }
 
+export function dibujarPuntosRostro(ctx, puntos, { color = '#62D8FF', radio = 3 } = {}) {
+  if (!puntos || puntos.length === 0) return;
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.9;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = radio * 3;
+  ctx.beginPath();
+  for (const punto of puntos) {
+    ctx.moveTo(punto.x + radio, punto.y);
+    ctx.arc(punto.x, punto.y, radio, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.restore();
+}
+
 export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   if (!carrera || alfa <= 0) return;
   const { texto, ancho } = disposicion;

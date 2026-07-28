@@ -114,6 +114,95 @@ export function crearFuenteSintetica() {
   };
 }
 
+function transformarPunto(rostro, localX, localY) {
+  const coseno = Math.cos(rostro.angulo);
+  const seno = Math.sin(rostro.angulo);
+  return {
+    x: rostro.centro.x + localX * coseno - localY * seno,
+    y: rostro.centro.y + localX * seno + localY * coseno,
+  };
+}
+
+function agregarElipse(
+  puntos,
+  rostro,
+  centroX,
+  centroY,
+  radioX,
+  radioY,
+  cantidad,
+  inicio = 0,
+  recorrido = Math.PI * 2,
+) {
+  const divisor = recorrido === Math.PI * 2 ? cantidad : Math.max(1, cantidad - 1);
+  for (let indice = 0; indice < cantidad; indice++) {
+    const angulo = inicio + (indice / divisor) * recorrido;
+    puntos.push(
+      transformarPunto(
+        rostro,
+        centroX + Math.cos(angulo) * radioX,
+        centroY + Math.sin(angulo) * radioY,
+      ),
+    );
+  }
+}
+
+/**
+ * Landmarks inventados para hacer visible a la persona del modo demo. No
+ * pretenden copiar los 478 puntos de MediaPipe: representan los mismos rasgos
+ * importantes con una nube liviana que sigue posicion, escala e inclinacion.
+ */
+export function generarPuntosRostroSintetico(rostro) {
+  if (!rostro || !Number.isFinite(rostro.radio) || rostro.radio <= 0) return [];
+
+  const puntos = [];
+  const radio = rostro.radio;
+  const ojoX = radio * 0.3125;
+
+  agregarElipse(puntos, rostro, 0, radio * 0.18, radio * 0.72, radio * 0.94, 32);
+  agregarElipse(puntos, rostro, -ojoX, 0, radio * 0.16, radio * 0.085, 10);
+  agregarElipse(puntos, rostro, ojoX, 0, radio * 0.16, radio * 0.085, 10);
+  puntos.push(transformarPunto(rostro, -ojoX, 0), transformarPunto(rostro, ojoX, 0));
+
+  agregarElipse(
+    puntos,
+    rostro,
+    -ojoX,
+    -radio * 0.16,
+    radio * 0.2,
+    radio * 0.08,
+    7,
+    Math.PI,
+    Math.PI,
+  );
+  agregarElipse(
+    puntos,
+    rostro,
+    ojoX,
+    -radio * 0.16,
+    radio * 0.2,
+    radio * 0.08,
+    7,
+    Math.PI,
+    Math.PI,
+  );
+
+  for (let indice = 0; indice < 7; indice++) {
+    const progreso = indice / 6;
+    puntos.push(
+      transformarPunto(
+        rostro,
+        Math.sin(progreso * Math.PI) * radio * 0.035,
+        radio * (0.04 + progreso * 0.39),
+      ),
+    );
+  }
+  agregarElipse(puntos, rostro, 0, radio * 0.43, radio * 0.13, radio * 0.055, 7);
+  agregarElipse(puntos, rostro, 0, radio * 0.65, radio * 0.3, radio * 0.12, 16);
+
+  return puntos;
+}
+
 /**
  * La logica del detector, separada de MediaPipe para poder probarla.
  * `detectorCrudo` solo tiene que saber `detectForVideo(video, ahora)` y `close()`.

@@ -37,7 +37,7 @@ diagnóstico sin usar el teclado.
 | `1` a `6` | Fuerza una carrera y salta directo a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `C` | Cambia a la siguiente cámara disponible |
-| `D` | Modo demo: funciona sin cámara, con un rostro simulado |
+| `D` | Modo demo: funciona sin cámara y muestra el rostro simulado con puntos |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
 | `Ctrl` + `R` | Recarga todo |

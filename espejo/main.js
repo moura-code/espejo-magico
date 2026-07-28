@@ -12,7 +12,11 @@ import {
   crearSelectorDeCamara,
   dormir,
 } from './camara.js';
-import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
+import {
+  crearDetectorMediaPipe,
+  crearFuenteSintetica,
+  generarPuntosRostroSintetico,
+} from './rostro.js';
 import { crearDetectorDeManosMediaPipe } from './manos.js';
 import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
@@ -29,6 +33,7 @@ import {
   dibujarObjetos,
   dibujarAccesorio,
   dibujarManos,
+  dibujarPuntosRostro,
   dibujarTextos,
   dibujarInvitacion,
 } from './escena.js';
@@ -388,6 +393,12 @@ function cuadro(ahora) {
   // participante quede dentro de la escena y no tapado por ella.
   if (efecto && (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA)) {
     efecto.dibujar(ctx, contextoEfecto);
+  }
+
+  if (modo === 'demo' && rostro) {
+    dibujarPuntosRostro(ctx, generarPuntosRostroSintetico(rostro), {
+      radio: Math.max(2.5, rostro.radio * 0.018),
+    });
   }
 
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
+  dibujarPuntosRostro,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
 
@@ -139,5 +140,41 @@ describe('calcularRectanguloVideo', () => {
       ancho: 1080,
       alto: 1920,
     });
+  });
+});
+
+describe('dibujarPuntosRostro', () => {
+  it('dibuja un circulo por cada landmark sintetico', () => {
+    let arcos = 0;
+    let rellenos = 0;
+    const contexto = {
+      save() {},
+      restore() {},
+      beginPath() {},
+      moveTo() {},
+      arc() {
+        arcos += 1;
+      },
+      fill() {
+        rellenos += 1;
+      },
+    };
+    const puntos = [
+      { x: 10, y: 20 },
+      { x: 30, y: 40 },
+      { x: 50, y: 60 },
+    ];
+
+    dibujarPuntosRostro(contexto, puntos, { radio: 4 });
+
+    expect(arcos).toBe(3);
+    expect(rellenos).toBe(1);
+    expect(contexto.shadowBlur).toBe(12);
+  });
+
+  it('no toca el lienzo si no hay puntos', () => {
+    let guardados = 0;
+    dibujarPuntosRostro({ save: () => { guardados += 1; } }, []);
+    expect(guardados).toBe(0);
   });
 });
