@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Referente</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    body { opacity: 0; transition: opacity .6s ease; }
+    body.encendida { opacity: 1; }
+
+    video {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; background: #000;
+    }
+
+    #rotulo {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      padding: 4vh 5vw;
+      background: linear-gradient(transparent, rgba(0,0,0,.85));
+      border-bottom: 6px solid #fff;
+      font-family: system-ui, sans-serif; text-align: center;
+    }
+    #nombre { font-size: 5vh; font-weight: 700; margin: 0; color: #fff; }
+    #detalle { font-size: 3vh; color: #fff; opacity: .85; margin: .4em 0 0; }
+
+    #aviso {
+      position: fixed; inset: 0; display: grid; place-items: center;
+      color: #444; font: 3vh system-ui, sans-serif;
+    }
+    body.encendida #aviso { display: none; }
+  </style>
+</head>
+<body>
+  <video id="video" muted playsinline loop preload="auto"></video>
+
+  <div id="rotulo">
+    <p id="nombre"></p>
+    <p id="detalle"></p>
+  </div>
+
+  <div id="aviso">esperando al espejo…</div>
+
+  <script type="module">
+    import { cargarContenido } from '../espejo/contenido.js';
+    import { crearBus } from '../espejo/bus.js';
+    import { CONFIG } from '../espejo/config.js';
+    import { crearTablet, crearPantallaDeVideo, elegirReferente } from './tablet.js';
+
+    const slot = Number(new URLSearchParams(location.search).get('slot') ?? 0);
+    document.title = `Referente · slot ${slot}`;
+
+    const contenido = await cargarContenido();
+
+    // Precarga. Sin esto la primera reproduccion de cada carrera arranca con un
+    // parpadeo, y en un stand eso se nota mucho mas que en un escritorio.
+    for (const carrera of contenido.carreras) {
+      const referente = elegirReferente(carrera, slot);
+      if (!referente) continue;
+      const previo = document.createElement('video');
+      previo.preload = 'auto';
+      previo.muted = true;
+      previo.src = '/contenido/' + referente.video;
+      previo.load();
+    }
+
+    const pantalla = crearPantallaDeVideo({
+      video: document.getElementById('video'),
+      rotulo: document.getElementById('rotulo'),
+      nombre: document.getElementById('nombre'),
+      detalle: document.getElementById('detalle'),
+      cuerpo: document.body,
+    });
+
+    const tablet = crearTablet({ slot, contenido, pantalla });
+
+    crearBus({
+      url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
+      reconexionMs: CONFIG.red.reconexionMs,
+      alMensaje: (mensaje) => tablet.recibir(mensaje),
+      alEstado: (estado) => {
+        console.log('bus:', estado);
+        document.getElementById('aviso').textContent = estado.conectado
+          ? 'esperando al espejo…'
+          : 'sin conexión con el espejo…';
+      },
+    });
+  </script>
+</body>
+</html>

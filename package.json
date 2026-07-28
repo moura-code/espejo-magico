@@ -1,0 +1,19 @@
+{
+  "name": "espejo-magico",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node servidor/servidor.js",
+    "test": "vitest run",
+    "test:mirar": "vitest",
+    "listo": "vitest run --config vitest.listo.config.js",
+    "vendorizar": "node herramientas/vendorizar.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.21.1"
+  },
+  "devDependencies": {
+    "@mediapipe/tasks-vision": "^1.0.0",
+    "vitest": "^4.1.10"
+  }
+}

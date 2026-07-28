@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Figuras — hoja de contacto</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0; padding: 32px;
+      background: #14181d; color: #e8eef5;
+      font-family: system-ui, sans-serif;
+    }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    p.ayuda { margin: 0 0 28px; color: #93a4b5; font-size: 14px; max-width: 60ch; }
+
+    .barra { display: flex; gap: 16px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
+    label { font-size: 14px; color: #93a4b5; }
+    button {
+      background: #222a33; color: #e8eef5; border: 1px solid #38434f;
+      border-radius: 6px; padding: 7px 14px; font: inherit; font-size: 14px; cursor: pointer;
+    }
+    button.activo { border-color: currentColor; }
+
+    section { margin-bottom: 36px; }
+    h2 { font-size: 15px; font-weight: 600; margin: 0 0 14px; letter-spacing: .04em; text-transform: uppercase; }
+
+    .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+    .celda {
+      background: #1c222a; border: 1px solid #2b343e; border-radius: 10px;
+      padding: 12px 8px 8px; text-align: center;
+    }
+    .celda.falta { border-color: #FF5D8F; }
+    canvas { display: block; margin: 0 auto; }
+    .nombre { font-size: 12px; color: #93a4b5; margin-top: 8px; word-break: break-all; }
+    .celda.falta .nombre { color: #FF5D8F; }
+  </style>
+</head>
+<body>
+  <h1>Figuras de los objetos</h1>
+  <p class="ayuda">
+    Las treinta y seis figuras que se dibujan cuando no hay PNG. Cada una con el
+    color de su carrera. Si alguna no se entiende a este tamaño, tampoco se va a
+    entender cayendo por la pantalla.
+  </p>
+
+  <div class="barra">
+    <label>Fondo:</label>
+    <button data-fondo="#14181d" class="activo">oscuro</button>
+    <button data-fondo="#e8eef5">claro</button>
+    <button data-fondo="#7a6a58">piel</button>
+    <label style="margin-left:16px">Tamaño:</label>
+    <button data-tam="48">chico</button>
+    <button data-tam="80" class="activo">normal</button>
+    <button data-tam="140">grande</button>
+  </div>
+
+  <div id="salida"></div>
+
+  <script type="module">
+    import { FIGURAS, hayFigura } from '../espejo/figuras.js';
+    import { cargarContenido } from '../espejo/contenido.js';
+
+    const contenido = await cargarContenido();
+    const salida = document.getElementById('salida');
+
+    let fondo = '#14181d';
+    let tam = 80;
+
+    function dibujarTodo() {
+      salida.innerHTML = '';
+      const usadas = new Set();
+
+      for (const carrera of contenido.carreras) {
+        const seccion = document.createElement('section');
+        const titulo = document.createElement('h2');
+        titulo.textContent = carrera.nombre;
+        titulo.style.color = carrera.color;
+        seccion.appendChild(titulo);
+
+        const grilla = document.createElement('div');
+        grilla.className = 'grilla';
+
+        for (const objeto of carrera.objetos) {
+          usadas.add(objeto.figura);
+          const existe = hayFigura(objeto.figura);
+
+          const celda = document.createElement('div');
+          celda.className = existe ? 'celda' : 'celda falta';
+
+          const lienzo = document.createElement('canvas');
+          const lado = tam * 2 + 24;
+          lienzo.width = lienzo.height = lado;
+          const ctx = lienzo.getContext('2d');
+
+          ctx.fillStyle = fondo;
+          ctx.fillRect(0, 0, lado, lado);
+          ctx.translate(lado / 2, lado / 2);
+
+          if (existe) {
+            FIGURAS[objeto.figura](ctx, tam, carrera.color);
+          } else {
+            ctx.fillStyle = '#FF5D8F';
+            ctx.font = '13px system-ui';
+            ctx.textAlign = 'center';
+            ctx.fillText('sin figura', 0, 0);
+          }
+
+          const nombre = document.createElement('div');
+          nombre.className = 'nombre';
+          nombre.textContent = objeto.figura ?? '(sin declarar)';
+
+          celda.append(lienzo, nombre);
+          grilla.appendChild(celda);
+        }
+
+        seccion.appendChild(grilla);
+        salida.appendChild(seccion);
+      }
+
+      // Figuras implementadas que ninguna carrera usa. No es un error, pero
+      // conviene saberlo antes de mantener codigo que nadie mira.
+      const huerfanas = Object.keys(FIGURAS).filter((n) => !usadas.has(n));
+      if (huerfanas.length > 0) {
+        const nota = document.createElement('p');
+        nota.className = 'ayuda';
+        nota.textContent = `Figuras implementadas que ninguna carrera usa: ${huerfanas.join(', ')}`;
+        salida.appendChild(nota);
+      }
+    }
+
+    document.querySelectorAll('button').forEach((boton) => {
+      boton.addEventListener('click', () => {
+        const grupo = boton.dataset.fondo ? 'fondo' : 'tam';
+        document
+          .querySelectorAll(`button[data-${grupo}]`)
+          .forEach((otro) => otro.classList.remove('activo'));
+        boton.classList.add('activo');
+
+        if (boton.dataset.fondo) fondo = boton.dataset.fondo;
+        if (boton.dataset.tam) tam = Number(boton.dataset.tam);
+        dibujarTodo();
+      });
+    });
+
+    dibujarTodo();
+  </script>
+</body>
+</html>
