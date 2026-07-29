@@ -28,8 +28,6 @@ function crearControl() {
   return crearControlDemo({
     ids: IDS,
     pausaSinPersonaMs: 6000,
-    interaccionDesdeMs: 4000,
-    transicionManoMs: 500,
   });
 }
 
@@ -79,39 +77,5 @@ describe('crearControlDemo', () => {
       totalCarreras: 3,
       completo: true,
     });
-  });
-
-  it('alterna la prueba de los dos botones virtuales', () => {
-    const control = crearControl();
-    control.activar({ maquina: crearMaquinaFalsa(), ahora: 0 });
-    const botones = [
-      { id: 'si-sorprendio', x: 10, y: 20, ancho: 100, alto: 50 },
-      { id: 'no-podria-verme', x: 200, y: 20, ancho: 100, alto: 50 },
-    ];
-
-    expect(
-      control.objetivoDeMano({
-        estado: ESTADOS.REFLEXION,
-        transcurrido: 3999,
-        sesion: 1,
-        botones,
-      }),
-    ).toBeNull();
-    expect(
-      control.objetivoDeMano({
-        estado: ESTADOS.REFLEXION,
-        transcurrido: 4500,
-        sesion: 1,
-        botones,
-      }),
-    ).toMatchObject({ id: 'si-sorprendio', x: 60, y: 45, progreso: 1 });
-    expect(
-      control.objetivoDeMano({
-        estado: ESTADOS.REFLEXION,
-        transcurrido: 4500,
-        sesion: 2,
-        botones,
-      }),
-    ).toMatchObject({ id: 'no-podria-verme', x: 250, y: 45, progreso: 1 });
   });
 });

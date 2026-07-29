@@ -19,13 +19,7 @@ describe('controles remotos', () => {
       ACCIONES.OTRA_CARRERA,
       ACCIONES.TERMINAR,
     ]);
-    expect(botonesParaEstado(ESTADOS.REFLEXION).map((boton) => boton.id)).toEqual([
-      ACCIONES.SI_SORPRENDIO,
-      ACCIONES.NO_PODRIA_VERME,
-    ]);
-    expect(
-      botonesParaEstado(ESTADOS.REFLEXION, { respuestaReflexion: ACCIONES.SI_SORPRENDIO }),
-    ).toEqual([]);
+    expect(botonesParaEstado(ESTADOS.REFLEXION)).toEqual([]);
     expect(botonesParaEstado(ESTADOS.CIERRE)[0].etiqueta).toBe('VOLVER AL INICIO');
   });
 
@@ -36,7 +30,6 @@ describe('controles remotos', () => {
     expect(
       botonesParaEstado(ESTADOS.REFLEXION, {
         manual: true,
-        respuestaReflexion: ACCIONES.SI_SORPRENDIO,
       }).map((boton) => boton.id),
     ).toEqual([ACCIONES.AVANZAR]);
     expect(
@@ -59,8 +52,6 @@ describe('controles remotos', () => {
     const maquina = {
       avanzar: vi.fn(() => ({ eventos: ['avanza'] })),
       reiniciar: vi.fn(() => ({ eventos: ['reinicia'] })),
-      responderReflexion: vi.fn(() => ({ eventos: ['responde'] })),
-      respuestaReflexion: vi.fn(() => null),
       esManual: vi.fn(() => false),
     };
 
@@ -101,8 +92,7 @@ describe('controles remotos', () => {
         maquina,
         ahora: 800,
       }),
-    ).toEqual({ eventos: ['responde'] });
-    expect(maquina.responderReflexion).toHaveBeenCalledWith(ACCIONES.SI_SORPRENDIO, 800);
+    ).toBeNull();
 
     expect(
       ejecutarAccionRemota({
@@ -118,7 +108,6 @@ describe('controles remotos', () => {
     const maquina = {
       avanzar: vi.fn(() => ({ eventos: ['avanza'] })),
       reiniciar: vi.fn(),
-      respuestaReflexion: vi.fn(() => null),
       esManual: vi.fn(() => true),
     };
 

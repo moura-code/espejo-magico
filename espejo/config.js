@@ -6,16 +6,14 @@ export const CONFIG = {
   // Sirve para probar sin pelear con el reloj — la escena no se corta a los
   // veinte segundos ni cuando salis de cuadro.
   //
-  // PARA EL EVENTO ESTO TIENE QUE ESTAR EN false. Mientras este en true, el
-  // espejo avisa en pantalla, asi no se llega al stand con el modo puesto.
+  // La experiencia arranca en automatico al detectar una cara. El modo manual
+  // se puede activar desde la configuracion cuando haga falta probarla.
   avance: {
-    manual: true,
+    manual: false,
   },
 
   demo: {
     pausaSinPersonaMs: 6500,
-    interaccionDesdeMs: 6000,
-    transicionManoMs: 700,
   },
 
   // Duraciones de cada estado, en milisegundos.
@@ -128,7 +126,6 @@ export const CONFIG = {
   },
 
   interfazGestual: {
-    permanenciaBotonMs: 850,
     avisoReflexionMs: 2500,
     reposo: {
       esperaInicialMs: 3000,

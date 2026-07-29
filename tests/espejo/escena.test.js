@@ -3,6 +3,7 @@ import {
   calcularDisposicion,
   calcularRectanguloVideo,
   calcularAspasCaracol,
+  calcularPosicionTemporizador,
   dibujarPuntosRostro,
   dibujarTemporizadorEstado,
   tamanoQueEntra,
@@ -182,6 +183,19 @@ describe('dibujarPuntosRostro', () => {
 });
 
 describe('dibujarTemporizadorEstado', () => {
+  it('ubica el contador abajo a la izquierda y dentro de la pantalla', () => {
+    const posicion = calcularPosicionTemporizador({
+      ancho: 1080,
+      alto: 1920,
+      unidad: 1080,
+    });
+
+    expect(posicion.centroX).toBeLessThan(1080 / 2);
+    expect(posicion.centroY).toBeGreaterThan(1920 / 2);
+    expect(posicion.centroX - posicion.radio).toBeGreaterThanOrEqual(0);
+    expect(posicion.centroY + posicion.radio).toBeLessThan(1920);
+  });
+
   it('dibuja un aro de progreso y los segundos restantes', () => {
     let arcos = 0;
     let trazos = 0;

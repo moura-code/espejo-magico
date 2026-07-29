@@ -42,18 +42,7 @@ const BOTONES_POR_ESTADO = {
       color: '#FFD23F',
     },
   ],
-  [ESTADOS.REFLEXION]: [
-    {
-      id: ACCIONES.SI_SORPRENDIO,
-      etiqueta: 'SÍ, ME SORPRENDIÓ',
-      color: '#FF8AB3',
-    },
-    {
-      id: ACCIONES.NO_PODRIA_VERME,
-      etiqueta: 'NO, PODRÍA VERME AHÍ',
-      color: '#62D8FF',
-    },
-  ],
+  [ESTADOS.REFLEXION]: [],
   [ESTADOS.CIERRE]: [
     {
       id: ACCIONES.REINICIAR,
@@ -63,14 +52,8 @@ const BOTONES_POR_ESTADO = {
   ],
 };
 
-export function botonesParaEstado(
-  estado,
-  { respuestaReflexion = null, manual = false } = {},
-) {
-  const botones =
-    estado === ESTADOS.REFLEXION && respuestaReflexion
-      ? []
-      : (BOTONES_POR_ESTADO[estado] ?? []).map((boton) => ({ ...boton }));
+export function botonesParaEstado(estado, { manual = false } = {}) {
+  const botones = (BOTONES_POR_ESTADO[estado] ?? []).map((boton) => ({ ...boton }));
 
   if (manual && !ESTADOS_CON_AVANCE_VISIBLE.has(estado)) {
     botones.push({ ...BOTON_AVANZAR });
@@ -83,15 +66,9 @@ export function controlesParaEstado(estado, opciones) {
 }
 
 export function ejecutarAccionRemota({ id, estado, maquina, ahora }) {
-  const respuestaReflexion = maquina.respuestaReflexion?.() ?? null;
   const manual = maquina.esManual?.() ?? false;
-  const permitida = botonesParaEstado(estado, { respuestaReflexion, manual }).some(
-    (boton) => boton.id === id,
-  );
+  const permitida = botonesParaEstado(estado, { manual }).some((boton) => boton.id === id);
   if (!permitida) return null;
-  if (id === ACCIONES.SI_SORPRENDIO || id === ACCIONES.NO_PODRIA_VERME) {
-    return maquina.responderReflexion(id, ahora);
-  }
   if (
     id === ACCIONES.EMPEZAR ||
     id === ACCIONES.AVANZAR ||

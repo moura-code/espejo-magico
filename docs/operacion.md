@@ -35,12 +35,11 @@ La tuerca de la esquina superior derecha abre la configuración. Desde ahí se
 puede elegir la cámara y activar el modo demo, el avance manual o la malla de
 diagnóstico sin usar el teclado.
 
-Después de veinte segundos de escena aparece la reflexión. La persona puede
-responder manteniendo una mano sobre `SÍ, ME SORPRENDIÓ` o
-`NO, PODRÍA VERME AHÍ`. El relleno del botón muestra cuánto falta para activarlo.
-La respuesta no registra imágenes ni datos personales. Cuando no hay nadie, el
-espejo hace una animación periódica de cierre y apertura en forma de caracol; es
-el comportamiento esperado.
+Después de veinte segundos de escena aparece la reflexión. No se muestran
+botones de respuesta ni en el espejo ni en la tablet de controles. En modo
+automático la experiencia continúa al terminar el tiempo; en modo manual se usa
+`AVANZAR`. Cuando no hay nadie, el espejo hace una animación periódica de cierre
+y apertura en forma de caracol; es el comportamiento esperado.
 
 La tablet frontal ofrece las mismas acciones con botones táctiles grandes. Su
 contenido cambia automáticamente junto con el espejo: no hay que recargarla
@@ -48,9 +47,10 @@ entre participantes. Cuando el espejo está esperando muestra `EMPEZAR`. En modo
 manual aparece `AVANZAR` cuando el flujo necesita pasar al estado siguiente; ya
 no se muestra una instrucción amarilla sobre el espejo.
 
-En avance automático, el aro de la parte superior del espejo indica cuántos
-segundos faltan para el siguiente paso. Durante la espera y el avance manual no
-aparece, porque el cambio depende de detectar a una persona o tocar un botón.
+En avance automático, el aro de la esquina inferior izquierda del espejo indica
+cuántos segundos faltan para el siguiente paso. Durante la espera y el avance
+manual no aparece, porque el cambio depende de detectar a una persona o tocar un
+botón.
 
 | Tecla | Qué hace |
 |---|---|
@@ -70,8 +70,8 @@ cuál está activa, apretar `P` y mirar la línea `camara`.
 
 La demo controla el avance automáticamente aunque el interruptor manual estuviera
 activo. Primero deja la pantalla vacía para probar el caracol y luego recorre
-todos los estados, las seis carreras y las dos respuestas virtuales. Al salir de
-la demo restaura el ajuste de avance anterior.
+todos los estados y las seis carreras. Al salir de la demo restaura el ajuste de
+avance anterior.
 
 ---
 
