@@ -36,6 +36,7 @@ describe('protocolo', () => {
       id: ACCIONES.TERMINAR,
     });
     expect(esValido(mensajeAccion(ACCIONES.TERMINAR))).toBe(true);
+    expect(esValido(mensajeAccion(ACCIONES.EMPEZAR))).toBe(true);
   });
 
   it('rechaza cualquier otra cosa', () => {

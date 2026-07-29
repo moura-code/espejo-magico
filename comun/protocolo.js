@@ -9,6 +9,7 @@ export const TIPOS = {
 };
 
 export const ACCIONES = {
+  EMPEZAR: 'empezar',
   REINICIAR: 'reiniciar',
   OTRA_CARRERA: 'otra-carrera',
   TERMINAR: 'terminar',

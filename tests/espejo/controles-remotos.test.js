@@ -9,7 +9,9 @@ import { ESTADOS } from '../../espejo/maquina-estados.js';
 
 describe('controles remotos', () => {
   it('solo muestra acciones utiles para el estado actual', () => {
-    expect(botonesParaEstado(ESTADOS.ATRACCION)).toEqual([]);
+    expect(botonesParaEstado(ESTADOS.ATRACCION).map((boton) => boton.id)).toEqual([
+      ACCIONES.EMPEZAR,
+    ]);
     expect(botonesParaEstado(ESTADOS.ENGANCHE).map((boton) => boton.id)).toEqual([
       ACCIONES.REINICIAR,
     ]);
@@ -49,6 +51,16 @@ describe('controles remotos', () => {
 
     expect(
       ejecutarAccionRemota({
+        id: ACCIONES.EMPEZAR,
+        estado: ESTADOS.ATRACCION,
+        maquina,
+        ahora: 600,
+      }),
+    ).toEqual({ eventos: ['avanza'] });
+    expect(maquina.avanzar).toHaveBeenCalledWith(600);
+
+    expect(
+      ejecutarAccionRemota({
         id: ACCIONES.REINICIAR,
         estado: ESTADOS.SORTEO,
         maquina,
@@ -59,7 +71,7 @@ describe('controles remotos', () => {
 
     expect(
       ejecutarAccionRemota({
-        id: ACCIONES.TERMINAR,
+        id: ACCIONES.OTRA_CARRERA,
         estado: ESTADOS.ATRACCION,
         maquina,
         ahora: 900,

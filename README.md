@@ -83,9 +83,9 @@ Además del espejo en `/`, existen tres pantallas específicas:
 - `/herramientas/figuras.html` — visor técnico de las figuras disponibles.
 
 La tablet de controles muestra únicamente las acciones válidas para el estado
-actual. Durante el sorteo permite cancelar; durante la escena presenta
-`OTRA CARRERA` y `TERMINAR`; durante el cierre permite volver al inicio. Los
-botones desaparecen cuando el espejo está esperando a una persona.
+actual. Mientras el espejo espera presenta `EMPEZAR`; durante el sorteo permite
+cancelar; durante la escena presenta `OTRA CARRERA` y `TERMINAR`; durante el
+cierre permite volver al inicio.
 
 ## Cómo está armado
 

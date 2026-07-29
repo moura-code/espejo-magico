@@ -8,7 +8,13 @@ const BOTON_CANCELAR = {
 };
 
 const BOTONES_POR_ESTADO = {
-  [ESTADOS.ATRACCION]: [],
+  [ESTADOS.ATRACCION]: [
+    {
+      id: ACCIONES.EMPEZAR,
+      etiqueta: 'EMPEZAR',
+      color: '#7CFFB2',
+    },
+  ],
   [ESTADOS.ENGANCHE]: [BOTON_CANCELAR],
   [ESTADOS.SORTEO]: [BOTON_CANCELAR],
   [ESTADOS.REVELACION]: [BOTON_CANCELAR],
@@ -44,6 +50,8 @@ export function controlesParaEstado(estado) {
 export function ejecutarAccionRemota({ id, estado, maquina, ahora }) {
   const permitida = botonesParaEstado(estado).some((boton) => boton.id === id);
   if (!permitida) return null;
-  if (id === ACCIONES.TERMINAR) return maquina.avanzar(ahora);
+  if (id === ACCIONES.EMPEZAR || id === ACCIONES.TERMINAR) {
+    return maquina.avanzar(ahora);
+  }
   return maquina.reiniciar(ahora);
 }

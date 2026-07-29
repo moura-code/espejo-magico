@@ -43,7 +43,7 @@ comportamiento esperado.
 
 La tablet frontal ofrece las mismas acciones con botones táctiles grandes. Su
 contenido cambia automáticamente junto con el espejo: no hay que recargarla
-entre participantes.
+entre participantes. Cuando el espejo está esperando muestra `EMPEZAR`.
 
 | Tecla | Qué hace |
 |---|---|
