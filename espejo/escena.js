@@ -618,13 +618,22 @@ export function dibujarCierreConceptual(ctx, disposicion, alfa = 1) {
   ctx.restore();
 }
 
+export function calcularPosicionTemporizador(disposicion) {
+  const radio = Math.max(30, Math.min(50, disposicion.unidad * 0.04));
+  const margenHorizontal = Math.max(20, disposicion.ancho * 0.018);
+  const margenInferior = Math.max(24, disposicion.alto * 0.025);
+  return {
+    radio,
+    centroX: margenHorizontal + radio,
+    centroY: disposicion.alto - margenInferior - radio,
+  };
+}
+
 export function dibujarTemporizadorEstado(ctx, disposicion, temporizador, color = '#62D8FF') {
   if (!temporizador) return;
 
-  const radio = Math.max(30, Math.min(50, disposicion.unidad * 0.04));
+  const { radio, centroX, centroY } = calcularPosicionTemporizador(disposicion);
   const grosor = Math.max(4, radio * 0.13);
-  const centroX = disposicion.ancho / 2;
-  const centroY = Math.max(20, disposicion.alto * 0.018) + radio;
   const inicio = -Math.PI / 2;
   const fin = inicio + Math.PI * 2 * temporizador.proporcionRestante;
 
