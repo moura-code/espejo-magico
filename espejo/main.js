@@ -50,8 +50,12 @@ import {
   dibujarManosSinteticas,
   dibujarBotonesVirtuales,
   dibujarCierreDeAusencia,
+  dibujarAntesDeReflexion,
+  dibujarCierreConceptual,
   dibujarTextos,
   dibujarInvitacion,
+  dibujarMensajeSorteo,
+  dibujarReflexion,
 } from './escena.js';
 import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
@@ -240,6 +244,8 @@ function atender(eventos, ahora) {
     // hay exactamente los objetos de la carrera sorteada y nada mas.
     if (evento.estado === ESTADOS.REVELACION) pool.vaciar();
 
+    if (evento.estado === ESTADOS.REFLEXION) pool.retirar(ahora, 600);
+
     if (evento.estado === ESTADOS.ATRACCION) pool.vaciar();
   }
 }
@@ -305,12 +311,9 @@ function cuadro(ahora) {
   }
   accionRemotaPendiente = null;
 
-  if (accionVirtualPendiente && maquina.estado() === ESTADOS.ESCENA) {
-    const salidaVirtual =
-      accionVirtualPendiente === 'otra-carrera'
-        ? maquina.reiniciar(ahora)
-        : maquina.avanzar(ahora);
-    atender(salidaVirtual.eventos, ahora);
+  if (accionVirtualPendiente && maquina.estado() === ESTADOS.REFLEXION) {
+    const salidaVirtual = maquina.responderReflexion(accionVirtualPendiente, ahora);
+    if (salidaVirtual) atender(salidaVirtual.eventos, ahora);
   }
   accionVirtualPendiente = null;
 
@@ -360,7 +363,9 @@ function cuadro(ahora) {
     detectorDeManos &&
     video &&
     modo !== 'demo' &&
-    (estadoAnterior === ESTADOS.REVELACION || estadoAnterior === ESTADOS.ESCENA);
+    (estadoAnterior === ESTADOS.REVELACION ||
+      estadoAnterior === ESTADOS.ESCENA ||
+      estadoAnterior === ESTADOS.REFLEXION);
 
   if (modo === 'demo' && ahora - ultimaDeteccionManos >= intervaloManos) {
     ultimaDeteccionManos = ahora;
@@ -388,9 +393,14 @@ function cuadro(ahora) {
 
   const estado = salida.estado;
   estadoAnterior = estado;
-  if (estado !== estadoDeControles) {
-    estadoDeControles = estado;
-    ultimoMensajeControles = controlesParaEstado(estado);
+  const claveDeControles =
+    `${estado}:${salida.respuestaReflexion ?? ''}:${maquina.esManual()}`;
+  if (claveDeControles !== estadoDeControles) {
+    estadoDeControles = claveDeControles;
+    ultimoMensajeControles = controlesParaEstado(estado, {
+      respuestaReflexion: salida.respuestaReflexion,
+      manual: maquina.esManual(),
+    });
     bus.enviar(ultimoMensajeControles);
   }
 
@@ -404,7 +414,9 @@ function cuadro(ahora) {
   const enEstadoDesde = ahora - maquina.desdeCuando();
   const botonesVirtuales = calcularBotonesVirtuales(disposicion);
   const botonesHabilitados =
-    estado === ESTADOS.ESCENA && (modo === 'demo' || Boolean(detectorDeManos));
+    estado === ESTADOS.REFLEXION &&
+    !salida.respuestaReflexion &&
+    (modo === 'demo' || Boolean(detectorDeManos));
   const interaccionVirtual = controlBotonesVirtuales.actualizar({
     botones: botonesVirtuales,
     manos,
@@ -447,7 +459,7 @@ function cuadro(ahora) {
     colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
   }
 
-  pool.actualizar(dt, ahora, {
+  pool.actualizar(estado === ESTADOS.REFLEXION ? 0 : dt, ahora, {
     ...CONFIG.fisica,
     caja: disposicion.caja,
     colisionadores,
@@ -546,22 +558,6 @@ function cuadro(ahora) {
     ctx.drawImage(capaNiebla, 0, 0);
   }
 
-  // Aviso permanente del modo manual. No es para el operador: es para que nadie
-  // llegue al dia del evento con el modo puesto sin darse cuenta.
-  if (maquina.esManual()) {
-    ctx.save();
-    ctx.fillStyle = '#FFD23F';
-    ctx.font = `600 ${Math.round(disposicion.texto.tamanoFrase * 0.8)}px system-ui, sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.globalAlpha = 0.85;
-    ctx.fillText(
-      'MODO MANUAL — ESPACIO para avanzar, A para automático',
-      disposicion.ancho - 24,
-      96,
-    );
-    ctx.restore();
-  }
-
   if (modo === 'demo') {
     const resumenDemo = controlDemo.resumen();
     ctx.save();
@@ -580,14 +576,23 @@ function cuadro(ahora) {
   if (estado === ESTADOS.ATRACCION) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
+  } else if (estado === ESTADOS.SORTEO) {
+    dibujarMensajeSorteo(ctx, disposicion, (Math.sin(ahora / 500) + 1) / 2);
   } else if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    dibujarTextos(ctx, carrera, disposicion, 1);
+    const mostrandoAntesDeReflexion =
+      estado === ESTADOS.ESCENA &&
+      enEstadoDesde >= CONFIG.tiempos.escena - CONFIG.interfazGestual.avisoReflexionMs;
+    if (mostrandoAntesDeReflexion) dibujarAntesDeReflexion(ctx, disposicion);
+    else dibujarTextos(ctx, carrera, disposicion, 1);
+  } else if (estado === ESTADOS.REFLEXION) {
+    dibujarReflexion(ctx, carrera, disposicion, salida.respuestaReflexion);
   } else if (estado === ESTADOS.CIERRE) {
-    dibujarTextos(
+    const progresoDeCierre = enEstadoDesde / CONFIG.tiempos.cierre;
+    const alfaDeCierre = Math.max(0, 1 - Math.max(0, progresoDeCierre - 0.75) / 0.25);
+    dibujarCierreConceptual(
       ctx,
-      carrera,
       disposicion,
-      Math.max(0, 1 - enEstadoDesde / CONFIG.tiempos.cierre),
+      alfaDeCierre,
     );
   }
 

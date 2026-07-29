@@ -6,6 +6,8 @@
       "nombre": "Ingeniería Mecánica",
       "color": "#4FC3F7",
       "frase": "Diseño y análisis de máquinas y sistemas térmicos",
+      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Mecánica?",
+      "mensajeReflexivo": "Diseñar máquinas y sistemas no tiene género.",
       "efecto": "engranajes",
       "accesorio": {
         "img": "assets/mecanica/antiparras.png",
@@ -30,6 +32,8 @@
       "nombre": "Ingeniería Eléctrica",
       "color": "#FFD23F",
       "frase": "Generación, transmisión y control de la energía",
+      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Eléctrica?",
+      "mensajeReflexivo": "Transformar la energía no tiene género.",
       "efecto": "chispas",
       "accesorio": {
         "img": "assets/electrica/casco-visor.png",
@@ -54,6 +58,8 @@
       "nombre": "Ingeniería en Computación",
       "color": "#00E5A0",
       "frase": "Diseño de sistemas de cómputo, del hardware al software",
+      "preguntaReflexiva": "¿Te sorprendió verte en Computación?",
+      "mensajeReflexivo": "La capacidad para crear tecnología no tiene género.",
       "efecto": "codigo",
       "accesorio": {
         "img": "assets/computacion/gafas-vr.png",
@@ -78,6 +84,8 @@
       "nombre": "Ingeniería Físico-Matemática",
       "color": "#A78BFA",
       "frase": "Modelado matemático y físico de sistemas complejos",
+      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Físico-Matemática?",
+      "mensajeReflexivo": "Investigar y modelar el mundo no tiene género.",
       "efecto": "formulas",
       "accesorio": {
         "img": "assets/fisico-matematico/orbitas.png",
@@ -102,6 +110,8 @@
       "nombre": "Ingeniería Civil",
       "color": "#FF8A3D",
       "frase": "Diseño y construcción de estructuras e infraestructura",
+      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Civil?",
+      "mensajeReflexivo": "Diseñar los espacios que habitamos no tiene género.",
       "efecto": "planos",
       "accesorio": {
         "img": "assets/civil/casco.png",
@@ -126,6 +136,8 @@
       "nombre": "Ingeniería Química",
       "color": "#FF5D8F",
       "frase": "Procesos de transformación de la materia y la energía",
+      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Química?",
+      "mensajeReflexivo": "Transformar la materia y la energía no tiene género.",
       "efecto": "burbujas",
       "accesorio": {
         "img": "assets/quimica/antiparras-lab.png",

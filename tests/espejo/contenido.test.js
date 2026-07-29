@@ -6,6 +6,8 @@ const carreraValida = () => ({
   nombre: 'Ingeniería Civil',
   color: '#FF8A3D',
   frase: 'Construís lo que queda de pie',
+  preguntaReflexiva: '¿Te sorprendió verte en Ingeniería Civil?',
+  mensajeReflexivo: 'Construir el futuro no tiene género.',
   accesorio: {
     img: 'assets/civil/casco.png',
     anclaOjoIzq: [0.3, 0.7],
@@ -35,6 +37,17 @@ describe('validarContenido', () => {
     conError({ carreras: [{ ...carreraValida(), id: undefined }] }, 'falta "id"');
     conError({ carreras: [{ ...carreraValida(), nombre: undefined }] }, 'falta "nombre"');
     conError({ carreras: [{ ...carreraValida(), color: 'naranja' }] }, '#rrggbb');
+  });
+
+  it('exige los textos de la reflexion', () => {
+    conError(
+      { carreras: [{ ...carreraValida(), preguntaReflexiva: undefined }] },
+      '"preguntaReflexiva"',
+    );
+    conError(
+      { carreras: [{ ...carreraValida(), mensajeReflexivo: undefined }] },
+      '"mensajeReflexivo"',
+    );
   });
 
   it('rechaza ids repetidos', () => {

@@ -1,3 +1,5 @@
+import { ACCIONES } from '../comun/protocolo.js';
+
 const limitar = (valor, minimo, maximo) => Math.max(minimo, Math.min(maximo, valor));
 
 export function calcularBotonesVirtuales(disposicion) {
@@ -10,20 +12,20 @@ export function calcularBotonesVirtuales(disposicion) {
 
   return [
     {
-      id: 'otra-carrera',
-      etiqueta: 'OTRA CARRERA',
+      id: ACCIONES.SI_SORPRENDIO,
+      etiqueta: 'SÍ, ME SORPRENDIÓ',
       ayuda: 'Mantené la mano',
-      color: '#62D8FF',
+      color: '#FF8AB3',
       x: margen,
       y,
       ancho: anchoBoton,
       alto: altoBoton,
     },
     {
-      id: 'terminar',
-      etiqueta: 'TERMINAR',
+      id: ACCIONES.NO_PODRIA_VERME,
+      etiqueta: 'NO, PODRÍA VERME AHÍ',
       ayuda: 'Mantené la mano',
-      color: '#FFD23F',
+      color: '#62D8FF',
       x: margen + anchoBoton + separacion,
       y,
       ancho: anchoBoton,

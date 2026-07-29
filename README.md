@@ -2,12 +2,12 @@
 
 Instalación interactiva para el stand de una Facultad de Ingeniería.
 
-Un visitante se sienta frente a una pantalla enmarcada como espejo. Una cámara lo
-captura, el sistema detecta su rostro y le sortea una de seis ingenierías. La
-pantalla se cubre de niebla, se despeja, y el participante aparece rodeado de
-objetos característicos de esa carrera que caen, rebotan contra su cabeza y se
-pueden manotear con las manos. En simultáneo, unas tablets alrededor reproducen
-videos de mujeres vinculadas a esa disciplina.
+Un visitante se acerca a una pantalla enmarcada como espejo. El sistema le propone
+al azar una de seis ingenierías, sin inferir aptitudes, género ni vocación a partir
+de su rostro. La pantalla se cubre de niebla, se despeja, y el participante aparece
+rodeado de objetos característicos de esa carrera que puede manotear. La posible
+sorpresa ante esa imagen abre una reflexión sobre los estereotipos profesionales.
+En simultáneo, unas tablets reproducen videos de mujeres vinculadas a la disciplina.
 
 Todo corre en el navegador, en una sola PC, **sin conexión a internet**.
 
@@ -18,7 +18,7 @@ Hace falta Node.js y Chrome.
 ```bash
 npm install
 npm run vendorizar   # copia MediaPipe y baja los modelos — única vez que necesita red
-npm test             # 412 pruebas
+npm test             # pruebas automatizadas
 ```
 
 Para levantarlo:
@@ -42,7 +42,7 @@ direcciones IPv4 disponibles para abrir las tablets desde la red del stand.
 
 | Comando | Para qué |
 |---|---|
-| `npm test` | ¿Funciona el código? 412 pruebas. Tiene que estar en verde siempre. |
+| `npm test` | ¿Funciona el código? Ejecuta las pruebas automatizadas. |
 | `npm run listo` | ¿Se puede montar el stand? Verifica que el contenido real esté completo. Está en rojo hasta que lleguen los PNG y los videos, y eso es lo esperado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro y manos. |
 | `npm run dev` | Levanta el servidor en modo desarrollo con reinicio automático. |
@@ -53,10 +53,10 @@ direcciones IPv4 disponibles para abrir las tablets desde la red del stand.
 La tuerca de la esquina superior derecha abre un panel para elegir la cámara y
 alternar el modo demo, el avance manual y la malla de diagnóstico.
 
-Durante la escena aparecen dos botones virtuales, `OTRA CARRERA` y `TERMINAR`.
-Se activan manteniendo una palma encima. Cuando el espejo queda vacío, la imagen
-se cierra y vuelve a abrir en espiral, como un caracol, para mantener la pantalla
-en movimiento.
+Después de la escena aparecen dos respuestas virtuales: `SÍ, ME SORPRENDIÓ` y
+`NO, PODRÍA VERME AHÍ`. Se activan manteniendo una palma encima. Cuando el espejo
+queda vacío, la imagen se cierra y vuelve a abrir en espiral, como un caracol,
+para mantener la pantalla en movimiento.
 
 | Tecla | Qué hace |
 |---|---|
@@ -73,8 +73,8 @@ en movimiento.
 una grilla, sobre fondo oscuro, claro o tono de piel.
 
 La demo comienza con una pausa sin persona para probar la animación de reposo,
-recorre todos los estados y carreras, simula rostro y manos, y alterna entre los
-botones `OTRA CARRERA` y `TERMINAR`. Mientras está activa ignora el avance manual.
+recorre todos los estados y carreras, simula rostro y manos, y alterna entre las
+dos respuestas de la reflexión. Mientras está activa ignora el avance manual.
 
 Además del espejo en `/`, existen tres pantallas específicas:
 
@@ -85,7 +85,10 @@ Además del espejo en `/`, existen tres pantallas específicas:
 La tablet de controles muestra únicamente las acciones válidas para el estado
 actual. Mientras el espejo espera presenta `EMPEZAR`; durante el sorteo permite
 cancelar; durante la escena presenta `OTRA CARRERA` y `TERMINAR`; durante el
-cierre permite volver al inicio.
+momento de reflexión presenta las mismas dos respuestas del espejo; durante el
+cierre permite volver al inicio. Si el avance manual está activo, agrega
+`AVANZAR` en los pasos que necesitan intervención y el espejo no muestra avisos
+de teclado sobre la imagen.
 
 ## Cómo está armado
 
@@ -105,8 +108,8 @@ círculos y rectángulos. Por eso la máquina de estados se prueba entera sin c�
 ni pantalla.
 
 **Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:**
-nombre, color, frase, objetos, efecto de partículas y referentes. Agregar o
-cambiar una carrera no toca una línea de código.
+nombre, color, frase, pregunta y mensaje reflexivo, objetos, efecto de partículas
+y referentes. Agregar o cambiar una carrera no toca una línea de código.
 
 Los objetos se dibujan con figuras vectoriales (`espejo/figuras.js`) mientras no
 haya PNG. El orden de preferencia es **PNG → figura → círculo del color**, así

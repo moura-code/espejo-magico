@@ -3,6 +3,11 @@
 
 import { calcularAnclaje } from './anclaje.js';
 import { dibujarFigura } from './figuras.js';
+import {
+  preguntaDeReflexion,
+  TEXTOS_EXPERIENCIA,
+  tituloDeRevelacion,
+} from './narrativa.js';
 
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
@@ -358,6 +363,7 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   if (!carrera || alfa <= 0) return;
   const { texto, ancho } = disposicion;
   const disponible = ancho * MARGEN_TEXTO;
+  const titulo = tituloDeRevelacion(carrera);
 
   const medirCon = (peso, familia) => (contenido, tamano) => {
     ctx.font = `${peso} ${tamano}px ${familia}`;
@@ -371,10 +377,10 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.shadowBlur = 18;
 
   const medirNombre = medirCon(700, 'system-ui, sans-serif');
-  const tamanoNombre = tamanoQueEntra(carrera.nombre, texto.tamanoNombre, disponible, medirNombre);
+  const tamanoNombre = tamanoQueEntra(titulo, texto.tamanoNombre, disponible, medirNombre);
   ctx.fillStyle = carrera.color;
   ctx.font = `700 ${tamanoNombre}px system-ui, sans-serif`;
-  ctx.fillText(carrera.nombre, ancho / 2, texto.nombreY);
+  ctx.fillText(titulo, ancho / 2, texto.nombreY);
 
   if (carrera.frase) {
     const medirFrase = medirCon(400, 'system-ui, sans-serif');
@@ -386,8 +392,64 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.restore();
 }
 
+function dibujarLineaAjustada(
+  ctx,
+  contenido,
+  {
+    x,
+    y,
+    tamano,
+    anchoMaximo,
+    peso = 400,
+    color = '#ffffff',
+  },
+) {
+  const medir = (valor, medida) => {
+    ctx.font = `${peso} ${medida}px system-ui, sans-serif`;
+    return ctx.measureText(valor).width;
+  };
+  const elegido = tamanoQueEntra(contenido, tamano, anchoMaximo, medir);
+  ctx.fillStyle = color;
+  ctx.font = `${peso} ${elegido}px system-ui, sans-serif`;
+  ctx.fillText(contenido, x, y);
+}
+
+export function partirTextoEnLineas(ctx, contenido, anchoMaximo) {
+  const palabras = contenido.trim().split(/\s+/);
+  const lineas = [];
+  let actual = '';
+
+  for (const palabra of palabras) {
+    const candidata = actual ? `${actual} ${palabra}` : palabra;
+    if (actual && ctx.measureText(candidata).width > anchoMaximo) {
+      lineas.push(actual);
+      actual = palabra;
+    } else {
+      actual = candidata;
+    }
+  }
+
+  if (actual) lineas.push(actual);
+  return lineas;
+}
+
+function dibujarParrafo(
+  ctx,
+  contenido,
+  { x, y, tamano, anchoMaximo, interlineado = 1.25, color = '#ffffff', peso = 400 },
+) {
+  ctx.font = `${peso} ${tamano}px system-ui, sans-serif`;
+  ctx.fillStyle = color;
+  const lineas = partirTextoEnLineas(ctx, contenido, anchoMaximo);
+  lineas.forEach((linea, indice) => {
+    ctx.fillText(linea, x, y + indice * tamano * interlineado);
+  });
+  return lineas.length * tamano * interlineado;
+}
+
 export function dibujarInvitacion(ctx, disposicion, pulso) {
   const { ancho, alto, texto } = disposicion;
+  const disponible = ancho * MARGEN_TEXTO;
 
   ctx.save();
   ctx.globalAlpha = 0.65 + 0.35 * pulso;
@@ -395,9 +457,163 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';
   ctx.shadowBlur = 24;
-  ctx.font = `700 ${texto.tamanoNombre}px system-ui, sans-serif`;
-  ctx.fillText('Sentate frente al espejo', ancho / 2, alto * 0.5);
-  ctx.font = `400 ${texto.tamanoFrase}px system-ui, sans-serif`;
-  ctx.fillText('y descubrí tu ingeniería', ancho / 2, alto * 0.5 + texto.tamanoNombre);
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.esperaTitulo, {
+    x: ancho / 2,
+    y: alto * 0.5,
+    tamano: texto.tamanoNombre,
+    anchoMaximo: disponible,
+    peso: 700,
+  });
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.esperaBajada, {
+    x: ancho / 2,
+    y: alto * 0.5 + texto.tamanoNombre,
+    tamano: texto.tamanoFrase,
+    anchoMaximo: disponible,
+  });
+  ctx.restore();
+}
+
+export function dibujarMensajeSorteo(ctx, disposicion, pulso) {
+  const { ancho, alto, texto } = disposicion;
+
+  ctx.save();
+  ctx.globalAlpha = 0.72 + pulso * 0.28;
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.9)';
+  ctx.shadowBlur = 26;
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.sorteo, {
+    x: ancho / 2,
+    y: alto * 0.5,
+    tamano: texto.tamanoNombre * 0.82,
+    anchoMaximo: ancho * MARGEN_TEXTO,
+    peso: 700,
+  });
+  ctx.restore();
+}
+
+export function dibujarAntesDeReflexion(ctx, disposicion) {
+  const { ancho, alto, texto } = disposicion;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(3,7,10,0.48)';
+  ctx.fillRect(0, 0, ancho, alto);
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.9)';
+  ctx.shadowBlur = 22;
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.antesDeReflexionTitulo, {
+    x: ancho / 2,
+    y: alto * 0.46,
+    tamano: texto.tamanoNombre,
+    anchoMaximo: ancho * MARGEN_TEXTO,
+    peso: 700,
+  });
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.antesDeReflexionPregunta, {
+    x: ancho / 2,
+    y: alto * 0.46 + texto.tamanoNombre * 1.2,
+    tamano: texto.tamanoFrase * 1.15,
+    anchoMaximo: ancho * MARGEN_TEXTO,
+  });
+  ctx.restore();
+}
+
+export function dibujarReflexion(ctx, carrera, disposicion, respuesta) {
+  if (!carrera) return;
+  const { ancho, alto, texto } = disposicion;
+  const centroX = ancho / 2;
+  const disponible = ancho * 0.84;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(3,7,10,0.68)';
+  ctx.fillRect(0, 0, ancho, alto);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.shadowColor = 'rgba(0,0,0,0.9)';
+  ctx.shadowBlur = 20;
+
+  if (!respuesta) {
+    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.azarTitulo, {
+      x: centroX,
+      y: alto * 0.24,
+      tamano: texto.tamanoNombre,
+      anchoMaximo: disponible,
+      peso: 700,
+      color: carrera.color,
+    });
+    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.azarDetalle, {
+      x: centroX,
+      y: alto * 0.24 + texto.tamanoNombre * 1.15,
+      tamano: texto.tamanoFrase,
+      anchoMaximo: disponible,
+    });
+    dibujarParrafo(ctx, preguntaDeReflexion(carrera), {
+      x: centroX,
+      y: alto * 0.46,
+      tamano: texto.tamanoNombre * 0.74,
+      anchoMaximo: disponible,
+      interlineado: 1.15,
+      color: '#ffffff',
+      peso: 700,
+    });
+  } else {
+    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.devolucionTitulo, {
+      x: centroX,
+      y: alto * 0.28,
+      tamano: texto.tamanoNombre,
+      anchoMaximo: disponible,
+      peso: 700,
+      color: carrera.color,
+    });
+    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.devolucionBajada, {
+      x: centroX,
+      y: alto * 0.28 + texto.tamanoNombre * 1.15,
+      tamano: texto.tamanoNombre * 0.72,
+      anchoMaximo: disponible,
+      peso: 700,
+    });
+    dibujarParrafo(ctx, carrera.mensajeReflexivo, {
+      x: centroX,
+      y: alto * 0.48,
+      tamano: texto.tamanoFrase,
+      anchoMaximo: disponible,
+      color: carrera.color,
+      peso: 700,
+    });
+    dibujarParrafo(ctx, TEXTOS_EXPERIENCIA.devolucion, {
+      x: centroX,
+      y: alto * 0.58,
+      tamano: texto.tamanoFrase * 0.88,
+      anchoMaximo: disponible,
+      interlineado: 1.3,
+    });
+  }
+  ctx.restore();
+}
+
+export function dibujarCierreConceptual(ctx, disposicion, alfa = 1) {
+  if (alfa <= 0) return;
+  const { ancho, alto, texto } = disposicion;
+
+  ctx.save();
+  ctx.globalAlpha = alfa;
+  ctx.fillStyle = 'rgba(3,7,10,0.82)';
+  ctx.fillRect(0, 0, ancho, alto);
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.9)';
+  ctx.shadowBlur = 22;
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.cierreTitulo, {
+    x: ancho / 2,
+    y: alto * 0.47,
+    tamano: texto.tamanoNombre,
+    anchoMaximo: ancho * MARGEN_TEXTO,
+    peso: 700,
+  });
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.cierreBajada, {
+    x: ancho / 2,
+    y: alto * 0.47 + texto.tamanoNombre * 1.2,
+    tamano: texto.tamanoNombre * 0.82,
+    anchoMaximo: ancho * MARGEN_TEXTO,
+    peso: 700,
+    color: '#FF8AB3',
+  });
   ctx.restore();
 }

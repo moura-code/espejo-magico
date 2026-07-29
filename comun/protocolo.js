@@ -10,9 +10,12 @@ export const TIPOS = {
 
 export const ACCIONES = {
   EMPEZAR: 'empezar',
+  AVANZAR: 'avanzar',
   REINICIAR: 'reiniciar',
   OTRA_CARRERA: 'otra-carrera',
   TERMINAR: 'terminar',
+  SI_SORPRENDIO: 'si-sorprendio',
+  NO_PODRIA_VERME: 'no-podria-verme',
 };
 
 const ACCIONES_VALIDAS = new Set(Object.values(ACCIONES));

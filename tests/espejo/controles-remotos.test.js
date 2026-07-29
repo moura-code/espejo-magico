@@ -19,7 +19,29 @@ describe('controles remotos', () => {
       ACCIONES.OTRA_CARRERA,
       ACCIONES.TERMINAR,
     ]);
+    expect(botonesParaEstado(ESTADOS.REFLEXION).map((boton) => boton.id)).toEqual([
+      ACCIONES.SI_SORPRENDIO,
+      ACCIONES.NO_PODRIA_VERME,
+    ]);
+    expect(
+      botonesParaEstado(ESTADOS.REFLEXION, { respuestaReflexion: ACCIONES.SI_SORPRENDIO }),
+    ).toEqual([]);
     expect(botonesParaEstado(ESTADOS.CIERRE)[0].etiqueta).toBe('VOLVER AL INICIO');
+  });
+
+  it('reemplaza el aviso de teclado por avanzar en la tablet durante el modo manual', () => {
+    expect(
+      botonesParaEstado(ESTADOS.SORTEO, { manual: true }).map((boton) => boton.id),
+    ).toEqual([ACCIONES.REINICIAR, ACCIONES.AVANZAR]);
+    expect(
+      botonesParaEstado(ESTADOS.REFLEXION, {
+        manual: true,
+        respuestaReflexion: ACCIONES.SI_SORPRENDIO,
+      }).map((boton) => boton.id),
+    ).toEqual([ACCIONES.AVANZAR]);
+    expect(
+      botonesParaEstado(ESTADOS.SORTEO, { manual: false }).map((boton) => boton.id),
+    ).not.toContain(ACCIONES.AVANZAR);
   });
 
   it('publica un mensaje de controles valido', () => {
@@ -37,6 +59,9 @@ describe('controles remotos', () => {
     const maquina = {
       avanzar: vi.fn(() => ({ eventos: ['avanza'] })),
       reiniciar: vi.fn(() => ({ eventos: ['reinicia'] })),
+      responderReflexion: vi.fn(() => ({ eventos: ['responde'] })),
+      respuestaReflexion: vi.fn(() => null),
+      esManual: vi.fn(() => false),
     };
 
     expect(
@@ -71,10 +96,49 @@ describe('controles remotos', () => {
 
     expect(
       ejecutarAccionRemota({
+        id: ACCIONES.SI_SORPRENDIO,
+        estado: ESTADOS.REFLEXION,
+        maquina,
+        ahora: 800,
+      }),
+    ).toEqual({ eventos: ['responde'] });
+    expect(maquina.responderReflexion).toHaveBeenCalledWith(ACCIONES.SI_SORPRENDIO, 800);
+
+    expect(
+      ejecutarAccionRemota({
         id: ACCIONES.OTRA_CARRERA,
         estado: ESTADOS.ATRACCION,
         maquina,
         ahora: 900,
+      }),
+    ).toBeNull();
+  });
+
+  it('permite avanzar desde la tablet solamente en modo manual', () => {
+    const maquina = {
+      avanzar: vi.fn(() => ({ eventos: ['avanza'] })),
+      reiniciar: vi.fn(),
+      respuestaReflexion: vi.fn(() => null),
+      esManual: vi.fn(() => true),
+    };
+
+    expect(
+      ejecutarAccionRemota({
+        id: ACCIONES.AVANZAR,
+        estado: ESTADOS.SORTEO,
+        maquina,
+        ahora: 1200,
+      }),
+    ).toEqual({ eventos: ['avanza'] });
+    expect(maquina.avanzar).toHaveBeenCalledWith(1200);
+
+    maquina.esManual.mockReturnValue(false);
+    expect(
+      ejecutarAccionRemota({
+        id: ACCIONES.AVANZAR,
+        estado: ESTADOS.SORTEO,
+        maquina,
+        ahora: 1300,
       }),
     ).toBeNull();
   });

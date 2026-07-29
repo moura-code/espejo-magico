@@ -7,6 +7,18 @@ const BOTON_CANCELAR = {
   color: '#FF6B88',
 };
 
+const BOTON_AVANZAR = {
+  id: ACCIONES.AVANZAR,
+  etiqueta: 'AVANZAR',
+  color: '#7CFFB2',
+};
+
+const ESTADOS_CON_AVANCE_VISIBLE = new Set([
+  ESTADOS.ATRACCION,
+  ESTADOS.ESCENA,
+  ESTADOS.CIERRE,
+]);
+
 const BOTONES_POR_ESTADO = {
   [ESTADOS.ATRACCION]: [
     {
@@ -30,6 +42,18 @@ const BOTONES_POR_ESTADO = {
       color: '#FFD23F',
     },
   ],
+  [ESTADOS.REFLEXION]: [
+    {
+      id: ACCIONES.SI_SORPRENDIO,
+      etiqueta: 'SÍ, ME SORPRENDIÓ',
+      color: '#FF8AB3',
+    },
+    {
+      id: ACCIONES.NO_PODRIA_VERME,
+      etiqueta: 'NO, PODRÍA VERME AHÍ',
+      color: '#62D8FF',
+    },
+  ],
   [ESTADOS.CIERRE]: [
     {
       id: ACCIONES.REINICIAR,
@@ -39,18 +63,40 @@ const BOTONES_POR_ESTADO = {
   ],
 };
 
-export function botonesParaEstado(estado) {
-  return (BOTONES_POR_ESTADO[estado] ?? []).map((boton) => ({ ...boton }));
+export function botonesParaEstado(
+  estado,
+  { respuestaReflexion = null, manual = false } = {},
+) {
+  const botones =
+    estado === ESTADOS.REFLEXION && respuestaReflexion
+      ? []
+      : (BOTONES_POR_ESTADO[estado] ?? []).map((boton) => ({ ...boton }));
+
+  if (manual && !ESTADOS_CON_AVANCE_VISIBLE.has(estado)) {
+    botones.push({ ...BOTON_AVANZAR });
+  }
+  return botones;
 }
 
-export function controlesParaEstado(estado) {
-  return mensajeControles(estado, botonesParaEstado(estado));
+export function controlesParaEstado(estado, opciones) {
+  return mensajeControles(estado, botonesParaEstado(estado, opciones));
 }
 
 export function ejecutarAccionRemota({ id, estado, maquina, ahora }) {
-  const permitida = botonesParaEstado(estado).some((boton) => boton.id === id);
+  const respuestaReflexion = maquina.respuestaReflexion?.() ?? null;
+  const manual = maquina.esManual?.() ?? false;
+  const permitida = botonesParaEstado(estado, { respuestaReflexion, manual }).some(
+    (boton) => boton.id === id,
+  );
   if (!permitida) return null;
-  if (id === ACCIONES.EMPEZAR || id === ACCIONES.TERMINAR) {
+  if (id === ACCIONES.SI_SORPRENDIO || id === ACCIONES.NO_PODRIA_VERME) {
+    return maquina.responderReflexion(id, ahora);
+  }
+  if (
+    id === ACCIONES.EMPEZAR ||
+    id === ACCIONES.AVANZAR ||
+    id === ACCIONES.TERMINAR
+  ) {
     return maquina.avanzar(ahora);
   }
   return maquina.reiniciar(ahora);

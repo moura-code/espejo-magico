@@ -14,13 +14,15 @@ describe('calcularBotonesVirtuales', () => {
       piso: 1612,
       unidad: 1080,
     };
-    const [otra, terminar] = calcularBotonesVirtuales(disposicion);
+    const [sorprendio, podriaVerse] = calcularBotonesVirtuales(disposicion);
 
-    expect(otra.x).toBeGreaterThan(0);
-    expect(otra.y).toBeGreaterThan(0);
-    expect(otra.x + otra.ancho).toBeLessThan(terminar.x);
-    expect(terminar.x + terminar.ancho).toBeLessThan(1080);
-    expect(terminar.y + terminar.alto).toBeLessThan(disposicion.piso);
+    expect(sorprendio.id).toBe('si-sorprendio');
+    expect(podriaVerse.id).toBe('no-podria-verme');
+    expect(sorprendio.x).toBeGreaterThan(0);
+    expect(sorprendio.y).toBeGreaterThan(0);
+    expect(sorprendio.x + sorprendio.ancho).toBeLessThan(podriaVerse.x);
+    expect(podriaVerse.x + podriaVerse.ancho).toBeLessThan(1080);
+    expect(podriaVerse.y + podriaVerse.alto).toBeLessThan(disposicion.piso);
   });
 });
 
@@ -42,8 +44,8 @@ describe('manoTocaBoton', () => {
 
 describe('crearControlBotonesVirtuales', () => {
   const BOTONES = [
-    { id: 'otra-carrera', x: 0, y: 0, ancho: 100, alto: 100 },
-    { id: 'terminar', x: 200, y: 0, ancho: 100, alto: 100 },
+    { id: 'si-sorprendio', x: 0, y: 0, ancho: 100, alto: 100 },
+    { id: 'no-podria-verme', x: 200, y: 0, ancho: 100, alto: 100 },
   ];
   const manoEn = (x) => [{ palma: { x, y: 50 }, radio: 20 }];
 
@@ -54,7 +56,7 @@ describe('crearControlBotonesVirtuales', () => {
       control.actualizar({
         botones: BOTONES, manos: manoEn(50), ahora: 0, habilitado: true,
       }),
-    ).toEqual({ activo: 'otra-carrera', progreso: 0, accion: null });
+    ).toEqual({ activo: 'si-sorprendio', progreso: 0, accion: null });
 
     const mitad = control.actualizar({
       botones: BOTONES, manos: manoEn(50), ahora: 400, habilitado: true,
@@ -66,7 +68,7 @@ describe('crearControlBotonesVirtuales', () => {
       control.actualizar({
         botones: BOTONES, manos: manoEn(50), ahora: 800, habilitado: true,
       }).accion,
-    ).toBe('otra-carrera');
+    ).toBe('si-sorprendio');
   });
 
   it('no repite la accion mientras la mano siga apoyada', () => {
@@ -76,7 +78,7 @@ describe('crearControlBotonesVirtuales', () => {
       control.actualizar({
         botones: BOTONES, manos: manoEn(250), ahora: 100, habilitado: true,
       }).accion,
-    ).toBe('terminar');
+    ).toBe('no-podria-verme');
     expect(
       control.actualizar({
         botones: BOTONES, manos: manoEn(250), ahora: 200, habilitado: true,

@@ -85,13 +85,13 @@ describe('crearControlDemo', () => {
     const control = crearControl();
     control.activar({ maquina: crearMaquinaFalsa(), ahora: 0 });
     const botones = [
-      { id: 'otra-carrera', x: 10, y: 20, ancho: 100, alto: 50 },
-      { id: 'terminar', x: 200, y: 20, ancho: 100, alto: 50 },
+      { id: 'si-sorprendio', x: 10, y: 20, ancho: 100, alto: 50 },
+      { id: 'no-podria-verme', x: 200, y: 20, ancho: 100, alto: 50 },
     ];
 
     expect(
       control.objetivoDeMano({
-        estado: ESTADOS.ESCENA,
+        estado: ESTADOS.REFLEXION,
         transcurrido: 3999,
         sesion: 1,
         botones,
@@ -99,19 +99,19 @@ describe('crearControlDemo', () => {
     ).toBeNull();
     expect(
       control.objetivoDeMano({
-        estado: ESTADOS.ESCENA,
+        estado: ESTADOS.REFLEXION,
         transcurrido: 4500,
         sesion: 1,
         botones,
       }),
-    ).toMatchObject({ id: 'otra-carrera', x: 60, y: 45, progreso: 1 });
+    ).toMatchObject({ id: 'si-sorprendio', x: 60, y: 45, progreso: 1 });
     expect(
       control.objetivoDeMano({
-        estado: ESTADOS.ESCENA,
+        estado: ESTADOS.REFLEXION,
         transcurrido: 4500,
         sesion: 2,
         botones,
       }),
-    ).toMatchObject({ id: 'terminar', x: 250, y: 45, progreso: 1 });
+    ).toMatchObject({ id: 'no-podria-verme', x: 250, y: 45, progreso: 1 });
   });
 });

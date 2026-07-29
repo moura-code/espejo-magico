@@ -16,8 +16,8 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    con un número distinto en cada tablet, empezando por `0`.
 5. **Encender la tablet de controles** ubicada frente al espejo y abrir:
    `http://IP-DE-LA-PC:8080/tablet/controles.html`.
-6. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar el
-   sorteo, ver que las tablets arranquen y se apaguen.
+6. **Hacer una prueba completa** antes de que entre el público: acercarse, esperar el
+   sorteo, responder la reflexión y ver que las tablets arranquen y se apaguen.
 
 La ventana negra del servidor muestra la dirección de **Red local** que deben usar
 las tablets. Como alternativa, abrir el menú de inicio, escribir `cmd` y ejecutar
@@ -35,15 +35,18 @@ La tuerca de la esquina superior derecha abre la configuración. Desde ahí se
 puede elegir la cámara y activar el modo demo, el avance manual o la malla de
 diagnóstico sin usar el teclado.
 
-Durante la escena, la persona puede mantener una mano sobre `OTRA CARRERA` para
-reiniciar la experiencia o sobre `TERMINAR` para ir al cierre. El relleno del
-botón muestra cuánto falta para activarlo. Cuando no hay nadie, el espejo hace
-una animación periódica de cierre y apertura en forma de caracol; es el
-comportamiento esperado.
+Después de veinte segundos de escena aparece la reflexión. La persona puede
+responder manteniendo una mano sobre `SÍ, ME SORPRENDIÓ` o
+`NO, PODRÍA VERME AHÍ`. El relleno del botón muestra cuánto falta para activarlo.
+La respuesta no registra imágenes ni datos personales. Cuando no hay nadie, el
+espejo hace una animación periódica de cierre y apertura en forma de caracol; es
+el comportamiento esperado.
 
 La tablet frontal ofrece las mismas acciones con botones táctiles grandes. Su
 contenido cambia automáticamente junto con el espejo: no hay que recargarla
-entre participantes. Cuando el espejo está esperando muestra `EMPEZAR`.
+entre participantes. Cuando el espejo está esperando muestra `EMPEZAR`. En modo
+manual aparece `AVANZAR` cuando el flujo necesita pasar al estado siguiente; ya
+no se muestra una instrucción amarilla sobre el espejo.
 
 | Tecla | Qué hace |
 |---|---|
@@ -63,14 +66,14 @@ cuál está activa, apretar `P` y mirar la línea `camara`.
 
 La demo controla el avance automáticamente aunque el interruptor manual estuviera
 activo. Primero deja la pantalla vacía para probar el caracol y luego recorre
-todos los estados, las seis carreras y los dos botones virtuales. Al salir de la
-demo restaura el ajuste de avance anterior.
+todos los estados, las seis carreras y las dos respuestas virtuales. Al salir de
+la demo restaura el ajuste de avance anterior.
 
 ---
 
 ## Si algo anda mal
 
-**La pantalla dice "Sentate frente al espejo" y no reacciona a nadie.**
+**La pantalla dice "¿Podés verte haciendo ingeniería?" y no reacciona a nadie.**
 Apretar `P` y mirar la línea `camara`. Si dice algo distinto de `ok`, revisar el
 cable de la cámara. El sistema reintenta solo cada cinco segundos: al reconectarla
 se recupera sin tocar nada.
@@ -121,7 +124,7 @@ matices.
 |---|---|
 | Dibujos de cada carrera | `contenido/assets/<carrera>/` |
 | Videos de las referentes | `contenido/videos/<carrera>/` |
-| Nombres, colores y frases | `contenido/carreras.json` |
+| Nombres, colores, frases y reflexión | `contenido/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |
 
 Para corregir el nombre de una referente **no hay que volver a renderizar el
@@ -137,7 +140,7 @@ frases y los nombres de las carreras.
 ```
 npm install
 npm run vendorizar    # baja MediaPipe y el modelo de rostro. Unica vez que necesita internet.
-npm test              # 217 pruebas
+npm test              # pruebas automatizadas
 ```
 
 `npm run vendorizar` deja los archivos en `vendor/mediapipe/`, que no está en el
