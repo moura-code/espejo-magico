@@ -23,6 +23,10 @@ const MODELOS = [
     archivo: 'hand_landmarker.task',
     url: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
   },
+  {
+    archivo: 'selfie_segmenter_landscape.tflite',
+    url: 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite',
+  },
 ];
 
 const enMb = (bytes) => (bytes / 1024 / 1024).toFixed(1) + ' MB';

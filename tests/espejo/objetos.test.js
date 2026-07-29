@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { crearPool, fuenteDeObjetos } from '../../espejo/objetos.js';
+import {
+  crearPool,
+  fuenteDeObjetos,
+  ORDEN_PLANOS_OBJETOS,
+  PLANOS_OBJETOS,
+} from '../../espejo/objetos.js';
 import { crearCuerpo } from '../../espejo/fisica.js';
 import { ESTADOS } from '../../espejo/maquina-estados.js';
 
@@ -76,6 +81,38 @@ describe('crearPool', () => {
   it('actualizar sin objetos no se rompe', () => {
     const pool = crearPool({ maximo: 5, vidaMs: 1000 });
     expect(() => pool.actualizar(1 / 60, 0, MUNDO)).not.toThrow();
+  });
+
+  it('reparte las apariciones entre atras, persona y frente', () => {
+    const pool = crearPool({ maximo: 6, vidaMs: 1000 });
+
+    for (let indice = 0; indice < 6; indice++) {
+      pool.aparecer({ img: `${indice}.png` }, cuerpo(), indice);
+    }
+
+    expect(pool.vivos().map((objeto) => objeto.plano)).toEqual([
+      ...ORDEN_PLANOS_OBJETOS,
+      ...ORDEN_PLANOS_OBJETOS,
+    ]);
+    expect(pool.enPlano(PLANOS_OBJETOS.ATRAS)).toHaveLength(2);
+    expect(pool.enPlano(PLANOS_OBJETOS.PERSONA)).toHaveLength(2);
+    expect(pool.enPlano(PLANOS_OBJETOS.FRENTE)).toHaveLength(2);
+  });
+
+  it('solo el plano trasero pasa por detras de la persona', () => {
+    const pool = crearPool({ maximo: 3, vidaMs: 1000 });
+    const atras = crearCuerpo({ x: 100, y: 120, vy: 200, radio: 10 });
+    const persona = crearCuerpo({ x: 100, y: 120, vy: 200, radio: 10 });
+
+    pool.aparecer({ img: 'atras.png' }, atras, 0, PLANOS_OBJETOS.ATRAS);
+    pool.aparecer({ img: 'persona.png' }, persona, 0, PLANOS_OBJETOS.PERSONA);
+    pool.actualizar(1 / 60, 10, {
+      ...MUNDO,
+      colisionadores: [{ x: 100, y: 150, radio: 40 }],
+    });
+
+    expect(atras.vy).toBeGreaterThan(0);
+    expect(persona.vy).toBeLessThan(0);
   });
 });
 

@@ -91,6 +91,13 @@ export const CONFIG = {
     velocidadMaxima: 4000,
   },
 
+  segmentacion: {
+    fps: 15,
+    umbral: 0.18,
+    suavidad: 0.24,
+    desenfoqueBorde: 3,
+  },
+
   objetos: {
     maximo: 40,
     intervaloAparicion: 350,

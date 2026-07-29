@@ -23,3 +23,16 @@ describe('ritmo inmersivo de la experiencia', () => {
     expect(duracionProgramada).toBeLessThan(CONFIG.tiempos.sesionMaxima);
   });
 });
+
+describe('segmentacion de persona', () => {
+  it('mantiene una frecuencia suficiente sin competir con el render', () => {
+    expect(CONFIG.segmentacion.fps).toBeGreaterThanOrEqual(10);
+    expect(CONFIG.segmentacion.fps).toBeLessThanOrEqual(20);
+  });
+
+  it('usa una transicion de mascara gradual', () => {
+    expect(CONFIG.segmentacion.umbral).toBeGreaterThanOrEqual(0);
+    expect(CONFIG.segmentacion.umbral).toBeLessThan(1);
+    expect(CONFIG.segmentacion.suavidad).toBeGreaterThan(0);
+  });
+});

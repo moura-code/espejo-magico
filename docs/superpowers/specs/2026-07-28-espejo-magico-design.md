@@ -36,20 +36,21 @@ sorteo, la composición gráfica por carrera y la sincronización con las tablet
 | Plazo | Menos de un mes |
 | Equipo | Desarrolladores con experiencia JS/web |
 | Stack | Todo navegador: Chrome en modo kiosco + servidor Node local |
-| Imagen del participante | Video real de cámara + objetos encima + accesorio anclado al rostro |
+| Imagen del participante | Video real + objetos en tres planos + accesorio anclado al rostro |
 | Disparo de la sesión | Automático por detección de presencia |
 | Oferta educativa | 18 propuestas: 14 carreras de grado y 4 tecnólogos |
 | Recuerdo para el visitante | Ninguno. No se guarda ni se envía nada |
 | Audio de los videos | Mudos, con nombre y descripción sobreimpresos |
-| Interacción de objetos | Caen y rebotan contra un círculo de colisión en la cabeza |
+| Interacción de objetos | Caen en tres planos y responden a cabeza, manos, piso y otros objetos |
 | Detección de rostro | MediaPipe Tasks Vision — Face Landmarker, servido localmente |
+| Oclusión de persona | MediaPipe Image Segmenter local, con silueta geométrica de respaldo |
 | Conectividad | Red local propia con router dedicado. Cero dependencia de internet |
 
 ### Alternativas descartadas
 
-**Segmentación del cuerpo** (recortar a la persona y ponerla sobre un fondo ilustrado).
-Es lo más impactante visualmente, pero los bordes tiemblan, sufre con la iluminación
-variable de un stand y consume CPU que hace falta para la escena. Riesgo alto para un mes.
+**Reemplazo total del fondo mediante segmentación.** Se mantiene el video real y la
+segmentación se usa solamente como máscara de oclusión para las figuras traseras.
+Si falla o falta el modelo, una silueta geométrica evita depender de ella para arrancar.
 
 **Motor gráfico nativo** (Unity, TouchDesigner). Mejor calidad visual y física real, pero
 el equipo no lo maneja y el costo de aprendizaje no entra en el plazo.
@@ -67,7 +68,9 @@ de arranque adecuados cubre casi lo mismo sin costo. Queda como mejora opcional 
 - Aplicación de espejo: cámara, detección de rostro, máquina de estados, sorteo, escena.
 - Animación de sorteo (niebla) y de revelación.
 - Composición gráfica por carrera, definida como datos y no como código.
-- Física simple: gravedad, rebote contra la cabeza, piso, apilamiento básico.
+- Física simple: gravedad, rebote contra cabeza y manos, piso, giro y apilamiento.
+- Tres planos de objetos: detrás de la persona, en su plano y delante.
+- Máscara de persona local para ocluir el plano trasero, con respaldo geométrico.
 - Accesorio anclado al rostro, con escala y rotación derivadas de la posición de los ojos.
 - Servidor local: archivos estáticos + relé WebSocket.
 - Página de tablet: reproduce el video correspondiente y se desvanece al terminar.
@@ -77,7 +80,7 @@ de arranque adecuados cubre casi lo mismo sin costo. Queda como mejora opcional 
 
 - Cualquier captura, almacenamiento o envío de imágenes del público.
 - Cuentas, formularios, datos personales.
-- Detección de cuerpo completo, manos o gestos.
+- Reconocimiento de identidad, aptitudes, género, emociones o gestos semánticos.
 - Segmentación o recorte del participante.
 - Producción de las animaciones de las referentes (ya resuelta por el equipo).
 - Producción de los PNG de objetos y accesorios (ver sección 12: es un encargo a diseño).
@@ -433,8 +436,9 @@ Es el camino crítico real del proyecto, más que el código.
 de distancia y sobre un fondo de video real que puede ser claro u oscuro. Contornos definidos
 o sombra suave, para que no se pierdan contra la ropa del participante.
 
-Mientras no existan recursos específicos para las 18 propuestas, cada una reutiliza una de
-las seis familias visuales originales. Las figuras vectoriales evitan pantallas vacías.
+Mientras no existan PNG específicos, las 60 figuras vectoriales evitan pantallas vacías.
+Las 12 propuestas agregadas al catálogo original incorporan dos símbolos distintivos cada
+una y combinan el resto con las seis familias visuales compartidas.
 
 ### Las 18 propuestas
 
@@ -626,7 +630,7 @@ entrega de diseño que todavía no existía.
 
 ## La decisión
 
-**Cada objeto se dibuja con formas vectoriales en código.** Con eso, los 42 PNG
+**Cada objeto se dibuja con formas vectoriales en código.** Con eso, los PNG
 dejan de ser el camino crítico del proyecto: hay engranajes, matraces y grúas
 desde el primer día. Cuando diseño entregue, los PNG reemplazan a las figuras sin
 tocar código.
@@ -641,7 +645,7 @@ Las tres capas conviven. La primera y la tercera ya existían; se agrega la del 
 
 Contrapartida asumida: son íconos vectoriales, no ilustraciones. Un engranaje
 dibujado con código se ve como un engranaje, no como el dibujo de alguien. A
-cambio, las treinta y seis figuras son consistentes entre sí por construcción y
+cambio, las sesenta figuras son consistentes entre sí por construcción y
 pueden combinarse para representar el catálogo completo.
 
 ## Módulos nuevos
@@ -666,7 +670,7 @@ el participante quede dentro de la escena y no tapado por ella.
 Presupuesto fijo de partículas, igual que los objetos: el rendimiento no puede
 depender de cuánto tiempo lleve alguien sentado.
 
-**`herramientas/figuras.html`** — hoja de contacto con las treinta y seis figuras
+**`herramientas/figuras.html`** — hoja de contacto con las sesenta figuras
 en grilla, cada una con su nombre. Para aprobarlas o descartarlas de un vistazo,
 sin esperar que salgan sorteadas en el espejo.
 

@@ -48,8 +48,8 @@
         "offsetY": 0
       },
       "objetos": [
-        { "img": "assets/quimica/matraz.png", "figura": "matraz", "escala": 0.19, "peso": 1 },
-        { "img": "assets/quimica/tubo.png", "figura": "tubo", "escala": 0.16, "peso": 1 },
+        { "img": "assets/alimentos/manzana.png", "figura": "manzana", "escala": 0.18, "peso": 1 },
+        { "img": "assets/alimentos/espiga.png", "figura": "espiga", "escala": 0.18, "peso": 1 },
         { "img": "assets/quimica/molecula.png", "figura": "molecula", "escala": 0.2, "peso": 1 },
         { "img": "assets/quimica/mechero.png", "figura": "mechero", "escala": 0.18, "peso": 1 },
         { "img": "assets/quimica/pipeta.png", "figura": "pipeta", "escala": 0.16, "peso": 1 },
@@ -80,8 +80,8 @@
         "offsetY": 0
       },
       "objetos": [
-        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
-        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
+        { "img": "assets/produccion/cinta-transportadora.png", "figura": "cinta-transportadora", "escala": 0.22, "peso": 1 },
+        { "img": "assets/produccion/diagrama-flujo.png", "figura": "diagrama-flujo", "escala": 0.19, "peso": 1 },
         { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
         { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
         { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
@@ -148,8 +148,8 @@
         { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
         { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 },
         { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
-        { "img": "assets/civil/puente.png", "figura": "puente", "escala": 0.24, "peso": 1 },
-        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
+        { "img": "assets/agrimensura/mapa.png", "figura": "mapa", "escala": 0.21, "peso": 1 },
+        { "img": "assets/agrimensura/satelite.png", "figura": "satelite", "escala": 0.2, "peso": 1 }
       ],
       "referentes": [
         {
@@ -208,8 +208,8 @@
         "offsetY": -0.3
       },
       "objetos": [
-        { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 },
-        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
+        { "img": "assets/sistemas-comunicacion/antena.png", "figura": "antena", "escala": 0.2, "peso": 1 },
+        { "img": "assets/sistemas-comunicacion/fibra-optica.png", "figura": "fibra-optica", "escala": 0.2, "peso": 1 },
         { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
         { "img": "assets/electrica/bateria.png", "figura": "bateria", "escala": 0.16, "peso": 1 },
         { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 },
@@ -304,8 +304,8 @@
         "offsetY": 0
       },
       "objetos": [
-        { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 },
-        { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
+        { "img": "assets/naval/barco.png", "figura": "barco", "escala": 0.23, "peso": 1 },
+        { "img": "assets/naval/ancla.png", "figura": "ancla", "escala": 0.19, "peso": 1 },
         { "img": "assets/civil/viga.png", "figura": "viga", "escala": 0.22, "peso": 1 },
         { "img": "assets/civil/puente.png", "figura": "puente", "escala": 0.24, "peso": 1 },
         { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
@@ -368,8 +368,8 @@
         "offsetY": -0.2
       },
       "objetos": [
-        { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 },
-        { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 },
+        { "img": "assets/ciencias-atmosfera/nube.png", "figura": "nube", "escala": 0.22, "peso": 1 },
+        { "img": "assets/ciencias-atmosfera/anemometro.png", "figura": "anemometro", "escala": 0.19, "peso": 1 },
         { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
         { "img": "assets/fisico-matematico/atomo.png", "figura": "atomo", "escala": 0.19, "peso": 1 },
         { "img": "assets/electrica/panel-solar.png", "figura": "panel-solar", "escala": 0.22, "peso": 1 },
@@ -400,8 +400,8 @@
         "offsetY": 0
       },
       "objetos": [
-        { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
-        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
+        { "img": "assets/licenciatura-computacion/algoritmo.png", "figura": "algoritmo", "escala": 0.19, "peso": 1 },
+        { "img": "assets/licenciatura-computacion/base-datos.png", "figura": "base-datos", "escala": 0.2, "peso": 1 },
         { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
         { "img": "assets/computacion/llaves.png", "figura": "llaves", "escala": 0.15, "peso": 1 },
         { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
@@ -432,8 +432,8 @@
         "offsetY": 0
       },
       "objetos": [
-        { "img": "assets/quimica/molecula.png", "figura": "molecula", "escala": 0.2, "peso": 1 },
-        { "img": "assets/fisico-matematico/atomo.png", "figura": "atomo", "escala": 0.19, "peso": 1 },
+        { "img": "assets/ingenieria-biologica/adn.png", "figura": "adn", "escala": 0.19, "peso": 1 },
+        { "img": "assets/ingenieria-biologica/celula.png", "figura": "celula", "escala": 0.21, "peso": 1 },
         { "img": "assets/quimica/gota.png", "figura": "gota", "escala": 0.14, "peso": 1 },
         { "img": "assets/quimica/matraz.png", "figura": "matraz", "escala": 0.19, "peso": 1 },
         { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
@@ -464,8 +464,8 @@
         "offsetY": 0
       },
       "objetos": [
-        { "img": "assets/quimica/matraz.png", "figura": "matraz", "escala": 0.19, "peso": 1 },
-        { "img": "assets/quimica/tubo.png", "figura": "tubo", "escala": 0.16, "peso": 1 },
+        { "img": "assets/tecnologo-carnico/termometro.png", "figura": "termometro", "escala": 0.18, "peso": 1 },
+        { "img": "assets/tecnologo-carnico/escudo-calidad.png", "figura": "escudo-calidad", "escala": 0.19, "peso": 1 },
         { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
         { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
         { "img": "assets/quimica/gota.png", "figura": "gota", "escala": 0.14, "peso": 1 },
@@ -498,8 +498,8 @@
       "objetos": [
         { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
         { "img": "assets/civil/teodolito.png", "figura": "teodolito", "escala": 0.19, "peso": 1 },
-        { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 },
-        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 },
+        { "img": "assets/tecnologo-cartografia/brujula.png", "figura": "brujula", "escala": 0.19, "peso": 1 },
+        { "img": "assets/tecnologo-cartografia/pin-mapa.png", "figura": "pin-mapa", "escala": 0.18, "peso": 1 },
         { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
         { "img": "assets/civil/puente.png", "figura": "puente", "escala": 0.24, "peso": 1 }
       ],
@@ -528,8 +528,8 @@
         "offsetY": 0
       },
       "objetos": [
-        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
-        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
+        { "img": "assets/tecnologo-industrial-mecanico/calibre.png", "figura": "calibre", "escala": 0.21, "peso": 1 },
+        { "img": "assets/tecnologo-industrial-mecanico/casco-industrial.png", "figura": "casco-industrial", "escala": 0.2, "peso": 1 },
         { "img": "assets/mecanica/piston.png", "figura": "piston", "escala": 0.17, "peso": 1 },
         { "img": "assets/mecanica/resorte.png", "figura": "resorte", "escala": 0.15, "peso": 1 },
         { "img": "assets/mecanica/rodamiento.png", "figura": "rodamiento", "escala": 0.14, "peso": 1 },
@@ -560,8 +560,8 @@
         "offsetY": 0
       },
       "objetos": [
-        { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
-        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
+        { "img": "assets/tecnologo-informatico/terminal.png", "figura": "terminal", "escala": 0.2, "peso": 1 },
+        { "img": "assets/tecnologo-informatico/red.png", "figura": "red", "escala": 0.2, "peso": 1 },
         { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
         { "img": "assets/computacion/llaves.png", "figura": "llaves", "escala": 0.15, "peso": 1 },
         { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },

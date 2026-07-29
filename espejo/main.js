@@ -21,6 +21,7 @@ import {
   crearDetectorDeManosMediaPipe,
   crearFuenteDeManosSinteticas,
 } from './manos.js';
+import { crearSegmentadorMediaPipe } from './segmentacion.js';
 import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
@@ -30,7 +31,11 @@ import {
   controlesParaEstado,
   ejecutarAccionRemota,
 } from './controles-remotos.js';
-import { crearPool, fuenteDeObjetos } from './objetos.js';
+import {
+  crearPool,
+  fuenteDeObjetos,
+  PLANOS_OBJETOS,
+} from './objetos.js';
 import { crearCuerpo } from './fisica.js';
 import { crearNiebla, calcularNiebla } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
@@ -42,6 +47,7 @@ import {
   calcularUbicacionTexto,
   dibujarVideoEspejado,
   dibujarObjetos,
+  restaurarPersonaSobreObjetos,
   dibujarAccesorio,
   dibujarLogoFing,
   dibujarManos,
@@ -69,12 +75,16 @@ const lienzo = document.getElementById('lienzo');
 const ctx = lienzo.getContext('2d');
 const capaNiebla = document.createElement('canvas');
 const ctxNiebla = capaNiebla.getContext('2d');
+const capaFondo = document.createElement('canvas');
+const ctxFondo = capaFondo.getContext('2d');
+const capaPersona = document.createElement('canvas');
+const ctxPersona = capaPersona.getContext('2d');
 
 let disposicion = calcularDisposicion(1, 1);
 
 function ajustar() {
-  lienzo.width = capaNiebla.width = window.innerWidth;
-  lienzo.height = capaNiebla.height = window.innerHeight;
+  lienzo.width = capaNiebla.width = capaFondo.width = capaPersona.width = window.innerWidth;
+  lienzo.height = capaNiebla.height = capaFondo.height = capaPersona.height = window.innerHeight;
   disposicion = calcularDisposicion(lienzo.width, lienzo.height);
 }
 ajustar();
@@ -169,6 +179,20 @@ try {
   // Las manos son un agregado: si su modelo falta o no carga, el espejo sigue
   // andando con la cabeza sola. No vale la pena tirar toda la instalacion.
   console.warn('Deteccion de manos no disponible:', error);
+}
+
+let segmentadorDePersona = null;
+try {
+  segmentadorDePersona = await crearSegmentadorMediaPipe({
+    base: '/vendor/mediapipe',
+    umbral: CONFIG.segmentacion.umbral,
+    suavidad: CONFIG.segmentacion.suavidad,
+  });
+} catch (error) {
+  console.warn(
+    'Segmentacion de persona no disponible; se usa una silueta aproximada:',
+    error,
+  );
 }
 
 const sintetica = crearFuenteSintetica();
@@ -283,8 +307,11 @@ let estadoAnterior = ESTADOS.ATRACCION;
 let ausenciaVisualDesde = null;
 let ladoDelTexto = null;
 let ultimoRostroDelTexto = null;
+let ultimaSegmentacion = 0;
+let mascaraPersona = null;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
+const intervaloSegmentacion = 1000 / CONFIG.segmentacion.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
 
 function cuadro(ahora) {
@@ -372,6 +399,33 @@ function cuadro(ahora) {
   } else if (modo !== 'demo' && !manosRealesSirven) {
     manos = [];
     velocidadDeMano.clear();
+  }
+
+  if (
+    segmentadorDePersona &&
+    video &&
+    modo !== 'demo' &&
+    rostro
+  ) {
+    if (ahora - ultimaSegmentacion >= intervaloSegmentacion) {
+      ultimaSegmentacion = ahora;
+      try {
+        mascaraPersona =
+          segmentadorDePersona.detectar(video, ahora) ??
+          segmentadorDePersona.obtener();
+      } catch (error) {
+        console.warn(
+          'La segmentacion se desactivo; se usa una silueta aproximada:',
+          error,
+        );
+        segmentadorDePersona.cerrar();
+        segmentadorDePersona = null;
+        mascaraPersona = null;
+      }
+    }
+  } else if (mascaraPersona) {
+    segmentadorDePersona?.reiniciar();
+    mascaraPersona = null;
   }
 
   // --- estado ---
@@ -483,6 +537,41 @@ function cuadro(ahora) {
     efecto.dibujar(ctx, contextoEfecto);
   }
 
+  ctxFondo.clearRect(0, 0, disposicion.ancho, disposicion.alto);
+  ctxFondo.drawImage(lienzo, 0, 0);
+
+  const colorDeObjetos = carrera?.color ?? '#8899aa';
+  dibujarObjetos(
+    ctx,
+    pool.enPlano(PLANOS_OBJETOS.ATRAS),
+    banco,
+    colorDeObjetos,
+    { alfa: 0.82, intensidadSombra: 0.55 },
+  );
+
+  restaurarPersonaSobreObjetos(
+    ctx,
+    ctxPersona,
+    capaPersona,
+    capaFondo,
+    {
+      mascara: modo === 'demo' ? null : mascaraPersona,
+      rostro,
+      manos,
+      rectangulo,
+      disposicion,
+      desenfoqueBorde: CONFIG.segmentacion.desenfoqueBorde,
+    },
+  );
+
+  dibujarObjetos(
+    ctx,
+    pool.enPlano(PLANOS_OBJETOS.PERSONA),
+    banco,
+    colorDeObjetos,
+    { intensidadSombra: 0.9 },
+  );
+
   if (modo === 'demo' && rostro) {
     dibujarPuntosRostro(ctx, generarPuntosRostroSintetico(rostro), {
       radio: Math.max(2.5, rostro.radio * 0.018),
@@ -523,11 +612,17 @@ function cuadro(ahora) {
     dibujarManos(ctx, manos, '#FFD23F');
   }
 
-  dibujarObjetos(ctx, pool.vivos(), banco, carrera?.color ?? '#8899aa');
-
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
     dibujarAccesorio(ctx, rostro, carrera, banco);
   }
+
+  dibujarObjetos(
+    ctx,
+    pool.enPlano(PLANOS_OBJETOS.FRENTE),
+    banco,
+    colorDeObjetos,
+    { intensidadSombra: 1.35 },
+  );
 
   const capa = calcularNiebla({ estado, transcurrido: enEstadoDesde, tiempos: CONFIG.tiempos });
   if (capa.cobertura > 0) {

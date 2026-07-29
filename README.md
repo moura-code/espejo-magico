@@ -3,9 +3,11 @@
 Instalación interactiva para el stand de una Facultad de Ingeniería.
 
 Un visitante se acerca a una pantalla enmarcada como espejo. El sistema le propone
-al azar una de seis ingenierías, sin inferir aptitudes, género ni vocación a partir
-de su rostro. La pantalla se cubre de niebla, se despeja, y el participante aparece
-rodeado de objetos característicos de esa carrera que puede manotear. Cada escena
+al azar una de dieciocho opciones educativas, sin inferir aptitudes, género ni
+vocación a partir de su rostro. La pantalla se cubre de niebla, se despeja, y el
+participante aparece rodeado de objetos característicos que puede manotear. Las
+figuras se reparten entre el fondo, el plano de la persona y el primer plano; una
+máscara local permite que algunas caigan realmente por detrás. Cada escena
 explica también para qué sirve socialmente esa disciplina. En simultáneo, las
 tablets funcionan como otros espejos y muestran mujeres que estudian, investigan,
 enseñan, diseñan o trabajan en ingeniería.
@@ -45,7 +47,7 @@ direcciones IPv4 disponibles para abrir las tablets desde la red del stand.
 |---|---|
 | `npm test` | ¿Funciona el código? Ejecuta las pruebas automatizadas. |
 | `npm run listo` | ¿Se puede montar el stand? Verifica que el contenido real esté completo. Está en rojo hasta que lleguen los PNG y los videos, y eso es lo esperado. |
-| `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro y manos. |
+| `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y segmentación de persona. |
 | `npm run dev` | Levanta el servidor en modo desarrollo con reinicio automático. |
 | `npm start` | Levanta el servidor local. |
 
@@ -84,7 +86,7 @@ pie. Una histéresis evita que cambien de lado por movimientos pequeños.
 | `M` | Muestra los puntos que el sistema detecta en cara y manos |
 | `P` | Panel de estado y FPS |
 
-`herramientas/figuras.html` muestra las treinta y seis figuras de los objetos en
+`herramientas/figuras.html` muestra las sesenta figuras de los objetos en
 una grilla, sobre fondo oscuro, claro o tono de piel.
 
 La demo comienza con una pausa sin persona para probar la animación de reposo,
@@ -140,13 +142,15 @@ haya PNG. El orden de preferencia es **PNG → figura → círculo del color**, 
 que cuando diseño entrega, los archivos reemplazan a las figuras solos.
 
 Sin bundler: módulos ES nativos servidos tal cual. Dos dependencias en total,
-`ws` en el servidor y `@mediapipe/tasks-vision` copiado a `vendor/`.
+`ws` en el servidor y `@mediapipe/tasks-vision` copiado a `vendor/`. Si el
+modelo de segmentación no está disponible, una silueta geométrica conserva los
+tres planos sin impedir el arranque.
 
 ## Privacidad
 
 La imagen de la cámara nunca sale de la PC. No se graba, no se guarda, no se
 transmite y no se pide ningún dato al visitante. El procesamiento de rostro y
-manos ocurre íntegramente en el navegador local.
+manos y silueta ocurre íntegramente en el navegador local.
 
 ## Documentación
 

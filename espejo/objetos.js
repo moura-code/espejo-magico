@@ -9,6 +9,18 @@ import { ESTADOS } from './maquina-estados.js';
 
 const MS_DE_DESVANECIDO = 500;
 
+export const PLANOS_OBJETOS = Object.freeze({
+  ATRAS: 'atras',
+  PERSONA: 'persona',
+  FRENTE: 'frente',
+});
+
+export const ORDEN_PLANOS_OBJETOS = Object.freeze([
+  PLANOS_OBJETOS.ATRAS,
+  PLANOS_OBJETOS.PERSONA,
+  PLANOS_OBJETOS.FRENTE,
+]);
+
 /**
  * Que objetos caen en cada estado.
  *
@@ -30,21 +42,41 @@ export function fuenteDeObjetos(estado, carrera, carreras) {
 
 export function crearPool({ maximo, vidaMs }) {
   const vivos = [];
+  let proximoPlano = 0;
 
   return {
-    aparecer(definicion, cuerpo, ahora) {
+    aparecer(definicion, cuerpo, ahora, plano = null) {
       while (vivos.length >= maximo) vivos.shift();
-      const objeto = { definicion, cuerpo, nacido: ahora, alfa: 1 };
+      const planoElegido = ORDEN_PLANOS_OBJETOS.includes(plano)
+        ? plano
+        : ORDEN_PLANOS_OBJETOS[proximoPlano++ % ORDEN_PLANOS_OBJETOS.length];
+      const objeto = {
+        definicion,
+        cuerpo,
+        nacido: ahora,
+        alfa: 1,
+        plano: planoElegido,
+      };
       vivos.push(objeto);
       return objeto;
     },
 
     actualizar(dt, ahora, mundo) {
-      paso(
-        vivos.map((objeto) => objeto.cuerpo),
-        dt,
-        mundo,
-      );
+      for (const plano of ORDEN_PLANOS_OBJETOS) {
+        paso(
+          vivos
+            .filter((objeto) => objeto.plano === plano)
+            .map((objeto) => objeto.cuerpo),
+          dt,
+          {
+            ...mundo,
+            colisionadores:
+              plano === PLANOS_OBJETOS.ATRAS
+                ? []
+                : mundo.colisionadores,
+          },
+        );
+      }
 
       for (const objeto of vivos) {
         const restante = vidaMs - (ahora - objeto.nacido);
@@ -70,8 +102,10 @@ export function crearPool({ maximo, vidaMs }) {
     },
 
     vivos: () => vivos,
+    enPlano: (plano) => vivos.filter((objeto) => objeto.plano === plano),
     vaciar: () => {
       vivos.length = 0;
+      proximoPlano = 0;
     },
   };
 }

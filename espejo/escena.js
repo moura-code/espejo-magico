@@ -65,6 +65,137 @@ export function dibujarVideoEspejado(ctx, video, rectangulo, disposicion, opcion
   ctx.restore();
 }
 
+export function trazarSiluetaPersona(ctx, rostro, manos, disposicion) {
+  if (!rostro?.centro || !(rostro.radio > 0)) return false;
+
+  const { x, y } = rostro.centro;
+  const radio = rostro.radio;
+  const piso = disposicion.piso ?? disposicion.alto;
+  const hombrosY = y + radio * 1.08;
+  const cuelloY = y + radio * 0.76;
+  const medioHombros = Math.min(
+    disposicion.ancho * 0.46,
+    radio * 1.55,
+  );
+  const medioBase = Math.min(
+    disposicion.ancho * 0.5,
+    radio * 2.15,
+  );
+
+  ctx.beginPath();
+  ctx.ellipse(
+    x,
+    y + radio * 0.16,
+    radio * 0.82,
+    radio * 1.08,
+    rostro.angulo ?? 0,
+    0,
+    Math.PI * 2,
+  );
+  ctx.moveTo(x - radio * 0.42, cuelloY);
+  ctx.bezierCurveTo(
+    x - radio * 0.65,
+    cuelloY,
+    x - medioHombros,
+    hombrosY,
+    x - medioHombros,
+    hombrosY + radio * 0.42,
+  );
+  ctx.lineTo(x - medioBase, piso + radio);
+  ctx.lineTo(x + medioBase, piso + radio);
+  ctx.lineTo(x + medioHombros, hombrosY + radio * 0.42);
+  ctx.bezierCurveTo(
+    x + medioHombros,
+    hombrosY,
+    x + radio * 0.65,
+    cuelloY,
+    x + radio * 0.42,
+    cuelloY,
+  );
+  ctx.closePath();
+  ctx.fill();
+
+  for (const mano of manos ?? []) {
+    const puntos = mano.puntosPantalla ?? [mano.palma, ...(mano.puntas ?? [])];
+    const hombroX = mano.palma.x < x ? x - medioHombros * 0.72 : x + medioHombros * 0.72;
+
+    ctx.beginPath();
+    ctx.moveTo(hombroX, hombrosY);
+    ctx.quadraticCurveTo(
+      (hombroX + mano.palma.x) / 2,
+      Math.min(hombrosY, mano.palma.y) - radio * 0.16,
+      mano.palma.x,
+      mano.palma.y,
+    );
+    ctx.lineWidth = Math.max(radio * 0.28, mano.largoPalma * 0.72);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(
+      mano.palma.x,
+      mano.palma.y,
+      Math.max(mano.largoPalma * 0.54, mano.radio * 0.34),
+      0,
+      Math.PI * 2,
+    );
+    for (const punto of puntos) {
+      const radioPunto = Math.max(3, mano.largoPalma * 0.18);
+      ctx.moveTo(punto.x + radioPunto, punto.y);
+      ctx.arc(punto.x, punto.y, radioPunto, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+
+  return true;
+}
+
+export function restaurarPersonaSobreObjetos(
+  ctx,
+  ctxPersona,
+  capaPersona,
+  capaFondo,
+  {
+    mascara,
+    rostro,
+    manos,
+    rectangulo,
+    disposicion,
+    desenfoqueBorde = 0,
+  },
+) {
+  if (!rostro) return false;
+
+  ctxPersona.clearRect(0, 0, disposicion.ancho, disposicion.alto);
+  ctxPersona.save();
+  ctxPersona.drawImage(capaFondo, 0, 0);
+  ctxPersona.globalCompositeOperation = 'destination-in';
+  ctxPersona.fillStyle = '#fff';
+  ctxPersona.strokeStyle = '#fff';
+  ctxPersona.lineCap = 'round';
+  ctxPersona.lineJoin = 'round';
+
+  if (mascara) {
+    if (desenfoqueBorde > 0) {
+      ctxPersona.filter = `blur(${desenfoqueBorde}px)`;
+    }
+    ctxPersona.translate(disposicion.ancho, 0);
+    ctxPersona.scale(-1, 1);
+    ctxPersona.drawImage(
+      mascara,
+      rectangulo.x,
+      rectangulo.y,
+      rectangulo.ancho,
+      rectangulo.alto,
+    );
+  } else {
+    trazarSiluetaPersona(ctxPersona, rostro, manos, disposicion);
+  }
+
+  ctxPersona.restore();
+  ctx.drawImage(capaPersona, 0, 0);
+  return true;
+}
+
 function dibujarSustituto(ctx, radio, color) {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -75,17 +206,23 @@ function dibujarSustituto(ctx, radio, color) {
   ctx.stroke();
 }
 
-export function dibujarObjetos(ctx, objetos, banco, color) {
+export function dibujarObjetos(
+  ctx,
+  objetos,
+  banco,
+  color,
+  { alfa = 1, intensidadSombra = 1 } = {},
+) {
   for (const objeto of objetos) {
     const imagen = banco.obtener(objeto.definicion.img);
     const { cuerpo } = objeto;
 
     ctx.save();
-    ctx.globalAlpha = objeto.alfa;
+    ctx.globalAlpha = objeto.alfa * alfa;
     ctx.translate(cuerpo.x, cuerpo.y);
     ctx.rotate(cuerpo.giro);
     ctx.shadowColor = 'rgba(0,0,0,0.45)';
-    ctx.shadowBlur = cuerpo.radio * 0.4;
+    ctx.shadowBlur = cuerpo.radio * 0.4 * intensidadSombra;
 
     // Orden de preferencia: el PNG si existe, la figura vectorial si no, y un
     // circulo del color de la carrera como ultimo recurso. Cuando diseño

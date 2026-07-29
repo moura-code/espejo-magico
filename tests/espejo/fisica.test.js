@@ -3,6 +3,7 @@ import {
   crearCuerpo,
   integrar,
   rebotarContraCirculo,
+  rebotarEntreCuerpos,
   limitarACaja,
   paso,
 } from '../../espejo/fisica.js';
@@ -114,6 +115,37 @@ describe('rebotarContraCirculo', () => {
   });
 });
 
+describe('rebotarEntreCuerpos', () => {
+  it('hace que dos objetos se empujen en vez de atravesarse', () => {
+    const primero = crearCuerpo({ x: 90, y: 100, vx: 100, radio: 15 });
+    const segundo = crearCuerpo({ x: 110, y: 100, vx: -100, radio: 15 });
+
+    expect(rebotarEntreCuerpos(primero, segundo, 1, 0)).toBe(true);
+    expect(primero.vx).toBeCloseTo(-100);
+    expect(segundo.vx).toBeCloseTo(100);
+    expect(Math.hypot(primero.x - segundo.x, primero.y - segundo.y)).toBeCloseTo(30);
+  });
+
+  it('convierte un choque oblicuo en giro visible', () => {
+    const primero = crearCuerpo({ x: 90, y: 100, vx: 100, vy: 100, radio: 15 });
+    const segundo = crearCuerpo({ x: 110, y: 100, radio: 15 });
+
+    rebotarEntreCuerpos(primero, segundo, 0.5, 0.2);
+
+    expect(Math.abs(primero.velocidadGiro)).toBeGreaterThan(0);
+    expect(Math.abs(segundo.velocidadGiro)).toBeGreaterThan(0);
+  });
+
+  it('mueve menos al objeto grande que al pequeño', () => {
+    const pequeno = crearCuerpo({ x: 80, y: 100, vx: 300, radio: 10 });
+    const grande = crearCuerpo({ x: 105, y: 100, radio: 30 });
+
+    rebotarEntreCuerpos(pequeno, grande, 0.5, 0);
+
+    expect(Math.abs(pequeno.vx - 300)).toBeGreaterThan(Math.abs(grande.vx));
+  });
+});
+
 describe('limitarACaja', () => {
   it('no deja que atraviese el piso', () => {
     const cuerpo = crearCuerpo({ x: 500, y: 995, vy: 400, radio: 20 });
@@ -184,6 +216,42 @@ describe('paso', () => {
         colisionadores: [],
       }),
     ).not.toThrow();
+  });
+
+  it('usa subpasos para que un golpe rapido no atraviese una mano', () => {
+    const mundo = {
+      gravedad: 0,
+      restitucion: 0.5,
+      friccion: 1,
+      resistenciaAire: 0,
+      caja: CAJA,
+      colisionadores: [{ x: 500, y: 500, radio: 70 }],
+    };
+    const cuerpo = crearCuerpo({ x: 300, y: 500, vx: 4000, radio: 20 });
+
+    paso([cuerpo], 0.05, mundo);
+
+    expect(cuerpo.vx).toBeLessThan(0);
+    expect(cuerpo.x).toBeLessThan(500 - 70 - cuerpo.radio);
+  });
+
+  it('separa los objetos que caen juntos y permite que se apoyen', () => {
+    const mundo = {
+      gravedad: 1600,
+      restitucion: 0.4,
+      friccion: 0.96,
+      caja: CAJA,
+      colisionadores: [],
+    };
+    const inferior = crearCuerpo({ x: 500, y: 700, radio: 30 });
+    const superior = crearCuerpo({ x: 500, y: 620, radio: 30 });
+
+    for (let i = 0; i < 300; i++) paso([inferior, superior], 1 / 60, mundo);
+
+    const distancia = Math.hypot(inferior.x - superior.x, inferior.y - superior.y);
+    expect(distancia).toBeGreaterThanOrEqual(inferior.radio + superior.radio - 0.5);
+    expect(Math.abs(inferior.vy)).toBeLessThan(1);
+    expect(Math.abs(superior.vy)).toBeLessThan(1);
   });
 
   it('ningun objeto termina fuera de la caja despues de caer un rato', () => {

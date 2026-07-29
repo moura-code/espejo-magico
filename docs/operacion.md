@@ -155,7 +155,7 @@ frases y los nombres de las carreras.
 
 ```
 npm install
-npm run vendorizar    # baja MediaPipe y el modelo de rostro. Unica vez que necesita internet.
+npm run vendorizar    # baja MediaPipe y los modelos de rostro, manos y silueta. Unica vez con internet.
 npm test              # pruebas automatizadas
 ```
 

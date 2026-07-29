@@ -1,7 +1,7 @@
 // Los objetos de cada carrera, dibujados con formas vectoriales.
 //
-// Esto saca los 42 PNG del camino critico del proyecto: hay engranajes, matraces
-// y gruas desde el primer dia. Cuando diseño entregue, los PNG reemplazan a estas
+// Esto saca los PNG del camino critico del proyecto: hay engranajes, matraces y
+// gruas desde el primer dia. Cuando diseño entregue, los PNG reemplazan a estas
 // figuras sin tocar una linea (ver el orden de preferencia en escena.js).
 //
 // CONTRATO DE CADA FIGURA
@@ -752,6 +752,577 @@ function gota(ctx, r, color) {
   ctx.fill();
 }
 
+// ───────────────────────────── NUEVAS PROPUESTAS ─────────────────────────────
+
+function manzana(ctx, r, color) {
+  preparar(ctx, r, color);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.55);
+  ctx.bezierCurveTo(r * 0.5, -r * 0.82, r * 0.9, -r * 0.25, r * 0.66, r * 0.45);
+  ctx.bezierCurveTo(r * 0.5, r * 0.92, r * 0.15, r * 0.9, 0, r * 0.72);
+  ctx.bezierCurveTo(-r * 0.15, r * 0.9, -r * 0.5, r * 0.92, -r * 0.66, r * 0.45);
+  ctx.bezierCurveTo(-r * 0.9, -r * 0.25, -r * 0.5, -r * 0.82, 0, -r * 0.55);
+  ctx.closePath();
+  pintar(ctx);
+
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2, r * 0.1);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.55);
+  ctx.lineTo(r * 0.08, -r * 0.92);
+  ctx.stroke();
+  ctx.fillStyle = CLARO;
+  ctx.beginPath();
+  ctx.ellipse(r * 0.34, -r * 0.76, r * 0.3, r * 0.14, -0.45, 0, TAU);
+  pintar(ctx);
+}
+
+function espiga(ctx, r, color) {
+  preparar(ctx, r, color);
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2.5, r * 0.11);
+  ctx.beginPath();
+  ctx.moveTo(0, r * 0.92);
+  ctx.lineTo(0, -r * 0.86);
+  ctx.stroke();
+
+  for (let indice = 0; indice < 5; indice++) {
+    const y = r * 0.5 - indice * r * 0.3;
+    const apertura = indice % 2 === 0 ? 0.5 : 0.42;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.25, y, r * 0.34, r * 0.15, apertura, 0, TAU);
+    pintar(ctx);
+    ctx.beginPath();
+    ctx.ellipse(r * 0.25, y - r * 0.1, r * 0.34, r * 0.15, -apertura, 0, TAU);
+    pintar(ctx);
+  }
+}
+
+function cintaTransportadora(ctx, r, color) {
+  preparar(ctx, r, color);
+  rectR(ctx, -r * 0.9, -r * 0.12, r * 1.8, r * 0.55, r * 0.22);
+  pintar(ctx);
+  ctx.fillStyle = OSCURO;
+  for (const x of [-r * 0.58, 0, r * 0.58]) {
+    circulo(ctx, x, r * 0.16, r * 0.18);
+    pintar(ctx);
+  }
+  rectR(ctx, -r * 0.65, -r * 0.72, r * 0.52, r * 0.6, r * 0.08);
+  ctx.fillStyle = color;
+  pintar(ctx);
+  rectR(ctx, r * 0.12, -r * 0.58, r * 0.48, r * 0.46, r * 0.08);
+  pintar(ctx);
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2, r * 0.1);
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.62, r * 0.43);
+  ctx.lineTo(-r * 0.72, r * 0.9);
+  ctx.moveTo(r * 0.62, r * 0.43);
+  ctx.lineTo(r * 0.72, r * 0.9);
+  ctx.stroke();
+}
+
+function diagramaFlujo(ctx, r, color) {
+  preparar(ctx, r, color);
+  rectR(ctx, -r * 0.78, -r * 0.82, r * 0.68, r * 0.42, r * 0.1);
+  pintar(ctx);
+  rectR(ctx, r * 0.1, -r * 0.18, r * 0.68, r * 0.42, r * 0.1);
+  pintar(ctx);
+  rectR(ctx, -r * 0.78, r * 0.44, r * 0.68, r * 0.42, r * 0.1);
+  pintar(ctx);
+
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2, r * 0.1);
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.1, -r * 0.61);
+  ctx.lineTo(r * 0.44, -r * 0.61);
+  ctx.lineTo(r * 0.44, -r * 0.18);
+  ctx.moveTo(r * 0.44, r * 0.24);
+  ctx.lineTo(r * 0.44, r * 0.65);
+  ctx.lineTo(-r * 0.1, r * 0.65);
+  ctx.stroke();
+  poligono(ctx, [
+    [r * 0.28, -r * 0.28],
+    [r * 0.6, -r * 0.28],
+    [r * 0.44, -r * 0.08],
+  ]);
+  ctx.fillStyle = CLARO;
+  pintar(ctx);
+}
+
+function mapa(ctx, r, color) {
+  preparar(ctx, r, color);
+  poligono(ctx, [
+    [-r * 0.9, -r * 0.62],
+    [-r * 0.3, -r * 0.82],
+    [r * 0.3, -r * 0.58],
+    [r * 0.9, -r * 0.78],
+    [r * 0.9, r * 0.62],
+    [r * 0.3, r * 0.82],
+    [-r * 0.3, r * 0.58],
+    [-r * 0.9, r * 0.78],
+  ]);
+  pintar(ctx);
+  ctx.strokeStyle = CLARO;
+  ctx.lineWidth = Math.max(1.5, r * 0.07);
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.3, -r * 0.82);
+  ctx.lineTo(-r * 0.3, r * 0.58);
+  ctx.moveTo(r * 0.3, -r * 0.58);
+  ctx.lineTo(r * 0.3, r * 0.82);
+  ctx.moveTo(-r * 0.72, r * 0.25);
+  ctx.quadraticCurveTo(0, -r * 0.35, r * 0.68, r * 0.18);
+  ctx.stroke();
+}
+
+function satelite(ctx, r, color) {
+  preparar(ctx, r, color);
+  rectR(ctx, -r * 0.32, -r * 0.42, r * 0.64, r * 0.84, r * 0.12);
+  pintar(ctx);
+  for (const x of [-r * 0.78, r * 0.38]) {
+    rectR(ctx, x, -r * 0.38, r * 0.4, r * 0.76, r * 0.05);
+    ctx.fillStyle = color;
+    pintar(ctx);
+    ctx.strokeStyle = CLARO;
+    ctx.lineWidth = Math.max(1, r * 0.05);
+    ctx.beginPath();
+    ctx.moveTo(x + r * 0.2, -r * 0.38);
+    ctx.lineTo(x + r * 0.2, r * 0.38);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x + r * 0.4, 0);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2, r * 0.09);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.42);
+  ctx.lineTo(0, -r * 0.72);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, -r * 0.72, r * 0.28, Math.PI, TAU);
+  ctx.stroke();
+}
+
+function antena(ctx, r, color) {
+  preparar(ctx, r, color);
+  poligono(ctx, [
+    [0, -r * 0.86],
+    [-r * 0.52, r * 0.88],
+    [r * 0.52, r * 0.88],
+  ]);
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  pintar(ctx);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, r * 0.09);
+  for (const y of [-r * 0.25, r * 0.18, r * 0.58]) {
+    const ancho = (y + r) * 0.38;
+    ctx.beginPath();
+    ctx.moveTo(-ancho, y);
+    ctx.lineTo(ancho, y);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = color;
+  for (const radio of [r * 0.28, r * 0.48]) {
+    ctx.beginPath();
+    ctx.arc(0, -r * 0.58, radio, -Math.PI * 0.8, -Math.PI * 0.2);
+    ctx.stroke();
+  }
+}
+
+function fibraOptica(ctx, r, color) {
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(5, r * 0.35);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.88, r * 0.55);
+  ctx.bezierCurveTo(-r * 0.2, r * 0.1, r * 0.05, r * 0.75, r * 0.48, -r * 0.22);
+  ctx.stroke();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, r * 0.18);
+  ctx.stroke();
+
+  const tonos = ['#FF5D8F', '#FFD23F', '#00E5A0', '#4FC3F7'];
+  tonos.forEach((tono, indice) => {
+    ctx.strokeStyle = tono;
+    ctx.lineWidth = Math.max(1.5, r * 0.07);
+    ctx.beginPath();
+    ctx.moveTo(r * 0.48, -r * 0.22);
+    ctx.lineTo(r * (0.58 + indice * 0.08), -r * (0.62 + (indice % 2) * 0.18));
+    ctx.stroke();
+    ctx.fillStyle = tono;
+    circulo(
+      ctx,
+      r * (0.58 + indice * 0.08),
+      -r * (0.62 + (indice % 2) * 0.18),
+      r * 0.09,
+    );
+    ctx.fill();
+  });
+}
+
+function barco(ctx, r, color) {
+  preparar(ctx, r, color);
+  poligono(ctx, [
+    [-r * 0.92, r * 0.18],
+    [r * 0.92, r * 0.18],
+    [r * 0.58, r * 0.72],
+    [-r * 0.58, r * 0.72],
+  ]);
+  pintar(ctx);
+  rectR(ctx, -r * 0.45, -r * 0.34, r * 0.9, r * 0.52, r * 0.08);
+  ctx.fillStyle = CLARO;
+  pintar(ctx);
+  ctx.fillStyle = OSCURO;
+  for (const x of [-r * 0.25, 0, r * 0.25]) {
+    ctx.fillRect(x - r * 0.07, -r * 0.2, r * 0.14, r * 0.14);
+  }
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2, r * 0.09);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.34);
+  ctx.lineTo(0, -r * 0.82);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  poligono(ctx, [[0, -r * 0.8], [r * 0.45, -r * 0.52], [0, -r * 0.48]]);
+  pintar(ctx);
+}
+
+function ancla(ctx, r, color) {
+  preparar(ctx, r, color);
+  circulo(ctx, 0, -r * 0.72, r * 0.2);
+  pintar(ctx);
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(4, r * 0.24);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.52);
+  ctx.lineTo(0, r * 0.62);
+  ctx.moveTo(-r * 0.62, -r * 0.3);
+  ctx.lineTo(r * 0.62, -r * 0.3);
+  ctx.moveTo(-r * 0.82, r * 0.18);
+  ctx.quadraticCurveTo(-r * 0.65, r * 0.82, 0, r * 0.82);
+  ctx.quadraticCurveTo(r * 0.65, r * 0.82, r * 0.82, r * 0.18);
+  ctx.stroke();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, r * 0.12);
+  ctx.stroke();
+}
+
+function nube(ctx, r, color) {
+  preparar(ctx, r, color);
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.82, r * 0.42);
+  ctx.quadraticCurveTo(-r * 1.0, -r * 0.1, -r * 0.55, -r * 0.25);
+  ctx.quadraticCurveTo(-r * 0.42, -r * 0.78, r * 0.05, -r * 0.65);
+  ctx.quadraticCurveTo(r * 0.45, -r * 0.8, r * 0.6, -r * 0.35);
+  ctx.quadraticCurveTo(r * 1.0, -r * 0.18, r * 0.82, r * 0.42);
+  ctx.closePath();
+  pintar(ctx);
+  ctx.strokeStyle = CLARO;
+  ctx.lineWidth = Math.max(2, r * 0.09);
+  for (const x of [-r * 0.45, 0, r * 0.45]) {
+    ctx.beginPath();
+    ctx.moveTo(x, r * 0.58);
+    ctx.lineTo(x - r * 0.14, r * 0.88);
+    ctx.stroke();
+  }
+}
+
+function anemometro(ctx, r, color) {
+  preparar(ctx, r, color);
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2.5, r * 0.11);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.15);
+  ctx.lineTo(0, r * 0.9);
+  ctx.stroke();
+  circulo(ctx, 0, -r * 0.15, r * 0.14);
+  pintar(ctx);
+
+  for (let indice = 0; indice < 3; indice++) {
+    const angulo = -Math.PI / 2 + (indice * TAU) / 3;
+    const extremoX = Math.cos(angulo) * r * 0.62;
+    const extremoY = -r * 0.15 + Math.sin(angulo) * r * 0.62;
+    ctx.strokeStyle = CONTORNO;
+    ctx.beginPath();
+    ctx.moveTo(0, -r * 0.15);
+    ctx.lineTo(extremoX, extremoY);
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(extremoX, extremoY, r * 0.26, r * 0.14, angulo + Math.PI / 2, 0, TAU);
+    pintar(ctx);
+  }
+}
+
+function algoritmo(ctx, r, color) {
+  preparar(ctx, r, color);
+  rectR(ctx, -r * 0.38, -r * 0.88, r * 0.76, r * 0.34, r * 0.16);
+  pintar(ctx);
+  poligono(ctx, [
+    [0, -r * 0.36],
+    [r * 0.45, 0],
+    [0, r * 0.36],
+    [-r * 0.45, 0],
+  ]);
+  pintar(ctx);
+  rectR(ctx, -r * 0.38, r * 0.55, r * 0.76, r * 0.34, r * 0.16);
+  pintar(ctx);
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2, r * 0.09);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.54);
+  ctx.lineTo(0, -r * 0.36);
+  ctx.moveTo(0, r * 0.36);
+  ctx.lineTo(0, r * 0.55);
+  ctx.moveTo(r * 0.45, 0);
+  ctx.lineTo(r * 0.82, 0);
+  ctx.lineTo(r * 0.82, r * 0.72);
+  ctx.lineTo(r * 0.38, r * 0.72);
+  ctx.stroke();
+}
+
+function baseDatos(ctx, r, color) {
+  preparar(ctx, r, color);
+  ctx.beginPath();
+  ctx.ellipse(0, -r * 0.65, r * 0.72, r * 0.28, 0, 0, TAU);
+  pintar(ctx);
+  ctx.fillRect(-r * 0.72, -r * 0.65, r * 1.44, r * 1.3);
+  ctx.strokeRect(-r * 0.72, -r * 0.65, r * 1.44, r * 1.3);
+  ctx.beginPath();
+  ctx.ellipse(0, r * 0.65, r * 0.72, r * 0.28, 0, 0, TAU);
+  pintar(ctx);
+  ctx.strokeStyle = CLARO;
+  ctx.lineWidth = Math.max(1.5, r * 0.07);
+  for (const y of [-r * 0.18, r * 0.25]) {
+    ctx.beginPath();
+    ctx.ellipse(0, y, r * 0.72, r * 0.28, 0, 0, Math.PI);
+    ctx.stroke();
+  }
+}
+
+function adn(ctx, r, color) {
+  ctx.lineCap = 'round';
+  for (const desplazamiento of [0, Math.PI]) {
+    ctx.strokeStyle = CONTORNO;
+    ctx.lineWidth = Math.max(3, r * 0.2);
+    ctx.beginPath();
+    for (let paso = 0; paso <= 36; paso++) {
+      const t = paso / 36;
+      const y = -r * 0.9 + t * r * 1.8;
+      const x = Math.sin(t * TAU * 1.25 + desplazamiento) * r * 0.48;
+      paso === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(1.5, r * 0.1);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = CLARO;
+  ctx.lineWidth = Math.max(1.5, r * 0.06);
+  for (let paso = 3; paso < 34; paso += 5) {
+    const t = paso / 36;
+    const y = -r * 0.9 + t * r * 1.8;
+    const x = Math.sin(t * TAU * 1.25) * r * 0.48;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(-x, y);
+    ctx.stroke();
+  }
+}
+
+function celula(ctx, r, color) {
+  preparar(ctx, r, color);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, r * 0.9, r * 0.72, -0.18, 0, TAU);
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  pintar(ctx);
+  circulo(ctx, -r * 0.14, r * 0.02, r * 0.3);
+  ctx.fillStyle = color;
+  pintar(ctx);
+  ctx.fillStyle = CLARO;
+  for (const [x, y, rx, ry, giro] of [
+    [-0.48, -0.24, 0.2, 0.1, 0.4],
+    [0.48, -0.18, 0.18, 0.09, -0.5],
+    [0.38, 0.35, 0.22, 0.1, 0.2],
+    [-0.5, 0.32, 0.15, 0.08, -0.2],
+  ]) {
+    ctx.beginPath();
+    ctx.ellipse(x * r, y * r, rx * r, ry * r, giro, 0, TAU);
+    pintar(ctx);
+  }
+}
+
+function termometro(ctx, r, color) {
+  preparar(ctx, r, color);
+  rectR(ctx, -r * 0.2, -r * 0.88, r * 0.4, r * 1.32, r * 0.2);
+  ctx.fillStyle = CLARO;
+  pintar(ctx);
+  circulo(ctx, 0, r * 0.62, r * 0.34);
+  ctx.fillStyle = color;
+  pintar(ctx);
+  ctx.fillStyle = color;
+  rectR(ctx, -r * 0.09, -r * 0.55, r * 0.18, r * 1.08, r * 0.09);
+  ctx.fill();
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(1.5, r * 0.06);
+  for (const y of [-r * 0.55, -r * 0.25, r * 0.05]) {
+    ctx.beginPath();
+    ctx.moveTo(r * 0.2, y);
+    ctx.lineTo(r * 0.45, y);
+    ctx.stroke();
+  }
+}
+
+function escudoCalidad(ctx, r, color) {
+  preparar(ctx, r, color);
+  poligono(ctx, [
+    [0, -r * 0.9],
+    [r * 0.72, -r * 0.58],
+    [r * 0.58, r * 0.35],
+    [0, r * 0.9],
+    [-r * 0.58, r * 0.35],
+    [-r * 0.72, -r * 0.58],
+  ]);
+  pintar(ctx);
+  ctx.strokeStyle = CLARO;
+  ctx.lineWidth = Math.max(3, r * 0.17);
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.36, 0);
+  ctx.lineTo(-r * 0.08, r * 0.28);
+  ctx.lineTo(r * 0.42, -r * 0.3);
+  ctx.stroke();
+}
+
+function brujula(ctx, r, color) {
+  preparar(ctx, r, color);
+  circulo(ctx, 0, 0, r * 0.9);
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  pintar(ctx);
+  poligono(ctx, [
+    [0, -r * 0.75],
+    [r * 0.2, r * 0.08],
+    [0, r * 0.75],
+    [-r * 0.2, -r * 0.08],
+  ]);
+  ctx.fillStyle = color;
+  pintar(ctx);
+  ctx.fillStyle = CLARO;
+  poligono(ctx, [[0, -r * 0.75], [r * 0.2, r * 0.08], [0, 0]]);
+  pintar(ctx);
+  circulo(ctx, 0, 0, r * 0.1);
+  ctx.fillStyle = OSCURO;
+  pintar(ctx);
+}
+
+function pinMapa(ctx, r, color) {
+  preparar(ctx, r, color);
+  ctx.beginPath();
+  ctx.moveTo(0, r * 0.92);
+  ctx.bezierCurveTo(-r * 0.18, r * 0.52, -r * 0.7, r * 0.12, -r * 0.7, -r * 0.35);
+  ctx.arc(0, -r * 0.35, r * 0.7, Math.PI, 0);
+  ctx.bezierCurveTo(r * 0.7, r * 0.12, r * 0.18, r * 0.52, 0, r * 0.92);
+  ctx.closePath();
+  pintar(ctx);
+  circulo(ctx, 0, -r * 0.35, r * 0.25);
+  ctx.fillStyle = CLARO;
+  pintar(ctx);
+}
+
+function calibre(ctx, r, color) {
+  preparar(ctx, r, color);
+  rectR(ctx, -r * 0.92, -r * 0.12, r * 1.84, r * 0.24, r * 0.06);
+  pintar(ctx);
+  poligono(ctx, [
+    [-r * 0.82, -r * 0.12],
+    [-r * 0.82, -r * 0.78],
+    [-r * 0.55, -r * 0.78],
+    [-r * 0.55, -r * 0.12],
+  ]);
+  pintar(ctx);
+  poligono(ctx, [
+    [r * 0.48, -r * 0.12],
+    [r * 0.48, -r * 0.58],
+    [r * 0.7, -r * 0.58],
+    [r * 0.7, r * 0.12],
+  ]);
+  pintar(ctx);
+  rectR(ctx, -r * 0.2, -r * 0.3, r * 0.72, r * 0.6, r * 0.08);
+  ctx.fillStyle = OSCURO;
+  pintar(ctx);
+  ctx.strokeStyle = CLARO;
+  ctx.lineWidth = Math.max(1, r * 0.04);
+  for (let indice = 0; indice < 7; indice++) {
+    const x = -r * 0.42 + indice * r * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(x, r * 0.12);
+    ctx.lineTo(x, r * (indice % 2 === 0 ? 0.34 : 0.26));
+    ctx.stroke();
+  }
+}
+
+function cascoIndustrial(ctx, r, color) {
+  preparar(ctx, r, color);
+  ctx.beginPath();
+  ctx.arc(0, r * 0.05, r * 0.72, Math.PI, TAU);
+  ctx.lineTo(r * 0.72, r * 0.42);
+  ctx.lineTo(-r * 0.72, r * 0.42);
+  ctx.closePath();
+  pintar(ctx);
+  rectR(ctx, -r * 0.92, r * 0.34, r * 1.84, r * 0.28, r * 0.1);
+  pintar(ctx);
+  ctx.strokeStyle = CLARO;
+  ctx.lineWidth = Math.max(2, r * 0.08);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.66);
+  ctx.lineTo(0, r * 0.34);
+  ctx.stroke();
+}
+
+function terminal(ctx, r, color) {
+  preparar(ctx, r, color);
+  rectR(ctx, -r * 0.9, -r * 0.72, r * 1.8, r * 1.44, r * 0.14);
+  pintar(ctx);
+  ctx.fillStyle = OSCURO;
+  rectR(ctx, -r * 0.72, -r * 0.48, r * 1.44, r * 0.96, r * 0.06);
+  ctx.fill();
+  ctx.fillStyle = CLARO;
+  ctx.font = `700 ${r * 0.48}px ui-monospace, monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('>_', 0, 0);
+  ctx.fillStyle = color;
+  for (const x of [-r * 0.62, -r * 0.42, -r * 0.22]) {
+    circulo(ctx, x, -r * 0.6, r * 0.06);
+    ctx.fill();
+  }
+}
+
+function red(ctx, r, color) {
+  const nodos = [
+    [0, -r * 0.78],
+    [-r * 0.72, -r * 0.18],
+    [r * 0.72, -r * 0.18],
+    [-r * 0.45, r * 0.68],
+    [r * 0.45, r * 0.68],
+    [0, r * 0.12],
+  ];
+  ctx.strokeStyle = CONTORNO;
+  ctx.lineWidth = Math.max(2, r * 0.1);
+  ctx.beginPath();
+  for (const [desde, hasta] of [[0, 1], [0, 2], [1, 3], [2, 4], [3, 5], [4, 5], [1, 5], [2, 5]]) {
+    ctx.moveTo(...nodos[desde]);
+    ctx.lineTo(...nodos[hasta]);
+  }
+  ctx.stroke();
+  preparar(ctx, r, color);
+  nodos.forEach(([x, y], indice) => {
+    circulo(ctx, x, y, indice === 5 ? r * 0.22 : r * 0.16);
+    ctx.fillStyle = indice === 5 ? CLARO : color;
+    pintar(ctx);
+  });
+}
+
 // ───────────────────────────────── registro ─────────────────────────────────
 
 export const FIGURAS = {
@@ -796,6 +1367,31 @@ export const FIGURAS = {
   mechero,
   pipeta,
   gota,
+
+  manzana,
+  espiga,
+  'cinta-transportadora': cintaTransportadora,
+  'diagrama-flujo': diagramaFlujo,
+  mapa,
+  satelite,
+  antena,
+  'fibra-optica': fibraOptica,
+  barco,
+  ancla,
+  nube,
+  anemometro,
+  algoritmo,
+  'base-datos': baseDatos,
+  adn,
+  celula,
+  termometro,
+  'escudo-calidad': escudoCalidad,
+  brujula,
+  'pin-mapa': pinMapa,
+  calibre,
+  'casco-industrial': cascoIndustrial,
+  terminal,
+  red,
 };
 
 export const figurasDisponibles = () => Object.keys(FIGURAS);

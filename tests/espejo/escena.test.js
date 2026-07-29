@@ -13,6 +13,7 @@ import {
   dibujarTextos,
   dibujarPuntosRostro,
   dibujarTemporizadorEstado,
+  trazarSiluetaPersona,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
 import { CONFIG } from '../../espejo/config.js';
@@ -136,6 +137,42 @@ describe('calcularFasesDeCierre', () => {
     expect(calcularFasesDeCierre(0.5).prediccion).toBeLessThan(1);
     expect(calcularFasesDeCierre(0.5).concepto).toBeGreaterThan(0);
     expect(calcularFasesDeCierre(1)).toEqual({ prediccion: 0, concepto: 1 });
+  });
+});
+
+describe('trazarSiluetaPersona', () => {
+  it('crea una mascara de cabeza y torso como respaldo', () => {
+    const llamadas = [];
+    const contexto = {
+      beginPath: () => llamadas.push('beginPath'),
+      ellipse: () => llamadas.push('ellipse'),
+      moveTo() {},
+      bezierCurveTo: () => llamadas.push('bezierCurveTo'),
+      lineTo() {},
+      closePath() {},
+      fill: () => llamadas.push('fill'),
+      quadraticCurveTo() {},
+      stroke() {},
+      arc() {},
+    };
+
+    expect(
+      trazarSiluetaPersona(
+        contexto,
+        { centro: { x: 500, y: 350 }, radio: 120, angulo: 0 },
+        [],
+        calcularDisposicion(1000, 1000),
+      ),
+    ).toBe(true);
+    expect(llamadas).toContain('ellipse');
+    expect(llamadas).toContain('bezierCurveTo');
+    expect(llamadas).toContain('fill');
+  });
+
+  it('no inventa una persona cuando no hay rostro', () => {
+    expect(
+      trazarSiluetaPersona({}, null, [], calcularDisposicion(1000, 1000)),
+    ).toBe(false);
   });
 });
 

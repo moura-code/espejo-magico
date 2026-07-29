@@ -21,6 +21,7 @@ const TIPOS_ARCHIVO = {
   '.mp4': 'video/mp4',
   '.wasm': 'application/wasm',
   '.task': 'application/octet-stream',
+  '.tflite': 'application/octet-stream',
 };
 
 export function obtenerDireccionesLocales(interfaces = networkInterfaces()) {

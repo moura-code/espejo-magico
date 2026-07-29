@@ -77,10 +77,24 @@ function contextoFalso() {
 
 const NOMBRES = figurasDisponibles();
 const GLIFOS = ['pi', 'sumatoria', 'integral', 'llaves'];
+const FIGURAS_DISTINTIVAS = {
+  alimentos: ['manzana', 'espiga'],
+  produccion: ['cinta-transportadora', 'diagrama-flujo'],
+  agrimensura: ['mapa', 'satelite'],
+  'sistemas-comunicacion': ['antena', 'fibra-optica'],
+  naval: ['barco', 'ancla'],
+  'ciencias-atmosfera': ['nube', 'anemometro'],
+  'licenciatura-computacion': ['algoritmo', 'base-datos'],
+  'ingenieria-biologica': ['adn', 'celula'],
+  'tecnologo-carnico': ['termometro', 'escudo-calidad'],
+  'tecnologo-cartografia': ['brujula', 'pin-mapa'],
+  'tecnologo-industrial-mecanico': ['calibre', 'casco-industrial'],
+  'tecnologo-informatico': ['terminal', 'red'],
+};
 
 describe('figuras', () => {
-  it('hay suficientes figuras para las familias visuales del catalogo', () => {
-    expect(NOMBRES.length).toBeGreaterThanOrEqual(36);
+  it('incluye las sesenta figuras del catalogo ampliado', () => {
+    expect(NOMBRES).toHaveLength(60);
   });
 
   it.each(NOMBRES)('"%s" dibuja algo sin romperse', (nombre) => {
@@ -163,5 +177,17 @@ describe('carreras.json contra el registro de figuras', () => {
       }
     }
     expect(desconocidas).toEqual([]);
+  });
+
+  it('las propuestas ampliadas usan al menos dos figuras distintivas', async () => {
+    const datos = JSON.parse(
+      await readFile(resolve(RAIZ, 'assets/carreras.json'), 'utf8'),
+    );
+    const porId = new Map(datos.carreras.map((carrera) => [carrera.id, carrera]));
+
+    for (const [id, esperadas] of Object.entries(FIGURAS_DISTINTIVAS)) {
+      const usadas = porId.get(id).objetos.map((objeto) => objeto.figura);
+      expect(usadas, id).toEqual(expect.arrayContaining(esperadas));
+    }
   });
 });
