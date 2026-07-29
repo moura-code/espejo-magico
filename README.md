@@ -68,6 +68,11 @@ izquierda muestra los segundos y la proporción de tiempo que faltan para el
 siguiente estado. No aparece durante la espera ni en modo manual, porque en esos
 casos no existe una transición automática programada.
 
+Los textos de encuentro, sorteo, revelación y reflexión también responden al
+encuadre. En una pantalla apaisada ocupan el lado libre opuesto al rostro; en una
+pantalla vertical, casi cuadrada o sin una persona detectada permanecen en el
+pie. Una histéresis evita que cambien de lado por movimientos pequeños.
+
 | Tecla | Qué hace |
 |---|---|
 | `ESPACIO` | Avanza al estado siguiente (modo manual) |

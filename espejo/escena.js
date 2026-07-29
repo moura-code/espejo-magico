@@ -187,6 +187,80 @@ export function tamanoQueEntra(texto, tamanoDeseado, anchoMaximo, medir) {
 
 const MARGEN_TEXTO = 0.9;
 
+function ubicacionDePie(disposicion) {
+  return {
+    modo: 'pie',
+    lado: null,
+    x: disposicion.ancho / 2,
+    anchoMaximo: disposicion.ancho * MARGEN_TEXTO,
+    categoriaY: disposicion.texto.categoriaY,
+    nombreY: disposicion.texto.nombreY,
+    fraseY: disposicion.texto.fraseY,
+  };
+}
+
+/**
+ * Ubica la narrativa en el espacio libre que deja la persona.
+ *
+ * En pantallas verticales conserva el pie, que aprovecha mejor el ancho. En
+ * apaisado usa el lado opuesto al rostro. `ladoAnterior` agrega histeresis para
+ * que el bloque no salte de izquierda a derecha cuando alguien mueve apenas la
+ * cabeza cerca del centro.
+ */
+export function calcularUbicacionTexto(
+  disposicion,
+  rostro,
+  ladoAnterior = null,
+  ajustes,
+) {
+  const pie = ubicacionDePie(disposicion);
+  const { ancho, alto } = disposicion;
+  if (!ajustes) return pie;
+  if (!rostro?.centro || ancho / alto < ajustes.relacionMinimaLateral) return pie;
+
+  const centro = ancho / 2;
+  const desplazamiento = rostro.centro.x - centro;
+  const umbralDeCambio = ancho * ajustes.histeresisHorizontal;
+  let lado = ladoAnterior === 'izquierda' || ladoAnterior === 'derecha'
+    ? ladoAnterior
+    : (desplazamiento <= 0 ? 'derecha' : 'izquierda');
+
+  if (lado === 'derecha' && desplazamiento > umbralDeCambio) lado = 'izquierda';
+  if (lado === 'izquierda' && desplazamiento < -umbralDeCambio) lado = 'derecha';
+
+  const margenExterior = Math.max(
+    ajustes.margenExteriorMinimo,
+    alto * ajustes.margenExteriorEnAltura,
+  );
+  if ((rostro.radio ?? 0) > Math.min(ancho, alto) * ajustes.radioMaximoEnLadoCorto) {
+    return pie;
+  }
+
+  const inicio = lado === 'derecha'
+    ? ancho * ajustes.inicioZonaLateral
+    : margenExterior;
+  const fin = lado === 'derecha'
+    ? ancho - margenExterior
+    : ancho * (1 - ajustes.inicioZonaLateral);
+  const anchoDisponible = fin - inicio;
+  const anchoMinimo = Math.min(
+    ancho * ajustes.anchoMinimoEnPantalla,
+    alto * ajustes.anchoMinimoEnAltura,
+  );
+
+  if (anchoDisponible < anchoMinimo) return pie;
+
+  return {
+    modo: 'lateral',
+    lado,
+    x: (inicio + fin) / 2,
+    y: alto * ajustes.alturaInicial,
+    anchoMaximo: anchoDisponible * ajustes.rellenoHorizontal,
+    inicio,
+    fin,
+  };
+}
+
 /**
  * Un aro en cada palma, del tamaño real del circulo de colision.
  *
@@ -345,10 +419,83 @@ export function dibujarCierreDeAusencia(ctx, disposicion, progreso) {
   ctx.restore();
 }
 
-export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
+function ajustarLineas(
+  ctx,
+  contenido,
+  { tamanoDeseado, anchoMaximo, maximoLineas, peso, minimo },
+) {
+  for (let tamano = tamanoDeseado; tamano >= minimo; tamano -= 1) {
+    ctx.font = `${peso} ${tamano}px system-ui, sans-serif`;
+    const lineas = partirTextoEnLineas(ctx, contenido, anchoMaximo);
+    const entran =
+      lineas.length <= maximoLineas &&
+      lineas.every((linea) => ctx.measureText(linea).width <= anchoMaximo);
+    if (entran) return { lineas, tamano };
+  }
+
+  ctx.font = `${peso} ${minimo}px system-ui, sans-serif`;
+  return {
+    lineas: partirTextoEnLineas(ctx, contenido, anchoMaximo),
+    tamano: minimo,
+  };
+}
+
+function dibujarTextosLaterales(ctx, carrera, disposicion, ubicacion, alfa) {
+  const { texto } = disposicion;
+  let y = ubicacion.y;
+
+  if (carrera.categoria) {
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = alfa * 0.82;
+    ctx.font = `700 ${texto.tamanoCategoria}px system-ui, sans-serif`;
+    ctx.fillText(carrera.categoria.toLocaleUpperCase('es'), ubicacion.x, y);
+    ctx.globalAlpha = alfa;
+    y += texto.tamanoCategoria * 2.2;
+  }
+
+  const titulo = ajustarLineas(ctx, tituloDeRevelacion(carrera), {
+    tamanoDeseado: Math.round(texto.tamanoNombre * 0.92),
+    anchoMaximo: ubicacion.anchoMaximo,
+    maximoLineas: 3,
+    peso: 700,
+    minimo: Math.max(18, Math.round(texto.tamanoNombre * 0.58)),
+  });
+  ctx.fillStyle = carrera.color;
+  ctx.font = `700 ${titulo.tamano}px system-ui, sans-serif`;
+  const interlineadoTitulo = titulo.tamano * 1.08;
+  for (const linea of titulo.lineas) {
+    ctx.fillText(linea, ubicacion.x, y);
+    y += interlineadoTitulo;
+  }
+
+  if (!carrera.finalidad) return;
+  y += titulo.tamano * 0.42;
+  const frase = ajustarLineas(ctx, carrera.finalidad, {
+    tamanoDeseado: texto.tamanoFrase,
+    anchoMaximo: ubicacion.anchoMaximo,
+    maximoLineas: 3,
+    peso: 400,
+    minimo: Math.max(14, Math.round(texto.tamanoFrase * 0.68)),
+  });
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `400 ${frase.tamano}px system-ui, sans-serif`;
+  const interlineadoFrase = frase.tamano * 1.24;
+  for (const linea of frase.lineas) {
+    ctx.fillText(linea, ubicacion.x, y);
+    y += interlineadoFrase;
+  }
+}
+
+export function dibujarTextos(
+  ctx,
+  carrera,
+  disposicion,
+  alfa = 1,
+  ubicacion = ubicacionDePie(disposicion),
+) {
   if (!carrera || alfa <= 0) return;
-  const { texto, ancho } = disposicion;
-  const disponible = ancho * MARGEN_TEXTO;
+  const { texto } = disposicion;
+  const disponible = ubicacion.anchoMaximo;
   const titulo = tituloDeRevelacion(carrera);
 
   const medirCon = (peso, familia) => (contenido, tamano) => {
@@ -362,11 +509,21 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.shadowColor = 'rgba(0,0,0,0.8)';
   ctx.shadowBlur = 18;
 
+  if (ubicacion.modo === 'lateral') {
+    dibujarTextosLaterales(ctx, carrera, disposicion, ubicacion, alfa);
+    ctx.restore();
+    return;
+  }
+
   if (carrera.categoria) {
     ctx.fillStyle = '#ffffff';
     ctx.globalAlpha = alfa * 0.82;
     ctx.font = `700 ${texto.tamanoCategoria}px system-ui, sans-serif`;
-    ctx.fillText(carrera.categoria.toLocaleUpperCase('es'), ancho / 2, texto.categoriaY);
+    ctx.fillText(
+      carrera.categoria.toLocaleUpperCase('es'),
+      ubicacion.x,
+      ubicacion.categoriaY,
+    );
     ctx.globalAlpha = alfa;
   }
 
@@ -374,7 +531,7 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   const tamanoNombre = tamanoQueEntra(titulo, texto.tamanoNombre, disponible, medirNombre);
   ctx.fillStyle = carrera.color;
   ctx.font = `700 ${tamanoNombre}px system-ui, sans-serif`;
-  ctx.fillText(titulo, ancho / 2, texto.nombreY);
+  ctx.fillText(titulo, ubicacion.x, ubicacion.nombreY);
 
   if (carrera.finalidad) {
     const medirFrase = medirCon(400, 'system-ui, sans-serif');
@@ -386,7 +543,7 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
     );
     ctx.fillStyle = '#ffffff';
     ctx.font = `400 ${tamanoFrase}px system-ui, sans-serif`;
-    ctx.fillText(carrera.finalidad, ancho / 2, texto.fraseY);
+    ctx.fillText(carrera.finalidad, ubicacion.x, ubicacion.fraseY);
   }
   ctx.restore();
 }
@@ -413,6 +570,35 @@ function dibujarLineaAjustada(
   ctx.fillText(contenido, x, y);
 }
 
+function dibujarLineasAjustadas(
+  ctx,
+  contenido,
+  {
+    x,
+    y,
+    tamano,
+    anchoMaximo,
+    maximoLineas = 3,
+    interlineado = 1.14,
+    peso = 400,
+    color = '#ffffff',
+  },
+) {
+  const ajuste = ajustarLineas(ctx, contenido, {
+    tamanoDeseado: tamano,
+    anchoMaximo,
+    maximoLineas,
+    peso,
+    minimo: Math.max(14, Math.round(tamano * 0.6)),
+  });
+  ctx.fillStyle = color;
+  ctx.font = `${peso} ${ajuste.tamano}px system-ui, sans-serif`;
+  ajuste.lineas.forEach((linea, indice) => {
+    ctx.fillText(linea, x, y + indice * ajuste.tamano * interlineado);
+  });
+  return ajuste.lineas.length * ajuste.tamano * interlineado;
+}
+
 export function partirTextoEnLineas(ctx, contenido, anchoMaximo) {
   const palabras = contenido.trim().split(/\s+/);
   const lineas = [];
@@ -430,20 +616,6 @@ export function partirTextoEnLineas(ctx, contenido, anchoMaximo) {
 
   if (actual) lineas.push(actual);
   return lineas;
-}
-
-function dibujarParrafo(
-  ctx,
-  contenido,
-  { x, y, tamano, anchoMaximo, interlineado = 1.25, color = '#ffffff', peso = 400 },
-) {
-  ctx.font = `${peso} ${tamano}px system-ui, sans-serif`;
-  ctx.fillStyle = color;
-  const lineas = partirTextoEnLineas(ctx, contenido, anchoMaximo);
-  lineas.forEach((linea, indice) => {
-    ctx.fillText(linea, x, y + indice * tamano * interlineado);
-  });
-  return lineas.length * tamano * interlineado;
 }
 
 export function dibujarInvitacion(ctx, disposicion, pulso) {
@@ -466,53 +638,69 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
   ctx.restore();
 }
 
-export function dibujarEncuentro(ctx, disposicion) {
-  const { ancho, alto, texto } = disposicion;
-  const disponible = ancho * MARGEN_TEXTO;
+export function dibujarEncuentro(
+  ctx,
+  disposicion,
+  ubicacion = ubicacionDePie(disposicion),
+) {
+  const { alto, texto } = disposicion;
+  const y = ubicacion.modo === 'lateral' ? alto * 0.4 : alto * 0.46;
 
   ctx.save();
   ctx.textAlign = 'center';
   ctx.shadowColor = 'rgba(0,0,0,0.85)';
   ctx.shadowBlur = 24;
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.encuentroTitulo, {
-    x: ancho / 2,
-    y: alto * 0.46,
+  const altoTitulo = dibujarLineasAjustadas(ctx, TEXTOS_EXPERIENCIA.encuentroTitulo, {
+    x: ubicacion.x,
+    y,
     tamano: texto.tamanoNombre * 0.8,
-    anchoMaximo: disponible,
+    anchoMaximo: ubicacion.anchoMaximo,
+    maximoLineas: 2,
     peso: 700,
   });
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.encuentroBajada, {
-    x: ancho / 2,
-    y: alto * 0.46 + texto.tamanoNombre,
+  dibujarLineasAjustadas(ctx, TEXTOS_EXPERIENCIA.encuentroBajada, {
+    x: ubicacion.x,
+    y: y + altoTitulo + texto.tamanoFrase * 0.4,
     tamano: texto.tamanoFrase * 1.08,
-    anchoMaximo: disponible,
+    anchoMaximo: ubicacion.anchoMaximo,
+    maximoLineas: 2,
   });
   ctx.restore();
 }
 
-export function dibujarMensajeSorteo(ctx, disposicion, pulso) {
-  const { ancho, alto, texto } = disposicion;
+export function dibujarMensajeSorteo(
+  ctx,
+  disposicion,
+  pulso,
+  ubicacion = ubicacionDePie(disposicion),
+) {
+  const { alto, texto } = disposicion;
 
   ctx.save();
   ctx.globalAlpha = 0.72 + pulso * 0.28;
   ctx.textAlign = 'center';
   ctx.shadowColor = 'rgba(0,0,0,0.9)';
   ctx.shadowBlur = 26;
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.sorteo, {
-    x: ancho / 2,
+  dibujarLineasAjustadas(ctx, TEXTOS_EXPERIENCIA.sorteo, {
+    x: ubicacion.x,
     y: alto * 0.5,
     tamano: texto.tamanoNombre * 0.82,
-    anchoMaximo: ancho * MARGEN_TEXTO,
+    anchoMaximo: ubicacion.anchoMaximo,
+    maximoLineas: 2,
     peso: 700,
   });
   ctx.restore();
 }
 
-export function dibujarReflexion(ctx, carrera, disposicion) {
+export function dibujarReflexion(
+  ctx,
+  carrera,
+  disposicion,
+  ubicacion = ubicacionDePie(disposicion),
+) {
   if (!carrera) return;
   const { ancho, alto, texto } = disposicion;
-  const centroX = ancho / 2;
-  const disponible = ancho * 0.84;
+  const y = ubicacion.modo === 'lateral' ? alto * 0.4 : alto * 0.43;
 
   ctx.save();
   ctx.fillStyle = 'rgba(3,7,10,0.68)';
@@ -522,19 +710,21 @@ export function dibujarReflexion(ctx, carrera, disposicion) {
   ctx.shadowColor = 'rgba(0,0,0,0.9)';
   ctx.shadowBlur = 20;
 
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.azarTitulo, {
-    x: centroX,
-    y: alto * 0.43,
+  const altoTitulo = dibujarLineasAjustadas(ctx, TEXTOS_EXPERIENCIA.azarTitulo, {
+    x: ubicacion.x,
+    y,
     tamano: texto.tamanoNombre,
-    anchoMaximo: disponible,
+    anchoMaximo: ubicacion.anchoMaximo,
+    maximoLineas: 2,
     peso: 700,
     color: carrera.color,
   });
-  dibujarParrafo(ctx, TEXTOS_EXPERIENCIA.azarDetalle, {
-    x: centroX,
-    y: alto * 0.43 + texto.tamanoNombre * 1.2,
+  dibujarLineasAjustadas(ctx, TEXTOS_EXPERIENCIA.azarDetalle, {
+    x: ubicacion.x,
+    y: y + altoTitulo + texto.tamanoFrase * 0.45,
     tamano: texto.tamanoFrase * 1.08,
-    anchoMaximo: disponible,
+    anchoMaximo: ubicacion.anchoMaximo,
+    maximoLineas: 3,
     interlineado: 1.25,
   });
   ctx.restore();

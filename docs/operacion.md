@@ -137,6 +137,12 @@ matices.
 | Nombres, categorías, enlaces, colores, finalidades y testimonios | `assets/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |
 
+La sensibilidad del texto lateral se calibra en
+`CONFIG.render.textoAdaptativo`, dentro de `espejo/config.js`. El valor
+`relacionMinimaLateral` decide desde qué proporción de pantalla se usa el espacio
+lateral y `histeresisHorizontal` controla cuánto debe cruzar la persona antes de
+que el texto cambie de lado.
+
 Para corregir el nombre de una referente **no hay que volver a renderizar el
 video**: se edita `assets/carreras.json` y listo. Lo mismo con los colores, las
 frases y los nombres de las carreras.

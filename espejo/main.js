@@ -39,6 +39,7 @@ import { calcularCierreDeAusencia } from './interfaz-gestual.js';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
+  calcularUbicacionTexto,
   dibujarVideoEspejado,
   dibujarObjetos,
   dibujarAccesorio,
@@ -280,6 +281,8 @@ let efectoDe = null;
 let ultimaDeteccionManos = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
 let ausenciaVisualDesde = null;
+let ladoDelTexto = null;
+let ultimoRostroDelTexto = null;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
@@ -548,17 +551,39 @@ function cuadro(ahora) {
     ctx.restore();
   }
 
+  const usaTextoAdaptativo =
+    estado === ESTADOS.ENGANCHE ||
+    estado === ESTADOS.SORTEO ||
+    estado === ESTADOS.REVELACION ||
+    estado === ESTADOS.ESCENA ||
+    estado === ESTADOS.REFLEXION;
+  if (usaTextoAdaptativo && rostro) ultimoRostroDelTexto = rostro;
+  const ubicacionTexto = usaTextoAdaptativo
+    ? calcularUbicacionTexto(
+      disposicion,
+      rostro ?? ultimoRostroDelTexto,
+      ladoDelTexto,
+      CONFIG.render.textoAdaptativo,
+    )
+    : null;
+  if (ubicacionTexto?.modo === 'lateral') ladoDelTexto = ubicacionTexto.lado;
+
   if (estado === ESTADOS.ATRACCION) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
   } else if (estado === ESTADOS.ENGANCHE) {
-    dibujarEncuentro(ctx, disposicion);
+    dibujarEncuentro(ctx, disposicion, ubicacionTexto);
   } else if (estado === ESTADOS.SORTEO) {
-    dibujarMensajeSorteo(ctx, disposicion, (Math.sin(ahora / 500) + 1) / 2);
+    dibujarMensajeSorteo(
+      ctx,
+      disposicion,
+      (Math.sin(ahora / 500) + 1) / 2,
+      ubicacionTexto,
+    );
   } else if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    dibujarTextos(ctx, carrera, disposicion, 1);
+    dibujarTextos(ctx, carrera, disposicion, 1, ubicacionTexto);
   } else if (estado === ESTADOS.REFLEXION) {
-    dibujarReflexion(ctx, carrera, disposicion);
+    dibujarReflexion(ctx, carrera, disposicion, ubicacionTexto);
   } else if (estado === ESTADOS.CIERRE) {
     const progresoDeCierre = enEstadoDesde / CONFIG.tiempos.cierre;
     const alfaDeCierre = Math.max(0, 1 - Math.max(0, progresoDeCierre - 0.75) / 0.25);
@@ -568,6 +593,10 @@ function cuadro(ahora) {
       progresoDeCierre,
       alfaDeCierre,
     );
+  }
+  if (!usaTextoAdaptativo) {
+    ladoDelTexto = null;
+    ultimoRostroDelTexto = null;
   }
 
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {

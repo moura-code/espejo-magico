@@ -6,10 +6,129 @@ import {
   calcularFasesDeCierre,
   calcularPosicionLogoFing,
   calcularPosicionTemporizador,
+  calcularUbicacionTexto,
+  dibujarEncuentro,
+  dibujarMensajeSorteo,
+  dibujarReflexion,
+  dibujarTextos,
   dibujarPuntosRostro,
   dibujarTemporizadorEstado,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
+import { CONFIG } from '../../espejo/config.js';
+
+const rostroEn = (x, y = 360, radio = 120) => ({
+  centro: { x, y },
+  radio,
+});
+const AJUSTES_TEXTO = CONFIG.render.textoAdaptativo;
+
+describe('calcularUbicacionTexto', () => {
+  const apaisada = calcularDisposicion(1920, 1080);
+
+  it('pone el texto a la derecha cuando la persona esta a la izquierda', () => {
+    const ubicacion = calcularUbicacionTexto(apaisada, rostroEn(520), null, AJUSTES_TEXTO);
+
+    expect(ubicacion.modo).toBe('lateral');
+    expect(ubicacion.lado).toBe('derecha');
+    expect(ubicacion.x).toBeGreaterThan(1920 / 2);
+    expect(ubicacion.inicio).toBeGreaterThan(1920 / 2);
+    expect(ubicacion.fin).toBeLessThanOrEqual(1920);
+  });
+
+  it('pone el texto a la izquierda cuando la persona esta a la derecha', () => {
+    const ubicacion = calcularUbicacionTexto(apaisada, rostroEn(1400), null, AJUSTES_TEXTO);
+
+    expect(ubicacion.modo).toBe('lateral');
+    expect(ubicacion.lado).toBe('izquierda');
+    expect(ubicacion.x).toBeLessThan(1920 / 2);
+    expect(ubicacion.fin).toBeLessThan(1400 - 120);
+  });
+
+  it('mantiene el lado anterior ante movimientos pequeños cerca del centro', () => {
+    const estable = calcularUbicacionTexto(apaisada, rostroEn(1020), 'derecha', AJUSTES_TEXTO);
+    const cambio = calcularUbicacionTexto(apaisada, rostroEn(1300), 'derecha', AJUSTES_TEXTO);
+
+    expect(estable.lado).toBe('derecha');
+    expect(cambio.lado).toBe('izquierda');
+  });
+
+  it('mantiene fijo el centro del texto aunque fluctue la deteccion', () => {
+    const posiciones = [470, 520, 610, 760].map((x) =>
+      calcularUbicacionTexto(apaisada, rostroEn(x), 'derecha', AJUSTES_TEXTO).x);
+
+    expect(new Set(posiciones).size).toBe(1);
+  });
+
+  it('conserva el pie en vertical, sin rostro o sin suficiente espacio', () => {
+    expect(
+      calcularUbicacionTexto(
+        calcularDisposicion(1080, 1920),
+        rostroEn(300),
+        null,
+        AJUSTES_TEXTO,
+      ).modo,
+    ).toBe('pie');
+    expect(calcularUbicacionTexto(apaisada, null, null, AJUSTES_TEXTO).modo).toBe('pie');
+    expect(
+      calcularUbicacionTexto(apaisada, rostroEn(960, 360, 620), null, AJUSTES_TEXTO).modo,
+    ).toBe('pie');
+  });
+
+  it('dibuja todas las lineas dentro del lado libre', () => {
+    const textos = [];
+    const contexto = {
+      font: '',
+      save() {},
+      restore() {},
+      measureText(texto) {
+        const tamano = Number(/(\d+(?:\.\d+)?)px/.exec(this.font)?.[1] ?? 16);
+        return { width: texto.length * tamano * 0.48 };
+      },
+      fillText(texto, x) {
+        textos.push({ texto, x });
+      },
+    };
+    const carrera = {
+      nombre: 'Ingeniería en Sistemas de Comunicación',
+      categoria: 'Carrera de grado',
+      color: '#00B8D9',
+      finalidad: 'Diseñar redes y servicios que conectan personas y comunidades.',
+    };
+    const ubicacion = calcularUbicacionTexto(apaisada, rostroEn(480), null, AJUSTES_TEXTO);
+
+    dibujarTextos(contexto, carrera, apaisada, 1, ubicacion);
+
+    expect(textos.length).toBeGreaterThanOrEqual(4);
+    expect(textos.every(({ x }) => x > 1920 / 2)).toBe(true);
+  });
+
+  it('aplica el lado libre durante encuentro, sorteo y reflexion', () => {
+    const posiciones = [];
+    const contexto = {
+      font: '',
+      save() {},
+      restore() {},
+      fillRect() {},
+      measureText(texto) {
+        const tamano = Number(/(\d+(?:\.\d+)?)px/.exec(this.font)?.[1] ?? 16);
+        return { width: texto.length * tamano * 0.48 };
+      },
+      fillText(_texto, x) {
+        posiciones.push(x);
+      },
+    };
+    const carrera = { color: '#FF5D8F' };
+    const ubicacion = calcularUbicacionTexto(apaisada, rostroEn(480), null, AJUSTES_TEXTO);
+
+    dibujarEncuentro(contexto, apaisada, ubicacion);
+    dibujarMensajeSorteo(contexto, apaisada, 0.5, ubicacion);
+    dibujarReflexion(contexto, carrera, apaisada, ubicacion);
+
+    expect(posiciones.length).toBeGreaterThanOrEqual(5);
+    expect(posiciones.every((x) => x > 1920 / 2)).toBe(true);
+  });
+});
 
 describe('calcularFasesDeCierre', () => {
   it('pasa de la posibilidad al concepto general', () => {

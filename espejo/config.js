@@ -119,6 +119,19 @@ export const CONFIG = {
     // una pantalla de 60 Hz caiga a 30 por unas decimas de jitter.
     fpsMaximo: 60,
     margenMs: 2,
+
+    textoAdaptativo: {
+      relacionMinimaLateral: 1.35,
+      histeresisHorizontal: 0.1,
+      margenExteriorEnAltura: 0.045,
+      margenExteriorMinimo: 28,
+      inicioZonaLateral: 0.58,
+      anchoMinimoEnPantalla: 0.3,
+      anchoMinimoEnAltura: 0.68,
+      radioMaximoEnLadoCorto: 0.36,
+      rellenoHorizontal: 0.92,
+      alturaInicial: 0.29,
+    },
   },
 
   operacion: {

@@ -360,8 +360,14 @@ Se diseña contra **vertical 1080 × 1920** como disposición de referencia: es 
 encuadra a una persona sentada y la que más se parece a un espejo real. El código no la
 asume: el encuadre del rostro, la posición de los textos y el área de caída se calculan a
 partir de la relación de aspecto real del canvas, de modo que una pantalla horizontal
-funcione sin cambios de código, sólo peor aprovechada. Si el televisor que consigan es
+funcione sin cambios de código y aproveche sus zonas laterales. Si el televisor que consigan es
 apaisado, se ajustan proporciones en `config.js`, no se reescribe la escena.
+
+En formato apaisado, los mensajes de encuentro, sorteo, revelación y reflexión se ubican
+en una columna fija del lado opuesto al rostro. El cálculo exige un ancho mínimo legible,
+descarta la disposición lateral si el rostro ocupa demasiado y mantiene el lado anterior
+dentro de una franja de histéresis para evitar saltos. En formato vertical, casi cuadrado
+o sin rostro, se conserva el pie.
 
 ---
 
