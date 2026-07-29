@@ -41,9 +41,9 @@ sorteo, la composición gráfica por carrera y la sincronización con las tablet
 | Oferta educativa | 18 propuestas: 14 carreras de grado y 4 tecnólogos |
 | Recuerdo para el visitante | Ninguno. No se guarda ni se envía nada |
 | Audio de los videos | Mudos, con nombre y descripción sobreimpresos |
-| Interacción de objetos | Caen en tres planos y responden a cabeza, manos, piso y otros objetos |
+| Interacción de objetos | Caen en tres planos y responden a cara, hombros, torso, brazos, manos, piso y otros objetos |
 | Detección de rostro | MediaPipe Tasks Vision — Face Landmarker, servido localmente |
-| Oclusión de persona | MediaPipe Image Segmenter local, con silueta geométrica de respaldo |
+| Detección corporal y oclusión | MediaPipe Pose Landmarker local, con 33 puntos y máscara de persona |
 | Conectividad | Red local propia con router dedicado. Cero dependencia de internet |
 
 ### Alternativas descartadas
@@ -65,10 +65,10 @@ de arranque adecuados cubre casi lo mismo sin costo. Queda como mejora opcional 
 
 ### Dentro
 
-- Aplicación de espejo: cámara, detección de rostro, máquina de estados, sorteo, escena.
+- Aplicación de espejo: cámara, detección facial y corporal, máquina de estados, sorteo, escena.
 - Animación de sorteo (niebla) y de revelación.
 - Composición gráfica por carrera, definida como datos y no como código.
-- Física simple: gravedad, rebote contra cabeza y manos, piso, giro y apilamiento.
+- Física simple: gravedad, rebote contra cara, hombros, torso, brazos y manos, piso, giro y apilamiento.
 - Tres planos de objetos: detrás de la persona, en su plano y delante.
 - Máscara de persona local para ocluir el plano trasero, con respaldo geométrico.
 - Accesorio anclado al rostro, con escala y rotación derivadas de la posición de los ojos.
@@ -266,6 +266,11 @@ mujeres toda la tarde.
 Librería: **MediaPipe Tasks Vision, Face Landmarker**, con los archivos WASM y el modelo
 copiados dentro de `vendor/mediapipe/`. Nunca desde CDN: el día del evento no hay internet.
 
+Se complementa con **Pose Landmarker** para obtener los 33 puntos corporales y
+la máscara de segmentación de la persona en una misma inferencia. La cara
+conserva los 478 puntos del modelo facial; la pose aporta hombros, torso, brazos
+y, cuando entran en cuadro, caderas y piernas.
+
 Configuración: un solo rostro, modo video, matrices de transformación facial activadas,
 delegado GPU con caída automática a CPU.
 
@@ -303,16 +308,16 @@ dibujan en el espacio sin voltear, para que no salgan al revés.
 
 ### Presupuesto de cuadros
 
-Detección a 20–25 cuadros por segundo; dibujo a 60, interpolando la posición del rostro
-entre detecciones. Detectar en cada cuadro no aporta nada visible y consume el CPU que
-necesita la escena.
+Detección facial a 20–25 cuadros por segundo, pose a 18 y dibujo a 60,
+interpolando las posiciones entre detecciones. Detectar todo en cada cuadro no
+aporta nada visible y consume el CPU que necesita la escena.
 
 ### Desarrollo sin cámara
 
-`rostro.js` acepta tres fuentes: cámara real, un video grabado del propio equipo probando,
-o un generador sintético (un rostro falso que se mueve por la pantalla). Así se puede
-trabajar en escena, física y anclaje sin depender de la única webcam, y en la máquina de
-cualquiera.
+`rostro.js` acepta tres fuentes: cámara real, un video grabado del propio equipo
+probando, o un generador sintético. El modo demo también genera pose completa y
+manos para ejercitar la malla, la oclusión aproximada y todos los
+colisionadores sin depender de una webcam.
 
 ---
 

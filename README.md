@@ -47,7 +47,7 @@ direcciones IPv4 disponibles para abrir las tablets desde la red del stand.
 |---|---|
 | `npm test` | ¿Funciona el código? Ejecuta las pruebas automatizadas. |
 | `npm run listo` | ¿Se puede montar el stand? Verifica que el contenido real esté completo. Está en rojo hasta que lleguen los PNG y los videos, y eso es lo esperado. |
-| `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y segmentación de persona. |
+| `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose corporal con segmentación. |
 | `npm run dev` | Levanta el servidor en modo desarrollo con reinicio automático. |
 | `npm start` | Levanta el servidor local. |
 
@@ -83,15 +83,15 @@ pie. Una histéresis evita que cambien de lado por movimientos pequeños.
 | `R` | Corta la sesión y vuelve a la invitación |
 | `C` | Cambia a la siguiente cámara disponible |
 | `D` | Demo automática: recorre toda la experiencia y las 18 propuestas |
-| `M` | Muestra los puntos que el sistema detecta en cara y manos |
+| `M` | Diagnóstico completo: cara, cuerpo, manos y colisionadores físicos |
 | `P` | Panel de estado y FPS |
 
 `herramientas/figuras.html` muestra las sesenta figuras de los objetos en
 una grilla, sobre fondo oscuro, claro o tono de piel.
 
 La demo comienza con una pausa sin persona para probar la animación de reposo,
-recorre todos los estados y carreras, y simula rostro y manos. Mientras está
-activa ignora el avance manual.
+recorre todos los estados y carreras, y simula rostro, hombros, torso, brazos y
+manos. Mientras está activa ignora el avance manual.
 
 Además del espejo en `/`, existen tres pantallas específicas:
 
@@ -125,8 +125,8 @@ docs/        especificación, plan y guía de operación del stand
 Dentro de `espejo/`, la regla de corte es que cada archivo se pueda entender y
 probar solo: `rostro.js` no sabe qué es una carrera, `maquina-estados.js` no
 dibuja, `escena.js` no sabe que existe MediaPipe, y `fisica.js` sólo conoce
-círculos y rectángulos. Por eso la máquina de estados se prueba entera sin cámara
-ni pantalla.
+círculos, cápsulas, polígonos y rectángulos. Por eso la máquina de estados se
+prueba entera sin cámara ni pantalla.
 
 **Todo lo que distingue una propuesta de otra vive en `assets/carreras.json`:**
 nombre, categoría, enlace oficial, color, finalidad social, objetos, efecto de
@@ -143,14 +143,14 @@ que cuando diseño entrega, los archivos reemplazan a las figuras solos.
 
 Sin bundler: módulos ES nativos servidos tal cual. Dos dependencias en total,
 `ws` en el servidor y `@mediapipe/tasks-vision` copiado a `vendor/`. Si el
-modelo de segmentación no está disponible, una silueta geométrica conserva los
-tres planos sin impedir el arranque.
+modelo de pose no está disponible, una silueta geométrica conserva los tres
+planos sin impedir el arranque.
 
 ## Privacidad
 
 La imagen de la cámara nunca sale de la PC. No se graba, no se guarda, no se
-transmite y no se pide ningún dato al visitante. El procesamiento de rostro y
-manos y silueta ocurre íntegramente en el navegador local.
+transmite y no se pide ningún dato al visitante. El procesamiento de rostro,
+pose, manos y silueta ocurre íntegramente en el navegador local.
 
 ## Documentación
 

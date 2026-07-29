@@ -636,44 +636,46 @@ function cuadro(ahora) {
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el
   // mapeo esta bien; si estan corridos, el rectangulo del video y el del mapeo
   // se separaron.
-  if (verMalla && modo !== 'demo') {
-    const puntos = detector.puntosCrudos();
-    if (puntos) {
-      ctx.fillStyle = 'rgba(80,200,255,0.75)';
-      for (const punto of puntos) {
-        ctx.fillRect(
-          rectangulo.x + (1 - punto.x) * rectangulo.ancho - 1,
-          rectangulo.y + punto.y * rectangulo.alto - 1,
-          2.5,
-          2.5,
-        );
+  if (verMalla) {
+    if (modo !== 'demo') {
+      const puntos = detector.puntosCrudos();
+      if (puntos) {
+        ctx.fillStyle = 'rgba(80,200,255,0.75)';
+        for (const punto of puntos) {
+          ctx.fillRect(
+            rectangulo.x + (1 - punto.x) * rectangulo.ancho - 1,
+            rectangulo.y + punto.y * rectangulo.alto - 1,
+            2.5,
+            2.5,
+          );
+        }
       }
-    }
-    const poseDiagnostico = detectorPose
-      ? mapearPose(detectorPose.puntosCrudos(), {
-          ...rectangulo,
-          espejar: true,
-          visibilidadMinima: 0,
-        })
-      : pose;
-    dibujarPose(ctx, poseDiagnostico, {
-      radio: Math.max(3, (rostro?.radio ?? 120) * 0.018),
-    });
 
-    // Los 21 puntos de cada mano y su circulo de colision. Si los puntos caen
-    // sobre tus dedos, el problema no es la deteccion.
-    ctx.fillStyle = '#FFD23F';
-    for (const mano of manos) {
-      for (const punto of mano.puntos ?? []) {
-        ctx.fillRect(
-          rectangulo.x + (1 - punto.x) * rectangulo.ancho - 2,
-          rectangulo.y + punto.y * rectangulo.alto - 2,
-          4,
-          4,
-        );
+      const poseDiagnostico = detectorPose
+        ? mapearPose(detectorPose.puntosCrudos(), {
+            ...rectangulo,
+            espejar: true,
+            visibilidadMinima: 0,
+          })
+        : pose;
+      dibujarPose(ctx, poseDiagnostico, {
+        radio: Math.max(3, (rostro?.radio ?? 120) * 0.018),
+      });
+
+      ctx.fillStyle = '#FFD23F';
+      for (const mano of manos) {
+        for (const punto of mano.puntos ?? []) {
+          ctx.fillRect(
+            rectangulo.x + (1 - punto.x) * rectangulo.ancho - 2,
+            rectangulo.y + punto.y * rectangulo.alto - 2,
+            4,
+            4,
+          );
+        }
       }
+      dibujarManos(ctx, manos, '#FFD23F');
     }
-    dibujarManos(ctx, manos, '#FFD23F');
+
     dibujarColisionadores(ctx, colisionadores);
   }
 

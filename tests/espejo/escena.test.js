@@ -12,6 +12,8 @@ import {
   dibujarReflexion,
   dibujarTextos,
   dibujarPuntosRostro,
+  dibujarPose,
+  dibujarColisionadores,
   dibujarTemporizadorEstado,
   trazarSiluetaPersona,
   tamanoQueEntra,
@@ -372,6 +374,70 @@ describe('dibujarPuntosRostro', () => {
     let guardados = 0;
     dibujarPuntosRostro({ save: () => { guardados += 1; } }, []);
     expect(guardados).toBe(0);
+  });
+});
+
+describe('diagnóstico corporal', () => {
+  function contextoDiagnostico() {
+    return {
+      arcos: 0,
+      lineas: 0,
+      rellenos: 0,
+      save() {},
+      restore() {},
+      beginPath() {},
+      closePath() {},
+      moveTo() {},
+      lineTo() {
+        this.lineas += 1;
+      },
+      arc() {
+        this.arcos += 1;
+      },
+      fill() {
+        this.rellenos += 1;
+      },
+      stroke() {},
+    };
+  }
+
+  it('muestra todos los puntos corporales disponibles', () => {
+    const contexto = contextoDiagnostico();
+    const puntos = Array.from({ length: 33 }, (_, indice) => ({
+      x: indice * 10,
+      y: indice * 5,
+    }));
+
+    dibujarPose(contexto, { puntos });
+
+    expect(contexto.arcos).toBe(33);
+    expect(contexto.lineas).toBeGreaterThan(20);
+  });
+
+  it('muestra cápsulas, torso y círculos de colisión', () => {
+    const contexto = contextoDiagnostico();
+    dibujarColisionadores(contexto, [
+      {
+        tipo: 'capsula',
+        desde: { x: 10, y: 10 },
+        hasta: { x: 50, y: 10 },
+        radio: 8,
+      },
+      {
+        tipo: 'poligono',
+        puntos: [
+          { x: 10, y: 20 },
+          { x: 50, y: 20 },
+          { x: 45, y: 80 },
+          { x: 15, y: 80 },
+        ],
+      },
+      { x: 100, y: 100, radio: 20 },
+    ]);
+
+    expect(contexto.lineas).toBeGreaterThanOrEqual(5);
+    expect(contexto.arcos).toBe(1);
+    expect(contexto.rellenos).toBeGreaterThanOrEqual(2);
   });
 });
 

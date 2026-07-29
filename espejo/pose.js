@@ -13,20 +13,6 @@ export const INDICES_POSE = Object.freeze({
   caderaB: 24,
 });
 
-export const CONEXIONES_POSE = Object.freeze([
-  [7, 8],
-  [7, 11],
-  [8, 12],
-  [11, 12],
-  [11, 13],
-  [13, 15],
-  [12, 14],
-  [14, 16],
-  [11, 23],
-  [12, 24],
-  [23, 24],
-]);
-
 const distancia = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
 
 function promedio(...puntos) {
@@ -95,10 +81,16 @@ export function mapearPose(
 export function crearFiltroPose({ alfa = 0.28, cuadrosDeGracia = 4 } = {}) {
   const anteriores = [];
   const faltantes = [];
+  let ausencias = 0;
+  let ultimaPose = null;
 
   return {
     filtrar(pose) {
-      if (!pose) return null;
+      if (!pose) {
+        ausencias += 1;
+        return ausencias <= cuadrosDeGracia ? ultimaPose : null;
+      }
+      ausencias = 0;
       const puntos = pose.puntos.map((punto, indice) => {
         if (!punto) {
           faltantes[indice] = (faltantes[indice] ?? 0) + 1;
@@ -121,12 +113,15 @@ export function crearFiltroPose({ alfa = 0.28, cuadrosDeGracia = 4 } = {}) {
         return filtrado;
       });
 
-      return armarPose(puntos, pose.crudos);
+      ultimaPose = armarPose(puntos, pose.crudos);
+      return ultimaPose;
     },
 
     reiniciar() {
       anteriores.length = 0;
       faltantes.length = 0;
+      ausencias = 0;
+      ultimaPose = null;
     },
   };
 }

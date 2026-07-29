@@ -26,13 +26,22 @@ describe('ritmo inmersivo de la experiencia', () => {
 
 describe('segmentacion de persona', () => {
   it('mantiene una frecuencia suficiente sin competir con el render', () => {
-    expect(CONFIG.segmentacion.fps).toBeGreaterThanOrEqual(10);
-    expect(CONFIG.segmentacion.fps).toBeLessThanOrEqual(20);
+    expect(CONFIG.pose.fps).toBeGreaterThanOrEqual(10);
+    expect(CONFIG.pose.fps).toBeLessThanOrEqual(20);
   });
 
   it('usa una transicion de mascara gradual', () => {
     expect(CONFIG.segmentacion.umbral).toBeGreaterThanOrEqual(0);
     expect(CONFIG.segmentacion.umbral).toBeLessThan(1);
     expect(CONFIG.segmentacion.suavidad).toBeGreaterThan(0);
+  });
+});
+
+describe('detección corporal', () => {
+  it('suaviza la pose sin esconder puntos demasiado tiempo', () => {
+    expect(CONFIG.pose.suavizado).toBeGreaterThan(0);
+    expect(CONFIG.pose.suavizado).toBeLessThanOrEqual(0.5);
+    expect(CONFIG.pose.cuadrosDeGracia).toBeGreaterThanOrEqual(2);
+    expect(CONFIG.pose.cuadrosDeGracia).toBeLessThanOrEqual(6);
   });
 });

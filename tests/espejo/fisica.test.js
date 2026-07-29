@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   crearCuerpo,
   integrar,
+  rebotarContraCapsula,
   rebotarContraCirculo,
+  rebotarContraPoligono,
   rebotarEntreCuerpos,
   limitarACaja,
   paso,
@@ -112,6 +114,70 @@ describe('rebotarContraCirculo', () => {
     rebotarContraCirculo(cuerpo, cabeza, 0.5);
     const distancia = Math.hypot(cuerpo.x - cabeza.x, cuerpo.y - cabeza.y);
     expect(distancia).toBeCloseTo(cabeza.radio + cuerpo.radio);
+  });
+});
+
+describe('colisionadores corporales', () => {
+  it('rebota contra una cápsula de hombros', () => {
+    const cuerpo = crearCuerpo({
+      x: 150,
+      y: 135,
+      vy: 200,
+      radio: 10,
+    });
+    const hombros = {
+      tipo: 'capsula',
+      desde: { x: 100, y: 150 },
+      hasta: { x: 200, y: 150 },
+      radio: 20,
+    };
+
+    expect(rebotarContraCapsula(cuerpo, hombros, 0.5)).toBe(true);
+    expect(cuerpo.y).toBeCloseTo(120);
+    expect(cuerpo.vy).toBeCloseTo(-100);
+  });
+
+  it('rebota contra el borde del torso', () => {
+    const cuerpo = crearCuerpo({
+      x: 150,
+      y: 95,
+      vy: 200,
+      radio: 10,
+    });
+    const torso = {
+      tipo: 'poligono',
+      puntos: [
+        { x: 100, y: 100 },
+        { x: 200, y: 100 },
+        { x: 180, y: 300 },
+        { x: 120, y: 300 },
+      ],
+    };
+
+    expect(rebotarContraPoligono(cuerpo, torso, 0.5)).toBe(true);
+    expect(cuerpo.y).toBeCloseTo(90);
+    expect(cuerpo.vy).toBeCloseTo(-100);
+  });
+
+  it('expulsa un objeto que apareció dentro del torso', () => {
+    const cuerpo = crearCuerpo({ x: 150, y: 150, radio: 10 });
+    const torso = {
+      tipo: 'poligono',
+      puntos: [
+        { x: 100, y: 100 },
+        { x: 200, y: 100 },
+        { x: 200, y: 300 },
+        { x: 100, y: 300 },
+      ],
+    };
+
+    expect(rebotarContraPoligono(cuerpo, torso, 0.5)).toBe(true);
+    expect(
+      cuerpo.x <= 90 ||
+        cuerpo.x >= 210 ||
+        cuerpo.y <= 90 ||
+        cuerpo.y >= 310,
+    ).toBe(true);
   });
 });
 

@@ -1,5 +1,3 @@
-import { cargarVision } from './vision.js';
-
 function acotar(valor, minimo, maximo) {
   return Math.max(minimo, Math.min(maximo, valor));
 }
@@ -102,30 +100,4 @@ export function crearSegmentadorDePersona({
       segmentadorCrudo.close();
     },
   };
-}
-
-export async function crearSegmentadorMediaPipe({
-  base,
-  umbral,
-  suavidad,
-}) {
-  const { modulo, recursos } = await cargarVision(base);
-  const segmentadorCrudo = await modulo.ImageSegmenter.createFromOptions(
-    recursos,
-    {
-      baseOptions: {
-        modelAssetPath: `${base}/selfie_segmenter_landscape.tflite`,
-        delegate: 'GPU',
-      },
-      runningMode: 'VIDEO',
-      outputCategoryMask: false,
-      outputConfidenceMasks: true,
-    },
-  );
-
-  return crearSegmentadorDePersona({
-    segmentadorCrudo,
-    umbral,
-    suavidad,
-  });
 }
