@@ -133,11 +133,5 @@ export function crearHisteresis({ cuadrosParaEntrar, msParaSalir }) {
     },
 
     presente: () => presente,
-
-    reiniciar() {
-      presente = false;
-      seguidos = 0;
-      desdeQueFalta = null;
-    },
   };
 }

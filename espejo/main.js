@@ -6,36 +6,17 @@
 import { CONFIG } from './config.js';
 import { cargarContenido } from './contenido.js';
 import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
-import {
-  abrirCamara,
-  crearReintentador,
-  crearSelectorDeCamara,
-  dormir,
-} from './camara.js';
-import {
-  crearDetectorMediaPipe,
-  crearFuenteSintetica,
-  generarPuntosRostroSintetico,
-} from './rostro.js';
-import {
-  crearDetectorDeManosMediaPipe,
-  crearFuenteDeManosSinteticas,
-} from './manos.js';
+import { abrirCamara, crearReintentador, dormir } from './camara.js';
+import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
+import { crearDetectorDeManosMediaPipe } from './manos.js';
 import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
-import { crearControlDemo } from './demo.js';
-import { calcularTemporizadorEstado } from './temporizador.js';
-import {
-  controlesParaEstado,
-  ejecutarAccionRemota,
-} from './controles-remotos.js';
 import { crearPool, fuenteDeObjetos } from './objetos.js';
 import { crearCuerpo } from './fisica.js';
 import { crearNiebla, calcularNiebla } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
 import { figurasDisponibles } from './figuras.js';
-import { calcularCierreDeAusencia } from './interfaz-gestual.js';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
@@ -43,21 +24,12 @@ import {
   dibujarObjetos,
   dibujarAccesorio,
   dibujarManos,
-  dibujarPuntosRostro,
-  dibujarManosSinteticas,
-  dibujarCierreDeAusencia,
-  dibujarAntesDeReflexion,
-  dibujarCierreConceptual,
   dibujarTextos,
   dibujarInvitacion,
-  dibujarMensajeSorteo,
-  dibujarReflexion,
-  dibujarTemporizadorEstado,
 } from './escena.js';
 import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
-import { instalarPanelConfiguracion } from './panel-configuracion.js';
-import { mensajeCarrera, mensajeReposo, TIPOS } from '../comun/protocolo.js';
+import { mensajeCarrera, mensajeReposo } from '../comun/protocolo.js';
 
 // ---------- lienzos ----------
 // La niebla va en su propia capa porque el agujero de la revelacion se abre
@@ -94,7 +66,7 @@ const contenido = await cargarContenido({
   figurasValidas: figurasDisponibles(),
   efectosValidos: efectosDisponibles(),
 });
-const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/' });
+const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
 const informe = await banco.precargar(contenido.todasLasImagenes());
 if (informe.faltantes.length > 0) {
   console.warn(
@@ -107,27 +79,13 @@ if (informe.faltantes.length > 0) {
 let modo = 'camara';
 let estadoDeCamara = { lista: false };
 
-const CLAVE_CAMARA = 'espejo.camara';
-const selectorDeCamara = crearSelectorDeCamara({
-  abrir: (dispositivoId) =>
+const camara = crearReintentador({
+  abrir: () =>
     abrirCamara({
       ancho: CONFIG.deteccion.anchoCamara,
       alto: CONFIG.deteccion.altoCamara,
-      dispositivoId,
       obtenerMedia: (pedido) => navigator.mediaDevices.getUserMedia(pedido),
-      alPerderse: () => camara?.perdida(),
     }),
-  enumerarDispositivos: () => navigator.mediaDevices.enumerateDevices(),
-  seleccionGuardada: localStorage.getItem(CLAVE_CAMARA),
-  alGuardar: (dispositivoId) => {
-    if (dispositivoId) localStorage.setItem(CLAVE_CAMARA, dispositivoId);
-    else localStorage.removeItem(CLAVE_CAMARA);
-  },
-});
-
-let camara = null;
-camara = crearReintentador({
-  abrir: () => selectorDeCamara.abrir(),
   reintentoMs: 5000,
   alEstado: (estado) => {
     estadoDeCamara = estado;
@@ -166,7 +124,6 @@ try {
 }
 
 const sintetica = crearFuenteSintetica();
-const manosSinteticas = crearFuenteDeManosSinteticas();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
 const histeresis = crearHisteresis(CONFIG.presencia);
 
@@ -187,10 +144,6 @@ function seguirVelocidad(clave, x, y, ahora) {
 
 // ---------- logica ----------
 const sorteo = crearSorteo({ ids: contenido.ids });
-const controlDemo = crearControlDemo({
-  ids: contenido.ids,
-  ...CONFIG.demo,
-});
 const maquina = crearMaquina({
   tiempos: CONFIG.tiempos,
   sortear: () => sorteo.siguiente(),
@@ -199,16 +152,9 @@ const maquina = crearMaquina({
 const pool = crearPool(CONFIG.objetos);
 const niebla = crearNiebla({ cantidad: 26 });
 
-let accionRemotaPendiente = null;
-let ultimoMensajeControles = null;
-let estadoDeControles = null;
-
 const bus = crearBus({
-  url: `ws://${location.host}`,
+  url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
   reconexionMs: CONFIG.red.reconexionMs,
-  alMensaje: (mensaje) => {
-    if (mensaje.tipo === TIPOS.ACCION) accionRemotaPendiente = mensaje.id;
-  },
   alEstado: (estado) => console.log('bus:', estado),
 });
 
@@ -216,8 +162,6 @@ let ultimoLatido = 0;
 let ultimoAnuncio = null;
 
 function atender(eventos, ahora) {
-  controlDemo.registrar(eventos, ahora);
-
   for (const evento of eventos) {
     if (evento.tipo === 'carrera') {
       ultimoAnuncio = mensajeCarrera(evento.id, evento.sesion);
@@ -237,8 +181,6 @@ function atender(eventos, ahora) {
     // todavia cerrada, asi que nadie lo ve. Cuando la niebla se abre, en pantalla
     // hay exactamente los objetos de la carrera sorteada y nada mas.
     if (evento.estado === ESTADOS.REVELACION) pool.vaciar();
-
-    if (evento.estado === ESTADOS.REFLEXION) pool.retirar(ahora, 600);
 
     if (evento.estado === ESTADOS.ATRACCION) pool.vaciar();
   }
@@ -274,7 +216,6 @@ let efecto = null;
 let efectoDe = null;
 let ultimaDeteccionManos = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
-let ausenciaVisualDesde = null;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
@@ -293,20 +234,8 @@ function cuadro(ahora) {
   const dt = Math.min(0.05, (ahora - anterior) / 1000);
   anterior = ahora;
 
-  if (accionRemotaPendiente) {
-    const salidaRemota = ejecutarAccionRemota({
-      id: accionRemotaPendiente,
-      estado: maquina.estado(),
-      maquina,
-      ahora,
-    });
-    if (salidaRemota) atender(salidaRemota.eventos, ahora);
-  }
-  accionRemotaPendiente = null;
-
   const camaraLista = camara.obtener();
   const video = camaraLista?.video ?? null;
-  const personaDemoVisible = controlDemo.personaVisible(ahora);
 
   // El MISMO rectangulo para dibujar el video y para mapear el rostro.
   const rectangulo = video
@@ -324,9 +253,7 @@ function cuadro(ahora) {
 
     const crudo =
       modo === 'demo'
-        ? personaDemoVisible
-          ? sintetica.detectar(ahora, disposicion)
-          : null
+        ? sintetica.detectar(ahora, disposicion)
         : video
           ? detector.detectar(video, ahora, rectangulo)
           : null;
@@ -346,22 +273,16 @@ function cuadro(ahora) {
   // mas rapido y a 22 cuadros por segundo el circulo va siempre atras de la mano
   // de verdad. Solo se buscan cuando hay algo con que interactuar, porque es el
   // detector mas caro del cuadro.
-  const manosRealesSirven =
+  const manosSirven =
     detectorDeManos &&
     video &&
     modo !== 'demo' &&
-    (estadoAnterior === ESTADOS.REVELACION ||
-      estadoAnterior === ESTADOS.ESCENA);
+    (estadoAnterior === ESTADOS.REVELACION || estadoAnterior === ESTADOS.ESCENA);
 
-  if (modo === 'demo' && ahora - ultimaDeteccionManos >= intervaloManos) {
-    ultimaDeteccionManos = ahora;
-    manos = personaDemoVisible
-      ? manosSinteticas.detectar(ahora, disposicion)
-      : [];
-  } else if (manosRealesSirven && ahora - ultimaDeteccionManos >= intervaloManos) {
+  if (manosSirven && ahora - ultimaDeteccionManos >= intervaloManos) {
     ultimaDeteccionManos = ahora;
     manos = detectorDeManos.detectar(video, ahora, rectangulo);
-  } else if (modo !== 'demo' && !manosRealesSirven) {
+  } else if (!manosSirven) {
     manos = [];
     velocidadDeMano.clear();
   }
@@ -370,41 +291,15 @@ function cuadro(ahora) {
   const salida = maquina.actualizar({ hayRostro: Boolean(rostro), ahora });
   atender(salida.eventos, ahora);
 
-  const estado = salida.estado;
-  estadoAnterior = estado;
-  const claveDeControles = `${estado}:${maquina.esManual()}`;
-  if (claveDeControles !== estadoDeControles) {
-    estadoDeControles = claveDeControles;
-    ultimoMensajeControles = controlesParaEstado(estado, {
-      manual: maquina.esManual(),
-    });
-    bus.enviar(ultimoMensajeControles);
-  }
-
   if (ahora - ultimoLatido >= CONFIG.red.latidoMs) {
     ultimoLatido = ahora;
     if (ultimoAnuncio) bus.enviar(ultimoAnuncio);
-    if (ultimoMensajeControles) bus.enviar(ultimoMensajeControles);
   }
 
+  const estado = salida.estado;
+  estadoAnterior = estado;
   const carrera = salida.carrera ? contenido.obtener(salida.carrera) : null;
   const enEstadoDesde = ahora - maquina.desdeCuando();
-  const temporizadorEstado = calcularTemporizadorEstado({
-    estado,
-    transcurrido: enEstadoDesde,
-    tiempos: CONFIG.tiempos,
-    manual: maquina.esManual(),
-  });
-  if (estado === ESTADOS.ATRACCION && !rostro) {
-    if (ausenciaVisualDesde === null) ausenciaVisualDesde = ahora;
-  } else {
-    ausenciaVisualDesde = null;
-  }
-  const cierreDeAusencia = calcularCierreDeAusencia({
-    ahora,
-    ausenciaDesde: ausenciaVisualDesde,
-    ...CONFIG.interfazGestual.reposo,
-  });
 
   // --- fisica ---
   const fuente = fuenteDeObjetos(estado, carrera, contenido.carreras);
@@ -429,7 +324,7 @@ function cuadro(ahora) {
     colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
   }
 
-  pool.actualizar(estado === ESTADOS.REFLEXION ? 0 : dt, ahora, {
+  pool.actualizar(dt, ahora, {
     ...CONFIG.fisica,
     caja: disposicion.caja,
     colisionadores,
@@ -473,13 +368,6 @@ function cuadro(ahora) {
   // participante quede dentro de la escena y no tapado por ella.
   if (efecto && (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA)) {
     efecto.dibujar(ctx, contextoEfecto);
-  }
-
-  if (modo === 'demo' && rostro) {
-    dibujarPuntosRostro(ctx, generarPuntosRostroSintetico(rostro), {
-      radio: Math.max(2.5, rostro.radio * 0.018),
-    });
-    dibujarManosSinteticas(ctx, manos);
   }
 
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el
@@ -528,17 +416,18 @@ function cuadro(ahora) {
     ctx.drawImage(capaNiebla, 0, 0);
   }
 
-  if (modo === 'demo') {
-    const resumenDemo = controlDemo.resumen();
+  // Aviso permanente del modo manual. No es para el operador: es para que nadie
+  // llegue al dia del evento con el modo puesto sin darse cuenta.
+  if (maquina.esManual()) {
     ctx.save();
-    ctx.fillStyle = resumenDemo.completo ? '#7CFFB2' : '#FFD23F';
-    ctx.font = `700 ${Math.round(disposicion.texto.tamanoFrase * 0.65)}px system-ui, sans-serif`;
-    ctx.textAlign = 'left';
-    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = '#FFD23F';
+    ctx.font = `600 ${Math.round(disposicion.texto.tamanoFrase * 0.8)}px system-ui, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.globalAlpha = 0.85;
     ctx.fillText(
-      `DEMO AUTOMÁTICA · ${resumenDemo.carrerasVistas}/${resumenDemo.totalCarreras} CARRERAS`,
-      24,
-      96,
+      'MODO MANUAL — ESPACIO para avanzar, A para automático',
+      disposicion.ancho - 24,
+      36,
     );
     ctx.restore();
   }
@@ -546,52 +435,15 @@ function cuadro(ahora) {
   if (estado === ESTADOS.ATRACCION) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
-  } else if (estado === ESTADOS.SORTEO) {
-    dibujarMensajeSorteo(ctx, disposicion, (Math.sin(ahora / 500) + 1) / 2);
   } else if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    const mostrandoAntesDeReflexion =
-      estado === ESTADOS.ESCENA &&
-      enEstadoDesde >= CONFIG.tiempos.escena - CONFIG.interfazGestual.avisoReflexionMs;
-    if (mostrandoAntesDeReflexion) dibujarAntesDeReflexion(ctx, disposicion);
-    else dibujarTextos(ctx, carrera, disposicion, 1);
-  } else if (estado === ESTADOS.REFLEXION) {
-    dibujarReflexion(ctx, carrera, disposicion, salida.respuestaReflexion);
+    dibujarTextos(ctx, carrera, disposicion, 1);
   } else if (estado === ESTADOS.CIERRE) {
-    const progresoDeCierre = enEstadoDesde / CONFIG.tiempos.cierre;
-    const alfaDeCierre = Math.max(0, 1 - Math.max(0, progresoDeCierre - 0.75) / 0.25);
-    dibujarCierreConceptual(
+    dibujarTextos(
       ctx,
+      carrera,
       disposicion,
-      alfaDeCierre,
+      Math.max(0, 1 - enEstadoDesde / CONFIG.tiempos.cierre),
     );
-  }
-
-  dibujarTemporizadorEstado(
-    ctx,
-    disposicion,
-    temporizadorEstado,
-    carrera?.color ?? '#62D8FF',
-  );
-  dibujarCierreDeAusencia(ctx, disposicion, cierreDeAusencia);
-}
-
-let cambioDeCamaraEnCurso = false;
-
-async function cambiarDispositivoDeCamara(elegir) {
-  if (cambioDeCamaraEnCurso) return false;
-  cambioDeCamaraEnCurso = true;
-
-  try {
-    const dispositivoActual =
-      camara.obtener()?.dispositivoId ?? selectorDeCamara.seleccionada();
-    const siguiente = await elegir(dispositivoActual);
-    if (!siguiente) return false;
-
-    filtro.reiniciar();
-    camara.reabrir();
-    return true;
-  } finally {
-    cambioDeCamaraEnCurso = false;
   }
 }
 
@@ -603,41 +455,16 @@ window.espejo = {
   bus,
   detector,
   estadoDeCamara: () => estadoDeCamara,
-  listarCamaras: () => selectorDeCamara.disponibles(),
-  cambiarCamara: () =>
-    cambiarDispositivoDeCamara((dispositivoActual) =>
-      selectorDeCamara.siguiente(dispositivoActual),
-    ),
-  seleccionarCamara: (dispositivoId) =>
-    cambiarDispositivoDeCamara((dispositivoActual) =>
-      selectorDeCamara.seleccionar(dispositivoId, dispositivoActual),
-    ),
   manos: () => manos,
   manosCrudas: () => detectorDeManos?.crudasDetectadas() ?? 0,
   modo: () => modo,
-  demo: () => controlDemo.resumen(),
-  cambiarModo: (nuevo, ahora = performance.now()) => {
-    if (nuevo === modo) return;
+  cambiarModo: (nuevo) => {
     modo = nuevo;
-    const salida =
-      nuevo === 'demo'
-        ? controlDemo.activar({ maquina, ahora })
-        : controlDemo.desactivar({ maquina, ahora });
-    if (salida) atender(salida.eventos, ahora);
     filtro.reiniciar();
-    histeresis.reiniciar();
-    velocidadCabeza.reiniciar();
-    velocidadDeMano.clear();
-    manos = [];
   },
-  establecerAvanceManual: (manual) =>
-    modo === 'demo' ? false : maquina.establecerManual(manual),
-  alternarAvanceManual: () =>
-    modo === 'demo' ? false : maquina.establecerManual(!maquina.esManual()),
   alternarMalla: () => {
     verMalla = !verMalla;
   },
-  mallaVisible: () => verMalla,
   // Los atajos tienen que pasar por atender(): si no, forzar una carrera con las
   // teclas no le avisa a las tablets ni limpia los objetos de la sesion anterior.
   avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos, ahora),
@@ -645,7 +472,6 @@ window.espejo = {
   reiniciar: (ahora) => atender(maquina.reiniciar(ahora).eventos, ahora),
 };
 
-instalarPanelConfiguracion({ espejo: window.espejo });
 const operacion = instalarOperacion({ espejo: window.espejo, tiempos: CONFIG.operacion });
 
 requestAnimationFrame(cuadro);

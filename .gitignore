@@ -1,8 +1,6 @@
 node_modules/
-vendor/
+vendor/mediapipe/
 .perfil-chrome/
 contenido/videos/
 .DS_Store
 Thumbs.db
-.codex*/
-.codex

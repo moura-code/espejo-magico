@@ -6,7 +6,6 @@ const ACCIONES_SUELTAS = {
   d: 'demo',
   p: 'panel',
   m: 'malla',
-  c: 'camara',
   a: 'alternarManual',
   ' ': 'avanzar',
 };
@@ -72,14 +71,11 @@ export function instalarOperacion({
     if (orden.accion === 'forzar') espejo.forzarCarrera(orden.id, ahora);
     if (orden.accion === 'reiniciar') espejo.reiniciar(ahora);
     if (orden.accion === 'avanzar') espejo.avanzar(ahora);
-    if (orden.accion === 'alternarManual') espejo.alternarAvanceManual();
+    if (orden.accion === 'alternarManual') espejo.maquina.alternarManual();
     if (orden.accion === 'demo') {
       espejo.cambiarModo(espejo.modo() === 'demo' ? 'camara' : 'demo');
     }
     if (orden.accion === 'malla') espejo.alternarMalla();
-    if (orden.accion === 'camara') {
-      espejo.cambiarCamara().catch((error) => console.error('cambiar camara:', error));
-    }
     if (orden.accion === 'panel') {
       visible = !visible;
       panel.style.display = visible ? 'block' : 'none';
@@ -106,13 +102,7 @@ export function instalarOperacion({
         `carrera     ${espejo.maquina.carrera() ?? '-'}`,
         `sesion      ${espejo.maquina.sesion()}`,
         `modo        ${espejo.modo()}`,
-        `camara      ${
-          camara.lista
-            ? (camara.nombre ?? 'ok')
-            : camara.cambiando
-              ? 'cambiando...'
-              : (camara.error ?? 'sin camara')
-        }`,
+        `camara      ${camara.lista ? 'ok' : (camara.error ?? 'sin camara')}`,
         `puntos      ${espejo.detector.cantidadDePuntos()}`,
         `manos       ${espejo.manosCrudas()} vistas / ${espejo.manos().length} usadas`,
         `apertura    ${espejo.manos().map((m) => m.apertura.toFixed(1)).join('  ') || '-'}`,
@@ -125,7 +115,7 @@ export function instalarOperacion({
         ``,
         `ESPACIO avanzar   A auto/manual`,
         `1-6 carrera       R reiniciar`,
-        `C camara   D demo   M malla  P cerrar`,
+        `D demo   M malla  P cerrar`,
       ].join('\n');
     },
   };

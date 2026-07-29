@@ -150,7 +150,7 @@ describe('dibujarFigura', () => {
 describe('carreras.json contra el registro de figuras', () => {
   it('cada objeto declara una figura que existe', async () => {
     const datos = JSON.parse(
-      await readFile(resolve(RAIZ, 'assets/carreras.json'), 'utf8'),
+      await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'),
     );
 
     const desconocidas = [];

@@ -42,13 +42,13 @@ describe('crearBanco', () => {
         pedidas.push(ruta);
         return { ruta };
       },
-      raiz: '/',
+      raiz: '/contenido/',
     });
     await banco.precargar(['assets/civil/casco.png']);
 
-    expect(pedidas).toEqual(['/assets/civil/casco.png']);
+    expect(pedidas).toEqual(['/contenido/assets/civil/casco.png']);
     expect(banco.obtener('assets/civil/casco.png')).toEqual({
-      ruta: '/assets/civil/casco.png',
+      ruta: '/contenido/assets/civil/casco.png',
     });
   });
 

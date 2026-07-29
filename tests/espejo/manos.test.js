@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  mapearMano,
-  crearDetectorDeManos,
-  crearFuenteDeManosSinteticas,
-} from '../../espejo/manos.js';
+import { mapearMano, crearDetectorDeManos } from '../../espejo/manos.js';
 
 const RECT = { x: 0, y: 0, ancho: 1000, alto: 1000 };
 
@@ -239,66 +235,5 @@ describe('crearDetectorDeManos', () => {
       detectorCrudo: crudoCon([manoSintetica({}), planos], ['Left', 'Right']),
     });
     expect(detector.detectar(video, 0, RECT)).toHaveLength(1);
-  });
-});
-
-describe('crearFuenteDeManosSinteticas', () => {
-  const MEDIDAS = { ancho: 1080, alto: 1920, unidad: 1080 };
-
-  it('genera dos manos completas y utilizables por la fisica', () => {
-    const manos = crearFuenteDeManosSinteticas().detectar(0, MEDIDAS);
-
-    expect(manos).toHaveLength(2);
-    for (const mano of manos) {
-      expect(mano.puntosPantalla).toHaveLength(21);
-      expect(mano.puntas).toHaveLength(5);
-      expect(mano.radio).toBeGreaterThan(0);
-      expect(mano.largoPalma).toBeGreaterThan(0);
-      expect(Number.isFinite(mano.palma.x) && Number.isFinite(mano.palma.y)).toBe(true);
-    }
-  });
-
-  it('mueve las manos con el tiempo sin cambiar su identidad', () => {
-    const fuente = crearFuenteDeManosSinteticas();
-    const iniciales = fuente.detectar(0, MEDIDAS);
-    const movidas = fuente.detectar(1500, MEDIDAS);
-
-    expect(movidas.map((mano) => mano.lado)).toEqual(iniciales.map((mano) => mano.lado));
-    expect(movidas[0].palma.x).not.toBeCloseTo(iniciales[0].palma.x);
-    expect(movidas[1].palma.y).not.toBeCloseTo(iniciales[1].palma.y);
-  });
-
-  it('mantiene todos los landmarks dentro de la pantalla', () => {
-    const fuente = crearFuenteDeManosSinteticas();
-
-    for (let ahora = 0; ahora < 30000; ahora += 500) {
-      for (const mano of fuente.detectar(ahora, MEDIDAS)) {
-        for (const punto of mano.puntosPantalla) {
-          expect(punto.x).toBeGreaterThan(0);
-          expect(punto.x).toBeLessThan(MEDIDAS.ancho);
-          expect(punto.y).toBeGreaterThan(0);
-          expect(punto.y).toBeLessThan(MEDIDAS.alto);
-        }
-      }
-    }
-  });
-
-  it('escala junto con la disposicion', () => {
-    const fuente = crearFuenteDeManosSinteticas();
-    const chicas = fuente.detectar(500, { ancho: 540, alto: 960, unidad: 540 });
-    const grandes = fuente.detectar(500, MEDIDAS);
-
-    expect(grandes[0].palma.x).toBeCloseTo(chicas[0].palma.x * 2);
-    expect(grandes[0].radio).toBeCloseTo(chicas[0].radio * 2);
-  });
-
-  it('puede llevar una mano a un objetivo para probar botones', () => {
-    const manos = crearFuenteDeManosSinteticas().detectar(500, MEDIDAS, {
-      objetivoDerecha: { x: 800, y: 1600, progreso: 1 },
-    });
-
-    expect(manos[1].palma.x).toBeCloseTo(800);
-    expect(manos[1].palma.y).toBeCloseTo(1600);
-    expect(manos[1].puntosPantalla).toHaveLength(21);
   });
 });

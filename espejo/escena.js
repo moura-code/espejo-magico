@@ -3,11 +3,6 @@
 
 import { calcularAnclaje } from './anclaje.js';
 import { dibujarFigura } from './figuras.js';
-import {
-  preguntaDeReflexion,
-  TEXTOS_EXPERIENCIA,
-  tituloDeRevelacion,
-} from './narrativa.js';
 
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
@@ -170,141 +165,10 @@ export function dibujarManos(ctx, manos, color) {
   ctx.restore();
 }
 
-export function dibujarPuntosRostro(ctx, puntos, { color = '#62D8FF', radio = 3 } = {}) {
-  if (!puntos || puntos.length === 0) return;
-
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.globalAlpha = 0.9;
-  ctx.shadowColor = color;
-  ctx.shadowBlur = radio * 3;
-  ctx.beginPath();
-  for (const punto of puntos) {
-    ctx.moveTo(punto.x + radio, punto.y);
-    ctx.arc(punto.x, punto.y, radio, 0, Math.PI * 2);
-  }
-  ctx.fill();
-  ctx.restore();
-}
-
-const CONEXIONES_MANO = [
-  [0, 1], [1, 2], [2, 3], [3, 4],
-  [0, 5], [5, 6], [6, 7], [7, 8],
-  [5, 9], [9, 10], [10, 11], [11, 12],
-  [9, 13], [13, 14], [14, 15], [15, 16],
-  [13, 17], [17, 18], [18, 19], [19, 20],
-  [0, 17],
-];
-
-export function dibujarManosSinteticas(ctx, manos, color = '#FFD23F') {
-  const visibles = manos?.filter((mano) => mano.puntosPantalla?.length === 21) ?? [];
-  if (visibles.length === 0) return;
-
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = Math.max(1.5, visibles[0].largoPalma * 0.045);
-  ctx.shadowColor = color;
-  ctx.shadowBlur = Math.max(6, visibles[0].largoPalma * 0.18);
-
-  for (const mano of visibles) {
-    ctx.globalAlpha = 0.38;
-    ctx.beginPath();
-    for (const [desde, hasta] of CONEXIONES_MANO) {
-      ctx.moveTo(mano.puntosPantalla[desde].x, mano.puntosPantalla[desde].y);
-      ctx.lineTo(mano.puntosPantalla[hasta].x, mano.puntosPantalla[hasta].y);
-    }
-    ctx.stroke();
-
-    ctx.globalAlpha = 0.92;
-    ctx.beginPath();
-    const radioPunto = Math.max(2.2, mano.largoPalma * 0.055);
-    for (const punto of mano.puntosPantalla) {
-      ctx.moveTo(punto.x + radioPunto, punto.y);
-      ctx.arc(punto.x, punto.y, radioPunto, 0, Math.PI * 2);
-    }
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-export function calcularAspasCaracol(
-  disposicion,
-  progreso,
-  { cantidad = 6, pasos = 48 } = {},
-) {
-  const centro = { x: disposicion.ancho / 2, y: disposicion.alto / 2 };
-  const radioMaximo = Math.hypot(disposicion.ancho, disposicion.alto) * 0.53;
-  const sector = (Math.PI * 2) / cantidad;
-  const giro = progreso * sector * 0.16;
-
-  const aspas = Array.from({ length: cantidad }, (_, indice) => {
-    const bordeInicial = [];
-    const bordeFinal = [];
-
-    for (let paso = 0; paso <= pasos; paso++) {
-      const profundidad = paso / pasos;
-      const radio = radioMaximo * (1 - profundidad);
-      const curva = profundidad * Math.PI * 0.62;
-      const angulo = indice * sector + giro + curva;
-      const punto = (anguloDelPunto) => ({
-        x: Math.cos(anguloDelPunto) * radio,
-        y: Math.sin(anguloDelPunto) * radio,
-      });
-
-      bordeInicial.push(punto(angulo));
-      bordeFinal.push(punto(angulo + sector * progreso));
-    }
-
-    return { bordeInicial, bordeFinal };
-  });
-
-  return { centro, aspas };
-}
-
-export function dibujarCierreDeAusencia(ctx, disposicion, progreso) {
-  if (progreso <= 0) return;
-
-  const { centro, aspas } = calcularAspasCaracol(disposicion, progreso);
-
-  ctx.save();
-  if (progreso >= 0.999) {
-    ctx.fillStyle = '#03070A';
-    ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
-  }
-  ctx.translate(centro.x, centro.y);
-
-  for (const aspa of aspas) {
-    ctx.beginPath();
-    ctx.moveTo(aspa.bordeInicial[0].x, aspa.bordeInicial[0].y);
-    for (const punto of aspa.bordeInicial.slice(1)) ctx.lineTo(punto.x, punto.y);
-    for (const punto of [...aspa.bordeFinal].reverse()) ctx.lineTo(punto.x, punto.y);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(3, 7, 10, 0.965)';
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(aspa.bordeFinal[0].x, aspa.bordeFinal[0].y);
-    for (const punto of aspa.bordeFinal.slice(1)) ctx.lineTo(punto.x, punto.y);
-    ctx.strokeStyle = `rgba(120, 190, 210, ${0.05 + progreso * 0.11})`;
-    ctx.lineWidth = Math.max(1, disposicion.unidad * 0.0018);
-    ctx.shadowColor = 'rgba(98, 216, 255, 0.3)';
-    ctx.shadowBlur = Math.max(2, disposicion.unidad * 0.006);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = '#03070A';
-  ctx.beginPath();
-  ctx.arc(0, 0, Math.max(2, disposicion.unidad * 0.012 * progreso), 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
 export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   if (!carrera || alfa <= 0) return;
   const { texto, ancho } = disposicion;
   const disponible = ancho * MARGEN_TEXTO;
-  const titulo = tituloDeRevelacion(carrera);
 
   const medirCon = (peso, familia) => (contenido, tamano) => {
     ctx.font = `${peso} ${tamano}px ${familia}`;
@@ -318,10 +182,10 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.shadowBlur = 18;
 
   const medirNombre = medirCon(700, 'system-ui, sans-serif');
-  const tamanoNombre = tamanoQueEntra(titulo, texto.tamanoNombre, disponible, medirNombre);
+  const tamanoNombre = tamanoQueEntra(carrera.nombre, texto.tamanoNombre, disponible, medirNombre);
   ctx.fillStyle = carrera.color;
   ctx.font = `700 ${tamanoNombre}px system-ui, sans-serif`;
-  ctx.fillText(titulo, ancho / 2, texto.nombreY);
+  ctx.fillText(carrera.nombre, ancho / 2, texto.nombreY);
 
   if (carrera.frase) {
     const medirFrase = medirCon(400, 'system-ui, sans-serif');
@@ -333,64 +197,8 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.restore();
 }
 
-function dibujarLineaAjustada(
-  ctx,
-  contenido,
-  {
-    x,
-    y,
-    tamano,
-    anchoMaximo,
-    peso = 400,
-    color = '#ffffff',
-  },
-) {
-  const medir = (valor, medida) => {
-    ctx.font = `${peso} ${medida}px system-ui, sans-serif`;
-    return ctx.measureText(valor).width;
-  };
-  const elegido = tamanoQueEntra(contenido, tamano, anchoMaximo, medir);
-  ctx.fillStyle = color;
-  ctx.font = `${peso} ${elegido}px system-ui, sans-serif`;
-  ctx.fillText(contenido, x, y);
-}
-
-export function partirTextoEnLineas(ctx, contenido, anchoMaximo) {
-  const palabras = contenido.trim().split(/\s+/);
-  const lineas = [];
-  let actual = '';
-
-  for (const palabra of palabras) {
-    const candidata = actual ? `${actual} ${palabra}` : palabra;
-    if (actual && ctx.measureText(candidata).width > anchoMaximo) {
-      lineas.push(actual);
-      actual = palabra;
-    } else {
-      actual = candidata;
-    }
-  }
-
-  if (actual) lineas.push(actual);
-  return lineas;
-}
-
-function dibujarParrafo(
-  ctx,
-  contenido,
-  { x, y, tamano, anchoMaximo, interlineado = 1.25, color = '#ffffff', peso = 400 },
-) {
-  ctx.font = `${peso} ${tamano}px system-ui, sans-serif`;
-  ctx.fillStyle = color;
-  const lineas = partirTextoEnLineas(ctx, contenido, anchoMaximo);
-  lineas.forEach((linea, indice) => {
-    ctx.fillText(linea, x, y + indice * tamano * interlineado);
-  });
-  return lineas.length * tamano * interlineado;
-}
-
 export function dibujarInvitacion(ctx, disposicion, pulso) {
   const { ancho, alto, texto } = disposicion;
-  const disponible = ancho * MARGEN_TEXTO;
 
   ctx.save();
   ctx.globalAlpha = 0.65 + 0.35 * pulso;
@@ -398,214 +206,9 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';
   ctx.shadowBlur = 24;
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.esperaTitulo, {
-    x: ancho / 2,
-    y: alto * 0.5,
-    tamano: texto.tamanoNombre,
-    anchoMaximo: disponible,
-    peso: 700,
-  });
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.esperaBajada, {
-    x: ancho / 2,
-    y: alto * 0.5 + texto.tamanoNombre,
-    tamano: texto.tamanoFrase,
-    anchoMaximo: disponible,
-  });
-  ctx.restore();
-}
-
-export function dibujarMensajeSorteo(ctx, disposicion, pulso) {
-  const { ancho, alto, texto } = disposicion;
-
-  ctx.save();
-  ctx.globalAlpha = 0.72 + pulso * 0.28;
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.9)';
-  ctx.shadowBlur = 26;
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.sorteo, {
-    x: ancho / 2,
-    y: alto * 0.5,
-    tamano: texto.tamanoNombre * 0.82,
-    anchoMaximo: ancho * MARGEN_TEXTO,
-    peso: 700,
-  });
-  ctx.restore();
-}
-
-export function dibujarAntesDeReflexion(ctx, disposicion) {
-  const { ancho, alto, texto } = disposicion;
-
-  ctx.save();
-  ctx.fillStyle = 'rgba(3,7,10,0.48)';
-  ctx.fillRect(0, 0, ancho, alto);
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.9)';
-  ctx.shadowBlur = 22;
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.antesDeReflexionTitulo, {
-    x: ancho / 2,
-    y: alto * 0.46,
-    tamano: texto.tamanoNombre,
-    anchoMaximo: ancho * MARGEN_TEXTO,
-    peso: 700,
-  });
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.antesDeReflexionPregunta, {
-    x: ancho / 2,
-    y: alto * 0.46 + texto.tamanoNombre * 1.2,
-    tamano: texto.tamanoFrase * 1.15,
-    anchoMaximo: ancho * MARGEN_TEXTO,
-  });
-  ctx.restore();
-}
-
-export function dibujarReflexion(ctx, carrera, disposicion, respuesta) {
-  if (!carrera) return;
-  const { ancho, alto, texto } = disposicion;
-  const centroX = ancho / 2;
-  const disponible = ancho * 0.84;
-
-  ctx.save();
-  ctx.fillStyle = 'rgba(3,7,10,0.68)';
-  ctx.fillRect(0, 0, ancho, alto);
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.shadowColor = 'rgba(0,0,0,0.9)';
-  ctx.shadowBlur = 20;
-
-  if (!respuesta) {
-    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.azarTitulo, {
-      x: centroX,
-      y: alto * 0.24,
-      tamano: texto.tamanoNombre,
-      anchoMaximo: disponible,
-      peso: 700,
-      color: carrera.color,
-    });
-    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.azarDetalle, {
-      x: centroX,
-      y: alto * 0.24 + texto.tamanoNombre * 1.15,
-      tamano: texto.tamanoFrase,
-      anchoMaximo: disponible,
-    });
-    dibujarParrafo(ctx, preguntaDeReflexion(carrera), {
-      x: centroX,
-      y: alto * 0.46,
-      tamano: texto.tamanoNombre * 0.74,
-      anchoMaximo: disponible,
-      interlineado: 1.15,
-      color: '#ffffff',
-      peso: 700,
-    });
-  } else {
-    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.devolucionTitulo, {
-      x: centroX,
-      y: alto * 0.28,
-      tamano: texto.tamanoNombre,
-      anchoMaximo: disponible,
-      peso: 700,
-      color: carrera.color,
-    });
-    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.devolucionBajada, {
-      x: centroX,
-      y: alto * 0.28 + texto.tamanoNombre * 1.15,
-      tamano: texto.tamanoNombre * 0.72,
-      anchoMaximo: disponible,
-      peso: 700,
-    });
-    dibujarParrafo(ctx, carrera.mensajeReflexivo, {
-      x: centroX,
-      y: alto * 0.48,
-      tamano: texto.tamanoFrase,
-      anchoMaximo: disponible,
-      color: carrera.color,
-      peso: 700,
-    });
-    dibujarParrafo(ctx, TEXTOS_EXPERIENCIA.devolucion, {
-      x: centroX,
-      y: alto * 0.58,
-      tamano: texto.tamanoFrase * 0.88,
-      anchoMaximo: disponible,
-      interlineado: 1.3,
-    });
-  }
-  ctx.restore();
-}
-
-export function dibujarCierreConceptual(ctx, disposicion, alfa = 1) {
-  if (alfa <= 0) return;
-  const { ancho, alto, texto } = disposicion;
-
-  ctx.save();
-  ctx.globalAlpha = alfa;
-  ctx.fillStyle = 'rgba(3,7,10,0.82)';
-  ctx.fillRect(0, 0, ancho, alto);
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.9)';
-  ctx.shadowBlur = 22;
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.cierreTitulo, {
-    x: ancho / 2,
-    y: alto * 0.47,
-    tamano: texto.tamanoNombre,
-    anchoMaximo: ancho * MARGEN_TEXTO,
-    peso: 700,
-  });
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.cierreBajada, {
-    x: ancho / 2,
-    y: alto * 0.47 + texto.tamanoNombre * 1.2,
-    tamano: texto.tamanoNombre * 0.82,
-    anchoMaximo: ancho * MARGEN_TEXTO,
-    peso: 700,
-    color: '#FF8AB3',
-  });
-  ctx.restore();
-}
-
-export function calcularPosicionTemporizador(disposicion) {
-  const radio = Math.max(30, Math.min(50, disposicion.unidad * 0.04));
-  const margenHorizontal = Math.max(20, disposicion.ancho * 0.018);
-  const margenInferior = Math.max(24, disposicion.alto * 0.025);
-  return {
-    radio,
-    centroX: margenHorizontal + radio,
-    centroY: disposicion.alto - margenInferior - radio,
-  };
-}
-
-export function dibujarTemporizadorEstado(ctx, disposicion, temporizador, color = '#62D8FF') {
-  if (!temporizador) return;
-
-  const { radio, centroX, centroY } = calcularPosicionTemporizador(disposicion);
-  const grosor = Math.max(4, radio * 0.13);
-  const inicio = -Math.PI / 2;
-  const fin = inicio + Math.PI * 2 * temporizador.proporcionRestante;
-
-  ctx.save();
-  ctx.fillStyle = 'rgba(3,7,10,0.72)';
-  ctx.beginPath();
-  ctx.arc(centroX, centroY, radio + grosor * 0.95, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.lineCap = 'round';
-  ctx.lineWidth = grosor;
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-  ctx.beginPath();
-  ctx.arc(centroX, centroY, radio, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.strokeStyle = color;
-  ctx.shadowColor = color;
-  ctx.shadowBlur = radio * 0.28;
-  ctx.beginPath();
-  ctx.arc(centroX, centroY, radio, inicio, fin);
-  ctx.stroke();
-
-  ctx.shadowBlur = 0;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `700 ${Math.round(radio * 0.72)}px system-ui, sans-serif`;
-  ctx.fillText(String(temporizador.segundosRestantes), centroX, centroY - radio * 0.08);
-  ctx.fillStyle = 'rgba(255,255,255,0.62)';
-  ctx.font = `600 ${Math.round(radio * 0.25)}px system-ui, sans-serif`;
-  ctx.fillText('s', centroX, centroY + radio * 0.45);
+  ctx.font = `700 ${texto.tamanoNombre}px system-ui, sans-serif`;
+  ctx.fillText('Sentate frente al espejo', ancho / 2, alto * 0.5);
+  ctx.font = `400 ${texto.tamanoFrase}px system-ui, sans-serif`;
+  ctx.fillText('y descubrí tu ingeniería', ancho / 2, alto * 0.5 + texto.tamanoNombre);
   ctx.restore();
 }

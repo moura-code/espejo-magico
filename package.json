@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch --watch-preserve-output servidor/servidor.js",
     "start": "node servidor/servidor.js",
     "test": "vitest run",
     "test:mirar": "vitest",

@@ -32,9 +32,6 @@ export function validarContenido(datos, { figurasValidas = null, efectosValidos 
     else vistos.add(carrera.id);
 
     if (!carrera.nombre) errores.push(`${donde}: falta "nombre"`);
-    if (!carrera.frase) errores.push(`${donde}: falta "frase"`);
-    if (!carrera.preguntaReflexiva) errores.push(`${donde}: falta "preguntaReflexiva"`);
-    if (!carrera.mensajeReflexivo) errores.push(`${donde}: falta "mensajeReflexivo"`);
     if (!/^#[0-9a-fA-F]{6}$/.test(carrera.color ?? '')) {
       errores.push(`${donde}: "color" tiene que ser #rrggbb`);
     }
@@ -87,7 +84,7 @@ export function validarContenido(datos, { figurasValidas = null, efectosValidos 
 }
 
 export async function cargarContenido({
-  ruta = '/assets/carreras.json',
+  ruta = '/contenido/carreras.json',
   traer = fetch,
   ...comprobaciones
 } = {}) {

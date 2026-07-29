@@ -5,10 +5,7 @@
 // Eventos:
 //   { tipo: 'entra',   estado }        cambio de estado
 //   { tipo: 'carrera', id, sesion }    anunciar la carrera a las tablets
-//   { tipo: 'respuesta', ... }          respuesta anonima a la reflexion
 //   { tipo: 'reposo' }                 apagar las tablets
-
-import { ACCIONES } from '../comun/protocolo.js';
 
 export const ESTADOS = {
   ATRACCION: 'ATRACCION',
@@ -16,14 +13,8 @@ export const ESTADOS = {
   SORTEO: 'SORTEO',
   REVELACION: 'REVELACION',
   ESCENA: 'ESCENA',
-  REFLEXION: 'REFLEXION',
   CIERRE: 'CIERRE',
 };
-
-const RESPUESTAS_VALIDAS = new Set([
-  ACCIONES.SI_SORPRENDIO,
-  ACCIONES.NO_PODRIA_VERME,
-]);
 
 /** El ciclo, en orden. Lo usa avanzar() para saber cual sigue. */
 const SIGUIENTE = {
@@ -31,8 +22,7 @@ const SIGUIENTE = {
   [ESTADOS.ENGANCHE]: ESTADOS.SORTEO,
   [ESTADOS.SORTEO]: ESTADOS.REVELACION,
   [ESTADOS.REVELACION]: ESTADOS.ESCENA,
-  [ESTADOS.ESCENA]: ESTADOS.REFLEXION,
-  [ESTADOS.REFLEXION]: ESTADOS.CIERRE,
+  [ESTADOS.ESCENA]: ESTADOS.CIERRE,
   [ESTADOS.CIERRE]: ESTADOS.ATRACCION,
 };
 
@@ -45,8 +35,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let carrera = null;
   let sesion = 0;
   let enManual = manual;
-  let respuestaReflexion = null;
-  let respuestaDesde = null;
 
   function ir(nuevo, ahora, eventos) {
     estado = nuevo;
@@ -60,26 +48,13 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
     if (nuevo === ESTADOS.CIERRE) {
       eventos.push({ tipo: 'reposo' });
     }
-    if (nuevo === ESTADOS.REFLEXION) {
-      respuestaReflexion = null;
-      respuestaDesde = null;
-    }
     if (nuevo === ESTADOS.ATRACCION) {
       carrera = null;
       inicioDeSesion = null;
-      respuestaReflexion = null;
-      respuestaDesde = null;
     }
   }
 
-  const salida = (eventos) => ({
-    estado,
-    carrera,
-    sesion,
-    respuestaReflexion,
-    respuestaDesde,
-    eventos,
-  });
+  const salida = (eventos) => ({ estado, carrera, sesion, eventos });
 
   return {
     estado: () => estado,
@@ -87,17 +62,10 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
     sesion: () => sesion,
     desdeCuando: () => desde,
     esManual: () => enManual,
-    respuestaReflexion: () => respuestaReflexion,
-    desdeCuandoRespondio: () => respuestaDesde,
 
     /** Alterna entre avanzar solo y avanzar a pedido. */
     alternarManual() {
       enManual = !enManual;
-      return enManual;
-    },
-
-    establecerManual(manual) {
-      enManual = Boolean(manual);
       return enManual;
     },
 
@@ -174,12 +142,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
 
         case ESTADOS.ESCENA:
           if (seFue || pasoElTope || transcurrido >= tiempos.escena) {
-            ir(seFue || pasoElTope ? ESTADOS.CIERRE : ESTADOS.REFLEXION, ahora, eventos);
-          }
-          break;
-
-        case ESTADOS.REFLEXION:
-          if (seFue || pasoElTope || transcurrido >= tiempos.reflexion) {
             ir(ESTADOS.CIERRE, ahora, eventos);
           }
           break;
@@ -193,27 +155,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       }
 
       return salida(eventos);
-    },
-
-    responderReflexion(respuesta, ahora) {
-      if (
-        estado !== ESTADOS.REFLEXION ||
-        respuestaReflexion !== null ||
-        !RESPUESTAS_VALIDAS.has(respuesta)
-      ) {
-        return null;
-      }
-
-      respuestaReflexion = respuesta;
-      respuestaDesde = ahora;
-      return salida([
-        {
-          tipo: 'respuesta',
-          respuesta,
-          carrera,
-          sesion,
-        },
-      ]);
     },
 
     forzarCarrera(id, ahora) {

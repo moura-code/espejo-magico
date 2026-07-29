@@ -14,12 +14,6 @@ cubre de niebla, se despeja, y el participante aparece rodeado de objetos caract
 de esa carrera que caen y rebotan contra su cabeza, con un accesorio (casco, gafas,
 antiparras) acoplado al rostro.
 
-El sorteo es explícitamente azaroso: el sistema no intenta deducir identidad, género,
-aptitudes ni vocación a partir de la imagen. Después de la escena, esa asignación abre una
-reflexión sobre por qué algunas combinaciones entre personas y profesiones pueden resultar
-sorprendentes. El concepto rector es: **el espejo no adivina quién sos; revela qué
-esperábamos ver.**
-
 En simultáneo, cuatro o cinco tablets enmarcadas alrededor reproducen animaciones breves
 de mujeres vinculadas a esa carrera —docentes, estudiantes, egresadas, referentes— con su
 nombre y una descripción corta. Cuando la sesión termina, las tablets vuelven a negro.
@@ -143,11 +137,10 @@ tablet/
   tablet.html
   tablet.js             escucha el bus, precarga y reproduce el video de su slot
 
-assets/
+contenido/
   carreras.json         definición de cada carrera
-  <carrera>/            PNG de objetos y accesorio
+  assets/<carrera>/     PNG de objetos y accesorio
   videos/<carrera>/     MP4 de las referentes
-  iconos/               SVG de la interfaz
 
 vendor/
   mediapipe/            WASM + modelo, copiados. Nunca desde CDN.
@@ -174,11 +167,10 @@ que es la única forma de que varias personas avancen en paralelo con una sola w
 |---|---|---|
 | `ATRACCION` | indefinida | Nadie sentado. El video de cámara se muestra atenuado y desenfocado, con la invitación encima y objetos de todas las carreras flotando suave. La cámara ya está detectando. |
 | `ENGANCHE` | ~2 s | Hay una cara estable. El espejo despierta: el video pasa a nítido y a brillo pleno. |
-| `SORTEO` | ~3 s | La pantalla se cubre de niebla y aclara que está buscando una posibilidad. |
-| `REVELACION` | ~2 s | La niebla se abre desde la posición del rostro. Aparece “Hoy te ves en…”, el accesorio se acopla y caen los primeros objetos. **Se envía el mensaje a las tablets.** |
-| `ESCENA` | ~20 s | Los objetos caen, rebotan contra la cabeza y se apilan abajo. Al final invita a mirar la imagen antes de reflexionar. |
-| `REFLEXION` | ~10 s | Los objetos se detienen, el accesorio desaparece y se explicita el azar. No se muestran botones de respuesta en el espejo ni en la tablet. |
-| `CIERRE` | ~4 s | “La ingeniería no tiene un rostro único. Los estereotipos sí.” **Se envía `reposo` a las tablets.** |
+| `SORTEO` | ~3 s | La pantalla se cubre de niebla. Por detrás giran objetos de todas las carreras, acelerando. |
+| `REVELACION` | ~2 s | La niebla se abre desde la posición del rostro. Aparece el nombre de la carrera, el accesorio se acopla, caen los primeros objetos. **Se envía el mensaje a las tablets.** |
+| `ESCENA` | ~30 s | Los objetos caen, rebotan contra la cabeza y se apilan abajo. Las tablets muestran a las referentes. |
+| `CIERRE` | ~4 s | Mensaje final, desvanecido general. **Se envía `reposo` a las tablets.** |
 
 Después vuelve a `ATRACCION` con unos 3 segundos de enfriamiento, para que la misma persona
 no dispare otra sesión sin querer al moverse.
@@ -313,7 +305,7 @@ apaisado, se ajustan proporciones en `config.js`, no se reescribe la escena.
 
 ## 10. El contenido como datos
 
-Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:
+Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:
 
 ```json
 {

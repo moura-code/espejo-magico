@@ -14,14 +14,11 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    pantalla de inicio. Si no, abrir en cada una:
    `http://IP-DE-LA-PC:8080/tablet/tablet.html?slot=N`
    con un número distinto en cada tablet, empezando por `0`.
-5. **Encender la tablet de controles** ubicada frente al espejo y abrir:
-   `http://IP-DE-LA-PC:8080/tablet/controles.html`.
-6. **Hacer una prueba completa** antes de que entre el público: acercarse, esperar el
-   sorteo, responder la reflexión y ver que las tablets arranquen y se apaguen.
+5. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar el
+   sorteo, ver que las tablets arranquen y se apaguen.
 
-La ventana negra del servidor muestra la dirección de **Red local** que deben usar
-las tablets. Como alternativa, abrir el menú de inicio, escribir `cmd` y ejecutar
-`ipconfig`; usar el número que dice *Dirección IPv4*, como `192.168.1.20`.
+Para saber la IP de la PC: abrir el menú de inicio, escribir `cmd`, y ahí `ipconfig`.
+Es el número que dice *Dirección IPv4*, algo como `192.168.1.20`.
 
 ## Apagar
 
@@ -31,53 +28,23 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 
 ## Atajos, en la PC del espejo
 
-La tuerca de la esquina superior derecha abre la configuración. Desde ahí se
-puede elegir la cámara y activar el modo demo, el avance manual o la malla de
-diagnóstico sin usar el teclado.
-
-Después de veinte segundos de escena aparece la reflexión. No se muestran
-botones de respuesta ni en el espejo ni en la tablet de controles. En modo
-automático la experiencia continúa al terminar el tiempo; en modo manual se usa
-`AVANZAR`. Cuando no hay nadie, el espejo hace una animación periódica de cierre
-y apertura en forma de caracol; es el comportamiento esperado.
-
-La tablet frontal ofrece las mismas acciones con botones táctiles grandes. Su
-contenido cambia automáticamente junto con el espejo: no hay que recargarla
-entre participantes. Cuando el espejo está esperando muestra `EMPEZAR`. En modo
-manual aparece `AVANZAR` cuando el flujo necesita pasar al estado siguiente; ya
-no se muestra una instrucción amarilla sobre el espejo.
-
-En avance automático, el aro de la esquina inferior izquierda del espejo indica
-cuántos segundos faltan para el siguiente paso. Durante la espera y el avance
-manual no aparece, porque el cambio depende de detectar a una persona o tocar un
-botón.
-
 | Tecla | Qué hace |
 |---|---|
 | `1` a `6` | Fuerza una carrera y salta directo a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
-| `C` | Cambia a la siguiente cámara disponible |
-| `D` | Demo automática: prueba el ciclo completo, todas las carreras y los botones |
+| `D` | Modo demo: funciona sin cámara, con un rostro simulado |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
 | `Ctrl` + `R` | Recarga todo |
 
 El orden de las teclas `1` a `6` es el mismo que el de las carreras en
-`assets/carreras.json`.
-
-La cámara elegida con `C` queda guardada aunque Chrome se recargue. Para confirmar
-cuál está activa, apretar `P` y mirar la línea `camara`.
-
-La demo controla el avance automáticamente aunque el interruptor manual estuviera
-activo. Primero deja la pantalla vacía para probar el caracol y luego recorre
-todos los estados y las seis carreras. Al salir de la demo restaura el ajuste de
-avance anterior.
+`contenido/carreras.json`.
 
 ---
 
 ## Si algo anda mal
 
-**La pantalla dice "¿Podés verte haciendo ingeniería?" y no reacciona a nadie.**
+**La pantalla dice "Sentate frente al espejo" y no reacciona a nadie.**
 Apretar `P` y mirar la línea `camara`. Si dice algo distinto de `ok`, revisar el
 cable de la cámara. El sistema reintenta solo cada cinco segundos: al reconectarla
 se recupera sin tocar nada.
@@ -126,14 +93,13 @@ matices.
 
 | Qué | Dónde |
 |---|---|
-| Dibujos de cada carrera | `assets/<carrera>/` |
-| Videos de las referentes | `assets/videos/<carrera>/` |
-| Iconos de la interfaz | `assets/iconos/` |
-| Nombres, colores, frases y reflexión | `assets/carreras.json` |
+| Dibujos de cada carrera | `contenido/assets/<carrera>/` |
+| Videos de las referentes | `contenido/videos/<carrera>/` |
+| Nombres, colores y frases | `contenido/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |
 
 Para corregir el nombre de una referente **no hay que volver a renderizar el
-video**: se edita `assets/carreras.json` y listo. Lo mismo con los colores, las
+video**: se edita `contenido/carreras.json` y listo. Lo mismo con los colores, las
 frases y los nombres de las carreras.
 
 ---
@@ -145,7 +111,7 @@ frases y los nombres de las carreras.
 ```
 npm install
 npm run vendorizar    # baja MediaPipe y el modelo de rostro. Unica vez que necesita internet.
-npm test              # pruebas automatizadas
+npm test              # 217 pruebas
 ```
 
 `npm run vendorizar` deja los archivos en `vendor/mediapipe/`, que no está en el
