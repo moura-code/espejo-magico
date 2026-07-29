@@ -132,6 +132,7 @@ matices.
 |---|---|
 | Dibujos de cada carrera | `assets/<carrera>/` |
 | Videos de las referentes | `assets/videos/<carrera>/` |
+| Logo institucional FING–Udelar | `assets/logos/fing-udelar-horizontal-diapo.png` |
 | Iconos de la interfaz | `assets/iconos/` |
 | Nombres, colores, finalidades y testimonios | `assets/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |

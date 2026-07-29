@@ -124,6 +124,53 @@ export function dibujarAccesorio(ctx, rostro, carrera, banco) {
   ctx.restore();
 }
 
+export function calcularPosicionLogoFing(disposicion, imagen) {
+  const relacion =
+    imagen?.width > 0 && imagen?.height > 0
+      ? imagen.width / imagen.height
+      : 1382 / 280;
+  const ladoCorto = Math.min(disposicion.ancho, disposicion.alto);
+  const margen = Math.max(18, ladoCorto * 0.02);
+  const ancho = Math.min(
+    disposicion.ancho * 0.4,
+    disposicion.alto * 0.34,
+    520,
+  );
+  const alto = ancho / relacion;
+  const relleno = Math.max(10, ladoCorto * 0.012);
+
+  return {
+    x: margen,
+    y: margen,
+    ancho,
+    alto,
+    relleno,
+  };
+}
+
+export function dibujarLogoFing(ctx, imagen, disposicion, alfa = 1) {
+  if (!imagen || alfa <= 0) return;
+  const posicion = calcularPosicionLogoFing(disposicion, imagen);
+
+  ctx.save();
+  ctx.globalAlpha = alfa;
+  ctx.fillStyle = 'rgba(3,7,10,0.68)';
+  ctx.fillRect(
+    posicion.x - posicion.relleno,
+    posicion.y - posicion.relleno,
+    posicion.ancho + posicion.relleno * 2,
+    posicion.alto + posicion.relleno * 2,
+  );
+  ctx.drawImage(
+    imagen,
+    posicion.x,
+    posicion.y,
+    posicion.ancho,
+    posicion.alto,
+  );
+  ctx.restore();
+}
+
 /**
  * Achica la letra lo justo para que el texto entre en el ancho disponible.
  *

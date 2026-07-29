@@ -4,6 +4,7 @@ import {
   calcularRectanguloVideo,
   calcularAspasCaracol,
   calcularFasesDeCierre,
+  calcularPosicionLogoFing,
   calcularPosicionTemporizador,
   dibujarPuntosRostro,
   dibujarTemporizadorEstado,
@@ -100,6 +101,31 @@ describe('calcularDisposicion', () => {
     ]) {
       expect(calcularDisposicion(ancho, alto).unidad).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('calcularPosicionLogoFing', () => {
+  it('ubica el logo arriba a la izquierda y dentro de la pantalla', () => {
+    const disposicion = calcularDisposicion(1080, 1920);
+    const posicion = calcularPosicionLogoFing(
+      disposicion,
+      { width: 1382, height: 280 },
+    );
+
+    expect(posicion.x).toBeLessThan(1080 / 2);
+    expect(posicion.y).toBeLessThan(1920 / 2);
+    expect(posicion.x - posicion.relleno).toBeGreaterThanOrEqual(0);
+    expect(posicion.y - posicion.relleno).toBeGreaterThanOrEqual(0);
+    expect(posicion.x + posicion.ancho + posicion.relleno).toBeLessThanOrEqual(1080);
+    expect(posicion.y + posicion.alto + posicion.relleno).toBeLessThanOrEqual(1920);
+  });
+
+  it('conserva la proporcion institucional', () => {
+    const posicion = calcularPosicionLogoFing(
+      calcularDisposicion(1920, 1080),
+      { width: 1382, height: 280 },
+    );
+    expect(posicion.ancho / posicion.alto).toBeCloseTo(1382 / 280, 4);
   });
 });
 

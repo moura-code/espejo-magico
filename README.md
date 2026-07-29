@@ -111,7 +111,7 @@ servidor/    archivos estáticos + relé WebSocket. Sin lógica de negocio.
 comun/       el protocolo, compartido por el espejo y las tablets
 espejo/      la aplicación principal
 tablet/      la página de cada tablet
-assets/      carreras.json, PNG, videos e iconos de interfaz
+assets/      carreras.json, PNG, videos, logos e iconos de interfaz
 docs/        especificación, plan y guía de operación del stand
 ```
 
@@ -125,6 +125,9 @@ ni pantalla.
 nombre, color, finalidad social, objetos, efecto de partículas y referentes. Cada
 referente declara su dimensión, nombre, vínculo con la carrera y frase. Agregar o
 cambiar una carrera no toca una línea de código.
+
+Durante la revelación y la interacción se muestra el logo institucional combinado
+FING–Udelar desde `assets/logos/fing-udelar-horizontal-diapo.png`.
 
 Los objetos se dibujan con figuras vectoriales (`espejo/figuras.js`) mientras no
 haya PNG. El orden de preferencia es **PNG → figura → círculo del color**, así

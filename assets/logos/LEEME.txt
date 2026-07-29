@@ -1,0 +1,9 @@
+fing-udelar-horizontal-diapo.png
+
+Firma institucional combinada de la Facultad de Ingeniería y la Universidad de
+la República. Fue extraída del paquete provisto por el equipo:
+"Logo Fing y Udelar.7z", variante horizontal DIAPO.
+
+La versión DIAPO está preparada para fondos oscuros. La aplicación agrega una
+base semitransparente para conservar contraste sobre el video. No deformar,
+recolorear ni alterar sus proporciones.

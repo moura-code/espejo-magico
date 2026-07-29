@@ -42,6 +42,7 @@ import {
   dibujarVideoEspejado,
   dibujarObjetos,
   dibujarAccesorio,
+  dibujarLogoFing,
   dibujarManos,
   dibujarPuntosRostro,
   dibujarManosSinteticas,
@@ -90,12 +91,16 @@ function aviso(texto) {
 aviso('cargando…');
 
 // ---------- contenido ----------
+const RUTA_LOGO_FING = 'assets/logos/fing-udelar-horizontal-diapo.png';
 const contenido = await cargarContenido({
   figurasValidas: figurasDisponibles(),
   efectosValidos: efectosDisponibles(),
 });
 const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/' });
-const informe = await banco.precargar(contenido.todasLasImagenes());
+const informe = await banco.precargar([
+  ...contenido.todasLasImagenes(),
+  RUTA_LOGO_FING,
+]);
 if (informe.faltantes.length > 0) {
   console.warn(
     `Faltan ${informe.faltantes.length} de ${informe.total} imagenes. Se dibujan figuras del color de la carrera:`,
@@ -538,7 +543,7 @@ function cuadro(ahora) {
     ctx.fillText(
       `DEMO AUTOMÁTICA · ${resumenDemo.carrerasVistas}/${resumenDemo.totalCarreras} CARRERAS`,
       24,
-      96,
+      estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA ? 150 : 96,
     );
     ctx.restore();
   }
@@ -562,6 +567,14 @@ function cuadro(ahora) {
       disposicion,
       progresoDeCierre,
       alfaDeCierre,
+    );
+  }
+
+  if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
+    dibujarLogoFing(
+      ctx,
+      banco.obtener(RUTA_LOGO_FING),
+      disposicion,
     );
   }
 

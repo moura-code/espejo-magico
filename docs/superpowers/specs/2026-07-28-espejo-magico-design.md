@@ -200,6 +200,7 @@ assets/
   carreras.json         definición de cada carrera
   <carrera>/            PNG de objetos y accesorio
   videos/<carrera>/     MP4 de las referentes
+  logos/                 firma institucional FING–Udelar
   iconos/               SVG de la interfaz
 
 vendor/
@@ -228,8 +229,8 @@ que es la única forma de que varias personas avancen en paralelo con una sola w
 | `ATRACCION` | indefinida | El reflejo aparece atenuado y desenfocado con “¿Cómo es la cara de la ingeniería?”. Objetos de todas las carreras flotan suavemente. |
 | `ENGANCHE` | ~2 s | El reflejo se vuelve nítido y aclara: “No vamos a adivinar quién sos. Vamos a mostrarte una posibilidad.” |
 | `SORTEO` | ~3 s | La niebla cubre la pantalla, circulan objetos diversos y aparece “Entre muchos futuros posibles…”. |
-| `REVELACION` | ~2 s | La niebla se abre. Aparece “Hoy podés verte en…”, el accesorio se acopla y se envía la carrera a las tablets. |
-| `ESCENA` | ~20 s | Los objetos interactúan con cabeza y manos; el texto explica la finalidad social de la disciplina. |
+| `REVELACION` | ~2 s | La niebla se abre. Aparece “Hoy podés verte en…”, el accesorio se acopla, se muestra la firma FING–Udelar y se envía la carrera a las tablets. |
+| `ESCENA` | ~20 s | Los objetos interactúan con cabeza y manos; el texto explica la finalidad social de la disciplina y permanece visible la firma FING–Udelar. |
 | `REFLEXION` | ~10 s | Los objetos se detienen y se explicita que ninguna característica visible determinó el sorteo. |
 | `CIERRE` | ~4 s | “No era una predicción. Era una posibilidad.” Luego: “La ingeniería tiene muchas caras. Una puede ser la tuya.” Se envía `reposo` a las tablets. |
 
