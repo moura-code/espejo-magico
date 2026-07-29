@@ -133,8 +133,8 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
           if (!hayRostro) {
             ir(ESTADOS.ATRACCION, ahora, eventos);
           } else if (transcurrido >= tiempos.enganche) {
-            // La carrera se elige aca, tres segundos antes de anunciarla: ese
-            // margen le sirve al espejo para tener listos los PNG cuando se
+            // La carrera se elige aca, durante el sorteo: ese margen le sirve
+            // al espejo para tener listos los PNG cuando se
             // despeje la niebla. El mensaje a las tablets sale en REVELACION,
             // porque mandarlo antes seria contar el final.
             carrera = sortear();

@@ -4,7 +4,7 @@
 export const CONFIG = {
   // En manual la experiencia no avanza sola: cada estado espera un ESPACIO.
   // Sirve para probar sin pelear con el reloj — la escena no se corta a los
-  // veinte segundos ni cuando salis de cuadro.
+  // treinta segundos ni cuando salis de cuadro.
   //
   // La experiencia arranca en automatico al detectar una cara. El modo manual
   // se puede activar desde la configuracion cuando haga falta probarla.
@@ -18,15 +18,15 @@ export const CONFIG = {
 
   // Duraciones de cada estado, en milisegundos.
   tiempos: {
-    enganche: 2000,
-    sorteo: 3000,
-    revelacion: 2000,
-    escena: 20000,
-    reflexion: 10000,
-    cierre: 4000,
-    enfriamiento: 3000,
+    enganche: 4000,
+    sorteo: 6000,
+    revelacion: 5000,
+    escena: 30000,
+    reflexion: 12000,
+    cierre: 8000,
+    enfriamiento: 4000,
     ausenciaParaCortar: 3000,
-    sesionMaxima: 75000,
+    sesionMaxima: 120000,
   },
 
   // Cuando se considera que hay alguien sentado.
