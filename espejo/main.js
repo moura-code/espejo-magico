@@ -21,7 +21,13 @@ import {
   crearDetectorDeManosMediaPipe,
   crearFuenteDeManosSinteticas,
 } from './manos.js';
-import { crearSegmentadorMediaPipe } from './segmentacion.js';
+import {
+  crearColisionadoresPersona,
+  crearDetectorPoseMediaPipe,
+  crearFiltroPose,
+  crearPoseSintetica,
+  mapearPose,
+} from './pose.js';
 import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
@@ -51,7 +57,9 @@ import {
   dibujarAccesorio,
   dibujarLogoFing,
   dibujarManos,
+  dibujarColisionadores,
   dibujarPuntosRostro,
+  dibujarPose,
   dibujarManosSinteticas,
   dibujarCierreDeAusencia,
   dibujarCierreConceptual,
@@ -181,16 +189,20 @@ try {
   console.warn('Deteccion de manos no disponible:', error);
 }
 
-let segmentadorDePersona = null;
+let detectorPose = null;
 try {
-  segmentadorDePersona = await crearSegmentadorMediaPipe({
+  detectorPose = await crearDetectorPoseMediaPipe({
     base: '/vendor/mediapipe',
-    umbral: CONFIG.segmentacion.umbral,
-    suavidad: CONFIG.segmentacion.suavidad,
+    visibilidadMinima: CONFIG.pose.visibilidadMinima,
+    minDeteccion: CONFIG.pose.minDeteccion,
+    minPresencia: CONFIG.pose.minPresencia,
+    minSeguimiento: CONFIG.pose.minSeguimiento,
+    umbralMascara: CONFIG.segmentacion.umbral,
+    suavidadMascara: CONFIG.segmentacion.suavidad,
   });
 } catch (error) {
   console.warn(
-    'Segmentacion de persona no disponible; se usa una silueta aproximada:',
+    'Pose y segmentacion no disponibles; se usa una silueta aproximada:',
     error,
   );
 }
@@ -198,6 +210,10 @@ try {
 const sintetica = crearFuenteSintetica();
 const manosSinteticas = crearFuenteDeManosSinteticas();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
+const filtroPose = crearFiltroPose({
+  alfa: CONFIG.pose.suavizado,
+  cuadrosDeGracia: CONFIG.pose.cuadrosDeGracia,
+});
 const histeresis = crearHisteresis(CONFIG.presencia);
 
 // Velocidad de cada colisionador, para que pueda golpear y no solo hacer rebotar.
@@ -206,6 +222,7 @@ const opcionesVelocidad = {
   maxima: CONFIG.manos.velocidadMaxima,
 };
 const velocidadCabeza = crearRastreadorDeVelocidad(opcionesVelocidad);
+const velocidadCuerpo = crearRastreadorDeVelocidad(opcionesVelocidad);
 const velocidadDeMano = new Map();
 
 function seguirVelocidad(clave, x, y, ahora) {
@@ -303,15 +320,16 @@ let verMalla = false;
 let efecto = null;
 let efectoDe = null;
 let ultimaDeteccionManos = 0;
+let ultimaDeteccionPose = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
 let ausenciaVisualDesde = null;
 let ladoDelTexto = null;
 let ultimoRostroDelTexto = null;
-let ultimaSegmentacion = 0;
+let pose = null;
 let mascaraPersona = null;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
-const intervaloSegmentacion = 1000 / CONFIG.segmentacion.fps;
+const intervaloPose = 1000 / CONFIG.pose.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
 
 function cuadro(ahora) {
@@ -370,8 +388,11 @@ function cuadro(ahora) {
     const hayPresencia = histeresis.actualizar(Boolean(crudo), ahora);
     if (habiaPresencia && !hayPresencia) {
       filtro.reiniciar();
+      filtroPose.reiniciar();
       velocidadCabeza.reiniciar();
+      velocidadCuerpo.reiniciar();
       velocidadDeMano.clear();
+      detectorPose?.reiniciar();
     }
 
     rostro = hayPresencia ? filtro.filtrar(crudo) : null;
@@ -401,30 +422,37 @@ function cuadro(ahora) {
     velocidadDeMano.clear();
   }
 
-  if (
-    segmentadorDePersona &&
-    video &&
-    modo !== 'demo' &&
-    rostro
-  ) {
-    if (ahora - ultimaSegmentacion >= intervaloSegmentacion) {
-      ultimaSegmentacion = ahora;
+  if (modo === 'demo' && rostro) {
+    if (ahora - ultimaDeteccionPose >= intervaloPose) {
+      ultimaDeteccionPose = ahora;
+      pose = filtroPose.filtrar(
+        crearPoseSintetica(rostro, manos, disposicion),
+      );
+    }
+    mascaraPersona = null;
+  } else if (detectorPose && video && rostro) {
+    if (ahora - ultimaDeteccionPose >= intervaloPose) {
+      ultimaDeteccionPose = ahora;
       try {
-        mascaraPersona =
-          segmentadorDePersona.detectar(video, ahora) ??
-          segmentadorDePersona.obtener();
+        pose = filtroPose.filtrar(
+          detectorPose.detectar(video, ahora, rectangulo),
+        );
+        mascaraPersona = detectorPose.mascara();
       } catch (error) {
         console.warn(
-          'La segmentacion se desactivo; se usa una silueta aproximada:',
+          'La pose se desactivo; se usa una silueta aproximada:',
           error,
         );
-        segmentadorDePersona.cerrar();
-        segmentadorDePersona = null;
+        detectorPose.cerrar();
+        detectorPose = null;
+        pose = null;
         mascaraPersona = null;
       }
     }
-  } else if (mascaraPersona) {
-    segmentadorDePersona?.reiniciar();
+  } else if (pose || mascaraPersona) {
+    filtroPose.reiniciar();
+    detectorPose?.reiniciar();
+    pose = null;
     mascaraPersona = null;
   }
 
@@ -482,10 +510,32 @@ function cuadro(ahora) {
   // La cabeza y las manos son colisionadores con velocidad propia: por eso
   // golpean los objetos en vez de solo hacerlos rebotar.
   const colisionadores = [];
+  let velocidadDelRostro = { vx: 0, vy: 0 };
   if (rostro) {
-    const { vx, vy } = velocidadCabeza.actualizar(rostro.centro.x, rostro.centro.y, ahora);
-    colisionadores.push({ x: rostro.centro.x, y: rostro.centro.y, radio: rostro.radio, vx, vy });
+    velocidadDelRostro = velocidadCabeza.actualizar(
+      rostro.centro.x,
+      rostro.centro.y,
+      ahora,
+    );
   }
+  let velocidadDelCuerpo = velocidadDelRostro;
+  if (pose?.centroHombros) {
+    velocidadDelCuerpo = velocidadCuerpo.actualizar(
+      pose.centroHombros.x,
+      pose.centroHombros.y,
+      ahora,
+    );
+  }
+  colisionadores.push(
+    ...crearColisionadoresPersona({
+      rostro,
+      pose,
+      velocidadRostro: velocidadDelRostro,
+      velocidadCuerpo: velocidadDelCuerpo,
+      radioHombros: CONFIG.pose.radioHombros,
+      radioBrazos: CONFIG.pose.radioBrazos,
+    }),
+  );
   for (const mano of manos) {
     const { vx, vy } = seguirVelocidad(mano.lado, mano.palma.x, mano.palma.y, ahora);
     colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
@@ -558,6 +608,7 @@ function cuadro(ahora) {
       mascara: modo === 'demo' ? null : mascaraPersona,
       rostro,
       manos,
+      pose,
       rectangulo,
       disposicion,
       desenfoqueBorde: CONFIG.segmentacion.desenfoqueBorde,
@@ -575,6 +626,9 @@ function cuadro(ahora) {
   if (modo === 'demo' && rostro) {
     dibujarPuntosRostro(ctx, generarPuntosRostroSintetico(rostro), {
       radio: Math.max(2.5, rostro.radio * 0.018),
+    });
+    dibujarPose(ctx, pose, {
+      radio: Math.max(3.5, rostro.radio * 0.025),
     });
     dibujarManosSinteticas(ctx, manos);
   }
@@ -595,6 +649,16 @@ function cuadro(ahora) {
         );
       }
     }
+    const poseDiagnostico = detectorPose
+      ? mapearPose(detectorPose.puntosCrudos(), {
+          ...rectangulo,
+          espejar: true,
+          visibilidadMinima: 0,
+        })
+      : pose;
+    dibujarPose(ctx, poseDiagnostico, {
+      radio: Math.max(3, (rostro?.radio ?? 120) * 0.018),
+    });
 
     // Los 21 puntos de cada mano y su circulo de colision. Si los puntos caen
     // sobre tus dedos, el problema no es la deteccion.
@@ -610,6 +674,7 @@ function cuadro(ahora) {
       }
     }
     dibujarManos(ctx, manos, '#FFD23F');
+    dibujarColisionadores(ctx, colisionadores);
   }
 
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
@@ -761,9 +826,14 @@ window.espejo = {
         : controlDemo.desactivar({ maquina, ahora });
     if (salida) atender(salida.eventos, ahora);
     filtro.reiniciar();
+    filtroPose.reiniciar();
     histeresis.reiniciar();
     velocidadCabeza.reiniciar();
+    velocidadCuerpo.reiniciar();
     velocidadDeMano.clear();
+    detectorPose?.reiniciar();
+    pose = null;
+    mascaraPersona = null;
     manos = [];
   },
   establecerAvanceManual: (manual) =>

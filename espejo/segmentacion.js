@@ -25,49 +25,41 @@ export function convertirConfianzaEnPixeles(
   return pixeles;
 }
 
-export function crearSegmentadorDePersona({
-  segmentadorCrudo,
+export function crearAlmacenDeMascara({
   umbral,
   suavidad,
   crearLienzo = () => document.createElement('canvas'),
   crearImagen = (pixeles, ancho, alto) =>
     new ImageData(pixeles, ancho, alto),
-}) {
+} = {}) {
   const lienzo = crearLienzo();
   const contexto = lienzo.getContext('2d');
   let disponible = false;
 
-  function copiarMascara(mascara) {
-    if (!mascara) {
-      disponible = false;
-      return;
-    }
-
-    const confianza = mascara.getAsFloat32Array();
-    const pixeles = convertirConfianzaEnPixeles(confianza, {
-      umbral,
-      suavidad,
-    });
-
-    if (lienzo.width !== mascara.width || lienzo.height !== mascara.height) {
-      lienzo.width = mascara.width;
-      lienzo.height = mascara.height;
-    }
-    contexto.putImageData(
-      crearImagen(pixeles, mascara.width, mascara.height),
-      0,
-      0,
-    );
-    disponible = true;
-  }
-
   return {
-    detectar(video, ahora) {
-      segmentadorCrudo.segmentForVideo(video, ahora, (resultado) => {
-        copiarMascara(resultado.confidenceMasks?.[0]);
-        resultado.close?.();
+    copiar(mascara) {
+      if (!mascara) {
+        disponible = false;
+        return null;
+      }
+
+      const confianza = mascara.getAsFloat32Array();
+      const pixeles = convertirConfianzaEnPixeles(confianza, {
+        umbral,
+        suavidad,
       });
-      return disponible ? lienzo : null;
+
+      if (lienzo.width !== mascara.width || lienzo.height !== mascara.height) {
+        lienzo.width = mascara.width;
+        lienzo.height = mascara.height;
+      }
+      contexto.putImageData(
+        crearImagen(pixeles, mascara.width, mascara.height),
+        0,
+        0,
+      );
+      disponible = true;
+      return lienzo;
     },
 
     obtener: () => (disponible ? lienzo : null),
@@ -76,6 +68,35 @@ export function crearSegmentadorDePersona({
       contexto.clearRect(0, 0, lienzo.width, lienzo.height);
       disponible = false;
     },
+  };
+}
+
+export function crearSegmentadorDePersona({
+  segmentadorCrudo,
+  umbral,
+  suavidad,
+  crearLienzo = () => document.createElement('canvas'),
+  crearImagen = (pixeles, ancho, alto) =>
+    new ImageData(pixeles, ancho, alto),
+}) {
+  const almacen = crearAlmacenDeMascara({
+    umbral,
+    suavidad,
+    crearLienzo,
+    crearImagen,
+  });
+
+  return {
+    detectar(video, ahora) {
+      segmentadorCrudo.segmentForVideo(video, ahora, (resultado) => {
+        almacen.copiar(resultado.confidenceMasks?.[0]);
+        resultado.close?.();
+      });
+      return almacen.obtener();
+    },
+
+    obtener: almacen.obtener,
+    reiniciar: almacen.reiniciar,
 
     cerrar() {
       segmentadorCrudo.close();

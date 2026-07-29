@@ -65,7 +65,13 @@ export function dibujarVideoEspejado(ctx, video, rectangulo, disposicion, opcion
   ctx.restore();
 }
 
-export function trazarSiluetaPersona(ctx, rostro, manos, disposicion) {
+export function trazarSiluetaPersona(
+  ctx,
+  rostro,
+  manos,
+  disposicion,
+  pose = null,
+) {
   if (!rostro?.centro || !(rostro.radio > 0)) return false;
 
   const { x, y } = rostro.centro;
@@ -92,43 +98,101 @@ export function trazarSiluetaPersona(ctx, rostro, manos, disposicion) {
     0,
     Math.PI * 2,
   );
-  ctx.moveTo(x - radio * 0.42, cuelloY);
-  ctx.bezierCurveTo(
-    x - radio * 0.65,
-    cuelloY,
-    x - medioHombros,
-    hombrosY,
-    x - medioHombros,
-    hombrosY + radio * 0.42,
-  );
-  ctx.lineTo(x - medioBase, piso + radio);
-  ctx.lineTo(x + medioBase, piso + radio);
-  ctx.lineTo(x + medioHombros, hombrosY + radio * 0.42);
-  ctx.bezierCurveTo(
-    x + medioHombros,
-    hombrosY,
-    x + radio * 0.65,
-    cuelloY,
-    x + radio * 0.42,
-    cuelloY,
-  );
-  ctx.closePath();
   ctx.fill();
+
+  const puntosPose = pose?.puntos;
+  const hombroA = puntosPose?.[11];
+  const hombroB = puntosPose?.[12];
+  const caderaA = puntosPose?.[23];
+  const caderaB = puntosPose?.[24];
+
+  if (hombroA && hombroB) {
+    const centroHombros = {
+      x: (hombroA.x + hombroB.x) / 2,
+      y: (hombroA.y + hombroB.y) / 2,
+    };
+    const anchoHombros = Math.hypot(
+      hombroB.x - hombroA.x,
+      hombroB.y - hombroA.y,
+    );
+    const caderaFinalA = caderaA ?? {
+      x: centroHombros.x + (hombroA.x - centroHombros.x) * 0.72,
+      y: centroHombros.y + anchoHombros * 1.45,
+    };
+    const caderaFinalB = caderaB ?? {
+      x: centroHombros.x + (hombroB.x - centroHombros.x) * 0.72,
+      y: centroHombros.y + anchoHombros * 1.45,
+    };
+
+    ctx.beginPath();
+    ctx.moveTo(hombroA.x, hombroA.y);
+    ctx.lineTo(hombroB.x, hombroB.y);
+    ctx.lineTo(caderaFinalB.x, caderaFinalB.y);
+    ctx.lineTo(caderaFinalA.x, caderaFinalA.y);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.lineWidth = Math.max(radio * 0.26, anchoHombros * 0.16);
+    for (const [hombro, codo, muneca] of [
+      [11, 13, 15],
+      [12, 14, 16],
+    ]) {
+      const puntosBrazo = [hombro, codo, muneca]
+        .map((indice) => puntosPose[indice])
+        .filter(Boolean);
+      if (puntosBrazo.length < 2) continue;
+      ctx.beginPath();
+      ctx.moveTo(puntosBrazo[0].x, puntosBrazo[0].y);
+      for (const punto of puntosBrazo.slice(1)) {
+        ctx.lineTo(punto.x, punto.y);
+      }
+      ctx.stroke();
+    }
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(x - radio * 0.42, cuelloY);
+    ctx.bezierCurveTo(
+      x - radio * 0.65,
+      cuelloY,
+      x - medioHombros,
+      hombrosY,
+      x - medioHombros,
+      hombrosY + radio * 0.42,
+    );
+    ctx.lineTo(x - medioBase, piso + radio);
+    ctx.lineTo(x + medioBase, piso + radio);
+    ctx.lineTo(x + medioHombros, hombrosY + radio * 0.42);
+    ctx.bezierCurveTo(
+      x + medioHombros,
+      hombrosY,
+      x + radio * 0.65,
+      cuelloY,
+      x + radio * 0.42,
+      cuelloY,
+    );
+    ctx.closePath();
+    ctx.fill();
+  }
 
   for (const mano of manos ?? []) {
     const puntos = mano.puntosPantalla ?? [mano.palma, ...(mano.puntas ?? [])];
-    const hombroX = mano.palma.x < x ? x - medioHombros * 0.72 : x + medioHombros * 0.72;
+    if (!hombroA || !hombroB) {
+      const hombroX =
+        mano.palma.x < x
+          ? x - medioHombros * 0.72
+          : x + medioHombros * 0.72;
 
-    ctx.beginPath();
-    ctx.moveTo(hombroX, hombrosY);
-    ctx.quadraticCurveTo(
-      (hombroX + mano.palma.x) / 2,
-      Math.min(hombrosY, mano.palma.y) - radio * 0.16,
-      mano.palma.x,
-      mano.palma.y,
-    );
-    ctx.lineWidth = Math.max(radio * 0.28, mano.largoPalma * 0.72);
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(hombroX, hombrosY);
+      ctx.quadraticCurveTo(
+        (hombroX + mano.palma.x) / 2,
+        Math.min(hombrosY, mano.palma.y) - radio * 0.16,
+        mano.palma.x,
+        mano.palma.y,
+      );
+      ctx.lineWidth = Math.max(radio * 0.28, mano.largoPalma * 0.72);
+      ctx.stroke();
+    }
 
     ctx.beginPath();
     ctx.arc(
@@ -155,12 +219,13 @@ export function restaurarPersonaSobreObjetos(
   capaPersona,
   capaFondo,
   {
-    mascara,
-    rostro,
-    manos,
-    rectangulo,
-    disposicion,
-    desenfoqueBorde = 0,
+      mascara,
+      rostro,
+      manos,
+      pose,
+      rectangulo,
+      disposicion,
+      desenfoqueBorde = 0,
   },
 ) {
   if (!rostro) return false;
@@ -188,7 +253,7 @@ export function restaurarPersonaSobreObjetos(
       rectangulo.alto,
     );
   } else {
-    trazarSiluetaPersona(ctxPersona, rostro, manos, disposicion);
+    trazarSiluetaPersona(ctxPersona, rostro, manos, disposicion, pose);
   }
 
   ctxPersona.restore();
@@ -440,6 +505,149 @@ export function dibujarPuntosRostro(ctx, puntos, { color = '#62D8FF', radio = 3 
     ctx.arc(punto.x, punto.y, radio, 0, Math.PI * 2);
   }
   ctx.fill();
+  ctx.restore();
+}
+
+const CONEXIONES_POSE = [
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [3, 7],
+  [0, 4],
+  [4, 5],
+  [5, 6],
+  [6, 8],
+  [9, 10],
+  [7, 8],
+  [11, 12],
+  [11, 13],
+  [13, 15],
+  [15, 17],
+  [15, 19],
+  [15, 21],
+  [17, 19],
+  [12, 14],
+  [14, 16],
+  [16, 18],
+  [16, 20],
+  [16, 22],
+  [18, 20],
+  [11, 23],
+  [12, 24],
+  [23, 24],
+  [23, 25],
+  [25, 27],
+  [27, 29],
+  [29, 31],
+  [27, 31],
+  [24, 26],
+  [26, 28],
+  [28, 30],
+  [30, 32],
+  [28, 32],
+];
+
+export function dibujarPose(
+  ctx,
+  pose,
+  { color = '#7CFFB2', radio = 5 } = {},
+) {
+  const puntos = pose?.puntos;
+  if (!puntos?.some(Boolean)) return;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = Math.max(2, radio * 0.62);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.shadowColor = color;
+  ctx.shadowBlur = radio * 2.5;
+
+  ctx.globalAlpha = 0.48;
+  ctx.beginPath();
+  for (const [desde, hasta] of CONEXIONES_POSE) {
+    if (!puntos[desde] || !puntos[hasta]) continue;
+    ctx.moveTo(puntos[desde].x, puntos[desde].y);
+    ctx.lineTo(puntos[hasta].x, puntos[hasta].y);
+  }
+  ctx.stroke();
+
+  ctx.globalAlpha = 0.92;
+  ctx.beginPath();
+  for (const punto of puntos) {
+    if (!punto) continue;
+    ctx.moveTo(punto.x + radio, punto.y);
+    ctx.arc(punto.x, punto.y, radio, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.restore();
+}
+
+export function dibujarColisionadores(
+  ctx,
+  colisionadores,
+  { color = '#FF5D8F' } = {},
+) {
+  if (!colisionadores?.length) return;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 8;
+
+  for (const colisionador of colisionadores) {
+    if (colisionador.tipo === 'capsula') {
+      ctx.globalAlpha = 0.18;
+      ctx.lineWidth = colisionador.radio * 2;
+      ctx.beginPath();
+      ctx.moveTo(colisionador.desde.x, colisionador.desde.y);
+      ctx.lineTo(colisionador.hasta.x, colisionador.hasta.y);
+      ctx.stroke();
+
+      ctx.globalAlpha = 0.9;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(colisionador.desde.x, colisionador.desde.y);
+      ctx.lineTo(colisionador.hasta.x, colisionador.hasta.y);
+      ctx.stroke();
+      continue;
+    }
+
+    if (colisionador.tipo === 'poligono') {
+      ctx.globalAlpha = 0.16;
+      ctx.beginPath();
+      ctx.moveTo(colisionador.puntos[0].x, colisionador.puntos[0].y);
+      for (const punto of colisionador.puntos.slice(1)) {
+        ctx.lineTo(punto.x, punto.y);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.globalAlpha = 0.9;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      continue;
+    }
+
+    ctx.globalAlpha = 0.2;
+    ctx.beginPath();
+    ctx.arc(
+      colisionador.x,
+      colisionador.y,
+      colisionador.radio,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+    ctx.globalAlpha = 0.9;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
   ctx.restore();
 }
 

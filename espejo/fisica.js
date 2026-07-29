@@ -48,6 +48,40 @@ function amortiguar(cuerpo, dt, resistenciaAire, resistenciaGiro) {
   cuerpo.velocidadGiro *= Math.exp(-resistenciaGiro * dt);
 }
 
+function responderContraSuperficie(
+  cuerpo,
+  superficie,
+  nx,
+  ny,
+  restitucion,
+  friccionContacto,
+) {
+  const relativaX = cuerpo.vx - (superficie.vx ?? 0);
+  const relativaY = cuerpo.vy - (superficie.vy ?? 0);
+  const velocidadNormal = relativaX * nx + relativaY * ny;
+  if (velocidadNormal >= 0) return;
+
+  const restitucionEfectiva =
+    Math.abs(velocidadNormal) <= UMBRAL_REPOSO ? 0 : restitucion;
+  const cambioNormal = -(1 + restitucionEfectiva) * velocidadNormal;
+  cuerpo.vx += cambioNormal * nx;
+  cuerpo.vy += cambioNormal * ny;
+
+  const tx = -ny;
+  const ty = nx;
+  const velocidadTangencial =
+    relativaX * tx + relativaY * ty - cuerpo.velocidadGiro * cuerpo.radio;
+  const cambioTangencial = acotar(
+    -velocidadTangencial / 3,
+    -friccionContacto * cambioNormal,
+    friccionContacto * cambioNormal,
+  );
+
+  cuerpo.vx += cambioTangencial * tx;
+  cuerpo.vy += cambioTangencial * ty;
+  cuerpo.velocidadGiro -= (2 * cambioTangencial) / cuerpo.radio;
+}
+
 export function crearCuerpo({
   x,
   y,
@@ -86,31 +120,182 @@ export function rebotarContraCirculo(
   cuerpo.x = circulo.x + nx * minima;
   cuerpo.y = circulo.y + ny * minima;
 
-  const relativaX = cuerpo.vx - (circulo.vx ?? 0);
-  const relativaY = cuerpo.vy - (circulo.vy ?? 0);
-  const velocidadNormal = relativaX * nx + relativaY * ny;
-  if (velocidadNormal >= 0) return true;
-
-  const restitucionEfectiva =
-    Math.abs(velocidadNormal) <= UMBRAL_REPOSO ? 0 : restitucion;
-  const cambioNormal = -(1 + restitucionEfectiva) * velocidadNormal;
-  cuerpo.vx += cambioNormal * nx;
-  cuerpo.vy += cambioNormal * ny;
-
-  const tx = -ny;
-  const ty = nx;
-  const velocidadTangencial =
-    relativaX * tx + relativaY * ty - cuerpo.velocidadGiro * cuerpo.radio;
-  const cambioTangencial = acotar(
-    -velocidadTangencial / 3,
-    -friccionContacto * cambioNormal,
-    friccionContacto * cambioNormal,
+  responderContraSuperficie(
+    cuerpo,
+    circulo,
+    nx,
+    ny,
+    restitucion,
+    friccionContacto,
   );
-
-  cuerpo.vx += cambioTangencial * tx;
-  cuerpo.vy += cambioTangencial * ty;
-  cuerpo.velocidadGiro -= (2 * cambioTangencial) / cuerpo.radio;
   return true;
+}
+
+function puntoMasCercanoDelSegmento(punto, desde, hasta) {
+  const dx = hasta.x - desde.x;
+  const dy = hasta.y - desde.y;
+  const largoCuadrado = dx * dx + dy * dy;
+  const progreso =
+    largoCuadrado <= EPSILON
+      ? 0
+      : acotar(
+          ((punto.x - desde.x) * dx + (punto.y - desde.y) * dy) /
+            largoCuadrado,
+          0,
+          1,
+        );
+  return {
+    x: desde.x + dx * progreso,
+    y: desde.y + dy * progreso,
+  };
+}
+
+export function rebotarContraCapsula(
+  cuerpo,
+  capsula,
+  restitucion,
+  friccionContacto = FRICCION_CONTACTO,
+) {
+  if (!capsula?.desde || !capsula?.hasta || !(capsula.radio > 0)) {
+    return false;
+  }
+
+  const cercano = puntoMasCercanoDelSegmento(
+    cuerpo,
+    capsula.desde,
+    capsula.hasta,
+  );
+  return rebotarContraCirculo(
+    cuerpo,
+    {
+      ...cercano,
+      radio: capsula.radio,
+      vx: capsula.vx,
+      vy: capsula.vy,
+    },
+    restitucion,
+    friccionContacto,
+  );
+}
+
+function puntoDentroDelPoligono(punto, puntos) {
+  let dentro = false;
+  for (
+    let indice = 0, anterior = puntos.length - 1;
+    indice < puntos.length;
+    anterior = indice++
+  ) {
+    const actual = puntos[indice];
+    const previo = puntos[anterior];
+    const cruza =
+      actual.y > punto.y !== previo.y > punto.y &&
+      punto.x <
+        ((previo.x - actual.x) * (punto.y - actual.y)) /
+          (previo.y - actual.y) +
+          actual.x;
+    if (cruza) dentro = !dentro;
+  }
+  return dentro;
+}
+
+function areaFirmada(puntos) {
+  let dobleArea = 0;
+  for (let indice = 0; indice < puntos.length; indice++) {
+    const actual = puntos[indice];
+    const siguiente = puntos[(indice + 1) % puntos.length];
+    dobleArea += actual.x * siguiente.y - siguiente.x * actual.y;
+  }
+  return dobleArea / 2;
+}
+
+export function rebotarContraPoligono(
+  cuerpo,
+  poligono,
+  restitucion,
+  friccionContacto = FRICCION_CONTACTO,
+) {
+  const puntos = poligono?.puntos;
+  if (!puntos || puntos.length < 3 || puntos.some((punto) => !punto)) {
+    return false;
+  }
+
+  let cercano = null;
+  let distanciaCuadrada = Infinity;
+  let aristaCercana = null;
+  for (let indice = 0; indice < puntos.length; indice++) {
+    const desde = puntos[indice];
+    const hasta = puntos[(indice + 1) % puntos.length];
+    const candidato = puntoMasCercanoDelSegmento(cuerpo, desde, hasta);
+    const dx = cuerpo.x - candidato.x;
+    const dy = cuerpo.y - candidato.y;
+    const distanciaActual = dx * dx + dy * dy;
+    if (distanciaActual < distanciaCuadrada) {
+      cercano = candidato;
+      distanciaCuadrada = distanciaActual;
+      aristaCercana = { desde, hasta };
+    }
+  }
+
+  const dentro = puntoDentroDelPoligono(cuerpo, puntos);
+  const distancia = Math.sqrt(distanciaCuadrada);
+  if (!dentro && distancia >= cuerpo.radio) return false;
+
+  let nx;
+  let ny;
+  if (distancia > EPSILON) {
+    const direccion = dentro ? -1 : 1;
+    nx = ((cuerpo.x - cercano.x) / distancia) * direccion;
+    ny = ((cuerpo.y - cercano.y) / distancia) * direccion;
+  } else {
+    const dx = aristaCercana.hasta.x - aristaCercana.desde.x;
+    const dy = aristaCercana.hasta.y - aristaCercana.desde.y;
+    const largo = Math.max(EPSILON, Math.hypot(dx, dy));
+    const orientacion = areaFirmada(puntos) >= 0 ? 1 : -1;
+    nx = (dy / largo) * orientacion;
+    ny = (-dx / largo) * orientacion;
+  }
+
+  cuerpo.x = cercano.x + nx * cuerpo.radio;
+  cuerpo.y = cercano.y + ny * cuerpo.radio;
+  responderContraSuperficie(
+    cuerpo,
+    poligono,
+    nx,
+    ny,
+    restitucion,
+    friccionContacto,
+  );
+  return true;
+}
+
+export function rebotarContraColisionador(
+  cuerpo,
+  colisionador,
+  restitucion,
+  friccionContacto = FRICCION_CONTACTO,
+) {
+  if (colisionador?.tipo === 'capsula') {
+    return rebotarContraCapsula(
+      cuerpo,
+      colisionador,
+      restitucion,
+      friccionContacto,
+    );
+  }
+  if (colisionador?.tipo === 'poligono') {
+    return rebotarContraPoligono(
+      cuerpo,
+      colisionador,
+      restitucion,
+      friccionContacto,
+    );
+  }
+  return rebotarContraCirculo(
+    cuerpo,
+    colisionador,
+    restitucion,
+    friccionContacto,
+  );
 }
 
 export function rebotarEntreCuerpos(
@@ -273,10 +458,10 @@ export function paso(cuerpos, dt, mundo) {
 
     for (let iteracion = 0; iteracion < iteraciones; iteracion++) {
       for (const cuerpo of cuerpos) {
-        for (const circulo of colisionadores) {
-          rebotarContraCirculo(
+        for (const colisionador of colisionadores) {
+          rebotarContraColisionador(
             cuerpo,
-            circulo,
+            colisionador,
             restitucion,
             friccionContacto,
           );

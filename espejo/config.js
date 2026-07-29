@@ -91,8 +91,19 @@ export const CONFIG = {
     velocidadMaxima: 4000,
   },
 
+  pose: {
+    fps: 18,
+    visibilidadMinima: 0.42,
+    suavizado: 0.3,
+    cuadrosDeGracia: 4,
+    minDeteccion: 0.35,
+    minPresencia: 0.35,
+    minSeguimiento: 0.35,
+    radioHombros: 0.11,
+    radioBrazos: 0.075,
+  },
+
   segmentacion: {
-    fps: 15,
     umbral: 0.18,
     suavidad: 0.24,
     desenfoqueBorde: 3,
