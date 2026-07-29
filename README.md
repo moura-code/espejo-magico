@@ -25,7 +25,7 @@ Para levantarlo:
 
 ```bash
 npm run dev          # desarrollo: reinicia el servidor cuando cambia su código
-npm start            # después, abrir http://localhost:8080/espejo/espejo.html
+npm start            # después, abrir http://localhost:8080/
 ```
 
 o directamente `herramientas\arrancar.bat` en Windows, que levanta el servidor y
@@ -34,6 +34,9 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 > El espejo tiene que abrirse por **`localhost`**, nunca por la IP de la máquina:
 > Chrome sólo entrega la cámara en contextos seguros. Las tablets sí van por IP,
 > porque no usan cámara.
+
+Al iniciar, el servidor muestra tanto la dirección local del espejo como las
+direcciones IPv4 disponibles para abrir las tablets desde la red del stand.
 
 ## Comandos
 
@@ -50,6 +53,11 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 La tuerca de la esquina superior derecha abre un panel para elegir la cámara y
 alternar el modo demo, el avance manual y la malla de diagnóstico.
 
+Durante la escena aparecen dos botones virtuales, `OTRA CARRERA` y `TERMINAR`.
+Se activan manteniendo una palma encima. Cuando el espejo queda vacío, la imagen
+se cierra y vuelve a abrir en espiral, como un caracol, para mantener la pantalla
+en movimiento.
+
 | Tecla | Qué hace |
 |---|---|
 | `ESPACIO` | Avanza al estado siguiente (modo manual) |
@@ -57,12 +65,21 @@ alternar el modo demo, el avance manual y la malla de diagnóstico.
 | `1`–`6` | Fuerza una carrera y salta a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `C` | Cambia a la siguiente cámara disponible |
-| `D` | Modo demo: funciona sin cámara y muestra el rostro simulado con puntos |
+| `D` | Demo automática: recorre toda la experiencia, las seis carreras y ambos botones |
 | `M` | Muestra los puntos que el sistema detecta en cara y manos |
 | `P` | Panel de estado y FPS |
 
 `herramientas/figuras.html` muestra las treinta y seis figuras de los objetos en
 una grilla, sobre fondo oscuro, claro o tono de piel.
+
+La demo comienza con una pausa sin persona para probar la animación de reposo,
+recorre todos los estados y carreras, simula rostro y manos, y alterna entre los
+botones `OTRA CARRERA` y `TERMINAR`. Mientras está activa ignora el avance manual.
+
+Además del espejo en `/`, existen dos pantallas específicas:
+
+- `/tablet/tablet.html?slot=0` — vista para cada tablet, cambiando el número de `slot`.
+- `/herramientas/figuras.html` — visor técnico de las figuras disponibles.
 
 ## Cómo está armado
 

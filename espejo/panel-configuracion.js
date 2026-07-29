@@ -46,6 +46,7 @@ export function instalarPanelConfiguracion({
   function sincronizarInterruptores() {
     modoDemo.checked = espejo.modo() === 'demo';
     avanceManual.checked = espejo.maquina.esManual();
+    avanceManual.disabled = modoDemo.checked;
     mostrarMalla.checked = espejo.mallaVisible();
   }
 
@@ -143,12 +144,12 @@ export function instalarPanelConfiguracion({
 
   modoDemo.addEventListener('change', () => {
     espejo.cambiarModo(modoDemo.checked ? 'demo' : 'camara');
+    sincronizarInterruptores();
   });
 
   avanceManual.addEventListener('change', () => {
-    if (avanceManual.checked !== espejo.maquina.esManual()) {
-      espejo.maquina.alternarManual();
-    }
+    espejo.establecerAvanceManual(avanceManual.checked);
+    sincronizarInterruptores();
   });
 
   mostrarMalla.addEventListener('change', () => {

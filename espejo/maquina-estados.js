@@ -69,6 +69,11 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       return enManual;
     },
 
+    establecerManual(manual) {
+      enManual = Boolean(manual);
+      return enManual;
+    },
+
     /**
      * Pasa al estado siguiente del ciclo. Es lo que usa el modo manual, y en
      * automatico sirve para que el equipo del stand se saltee una espera.

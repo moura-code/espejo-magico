@@ -17,8 +17,9 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
 5. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar el
    sorteo, ver que las tablets arranquen y se apaguen.
 
-Para saber la IP de la PC: abrir el menú de inicio, escribir `cmd`, y ahí `ipconfig`.
-Es el número que dice *Dirección IPv4*, algo como `192.168.1.20`.
+La ventana negra del servidor muestra la dirección de **Red local** que deben usar
+las tablets. Como alternativa, abrir el menú de inicio, escribir `cmd` y ejecutar
+`ipconfig`; usar el número que dice *Dirección IPv4*, como `192.168.1.20`.
 
 ## Apagar
 
@@ -32,12 +33,18 @@ La tuerca de la esquina superior derecha abre la configuración. Desde ahí se
 puede elegir la cámara y activar el modo demo, el avance manual o la malla de
 diagnóstico sin usar el teclado.
 
+Durante la escena, la persona puede mantener una mano sobre `OTRA CARRERA` para
+reiniciar la experiencia o sobre `TERMINAR` para ir al cierre. El relleno del
+botón muestra cuánto falta para activarlo. Cuando no hay nadie, el espejo hace
+una animación periódica de cierre y apertura en forma de caracol; es el
+comportamiento esperado.
+
 | Tecla | Qué hace |
 |---|---|
 | `1` a `6` | Fuerza una carrera y salta directo a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `C` | Cambia a la siguiente cámara disponible |
-| `D` | Modo demo: funciona sin cámara y muestra el rostro simulado con puntos |
+| `D` | Demo automática: prueba el ciclo completo, todas las carreras y los botones |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
 | `Ctrl` + `R` | Recarga todo |
@@ -47,6 +54,11 @@ El orden de las teclas `1` a `6` es el mismo que el de las carreras en
 
 La cámara elegida con `C` queda guardada aunque Chrome se recargue. Para confirmar
 cuál está activa, apretar `P` y mirar la línea `camara`.
+
+La demo controla el avance automáticamente aunque el interruptor manual estuviera
+activo. Primero deja la pantalla vacía para probar el caracol y luego recorre
+todos los estados, las seis carreras y los dos botones virtuales. Al salir de la
+demo restaura el ajuste de avance anterior.
 
 ---
 

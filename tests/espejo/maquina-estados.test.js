@@ -266,6 +266,14 @@ describe('modo manual', () => {
     expect(maquina.actualizar({ hayRostro: true, ahora: 0 }).estado).toBe(ESTADOS.ENGANCHE);
   });
 
+  it('permite fijar el modo de avance sin depender de su valor anterior', () => {
+    const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
+
+    expect(maquina.establecerManual(false)).toBe(false);
+    expect(maquina.establecerManual(false)).toBe(false);
+    expect(maquina.esManual()).toBe(false);
+  });
+
   it('arranca en automatico si no se pide lo contrario', () => {
     expect(nueva().esManual()).toBe(false);
   });

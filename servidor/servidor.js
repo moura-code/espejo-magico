@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { networkInterfaces } from 'node:os';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
@@ -19,6 +20,23 @@ const TIPOS = {
   '.wasm': 'application/wasm',
   '.task': 'application/octet-stream',
 };
+
+export function obtenerDireccionesLocales(interfaces = networkInterfaces()) {
+  return [
+    ...new Set(
+      Object.values(interfaces)
+        .flatMap((direcciones) => direcciones ?? [])
+        .filter(
+          ({ address, family, internal }) =>
+            family === 'IPv4' &&
+            !internal &&
+            address !== '0.0.0.0' &&
+            !address.startsWith('169.254.'),
+        )
+        .map(({ address }) => address),
+    ),
+  ];
+}
 
 export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
   const servidorHttp = createServer(async (pedido, respuesta) => {
@@ -73,5 +91,21 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const servidor = crearServidor();
   const puerto = await servidor.escuchar(Number(process.env.PUERTO) || 8080);
-  console.log(`Espejo servido en http://localhost:${puerto}/espejo/espejo.html`);
+  const direcciones = obtenerDireccionesLocales();
+  const direccionParaTablets = direcciones[0] ?? 'localhost';
+
+  console.log('Espejo servido en:');
+  console.log(`  Local:     http://localhost:${puerto}/`);
+  if (direcciones.length === 0) {
+    console.log('  Red local: no se encontró una dirección IPv4');
+  } else {
+    for (const direccion of direcciones) {
+      console.log(`  Red local: http://${direccion}:${puerto}/`);
+    }
+  }
+  console.log('Otras pantallas:');
+  console.log(
+    `  Tablet:    http://${direccionParaTablets}:${puerto}/tablet/tablet.html?slot=0`,
+  );
+  console.log(`  Figuras:   http://localhost:${puerto}/herramientas/figuras.html`);
 }

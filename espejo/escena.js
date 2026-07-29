@@ -182,6 +182,178 @@ export function dibujarPuntosRostro(ctx, puntos, { color = '#62D8FF', radio = 3 
   ctx.restore();
 }
 
+const CONEXIONES_MANO = [
+  [0, 1], [1, 2], [2, 3], [3, 4],
+  [0, 5], [5, 6], [6, 7], [7, 8],
+  [5, 9], [9, 10], [10, 11], [11, 12],
+  [9, 13], [13, 14], [14, 15], [15, 16],
+  [13, 17], [17, 18], [18, 19], [19, 20],
+  [0, 17],
+];
+
+export function dibujarManosSinteticas(ctx, manos, color = '#FFD23F') {
+  const visibles = manos?.filter((mano) => mano.puntosPantalla?.length === 21) ?? [];
+  if (visibles.length === 0) return;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = Math.max(1.5, visibles[0].largoPalma * 0.045);
+  ctx.shadowColor = color;
+  ctx.shadowBlur = Math.max(6, visibles[0].largoPalma * 0.18);
+
+  for (const mano of visibles) {
+    ctx.globalAlpha = 0.38;
+    ctx.beginPath();
+    for (const [desde, hasta] of CONEXIONES_MANO) {
+      ctx.moveTo(mano.puntosPantalla[desde].x, mano.puntosPantalla[desde].y);
+      ctx.lineTo(mano.puntosPantalla[hasta].x, mano.puntosPantalla[hasta].y);
+    }
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.92;
+    ctx.beginPath();
+    const radioPunto = Math.max(2.2, mano.largoPalma * 0.055);
+    for (const punto of mano.puntosPantalla) {
+      ctx.moveTo(punto.x + radioPunto, punto.y);
+      ctx.arc(punto.x, punto.y, radioPunto, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function trazarRectanguloRedondeado(ctx, { x, y, ancho, alto }, radio) {
+  const borde = Math.min(radio, ancho / 2, alto / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + borde, y);
+  ctx.lineTo(x + ancho - borde, y);
+  ctx.quadraticCurveTo(x + ancho, y, x + ancho, y + borde);
+  ctx.lineTo(x + ancho, y + alto - borde);
+  ctx.quadraticCurveTo(x + ancho, y + alto, x + ancho - borde, y + alto);
+  ctx.lineTo(x + borde, y + alto);
+  ctx.quadraticCurveTo(x, y + alto, x, y + alto - borde);
+  ctx.lineTo(x, y + borde);
+  ctx.quadraticCurveTo(x, y, x + borde, y);
+  ctx.closePath();
+}
+
+export function dibujarBotonesVirtuales(ctx, botones, interaccion) {
+  if (!botones || botones.length === 0) return;
+
+  for (const boton of botones) {
+    const activo = interaccion.activo === boton.id;
+    const radioBorde = Math.min(24, boton.alto * 0.24);
+
+    ctx.save();
+    trazarRectanguloRedondeado(ctx, boton, radioBorde);
+    ctx.fillStyle = 'rgba(8, 13, 17, 0.72)';
+    ctx.fill();
+    ctx.strokeStyle = activo ? boton.color : 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = activo ? 4 : 2;
+    ctx.shadowColor = activo ? boton.color : 'transparent';
+    ctx.shadowBlur = activo ? 22 : 0;
+    ctx.stroke();
+
+    if (activo && interaccion.progreso > 0) {
+      ctx.save();
+      trazarRectanguloRedondeado(ctx, boton, radioBorde);
+      ctx.clip();
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = boton.color;
+      ctx.fillRect(boton.x, boton.y, boton.ancho * interaccion.progreso, boton.alto);
+      ctx.restore();
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = activo ? boton.color : '#ffffff';
+    ctx.font = `700 ${Math.round(boton.alto * 0.23)}px system-ui, sans-serif`;
+    ctx.fillText(boton.etiqueta, boton.x + boton.ancho / 2, boton.y + boton.alto * 0.43);
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.font = `500 ${Math.round(boton.alto * 0.13)}px system-ui, sans-serif`;
+    ctx.fillText(
+      activo ? `${Math.round(interaccion.progreso * 100)}%` : boton.ayuda,
+      boton.x + boton.ancho / 2,
+      boton.y + boton.alto * 0.7,
+    );
+    ctx.restore();
+  }
+}
+
+export function calcularAspasCaracol(
+  disposicion,
+  progreso,
+  { cantidad = 6, pasos = 48 } = {},
+) {
+  const centro = { x: disposicion.ancho / 2, y: disposicion.alto / 2 };
+  const radioMaximo = Math.hypot(disposicion.ancho, disposicion.alto) * 0.53;
+  const sector = (Math.PI * 2) / cantidad;
+  const giro = progreso * sector * 0.16;
+
+  const aspas = Array.from({ length: cantidad }, (_, indice) => {
+    const bordeInicial = [];
+    const bordeFinal = [];
+
+    for (let paso = 0; paso <= pasos; paso++) {
+      const profundidad = paso / pasos;
+      const radio = radioMaximo * (1 - profundidad);
+      const curva = profundidad * Math.PI * 0.62;
+      const angulo = indice * sector + giro + curva;
+      const punto = (anguloDelPunto) => ({
+        x: Math.cos(anguloDelPunto) * radio,
+        y: Math.sin(anguloDelPunto) * radio,
+      });
+
+      bordeInicial.push(punto(angulo));
+      bordeFinal.push(punto(angulo + sector * progreso));
+    }
+
+    return { bordeInicial, bordeFinal };
+  });
+
+  return { centro, aspas };
+}
+
+export function dibujarCierreDeAusencia(ctx, disposicion, progreso) {
+  if (progreso <= 0) return;
+
+  const { centro, aspas } = calcularAspasCaracol(disposicion, progreso);
+
+  ctx.save();
+  if (progreso >= 0.999) {
+    ctx.fillStyle = '#03070A';
+    ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
+  }
+  ctx.translate(centro.x, centro.y);
+
+  for (const aspa of aspas) {
+    ctx.beginPath();
+    ctx.moveTo(aspa.bordeInicial[0].x, aspa.bordeInicial[0].y);
+    for (const punto of aspa.bordeInicial.slice(1)) ctx.lineTo(punto.x, punto.y);
+    for (const punto of [...aspa.bordeFinal].reverse()) ctx.lineTo(punto.x, punto.y);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(3, 7, 10, 0.965)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(aspa.bordeFinal[0].x, aspa.bordeFinal[0].y);
+    for (const punto of aspa.bordeFinal.slice(1)) ctx.lineTo(punto.x, punto.y);
+    ctx.strokeStyle = `rgba(120, 190, 210, ${0.05 + progreso * 0.11})`;
+    ctx.lineWidth = Math.max(1, disposicion.unidad * 0.0018);
+    ctx.shadowColor = 'rgba(98, 216, 255, 0.3)';
+    ctx.shadowBlur = Math.max(2, disposicion.unidad * 0.006);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#03070A';
+  ctx.beginPath();
+  ctx.arc(0, 0, Math.max(2, disposicion.unidad * 0.012 * progreso), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   if (!carrera || alfa <= 0) return;
   const { texto, ancho } = disposicion;

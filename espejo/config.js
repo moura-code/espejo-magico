@@ -12,6 +12,12 @@ export const CONFIG = {
     manual: true,
   },
 
+  demo: {
+    pausaSinPersonaMs: 6500,
+    interaccionDesdeMs: 6000,
+    transicionManoMs: 700,
+  },
+
   // Duraciones de cada estado, en milisegundos.
   tiempos: {
     enganche: 2000,
@@ -118,6 +124,17 @@ export const CONFIG = {
 
   operacion: {
     recargaCadaMs: 4 * 60 * 60 * 1000,
+  },
+
+  interfazGestual: {
+    permanenciaBotonMs: 850,
+    reposo: {
+      esperaInicialMs: 3000,
+      intervaloMs: 5000,
+      cierreMs: 850,
+      cerradoMs: 300,
+      aperturaMs: 1050,
+    },
   },
 
   red: {

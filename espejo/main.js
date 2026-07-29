@@ -17,15 +17,24 @@ import {
   crearFuenteSintetica,
   generarPuntosRostroSintetico,
 } from './rostro.js';
-import { crearDetectorDeManosMediaPipe } from './manos.js';
+import {
+  crearDetectorDeManosMediaPipe,
+  crearFuenteDeManosSinteticas,
+} from './manos.js';
 import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
+import { crearControlDemo } from './demo.js';
 import { crearPool, fuenteDeObjetos } from './objetos.js';
 import { crearCuerpo } from './fisica.js';
 import { crearNiebla, calcularNiebla } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
 import { figurasDisponibles } from './figuras.js';
+import {
+  calcularBotonesVirtuales,
+  calcularCierreDeAusencia,
+  crearControlBotonesVirtuales,
+} from './interfaz-gestual.js';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
@@ -34,6 +43,9 @@ import {
   dibujarAccesorio,
   dibujarManos,
   dibujarPuntosRostro,
+  dibujarManosSinteticas,
+  dibujarBotonesVirtuales,
+  dibujarCierreDeAusencia,
   dibujarTextos,
   dibujarInvitacion,
 } from './escena.js';
@@ -149,6 +161,7 @@ try {
 }
 
 const sintetica = crearFuenteSintetica();
+const manosSinteticas = crearFuenteDeManosSinteticas();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
 const histeresis = crearHisteresis(CONFIG.presencia);
 
@@ -159,6 +172,9 @@ const opcionesVelocidad = {
 };
 const velocidadCabeza = crearRastreadorDeVelocidad(opcionesVelocidad);
 const velocidadDeMano = new Map();
+const controlBotonesVirtuales = crearControlBotonesVirtuales({
+  permanenciaMs: CONFIG.interfazGestual.permanenciaBotonMs,
+});
 
 function seguirVelocidad(clave, x, y, ahora) {
   if (!velocidadDeMano.has(clave)) {
@@ -169,6 +185,10 @@ function seguirVelocidad(clave, x, y, ahora) {
 
 // ---------- logica ----------
 const sorteo = crearSorteo({ ids: contenido.ids });
+const controlDemo = crearControlDemo({
+  ids: contenido.ids,
+  ...CONFIG.demo,
+});
 const maquina = crearMaquina({
   tiempos: CONFIG.tiempos,
   sortear: () => sorteo.siguiente(),
@@ -187,6 +207,8 @@ let ultimoLatido = 0;
 let ultimoAnuncio = null;
 
 function atender(eventos, ahora) {
+  controlDemo.registrar(eventos, ahora);
+
   for (const evento of eventos) {
     if (evento.tipo === 'carrera') {
       ultimoAnuncio = mensajeCarrera(evento.id, evento.sesion);
@@ -241,6 +263,8 @@ let efecto = null;
 let efectoDe = null;
 let ultimaDeteccionManos = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
+let accionVirtualPendiente = null;
+let ausenciaVisualDesde = null;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
@@ -259,8 +283,18 @@ function cuadro(ahora) {
   const dt = Math.min(0.05, (ahora - anterior) / 1000);
   anterior = ahora;
 
+  if (accionVirtualPendiente && maquina.estado() === ESTADOS.ESCENA) {
+    const salidaVirtual =
+      accionVirtualPendiente === 'otra-carrera'
+        ? maquina.reiniciar(ahora)
+        : maquina.avanzar(ahora);
+    atender(salidaVirtual.eventos, ahora);
+  }
+  accionVirtualPendiente = null;
+
   const camaraLista = camara.obtener();
   const video = camaraLista?.video ?? null;
+  const personaDemoVisible = controlDemo.personaVisible(ahora);
 
   // El MISMO rectangulo para dibujar el video y para mapear el rostro.
   const rectangulo = video
@@ -278,7 +312,9 @@ function cuadro(ahora) {
 
     const crudo =
       modo === 'demo'
-        ? sintetica.detectar(ahora, disposicion)
+        ? personaDemoVisible
+          ? sintetica.detectar(ahora, disposicion)
+          : null
         : video
           ? detector.detectar(video, ahora, rectangulo)
           : null;
@@ -298,16 +334,28 @@ function cuadro(ahora) {
   // mas rapido y a 22 cuadros por segundo el circulo va siempre atras de la mano
   // de verdad. Solo se buscan cuando hay algo con que interactuar, porque es el
   // detector mas caro del cuadro.
-  const manosSirven =
+  const manosRealesSirven =
     detectorDeManos &&
     video &&
     modo !== 'demo' &&
     (estadoAnterior === ESTADOS.REVELACION || estadoAnterior === ESTADOS.ESCENA);
 
-  if (manosSirven && ahora - ultimaDeteccionManos >= intervaloManos) {
+  if (modo === 'demo' && ahora - ultimaDeteccionManos >= intervaloManos) {
+    ultimaDeteccionManos = ahora;
+    const botonesDemo = calcularBotonesVirtuales(disposicion);
+    const objetivoDerecha = controlDemo.objetivoDeMano({
+      estado: maquina.estado(),
+      transcurrido: ahora - maquina.desdeCuando(),
+      sesion: maquina.sesion(),
+      botones: botonesDemo,
+    });
+    manos = personaDemoVisible
+      ? manosSinteticas.detectar(ahora, disposicion, { objetivoDerecha })
+      : [];
+  } else if (manosRealesSirven && ahora - ultimaDeteccionManos >= intervaloManos) {
     ultimaDeteccionManos = ahora;
     manos = detectorDeManos.detectar(video, ahora, rectangulo);
-  } else if (!manosSirven) {
+  } else if (modo !== 'demo' && !manosRealesSirven) {
     manos = [];
     velocidadDeMano.clear();
   }
@@ -325,6 +373,27 @@ function cuadro(ahora) {
   estadoAnterior = estado;
   const carrera = salida.carrera ? contenido.obtener(salida.carrera) : null;
   const enEstadoDesde = ahora - maquina.desdeCuando();
+  const botonesVirtuales = calcularBotonesVirtuales(disposicion);
+  const botonesHabilitados =
+    estado === ESTADOS.ESCENA && (modo === 'demo' || Boolean(detectorDeManos));
+  const interaccionVirtual = controlBotonesVirtuales.actualizar({
+    botones: botonesVirtuales,
+    manos,
+    ahora,
+    habilitado: botonesHabilitados,
+  });
+  if (interaccionVirtual.accion) accionVirtualPendiente = interaccionVirtual.accion;
+
+  if (estado === ESTADOS.ATRACCION && !rostro) {
+    if (ausenciaVisualDesde === null) ausenciaVisualDesde = ahora;
+  } else {
+    ausenciaVisualDesde = null;
+  }
+  const cierreDeAusencia = calcularCierreDeAusencia({
+    ahora,
+    ausenciaDesde: ausenciaVisualDesde,
+    ...CONFIG.interfazGestual.reposo,
+  });
 
   // --- fisica ---
   const fuente = fuenteDeObjetos(estado, carrera, contenido.carreras);
@@ -399,6 +468,7 @@ function cuadro(ahora) {
     dibujarPuntosRostro(ctx, generarPuntosRostroSintetico(rostro), {
       radio: Math.max(2.5, rostro.radio * 0.018),
     });
+    dibujarManosSinteticas(ctx, manos);
   }
 
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el
@@ -463,6 +533,21 @@ function cuadro(ahora) {
     ctx.restore();
   }
 
+  if (modo === 'demo') {
+    const resumenDemo = controlDemo.resumen();
+    ctx.save();
+    ctx.fillStyle = resumenDemo.completo ? '#7CFFB2' : '#FFD23F';
+    ctx.font = `700 ${Math.round(disposicion.texto.tamanoFrase * 0.65)}px system-ui, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = 0.9;
+    ctx.fillText(
+      `DEMO AUTOMÁTICA · ${resumenDemo.carrerasVistas}/${resumenDemo.totalCarreras} CARRERAS`,
+      24,
+      96,
+    );
+    ctx.restore();
+  }
+
   if (estado === ESTADOS.ATRACCION) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
@@ -476,6 +561,11 @@ function cuadro(ahora) {
       Math.max(0, 1 - enEstadoDesde / CONFIG.tiempos.cierre),
     );
   }
+
+  if (botonesHabilitados) {
+    dibujarBotonesVirtuales(ctx, botonesVirtuales, interaccionVirtual);
+  }
+  dibujarCierreDeAusencia(ctx, disposicion, cierreDeAusencia);
 }
 
 let cambioDeCamaraEnCurso = false;
@@ -518,10 +608,25 @@ window.espejo = {
   manos: () => manos,
   manosCrudas: () => detectorDeManos?.crudasDetectadas() ?? 0,
   modo: () => modo,
-  cambiarModo: (nuevo) => {
+  demo: () => controlDemo.resumen(),
+  cambiarModo: (nuevo, ahora = performance.now()) => {
+    if (nuevo === modo) return;
     modo = nuevo;
+    const salida =
+      nuevo === 'demo'
+        ? controlDemo.activar({ maquina, ahora })
+        : controlDemo.desactivar({ maquina, ahora });
+    if (salida) atender(salida.eventos, ahora);
     filtro.reiniciar();
+    histeresis.reiniciar();
+    velocidadCabeza.reiniciar();
+    velocidadDeMano.clear();
+    manos = [];
   },
+  establecerAvanceManual: (manual) =>
+    modo === 'demo' ? false : maquina.establecerManual(manual),
+  alternarAvanceManual: () =>
+    modo === 'demo' ? false : maquina.establecerManual(!maquina.esManual()),
   alternarMalla: () => {
     verMalla = !verMalla;
   },

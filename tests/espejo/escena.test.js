@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
+  calcularAspasCaracol,
   dibujarPuntosRostro,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
@@ -176,5 +177,42 @@ describe('dibujarPuntosRostro', () => {
     let guardados = 0;
     dibujarPuntosRostro({ save: () => { guardados += 1; } }, []);
     expect(guardados).toBe(0);
+  });
+});
+
+describe('calcularAspasCaracol', () => {
+  const DISPOSICION = { ancho: 1280, alto: 720, unidad: 405 };
+
+  it('genera seis aspas curvas alrededor del centro', () => {
+    const caracol = calcularAspasCaracol(DISPOSICION, 0.5);
+
+    expect(caracol.centro).toEqual({ x: 640, y: 360 });
+    expect(caracol.aspas).toHaveLength(6);
+    expect(caracol.aspas[0].bordeInicial).toHaveLength(49);
+    expect(caracol.aspas[0].bordeFinal).toHaveLength(49);
+  });
+
+  it('mantiene finitos todos los puntos de la espiral', () => {
+    const { aspas } = calcularAspasCaracol(DISPOSICION, 0.65);
+    const puntos = aspas.flatMap((aspa) => [...aspa.bordeInicial, ...aspa.bordeFinal]);
+
+    expect(puntos.every((punto) => Number.isFinite(punto.x) && Number.isFinite(punto.y))).toBe(true);
+  });
+
+  it('al cerrar por completo una aspa toca la siguiente sin dejar huecos', () => {
+    const { aspas } = calcularAspasCaracol(DISPOSICION, 1);
+    const finalPrimera = aspas[0].bordeFinal[0];
+    const inicioSiguiente = aspas[1].bordeInicial[0];
+
+    expect(finalPrimera.x).toBeCloseTo(inicioSiguiente.x);
+    expect(finalPrimera.y).toBeCloseTo(inicioSiguiente.y);
+  });
+
+  it('a mitad del cierre deja canales visibles entre las aspas', () => {
+    const { aspas } = calcularAspasCaracol(DISPOSICION, 0.5);
+    const finalPrimera = aspas[0].bordeFinal[0];
+    const inicioSiguiente = aspas[1].bordeInicial[0];
+
+    expect(Math.hypot(finalPrimera.x - inicioSiguiente.x, finalPrimera.y - inicioSiguiente.y)).toBeGreaterThan(100);
   });
 });

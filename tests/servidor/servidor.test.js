@@ -1,6 +1,9 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import WebSocket from 'ws';
-import { crearServidor } from '../../servidor/servidor.js';
+import {
+  crearServidor,
+  obtenerDireccionesLocales,
+} from '../../servidor/servidor.js';
 
 let servidor = null;
 
@@ -58,5 +61,22 @@ describe('servidor', () => {
     const respuesta = await fetch(`http://localhost:${puerto}/`);
     expect(respuesta.status).toBe(200);
     expect(respuesta.headers.get('content-type')).toContain('text/html');
+    expect(await respuesta.text()).toContain('<base href="/espejo/">');
+  });
+
+  it('encuentra las direcciones IPv4 utilizables de la red local', () => {
+    expect(
+      obtenerDireccionesLocales({
+        'Wi-Fi': [
+          { address: '192.168.1.20', family: 'IPv4', internal: false },
+          { address: 'fe80::1', family: 'IPv6', internal: false },
+        ],
+        Ethernet: [
+          { address: '10.0.0.8', family: 'IPv4', internal: false },
+          { address: '169.254.2.3', family: 'IPv4', internal: false },
+        ],
+        Loopback: [{ address: '127.0.0.1', family: 'IPv4', internal: true }],
+      }),
+    ).toEqual(['192.168.1.20', '10.0.0.8']);
   });
 });

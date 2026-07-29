@@ -72,7 +72,7 @@ export function instalarOperacion({
     if (orden.accion === 'forzar') espejo.forzarCarrera(orden.id, ahora);
     if (orden.accion === 'reiniciar') espejo.reiniciar(ahora);
     if (orden.accion === 'avanzar') espejo.avanzar(ahora);
-    if (orden.accion === 'alternarManual') espejo.maquina.alternarManual();
+    if (orden.accion === 'alternarManual') espejo.alternarAvanceManual();
     if (orden.accion === 'demo') {
       espejo.cambiarModo(espejo.modo() === 'demo' ? 'camara' : 'demo');
     }
