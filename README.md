@@ -76,10 +76,16 @@ La demo comienza con una pausa sin persona para probar la animación de reposo,
 recorre todos los estados y carreras, simula rostro y manos, y alterna entre los
 botones `OTRA CARRERA` y `TERMINAR`. Mientras está activa ignora el avance manual.
 
-Además del espejo en `/`, existen dos pantallas específicas:
+Además del espejo en `/`, existen tres pantallas específicas:
 
 - `/tablet/tablet.html?slot=0` — vista para cada tablet, cambiando el número de `slot`.
+- `/tablet/controles.html` — segunda pantalla táctil con botones dinámicos.
 - `/herramientas/figuras.html` — visor técnico de las figuras disponibles.
+
+La tablet de controles muestra únicamente las acciones válidas para el estado
+actual. Durante el sorteo permite cancelar; durante la escena presenta
+`OTRA CARRERA` y `TERMINAR`; durante el cierre permite volver al inicio. Los
+botones desaparecen cuando el espejo está esperando a una persona.
 
 ## Cómo está armado
 

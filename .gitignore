@@ -4,3 +4,5 @@ vendor/
 contenido/videos/
 .DS_Store
 Thumbs.db
+.codex*/
+.codex

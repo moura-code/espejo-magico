@@ -113,6 +113,17 @@ describe('crearTablet', () => {
     expect(pantalla.ocultar).toHaveBeenCalledTimes(2);
   });
 
+  it('ignora mensajes de la tablet de controles', () => {
+    const pantalla = pantallaFalsa();
+    const tablet = crearTablet({ slot: 0, contenido, pantalla });
+
+    tablet.recibir({ tipo: 'controles', estado: 'ESCENA', botones: [] });
+    tablet.recibir({ tipo: 'accion', id: 'terminar' });
+
+    expect(pantalla.mostrar).not.toHaveBeenCalled();
+    expect(pantalla.ocultar).not.toHaveBeenCalled();
+  });
+
   it('dos tablets con slots distintos muestran referentes distintas', () => {
     const a = pantallaFalsa();
     const b = pantallaFalsa();

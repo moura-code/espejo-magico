@@ -1,6 +1,12 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import WebSocket from 'ws';
 import {
+  ACCIONES,
+  mensajeAccion,
+  mensajeCarrera,
+  mensajeControles,
+} from '../../comun/protocolo.js';
+import {
   crearServidor,
   obtenerDireccionesLocales,
 } from '../../servidor/servidor.js';
@@ -15,6 +21,14 @@ afterEach(async () => {
 const abierto = (socket) => new Promise((ok) => socket.once('open', ok));
 const primerMensaje = (socket) =>
   new Promise((ok) => socket.once('message', (m) => ok(JSON.parse(m.toString()))));
+const mensajes = (socket, cantidad) =>
+  new Promise((ok) => {
+    const recibidos = [];
+    socket.on('message', (crudo) => {
+      recibidos.push(JSON.parse(crudo.toString()));
+      if (recibidos.length === cantidad) ok(recibidos);
+    });
+  });
 
 describe('servidor', () => {
   it('repite a los demas clientes el mensaje que recibe de uno', async () => {
@@ -46,6 +60,49 @@ describe('servidor', () => {
     expect(await llegada).toEqual({ tipo: 'carrera', id: 'quimica', sesion: 7 });
     emisor.close();
     tardio.close();
+  });
+
+  it('recuerda por separado la experiencia y los controles dinamicos', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const emisor = new WebSocket(`ws://localhost:${puerto}`);
+    await abierto(emisor);
+    emisor.send(JSON.stringify(mensajeCarrera('civil', 3)));
+    emisor.send(
+      JSON.stringify(
+        mensajeControles('ESCENA', [
+          { id: ACCIONES.TERMINAR, etiqueta: 'TERMINAR', color: '#FFD23F' },
+        ]),
+      ),
+    );
+    await new Promise((ok) => setTimeout(ok, 50));
+
+    const tardio = new WebSocket(`ws://localhost:${puerto}`);
+    const recibidos = mensajes(tardio, 2);
+
+    expect(await recibidos).toEqual([
+      mensajeCarrera('civil', 3),
+      mensajeControles('ESCENA', [
+        { id: ACCIONES.TERMINAR, etiqueta: 'TERMINAR', color: '#FFD23F' },
+      ]),
+    ]);
+    emisor.close();
+    tardio.close();
+  });
+
+  it('repite las acciones tactiles sin tratarlas como estado persistente', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const espejo = new WebSocket(`ws://localhost:${puerto}`);
+    const tablet = new WebSocket(`ws://localhost:${puerto}`);
+    await Promise.all([abierto(espejo), abierto(tablet)]);
+
+    const recibida = primerMensaje(espejo);
+    tablet.send(JSON.stringify(mensajeAccion(ACCIONES.TERMINAR)));
+    expect(await recibida).toEqual(mensajeAccion(ACCIONES.TERMINAR));
+
+    espejo.close();
+    tablet.close();
   });
 
   it('no sirve archivos fuera de la raiz', async () => {

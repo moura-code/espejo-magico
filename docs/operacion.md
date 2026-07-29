@@ -14,7 +14,9 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    pantalla de inicio. Si no, abrir en cada una:
    `http://IP-DE-LA-PC:8080/tablet/tablet.html?slot=N`
    con un número distinto en cada tablet, empezando por `0`.
-5. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar el
+5. **Encender la tablet de controles** ubicada frente al espejo y abrir:
+   `http://IP-DE-LA-PC:8080/tablet/controles.html`.
+6. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar el
    sorteo, ver que las tablets arranquen y se apaguen.
 
 La ventana negra del servidor muestra la dirección de **Red local** que deben usar
@@ -38,6 +40,10 @@ reiniciar la experiencia o sobre `TERMINAR` para ir al cierre. El relleno del
 botón muestra cuánto falta para activarlo. Cuando no hay nadie, el espejo hace
 una animación periódica de cierre y apertura en forma de caracol; es el
 comportamiento esperado.
+
+La tablet frontal ofrece las mismas acciones con botones táctiles grandes. Su
+contenido cambia automáticamente junto con el espejo: no hay que recargarla
+entre participantes.
 
 | Tecla | Qué hace |
 |---|---|

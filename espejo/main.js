@@ -25,6 +25,10 @@ import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from '
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearControlDemo } from './demo.js';
+import {
+  controlesParaEstado,
+  ejecutarAccionRemota,
+} from './controles-remotos.js';
 import { crearPool, fuenteDeObjetos } from './objetos.js';
 import { crearCuerpo } from './fisica.js';
 import { crearNiebla, calcularNiebla } from './niebla.js';
@@ -52,7 +56,7 @@ import {
 import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
 import { instalarPanelConfiguracion } from './panel-configuracion.js';
-import { mensajeCarrera, mensajeReposo } from '../comun/protocolo.js';
+import { mensajeCarrera, mensajeReposo, TIPOS } from '../comun/protocolo.js';
 
 // ---------- lienzos ----------
 // La niebla va en su propia capa porque el agujero de la revelacion se abre
@@ -197,9 +201,16 @@ const maquina = crearMaquina({
 const pool = crearPool(CONFIG.objetos);
 const niebla = crearNiebla({ cantidad: 26 });
 
+let accionRemotaPendiente = null;
+let ultimoMensajeControles = null;
+let estadoDeControles = null;
+
 const bus = crearBus({
-  url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
+  url: `ws://${location.host}`,
   reconexionMs: CONFIG.red.reconexionMs,
+  alMensaje: (mensaje) => {
+    if (mensaje.tipo === TIPOS.ACCION) accionRemotaPendiente = mensaje.id;
+  },
   alEstado: (estado) => console.log('bus:', estado),
 });
 
@@ -283,6 +294,17 @@ function cuadro(ahora) {
   const dt = Math.min(0.05, (ahora - anterior) / 1000);
   anterior = ahora;
 
+  if (accionRemotaPendiente) {
+    const salidaRemota = ejecutarAccionRemota({
+      id: accionRemotaPendiente,
+      estado: maquina.estado(),
+      maquina,
+      ahora,
+    });
+    if (salidaRemota) atender(salidaRemota.eventos, ahora);
+  }
+  accionRemotaPendiente = null;
+
   if (accionVirtualPendiente && maquina.estado() === ESTADOS.ESCENA) {
     const salidaVirtual =
       accionVirtualPendiente === 'otra-carrera'
@@ -364,13 +386,20 @@ function cuadro(ahora) {
   const salida = maquina.actualizar({ hayRostro: Boolean(rostro), ahora });
   atender(salida.eventos, ahora);
 
+  const estado = salida.estado;
+  estadoAnterior = estado;
+  if (estado !== estadoDeControles) {
+    estadoDeControles = estado;
+    ultimoMensajeControles = controlesParaEstado(estado);
+    bus.enviar(ultimoMensajeControles);
+  }
+
   if (ahora - ultimoLatido >= CONFIG.red.latidoMs) {
     ultimoLatido = ahora;
     if (ultimoAnuncio) bus.enviar(ultimoAnuncio);
+    if (ultimoMensajeControles) bus.enviar(ultimoMensajeControles);
   }
 
-  const estado = salida.estado;
-  estadoAnterior = estado;
   const carrera = salida.carrera ? contenido.obtener(salida.carrera) : null;
   const enEstadoDesde = ahora - maquina.desdeCuando();
   const botonesVirtuales = calcularBotonesVirtuales(disposicion);

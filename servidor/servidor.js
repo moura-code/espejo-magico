@@ -4,10 +4,11 @@ import { networkInterfaces } from 'node:os';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
+import { interpretar, TIPOS } from '../comun/protocolo.js';
 
 const RAIZ_POR_DEFECTO = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
-const TIPOS = {
+const TIPOS_ARCHIVO = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -51,7 +52,7 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       const cuerpo = await readFile(absoluta);
       respuesta
         .writeHead(200, {
-          'Content-Type': TIPOS[extname(absoluta)] ?? 'application/octet-stream',
+          'Content-Type': TIPOS_ARCHIVO[extname(absoluta)] ?? 'application/octet-stream',
           'Cache-Control': 'no-cache',
         })
         .end(cuerpo);
@@ -61,14 +62,24 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
   });
 
   const sockets = new WebSocketServer({ server: servidorHttp });
-  let ultimoMensaje = null;
+  const ultimosMensajes = new Map();
 
   sockets.on('connection', (cliente) => {
-    if (ultimoMensaje) cliente.send(ultimoMensaje);
+    for (const mensaje of ultimosMensajes.values()) cliente.send(mensaje);
     cliente.on('message', (crudo) => {
-      ultimoMensaje = crudo.toString();
+      const texto = crudo.toString();
+      const mensaje = interpretar(texto);
+      if (!mensaje) return;
+
+      if (mensaje.tipo === TIPOS.CARRERA || mensaje.tipo === TIPOS.REPOSO) {
+        ultimosMensajes.set('experiencia', texto);
+      }
+      if (mensaje.tipo === TIPOS.CONTROLES) {
+        ultimosMensajes.set('controles', texto);
+      }
+
       for (const otro of sockets.clients) {
-        if (otro !== cliente && otro.readyState === otro.OPEN) otro.send(ultimoMensaje);
+        if (otro !== cliente && otro.readyState === otro.OPEN) otro.send(texto);
       }
     });
   });
@@ -105,7 +116,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   console.log('Otras pantallas:');
   console.log(
-    `  Tablet:    http://${direccionParaTablets}:${puerto}/tablet/tablet.html?slot=0`,
+    `  Videos:    http://${direccionParaTablets}:${puerto}/tablet/tablet.html?slot=0`,
+  );
+  console.log(
+    `  Controles: http://${direccionParaTablets}:${puerto}/tablet/controles.html`,
   );
   console.log(`  Figuras:   http://localhost:${puerto}/herramientas/figuras.html`);
 }

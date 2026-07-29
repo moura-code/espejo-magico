@@ -1,0 +1,46 @@
+import { describe, expect, it, vi } from 'vitest';
+import { ACCIONES, mensajeControles } from '../../comun/protocolo.js';
+import { crearTabletDeControles } from '../../tablet/controles.js';
+
+describe('tablet de controles', () => {
+  it('muestra los botones recibidos y envia la accion pulsada', () => {
+    let pulsar = null;
+    const pantalla = {
+      mostrar: vi.fn((_botones, alPulsar) => {
+        pulsar = alPulsar;
+      }),
+    };
+    const enviar = vi.fn();
+    const tablet = crearTabletDeControles({ pantalla, enviar });
+    const mensaje = mensajeControles('ESCENA', [
+      { id: ACCIONES.TERMINAR, etiqueta: 'TERMINAR', color: '#FFD23F' },
+    ]);
+
+    tablet.recibir(mensaje);
+    pulsar(ACCIONES.TERMINAR);
+
+    expect(pantalla.mostrar).toHaveBeenCalledWith(mensaje.botones, expect.any(Function));
+    expect(enviar).toHaveBeenCalledWith({ tipo: 'accion', id: ACCIONES.TERMINAR });
+  });
+
+  it('no redibuja los latidos que no cambiaron', () => {
+    const pantalla = { mostrar: vi.fn() };
+    const tablet = crearTabletDeControles({ pantalla, enviar: vi.fn() });
+    const mensaje = mensajeControles('ATRACCION', []);
+
+    tablet.recibir(mensaje);
+    tablet.recibir(mensaje);
+
+    expect(pantalla.mostrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignora mensajes destinados a las tablets de video', () => {
+    const pantalla = { mostrar: vi.fn() };
+    const tablet = crearTabletDeControles({ pantalla, enviar: vi.fn() });
+
+    tablet.recibir({ tipo: 'carrera', id: 'civil', sesion: 1 });
+    tablet.recibir({ tipo: 'reposo' });
+
+    expect(pantalla.mostrar).not.toHaveBeenCalled();
+  });
+});

@@ -76,7 +76,7 @@
     const tablet = crearTablet({ slot, contenido, pantalla });
 
     crearBus({
-      url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
+      url: `ws://${location.host}`,
       reconexionMs: CONFIG.red.reconexionMs,
       alMensaje: (mensaje) => tablet.recibir(mensaje),
       alEstado: (estado) => {
