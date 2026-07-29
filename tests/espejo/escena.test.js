@@ -410,7 +410,7 @@ describe('diagnóstico corporal', () => {
 
     dibujarPose(contexto, { puntos });
 
-    expect(contexto.arcos).toBe(33);
+    expect(contexto.arcos).toBe(35);
     expect(contexto.lineas).toBeGreaterThan(20);
   });
 

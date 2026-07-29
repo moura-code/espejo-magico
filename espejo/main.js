@@ -22,6 +22,7 @@ import {
   crearFuenteDeManosSinteticas,
 } from './manos.js';
 import {
+  completarPoseConRespaldo,
   crearColisionadoresPersona,
   crearDetectorPoseMediaPipe,
   crearFiltroPose,
@@ -454,6 +455,10 @@ function cuadro(ahora) {
     mascaraPersona = null;
   }
 
+  if (modo !== 'demo' && rostro) {
+    pose = completarPoseConRespaldo(pose, rostro, manos, disposicion);
+  }
+
   // --- estado ---
   const salida = maquina.actualizar({ hayRostro: Boolean(rostro), ahora });
   atender(salida.eventos, ahora);
@@ -648,13 +653,19 @@ function cuadro(ahora) {
         }
       }
 
-      const poseDiagnostico = detectorPose
+      const poseDetectada = detectorPose
         ? mapearPose(detectorPose.puntosCrudos(), {
             ...rectangulo,
             espejar: true,
             visibilidadMinima: 0,
           })
-        : pose;
+        : null;
+      const poseDiagnostico = completarPoseConRespaldo(
+        poseDetectada ?? pose,
+        rostro,
+        manos,
+        disposicion,
+      );
       dibujarPose(ctx, poseDiagnostico, {
         radio: Math.max(3, (rostro?.radio ?? 120) * 0.018),
       });

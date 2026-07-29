@@ -174,6 +174,22 @@ export function crearPoseSintetica(rostro, manos = [], disposicion = {}) {
   return armarPose(puntos);
 }
 
+export function completarPoseConRespaldo(
+  pose,
+  rostro,
+  manos = [],
+  disposicion = {},
+) {
+  const hombroA = pose?.puntos?.[INDICES_POSE.hombroA];
+  const hombroB = pose?.puntos?.[INDICES_POSE.hombroB];
+  if (hombroA && hombroB) {
+    return pose.estimada ? pose : { ...pose, estimada: false };
+  }
+
+  const respaldo = crearPoseSintetica(rostro, manos, disposicion);
+  return respaldo ? { ...respaldo, estimada: true } : pose;
+}
+
 function capsula(desde, hasta, radio, velocidad, nombre) {
   if (!desde || !hasta || !(radio > 0)) return null;
   return {
@@ -187,6 +203,57 @@ function capsula(desde, hasta, radio, velocidad, nombre) {
   };
 }
 
+function interpolar(desde, hasta, progreso) {
+  return {
+    x: desde.x + (hasta.x - desde.x) * progreso,
+    y: desde.y + (hasta.y - desde.y) * progreso,
+  };
+}
+
+function puntoDelRostro(rostro, localX, localY) {
+  const coseno = Math.cos(rostro.angulo ?? 0);
+  const seno = Math.sin(rostro.angulo ?? 0);
+  return {
+    x: rostro.centro.x + localX * coseno - localY * seno,
+    y: rostro.centro.y + localX * seno + localY * coseno,
+  };
+}
+
+function crearContornoCorporal(
+  rostro,
+  hombroA,
+  hombroB,
+  caderaA,
+  caderaB,
+  expansionHombros,
+) {
+  const [hombroIzquierdo, hombroDerecho] =
+    hombroA.x <= hombroB.x ? [hombroA, hombroB] : [hombroB, hombroA];
+  const [caderaIzquierda, caderaDerecha] =
+    caderaA.x <= caderaB.x ? [caderaA, caderaB] : [caderaB, caderaA];
+  const radio = rostro.radio;
+
+  return [
+    puntoDelRostro(rostro, 0, -radio * 0.92),
+    puntoDelRostro(rostro, radio * 0.58, -radio * 0.58),
+    puntoDelRostro(rostro, radio * 0.82, radio * 0.16),
+    puntoDelRostro(rostro, radio * 0.62, radio * 0.62),
+    {
+      x: hombroDerecho.x + expansionHombros,
+      y: hombroDerecho.y - expansionHombros * 0.18,
+    },
+    caderaDerecha,
+    caderaIzquierda,
+    {
+      x: hombroIzquierdo.x - expansionHombros,
+      y: hombroIzquierdo.y - expansionHombros * 0.18,
+    },
+    puntoDelRostro(rostro, -radio * 0.62, radio * 0.62),
+    puntoDelRostro(rostro, -radio * 0.82, radio * 0.16),
+    puntoDelRostro(rostro, -radio * 0.58, -radio * 0.58),
+  ];
+}
+
 export function crearColisionadoresPersona({
   rostro,
   pose,
@@ -197,40 +264,31 @@ export function crearColisionadoresPersona({
 } = {}) {
   const colisionadores = [];
 
-  if (rostro?.centro && rostro.radio > 0) {
-    colisionadores.push(
-      capsula(
-        {
-          x: rostro.centro.x,
-          y: rostro.centro.y - rostro.radio * 0.2,
-        },
-        {
-          x: rostro.centro.x,
-          y: rostro.centro.y + rostro.radio * 0.28,
-        },
-        rostro.radio * 0.78,
-        velocidadRostro,
-        'rostro',
-      ),
-    );
-  }
-
   const puntos = pose?.puntos;
   const hombroA = puntos?.[INDICES_POSE.hombroA];
   const hombroB = puntos?.[INDICES_POSE.hombroB];
-  if (!hombroA || !hombroB) return colisionadores.filter(Boolean);
+  if (!hombroA || !hombroB) {
+    if (rostro?.centro && rostro.radio > 0) {
+      colisionadores.push(
+        capsula(
+          {
+            x: rostro.centro.x,
+            y: rostro.centro.y - rostro.radio * 0.2,
+          },
+          {
+            x: rostro.centro.x,
+            y: rostro.centro.y + rostro.radio * 0.28,
+          },
+          rostro.radio * 0.78,
+          velocidadRostro,
+          'rostro',
+        ),
+      );
+    }
+    return colisionadores.filter(Boolean);
+  }
 
   const anchoHombros = Math.max(1, distancia(hombroA, hombroB));
-  colisionadores.push(
-    capsula(
-      hombroA,
-      hombroB,
-      anchoHombros * radioHombros,
-      velocidadCuerpo,
-      'hombros',
-    ),
-  );
-
   let caderaA = puntos[INDICES_POSE.caderaA];
   let caderaB = puntos[INDICES_POSE.caderaB];
   if (!caderaA || !caderaB) {
@@ -247,10 +305,19 @@ export function crearColisionadoresPersona({
 
   colisionadores.push({
     tipo: 'poligono',
-    puntos: [hombroA, hombroB, caderaB, caderaA],
+    puntos: rostro?.centro
+      ? crearContornoCorporal(
+          rostro,
+          hombroA,
+          hombroB,
+          caderaA,
+          caderaB,
+          anchoHombros * radioHombros,
+        )
+      : [hombroA, hombroB, caderaB, caderaA],
     vx: velocidadCuerpo.vx ?? 0,
     vy: velocidadCuerpo.vy ?? 0,
-    nombre: 'torso',
+    nombre: 'cuerpo',
   });
 
   for (const [hombro, codo, muneca, nombre] of [
@@ -272,7 +339,9 @@ export function crearColisionadoresPersona({
     const puntoMuneca = puntos[muneca];
     colisionadores.push(
       capsula(
-        puntoHombro,
+        puntoHombro && puntoCodo
+          ? interpolar(puntoHombro, puntoCodo, 0.2)
+          : null,
         puntoCodo,
         anchoHombros * radioBrazos,
         velocidadCuerpo,
@@ -357,7 +426,7 @@ export async function crearDetectorPoseMediaPipe({
     recursos,
     {
       baseOptions: {
-        modelAssetPath: `${base}/pose_landmarker_lite.task`,
+        modelAssetPath: `${base}/pose_landmarker_full.task`,
         delegate: 'GPU',
       },
       runningMode: 'VIDEO',

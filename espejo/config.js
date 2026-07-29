@@ -93,14 +93,14 @@ export const CONFIG = {
 
   pose: {
     fps: 18,
-    visibilidadMinima: 0.42,
+    visibilidadMinima: 0.25,
     suavizado: 0.3,
     cuadrosDeGracia: 4,
-    minDeteccion: 0.35,
-    minPresencia: 0.35,
-    minSeguimiento: 0.35,
-    radioHombros: 0.11,
-    radioBrazos: 0.075,
+    minDeteccion: 0.2,
+    minPresencia: 0.2,
+    minSeguimiento: 0.2,
+    radioHombros: 0.14,
+    radioBrazos: 0.09,
   },
 
   segmentacion: {

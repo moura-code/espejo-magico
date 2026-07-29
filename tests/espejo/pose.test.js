@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  completarPoseConRespaldo,
   crearColisionadoresPersona,
   crearDetectorPose,
   crearFiltroPose,
@@ -108,8 +109,46 @@ describe('crearPoseSintetica', () => {
   });
 });
 
+describe('completarPoseConRespaldo', () => {
+  it('estima hombros y torso cuando el modelo sólo detecta la cara', () => {
+    const rostro = { centro: { x: 500, y: 250 }, radio: 100 };
+    const incompleta = {
+      puntos: Array.from({ length: 33 }, (_, indice) =>
+        indice === 0 ? { x: 500, y: 250 } : null,
+      ),
+    };
+
+    const pose = completarPoseConRespaldo(
+      incompleta,
+      rostro,
+      [],
+      { ancho: 1000, alto: 900, piso: 800 },
+    );
+
+    expect(pose.estimada).toBe(true);
+    expect(pose.puntos[11]).not.toBeNull();
+    expect(pose.puntos[12]).not.toBeNull();
+    expect(pose.puntos[23]).not.toBeNull();
+    expect(pose.puntos[24]).not.toBeNull();
+  });
+
+  it('conserva los hombros reales cuando ambos están disponibles', () => {
+    const real = crearPoseSintetica(
+      { centro: { x: 500, y: 250 }, radio: 100 },
+      [],
+      { ancho: 1000, alto: 900, piso: 800 },
+    );
+
+    const pose = completarPoseConRespaldo(real, null);
+
+    expect(pose.estimada).toBe(false);
+    expect(pose.puntos[11]).toEqual(real.puntos[11]);
+    expect(pose.puntos[12]).toEqual(real.puntos[12]);
+  });
+});
+
 describe('crearColisionadoresPersona', () => {
-  it('crea cara, hombros, torso y los cuatro tramos de brazos', () => {
+  it('crea una silueta corporal continua y los cuatro tramos de brazos', () => {
     const rostro = { centro: { x: 500, y: 250 }, radio: 100 };
     const pose = crearPoseSintetica(rostro, [], {
       ancho: 1000,
@@ -118,9 +157,9 @@ describe('crearColisionadoresPersona', () => {
     });
     const colisionadores = crearColisionadoresPersona({ rostro, pose });
 
-    expect(colisionadores).toHaveLength(7);
-    expect(colisionadores.filter(({ tipo }) => tipo === 'capsula')).toHaveLength(6);
-    expect(colisionadores.find(({ nombre }) => nombre === 'torso').tipo).toBe(
+    expect(colisionadores).toHaveLength(5);
+    expect(colisionadores.filter(({ tipo }) => tipo === 'capsula')).toHaveLength(4);
+    expect(colisionadores.find(({ nombre }) => nombre === 'cuerpo').tipo).toBe(
       'poligono',
     );
   });

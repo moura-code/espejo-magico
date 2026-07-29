@@ -550,10 +550,13 @@ const CONEXIONES_POSE = [
 export function dibujarPose(
   ctx,
   pose,
-  { color = '#7CFFB2', radio = 5 } = {},
+  opciones = {},
 ) {
   const puntos = pose?.puntos;
   if (!puntos?.some(Boolean)) return;
+  const color =
+    opciones.color ?? (pose.estimada ? '#FFD23F' : '#7CFFB2');
+  const radio = opciones.radio ?? 5;
 
   ctx.save();
   ctx.strokeStyle = color;
@@ -581,6 +584,17 @@ export function dibujarPose(
     ctx.arc(punto.x, punto.y, radio, 0, Math.PI * 2);
   }
   ctx.fill();
+
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = Math.max(2.5, radio * 0.7);
+  ctx.beginPath();
+  for (const indice of [11, 12]) {
+    const hombro = puntos[indice];
+    if (!hombro) continue;
+    ctx.moveTo(hombro.x + radio * 1.8, hombro.y);
+    ctx.arc(hombro.x, hombro.y, radio * 1.8, 0, Math.PI * 2);
+  }
+  ctx.stroke();
   ctx.restore();
 }
 
