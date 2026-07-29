@@ -48,6 +48,10 @@ entre participantes. Cuando el espejo está esperando muestra `EMPEZAR`. En modo
 manual aparece `AVANZAR` cuando el flujo necesita pasar al estado siguiente; ya
 no se muestra una instrucción amarilla sobre el espejo.
 
+En avance automático, el aro de la parte superior del espejo indica cuántos
+segundos faltan para el siguiente paso. Durante la espera y el avance manual no
+aparece, porque el cambio depende de detectar a una persona o tocar un botón.
+
 | Tecla | Qué hace |
 |---|---|
 | `1` a `6` | Fuerza una carrera y salta directo a la revelación |

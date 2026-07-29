@@ -617,3 +617,45 @@ export function dibujarCierreConceptual(ctx, disposicion, alfa = 1) {
   });
   ctx.restore();
 }
+
+export function dibujarTemporizadorEstado(ctx, disposicion, temporizador, color = '#62D8FF') {
+  if (!temporizador) return;
+
+  const radio = Math.max(30, Math.min(50, disposicion.unidad * 0.04));
+  const grosor = Math.max(4, radio * 0.13);
+  const centroX = disposicion.ancho / 2;
+  const centroY = Math.max(20, disposicion.alto * 0.018) + radio;
+  const inicio = -Math.PI / 2;
+  const fin = inicio + Math.PI * 2 * temporizador.proporcionRestante;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(3,7,10,0.72)';
+  ctx.beginPath();
+  ctx.arc(centroX, centroY, radio + grosor * 0.95, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.lineCap = 'round';
+  ctx.lineWidth = grosor;
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  ctx.arc(centroX, centroY, radio, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = radio * 0.28;
+  ctx.beginPath();
+  ctx.arc(centroX, centroY, radio, inicio, fin);
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `700 ${Math.round(radio * 0.72)}px system-ui, sans-serif`;
+  ctx.fillText(String(temporizador.segundosRestantes), centroX, centroY - radio * 0.08);
+  ctx.fillStyle = 'rgba(255,255,255,0.62)';
+  ctx.font = `600 ${Math.round(radio * 0.25)}px system-ui, sans-serif`;
+  ctx.fillText('s', centroX, centroY + radio * 0.45);
+  ctx.restore();
+}

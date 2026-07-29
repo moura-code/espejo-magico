@@ -25,6 +25,7 @@ import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from '
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearControlDemo } from './demo.js';
+import { calcularTemporizadorEstado } from './temporizador.js';
 import {
   controlesParaEstado,
   ejecutarAccionRemota,
@@ -56,6 +57,7 @@ import {
   dibujarInvitacion,
   dibujarMensajeSorteo,
   dibujarReflexion,
+  dibujarTemporizadorEstado,
 } from './escena.js';
 import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
@@ -412,6 +414,12 @@ function cuadro(ahora) {
 
   const carrera = salida.carrera ? contenido.obtener(salida.carrera) : null;
   const enEstadoDesde = ahora - maquina.desdeCuando();
+  const temporizadorEstado = calcularTemporizadorEstado({
+    estado,
+    transcurrido: enEstadoDesde,
+    tiempos: CONFIG.tiempos,
+    manual: maquina.esManual(),
+  });
   const botonesVirtuales = calcularBotonesVirtuales(disposicion);
   const botonesHabilitados =
     estado === ESTADOS.REFLEXION &&
@@ -599,6 +607,12 @@ function cuadro(ahora) {
   if (botonesHabilitados) {
     dibujarBotonesVirtuales(ctx, botonesVirtuales, interaccionVirtual);
   }
+  dibujarTemporizadorEstado(
+    ctx,
+    disposicion,
+    temporizadorEstado,
+    carrera?.color ?? '#62D8FF',
+  );
   dibujarCierreDeAusencia(ctx, disposicion, cierreDeAusencia);
 }
 

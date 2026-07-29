@@ -58,6 +58,11 @@ Después de la escena aparecen dos respuestas virtuales: `SÍ, ME SORPRENDIÓ` y
 queda vacío, la imagen se cierra y vuelve a abrir en espiral, como un caracol,
 para mantener la pantalla en movimiento.
 
+En modo automático, un contador circular discreto en la parte superior muestra
+los segundos y la proporción de tiempo que faltan para el siguiente estado. No
+aparece durante la espera ni en modo manual, porque en esos casos no existe una
+transición automática programada.
+
 | Tecla | Qué hace |
 |---|---|
 | `ESPACIO` | Avanza al estado siguiente (modo manual) |

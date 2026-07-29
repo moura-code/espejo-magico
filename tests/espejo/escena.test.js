@@ -4,6 +4,7 @@ import {
   calcularRectanguloVideo,
   calcularAspasCaracol,
   dibujarPuntosRostro,
+  dibujarTemporizadorEstado,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
 
@@ -176,6 +177,46 @@ describe('dibujarPuntosRostro', () => {
   it('no toca el lienzo si no hay puntos', () => {
     let guardados = 0;
     dibujarPuntosRostro({ save: () => { guardados += 1; } }, []);
+    expect(guardados).toBe(0);
+  });
+});
+
+describe('dibujarTemporizadorEstado', () => {
+  it('dibuja un aro de progreso y los segundos restantes', () => {
+    let arcos = 0;
+    let trazos = 0;
+    const textos = [];
+    const contexto = {
+      save() {},
+      restore() {},
+      beginPath() {},
+      arc() {
+        arcos += 1;
+      },
+      fill() {},
+      stroke() {
+        trazos += 1;
+      },
+      fillText(texto) {
+        textos.push(texto);
+      },
+    };
+
+    dibujarTemporizadorEstado(
+      contexto,
+      { ancho: 1080, alto: 1920, unidad: 1080 },
+      { segundosRestantes: 3, proporcionRestante: 0.75 },
+      '#62D8FF',
+    );
+
+    expect(arcos).toBe(3);
+    expect(trazos).toBe(2);
+    expect(textos).toEqual(['3', 's']);
+  });
+
+  it('no dibuja nada cuando el estado no tiene cuenta regresiva', () => {
+    let guardados = 0;
+    dibujarTemporizadorEstado({ save: () => { guardados += 1; } }, {}, null);
     expect(guardados).toBe(0);
   });
 });
