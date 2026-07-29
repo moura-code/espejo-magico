@@ -1,13 +1,8 @@
-import { ACCIONES } from '../comun/protocolo.js';
 import { ESTADOS } from './maquina-estados.js';
-
-const limitar = (valor, minimo, maximo) => Math.max(minimo, Math.min(maximo, valor));
 
 export function crearControlDemo({
   ids,
   pausaSinPersonaMs,
-  interaccionDesdeMs,
-  transicionManoMs,
 }) {
   const totalCarreras = new Set(ids).size;
   let activo = false;
@@ -47,24 +42,6 @@ export function crearControlDemo({
     registrar,
     activo: () => activo,
     personaVisible: (ahora) => !activo || ahora >= sinPersonaHasta,
-
-    objetivoDeMano({ estado, transcurrido, sesion, botones }) {
-      if (!activo || estado !== ESTADOS.REFLEXION || transcurrido < interaccionDesdeMs) {
-        return null;
-      }
-
-      const id =
-        sesion % 2 === 1 ? ACCIONES.SI_SORPRENDIO : ACCIONES.NO_PODRIA_VERME;
-      const boton = botones.find((candidato) => candidato.id === id);
-      if (!boton) return null;
-
-      return {
-        id,
-        x: boton.x + boton.ancho / 2,
-        y: boton.y + boton.alto / 2,
-        progreso: limitar((transcurrido - interaccionDesdeMs) / transicionManoMs, 0, 1),
-      };
-    },
 
     resumen() {
       return {

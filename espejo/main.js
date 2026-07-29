@@ -35,11 +35,7 @@ import { crearCuerpo } from './fisica.js';
 import { crearNiebla, calcularNiebla } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
 import { figurasDisponibles } from './figuras.js';
-import {
-  calcularBotonesVirtuales,
-  calcularCierreDeAusencia,
-  crearControlBotonesVirtuales,
-} from './interfaz-gestual.js';
+import { calcularCierreDeAusencia } from './interfaz-gestual.js';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
@@ -49,7 +45,6 @@ import {
   dibujarManos,
   dibujarPuntosRostro,
   dibujarManosSinteticas,
-  dibujarBotonesVirtuales,
   dibujarCierreDeAusencia,
   dibujarAntesDeReflexion,
   dibujarCierreConceptual,
@@ -182,9 +177,6 @@ const opcionesVelocidad = {
 };
 const velocidadCabeza = crearRastreadorDeVelocidad(opcionesVelocidad);
 const velocidadDeMano = new Map();
-const controlBotonesVirtuales = crearControlBotonesVirtuales({
-  permanenciaMs: CONFIG.interfazGestual.permanenciaBotonMs,
-});
 
 function seguirVelocidad(clave, x, y, ahora) {
   if (!velocidadDeMano.has(clave)) {
@@ -282,7 +274,6 @@ let efecto = null;
 let efectoDe = null;
 let ultimaDeteccionManos = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
-let accionVirtualPendiente = null;
 let ausenciaVisualDesde = null;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
@@ -312,12 +303,6 @@ function cuadro(ahora) {
     if (salidaRemota) atender(salidaRemota.eventos, ahora);
   }
   accionRemotaPendiente = null;
-
-  if (accionVirtualPendiente && maquina.estado() === ESTADOS.REFLEXION) {
-    const salidaVirtual = maquina.responderReflexion(accionVirtualPendiente, ahora);
-    if (salidaVirtual) atender(salidaVirtual.eventos, ahora);
-  }
-  accionVirtualPendiente = null;
 
   const camaraLista = camara.obtener();
   const video = camaraLista?.video ?? null;
@@ -366,20 +351,12 @@ function cuadro(ahora) {
     video &&
     modo !== 'demo' &&
     (estadoAnterior === ESTADOS.REVELACION ||
-      estadoAnterior === ESTADOS.ESCENA ||
-      estadoAnterior === ESTADOS.REFLEXION);
+      estadoAnterior === ESTADOS.ESCENA);
 
   if (modo === 'demo' && ahora - ultimaDeteccionManos >= intervaloManos) {
     ultimaDeteccionManos = ahora;
-    const botonesDemo = calcularBotonesVirtuales(disposicion);
-    const objetivoDerecha = controlDemo.objetivoDeMano({
-      estado: maquina.estado(),
-      transcurrido: ahora - maquina.desdeCuando(),
-      sesion: maquina.sesion(),
-      botones: botonesDemo,
-    });
     manos = personaDemoVisible
-      ? manosSinteticas.detectar(ahora, disposicion, { objetivoDerecha })
+      ? manosSinteticas.detectar(ahora, disposicion)
       : [];
   } else if (manosRealesSirven && ahora - ultimaDeteccionManos >= intervaloManos) {
     ultimaDeteccionManos = ahora;
@@ -420,19 +397,6 @@ function cuadro(ahora) {
     tiempos: CONFIG.tiempos,
     manual: maquina.esManual(),
   });
-  const botonesVirtuales = calcularBotonesVirtuales(disposicion);
-  const botonesHabilitados =
-    estado === ESTADOS.REFLEXION &&
-    !salida.respuestaReflexion &&
-    (modo === 'demo' || Boolean(detectorDeManos));
-  const interaccionVirtual = controlBotonesVirtuales.actualizar({
-    botones: botonesVirtuales,
-    manos,
-    ahora,
-    habilitado: botonesHabilitados,
-  });
-  if (interaccionVirtual.accion) accionVirtualPendiente = interaccionVirtual.accion;
-
   if (estado === ESTADOS.ATRACCION && !rostro) {
     if (ausenciaVisualDesde === null) ausenciaVisualDesde = ahora;
   } else {
@@ -604,9 +568,6 @@ function cuadro(ahora) {
     );
   }
 
-  if (botonesHabilitados) {
-    dibujarBotonesVirtuales(ctx, botonesVirtuales, interaccionVirtual);
-  }
   dibujarTemporizadorEstado(
     ctx,
     disposicion,

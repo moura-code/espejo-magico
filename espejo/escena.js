@@ -228,65 +228,6 @@ export function dibujarManosSinteticas(ctx, manos, color = '#FFD23F') {
   ctx.restore();
 }
 
-function trazarRectanguloRedondeado(ctx, { x, y, ancho, alto }, radio) {
-  const borde = Math.min(radio, ancho / 2, alto / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + borde, y);
-  ctx.lineTo(x + ancho - borde, y);
-  ctx.quadraticCurveTo(x + ancho, y, x + ancho, y + borde);
-  ctx.lineTo(x + ancho, y + alto - borde);
-  ctx.quadraticCurveTo(x + ancho, y + alto, x + ancho - borde, y + alto);
-  ctx.lineTo(x + borde, y + alto);
-  ctx.quadraticCurveTo(x, y + alto, x, y + alto - borde);
-  ctx.lineTo(x, y + borde);
-  ctx.quadraticCurveTo(x, y, x + borde, y);
-  ctx.closePath();
-}
-
-export function dibujarBotonesVirtuales(ctx, botones, interaccion) {
-  if (!botones || botones.length === 0) return;
-
-  for (const boton of botones) {
-    const activo = interaccion.activo === boton.id;
-    const radioBorde = Math.min(24, boton.alto * 0.24);
-
-    ctx.save();
-    trazarRectanguloRedondeado(ctx, boton, radioBorde);
-    ctx.fillStyle = 'rgba(8, 13, 17, 0.72)';
-    ctx.fill();
-    ctx.strokeStyle = activo ? boton.color : 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = activo ? 4 : 2;
-    ctx.shadowColor = activo ? boton.color : 'transparent';
-    ctx.shadowBlur = activo ? 22 : 0;
-    ctx.stroke();
-
-    if (activo && interaccion.progreso > 0) {
-      ctx.save();
-      trazarRectanguloRedondeado(ctx, boton, radioBorde);
-      ctx.clip();
-      ctx.globalAlpha = 0.22;
-      ctx.fillStyle = boton.color;
-      ctx.fillRect(boton.x, boton.y, boton.ancho * interaccion.progreso, boton.alto);
-      ctx.restore();
-    }
-
-    ctx.shadowBlur = 0;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = activo ? boton.color : '#ffffff';
-    ctx.font = `700 ${Math.round(boton.alto * 0.23)}px system-ui, sans-serif`;
-    ctx.fillText(boton.etiqueta, boton.x + boton.ancho / 2, boton.y + boton.alto * 0.43);
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.font = `500 ${Math.round(boton.alto * 0.13)}px system-ui, sans-serif`;
-    ctx.fillText(
-      activo ? `${Math.round(interaccion.progreso * 100)}%` : boton.ayuda,
-      boton.x + boton.ancho / 2,
-      boton.y + boton.alto * 0.7,
-    );
-    ctx.restore();
-  }
-}
-
 export function calcularAspasCaracol(
   disposicion,
   progreso,

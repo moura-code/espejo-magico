@@ -36,11 +36,10 @@ puede elegir la cámara y activar el modo demo, el avance manual o la malla de
 diagnóstico sin usar el teclado.
 
 Después de veinte segundos de escena aparece la reflexión. La persona puede
-responder manteniendo una mano sobre `SÍ, ME SORPRENDIÓ` o
-`NO, PODRÍA VERME AHÍ`. El relleno del botón muestra cuánto falta para activarlo.
-La respuesta no registra imágenes ni datos personales. Cuando no hay nadie, el
-espejo hace una animación periódica de cierre y apertura en forma de caracol; es
-el comportamiento esperado.
+responder tocando `SÍ, ME SORPRENDIÓ` o `NO, PODRÍA VERME AHÍ` en la tablet de
+controles. El espejo no muestra botones virtuales. La respuesta no registra
+imágenes ni datos personales. Cuando no hay nadie, el espejo hace una animación
+periódica de cierre y apertura en forma de caracol; es el comportamiento esperado.
 
 La tablet frontal ofrece las mismas acciones con botones táctiles grandes. Su
 contenido cambia automáticamente junto con el espejo: no hay que recargarla
@@ -71,8 +70,8 @@ cuál está activa, apretar `P` y mirar la línea `camara`.
 
 La demo controla el avance automáticamente aunque el interruptor manual estuviera
 activo. Primero deja la pantalla vacía para probar el caracol y luego recorre
-todos los estados, las seis carreras y las dos respuestas virtuales. Al salir de
-la demo restaura el ajuste de avance anterior.
+todos los estados y las seis carreras. Al salir de la demo restaura el ajuste de
+avance anterior.
 
 ---
 

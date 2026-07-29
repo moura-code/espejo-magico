@@ -14,8 +14,6 @@ export const CONFIG = {
 
   demo: {
     pausaSinPersonaMs: 6500,
-    interaccionDesdeMs: 6000,
-    transicionManoMs: 700,
   },
 
   // Duraciones de cada estado, en milisegundos.
@@ -128,7 +126,6 @@ export const CONFIG = {
   },
 
   interfazGestual: {
-    permanenciaBotonMs: 850,
     avisoReflexionMs: 2500,
     reposo: {
       esperaInicialMs: 3000,
