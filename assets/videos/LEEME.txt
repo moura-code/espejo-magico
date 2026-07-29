@@ -1,0 +1,4 @@
+Colocar los MP4 dentro de una carpeta por carrera:
+assets/videos/<carrera>/<archivo>.mp4
+
+Las rutas exactas estan declaradas en assets/carreras.json.

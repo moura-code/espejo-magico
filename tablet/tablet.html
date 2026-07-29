@@ -61,7 +61,7 @@
       const previo = document.createElement('video');
       previo.preload = 'auto';
       previo.muted = true;
-      previo.src = '/contenido/' + referente.video;
+      previo.src = '/' + referente.video;
       previo.load();
     }
 
@@ -76,7 +76,7 @@
     const tablet = crearTablet({ slot, contenido, pantalla });
 
     crearBus({
-      url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
+      url: `ws://${location.host}`,
       reconexionMs: CONFIG.red.reconexionMs,
       alMensaje: (mensaje) => tablet.recibir(mensaje),
       alEstado: (estado) => {

@@ -148,7 +148,7 @@ describe('efectos', () => {
 
 describe('carreras.json contra el registro de efectos', () => {
   it('cada carrera declara un efecto que existe', async () => {
-    const datos = JSON.parse(await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'));
+    const datos = JSON.parse(await readFile(resolve(RAIZ, 'assets/carreras.json'), 'utf8'));
 
     const problemas = [];
     for (const carrera of datos.carreras) {
@@ -161,7 +161,7 @@ describe('carreras.json contra el registro de efectos', () => {
   });
 
   it('las seis carreras tienen efectos distintos', async () => {
-    const datos = JSON.parse(await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'));
+    const datos = JSON.parse(await readFile(resolve(RAIZ, 'assets/carreras.json'), 'utf8'));
     const efectos = datos.carreras.map((c) => c.efecto);
     expect(new Set(efectos).size).toBe(efectos.length);
   });

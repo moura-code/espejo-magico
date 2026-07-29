@@ -18,4 +18,4 @@ start "servidor-espejo" /min cmd /c "node servidor\servidor.js"
 timeout /t 2 /nobreak >nul
 
 echo Abriendo el espejo...
-start "" "%CHROME%" --kiosk --user-data-dir="%~dp0..\.perfil-chrome" --autoplay-policy=no-user-gesture-required --use-fake-ui-for-media-stream --disable-infobars --disable-session-crashed-bubble --noerrdialogs --disable-features=Translate,TranslateUI "http://localhost:8080/espejo/espejo.html"
+start "" "%CHROME%" --kiosk --user-data-dir="%~dp0..\.perfil-chrome" --autoplay-policy=no-user-gesture-required --use-fake-ui-for-media-stream --disable-infobars --disable-session-crashed-bubble --noerrdialogs --disable-features=Translate,TranslateUI "http://localhost:8080/"

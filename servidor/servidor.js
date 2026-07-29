@@ -1,17 +1,20 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { networkInterfaces } from 'node:os';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
+import { interpretar, TIPOS } from '../comun/protocolo.js';
 
 const RAIZ_POR_DEFECTO = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
-const TIPOS = {
+const TIPOS_ARCHIVO = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
+  '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.webp': 'image/webp',
@@ -19,6 +22,23 @@ const TIPOS = {
   '.wasm': 'application/wasm',
   '.task': 'application/octet-stream',
 };
+
+export function obtenerDireccionesLocales(interfaces = networkInterfaces()) {
+  return [
+    ...new Set(
+      Object.values(interfaces)
+        .flatMap((direcciones) => direcciones ?? [])
+        .filter(
+          ({ address, family, internal }) =>
+            family === 'IPv4' &&
+            !internal &&
+            address !== '0.0.0.0' &&
+            !address.startsWith('169.254.'),
+        )
+        .map(({ address }) => address),
+    ),
+  ];
+}
 
 export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
   const servidorHttp = createServer(async (pedido, respuesta) => {
@@ -33,7 +53,7 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       const cuerpo = await readFile(absoluta);
       respuesta
         .writeHead(200, {
-          'Content-Type': TIPOS[extname(absoluta)] ?? 'application/octet-stream',
+          'Content-Type': TIPOS_ARCHIVO[extname(absoluta)] ?? 'application/octet-stream',
           'Cache-Control': 'no-cache',
         })
         .end(cuerpo);
@@ -43,14 +63,24 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
   });
 
   const sockets = new WebSocketServer({ server: servidorHttp });
-  let ultimoMensaje = null;
+  const ultimosMensajes = new Map();
 
   sockets.on('connection', (cliente) => {
-    if (ultimoMensaje) cliente.send(ultimoMensaje);
+    for (const mensaje of ultimosMensajes.values()) cliente.send(mensaje);
     cliente.on('message', (crudo) => {
-      ultimoMensaje = crudo.toString();
+      const texto = crudo.toString();
+      const mensaje = interpretar(texto);
+      if (!mensaje) return;
+
+      if (mensaje.tipo === TIPOS.CARRERA || mensaje.tipo === TIPOS.REPOSO) {
+        ultimosMensajes.set('experiencia', texto);
+      }
+      if (mensaje.tipo === TIPOS.CONTROLES) {
+        ultimosMensajes.set('controles', texto);
+      }
+
       for (const otro of sockets.clients) {
-        if (otro !== cliente && otro.readyState === otro.OPEN) otro.send(ultimoMensaje);
+        if (otro !== cliente && otro.readyState === otro.OPEN) otro.send(texto);
       }
     });
   });
@@ -73,5 +103,24 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const servidor = crearServidor();
   const puerto = await servidor.escuchar(Number(process.env.PUERTO) || 8080);
-  console.log(`Espejo servido en http://localhost:${puerto}/espejo/espejo.html`);
+  const direcciones = obtenerDireccionesLocales();
+  const direccionParaTablets = direcciones[0] ?? 'localhost';
+
+  console.log('Espejo servido en:');
+  console.log(`  Local:     http://localhost:${puerto}/`);
+  if (direcciones.length === 0) {
+    console.log('  Red local: no se encontró una dirección IPv4');
+  } else {
+    for (const direccion of direcciones) {
+      console.log(`  Red local: http://${direccion}:${puerto}/`);
+    }
+  }
+  console.log('Otras pantallas:');
+  console.log(
+    `  Videos:    http://${direccionParaTablets}:${puerto}/tablet/tablet.html?slot=0`,
+  );
+  console.log(
+    `  Controles: http://${direccionParaTablets}:${puerto}/tablet/controles.html`,
+  );
+  console.log(`  Figuras:   http://localhost:${puerto}/herramientas/figuras.html`);
 }

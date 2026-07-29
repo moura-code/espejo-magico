@@ -1,6 +1,15 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import WebSocket from 'ws';
-import { crearServidor } from '../../servidor/servidor.js';
+import {
+  ACCIONES,
+  mensajeAccion,
+  mensajeCarrera,
+  mensajeControles,
+} from '../../comun/protocolo.js';
+import {
+  crearServidor,
+  obtenerDireccionesLocales,
+} from '../../servidor/servidor.js';
 
 let servidor = null;
 
@@ -12,6 +21,14 @@ afterEach(async () => {
 const abierto = (socket) => new Promise((ok) => socket.once('open', ok));
 const primerMensaje = (socket) =>
   new Promise((ok) => socket.once('message', (m) => ok(JSON.parse(m.toString()))));
+const mensajes = (socket, cantidad) =>
+  new Promise((ok) => {
+    const recibidos = [];
+    socket.on('message', (crudo) => {
+      recibidos.push(JSON.parse(crudo.toString()));
+      if (recibidos.length === cantidad) ok(recibidos);
+    });
+  });
 
 describe('servidor', () => {
   it('repite a los demas clientes el mensaje que recibe de uno', async () => {
@@ -45,6 +62,49 @@ describe('servidor', () => {
     tardio.close();
   });
 
+  it('recuerda por separado la experiencia y los controles dinamicos', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const emisor = new WebSocket(`ws://localhost:${puerto}`);
+    await abierto(emisor);
+    emisor.send(JSON.stringify(mensajeCarrera('civil', 3)));
+    emisor.send(
+      JSON.stringify(
+        mensajeControles('ESCENA', [
+          { id: ACCIONES.TERMINAR, etiqueta: 'TERMINAR', color: '#FFD23F' },
+        ]),
+      ),
+    );
+    await new Promise((ok) => setTimeout(ok, 50));
+
+    const tardio = new WebSocket(`ws://localhost:${puerto}`);
+    const recibidos = mensajes(tardio, 2);
+
+    expect(await recibidos).toEqual([
+      mensajeCarrera('civil', 3),
+      mensajeControles('ESCENA', [
+        { id: ACCIONES.TERMINAR, etiqueta: 'TERMINAR', color: '#FFD23F' },
+      ]),
+    ]);
+    emisor.close();
+    tardio.close();
+  });
+
+  it('repite las acciones tactiles sin tratarlas como estado persistente', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const espejo = new WebSocket(`ws://localhost:${puerto}`);
+    const tablet = new WebSocket(`ws://localhost:${puerto}`);
+    await Promise.all([abierto(espejo), abierto(tablet)]);
+
+    const recibida = primerMensaje(espejo);
+    tablet.send(JSON.stringify(mensajeAccion(ACCIONES.TERMINAR)));
+    expect(await recibida).toEqual(mensajeAccion(ACCIONES.TERMINAR));
+
+    espejo.close();
+    tablet.close();
+  });
+
   it('no sirve archivos fuera de la raiz', async () => {
     servidor = crearServidor();
     const puerto = await servidor.escuchar(0);
@@ -58,5 +118,38 @@ describe('servidor', () => {
     const respuesta = await fetch(`http://localhost:${puerto}/`);
     expect(respuesta.status).toBe(200);
     expect(respuesta.headers.get('content-type')).toContain('text/html');
+    expect(await respuesta.text()).toContain('<base href="/espejo/">');
+  });
+
+  it('sirve el contenido y los iconos desde assets', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const [contenido, icono, rutaAnterior] = await Promise.all([
+      fetch(`http://localhost:${puerto}/assets/carreras.json`),
+      fetch(`http://localhost:${puerto}/assets/iconos/configuracion.svg`),
+      fetch(`http://localhost:${puerto}/contenido/carreras.json`),
+    ]);
+
+    expect(contenido.status).toBe(200);
+    expect(contenido.headers.get('content-type')).toContain('application/json');
+    expect(icono.status).toBe(200);
+    expect(icono.headers.get('content-type')).toContain('image/svg+xml');
+    expect(rutaAnterior.status).toBe(404);
+  });
+
+  it('encuentra las direcciones IPv4 utilizables de la red local', () => {
+    expect(
+      obtenerDireccionesLocales({
+        'Wi-Fi': [
+          { address: '192.168.1.20', family: 'IPv4', internal: false },
+          { address: 'fe80::1', family: 'IPv6', internal: false },
+        ],
+        Ethernet: [
+          { address: '10.0.0.8', family: 'IPv4', internal: false },
+          { address: '169.254.2.3', family: 'IPv4', internal: false },
+        ],
+        Loopback: [{ address: '127.0.0.1', family: 'IPv4', internal: true }],
+      }),
+    ).toEqual(['192.168.1.20', '10.0.0.8']);
   });
 });

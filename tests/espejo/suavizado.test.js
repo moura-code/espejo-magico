@@ -201,4 +201,16 @@ describe('crearHisteresis', () => {
     for (const t of [100, 200, 300, 400]) expect(h.actualizar(false, t)).toBe(true);
     expect(h.actualizar(false, 505)).toBe(false);
   });
+
+  it('reinicia por completo la presencia acumulada', () => {
+    const histeresis = crearHisteresis({ cuadrosParaEntrar: 2, msParaSalir: 400 });
+    histeresis.actualizar(true, 0);
+    histeresis.actualizar(true, 20);
+    expect(histeresis.presente()).toBe(true);
+
+    histeresis.reiniciar();
+
+    expect(histeresis.presente()).toBe(false);
+    expect(histeresis.actualizar(true, 40)).toBe(false);
+  });
 });

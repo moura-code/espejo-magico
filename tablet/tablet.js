@@ -17,6 +17,7 @@ export function crearTablet({ slot, contenido, pantalla }) {
         pantalla.ocultar();
         return;
       }
+      if (mensaje.tipo !== 'carrera') return;
 
       // El espejo reenvia su ultimo mensaje cada dos segundos para que una
       // tablet que se reconecta se ponga al dia. Sin este corte, el video
@@ -33,7 +34,7 @@ export function crearTablet({ slot, contenido, pantalla }) {
   };
 }
 
-export function crearPantallaDeVideo({ video, rotulo, nombre, detalle, cuerpo, raiz = '/contenido/' }) {
+export function crearPantallaDeVideo({ video, rotulo, nombre, detalle, cuerpo, raiz = '/' }) {
   return {
     mostrar(referente, carrera) {
       nombre.textContent = referente.nombre;

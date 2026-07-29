@@ -11,7 +11,13 @@ import WebSocket from 'ws';
 import { crearServidor } from '../../servidor/servidor.js';
 import { crearBus } from '../../espejo/bus.js';
 import { crearTablet } from '../../tablet/tablet.js';
-import { mensajeCarrera, mensajeReposo } from '../../comun/protocolo.js';
+import { crearTabletDeControles } from '../../tablet/controles.js';
+import {
+  ACCIONES,
+  mensajeCarrera,
+  mensajeControles,
+  mensajeReposo,
+} from '../../comun/protocolo.js';
 
 const CIVIL = {
   id: 'civil',
@@ -162,5 +168,38 @@ describe('cadena de mensajes espejo -> servidor -> tablets', () => {
 
     espejo.enviar(mensajeCarrera('civil', 2));
     await hasta(() => pantalla.mostrar.mock.calls.length === 1);
+  });
+
+  it('sincroniza botones y devuelve pulsaciones al espejo', async () => {
+    const puerto = await levantar();
+    let pulsar = null;
+    const pantalla = {
+      mostrar: vi.fn((_botones, alPulsar) => {
+        pulsar = alPulsar;
+      }),
+    };
+    let busControl = null;
+    const tablet = crearTabletDeControles({
+      pantalla,
+      enviar: (mensaje) => busControl.enviar(mensaje),
+    });
+    busControl = conectar(puerto, (mensaje) => tablet.recibir(mensaje));
+    const recibidosPorEspejo = [];
+    const espejo = conectar(puerto, (mensaje) => recibidosPorEspejo.push(mensaje));
+    await hasta(() => busControl.conectado() && espejo.conectado());
+
+    espejo.enviar(
+      mensajeControles('ESCENA', [
+        { id: ACCIONES.TERMINAR, etiqueta: 'TERMINAR', color: '#FFD23F' },
+      ]),
+    );
+    await hasta(() => pantalla.mostrar.mock.calls.length === 1);
+    pulsar(ACCIONES.TERMINAR);
+    await hasta(() => recibidosPorEspejo.some((mensaje) => mensaje.tipo === 'accion'));
+
+    expect(recibidosPorEspejo.at(-1)).toEqual({
+      tipo: 'accion',
+      id: ACCIONES.TERMINAR,
+    });
   });
 });

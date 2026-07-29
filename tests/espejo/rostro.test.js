@@ -3,6 +3,7 @@ import {
   mapearRostro,
   crearMedidorConfianza,
   crearFuenteSintetica,
+  generarPuntosRostroSintetico,
   elegirIndices,
   crearDetector,
 } from '../../espejo/rostro.js';
@@ -276,5 +277,45 @@ describe('crearFuenteSintetica', () => {
 
     expect(grande.centro.x).toBeCloseTo(chico.centro.x * 2);
     expect(grande.radio).toBeCloseTo(chico.radio * 2);
+  });
+});
+
+describe('generarPuntosRostroSintetico', () => {
+  const ROSTRO = {
+    centro: { x: 500, y: 400 },
+    radio: 160,
+    angulo: 0,
+  };
+
+  it('representa contorno, ojos, cejas, nariz y boca', () => {
+    const puntos = generarPuntosRostroSintetico(ROSTRO);
+
+    expect(puntos.length).toBeGreaterThan(80);
+    expect(puntos.every((punto) => Number.isFinite(punto.x) && Number.isFinite(punto.y))).toBe(true);
+  });
+
+  it('mueve todos los puntos junto con el rostro', () => {
+    const original = generarPuntosRostroSintetico(ROSTRO);
+    const movido = generarPuntosRostroSintetico({
+      ...ROSTRO,
+      centro: { x: ROSTRO.centro.x + 100, y: ROSTRO.centro.y - 50 },
+    });
+
+    expect(movido[0].x).toBeCloseTo(original[0].x + 100);
+    expect(movido[0].y).toBeCloseTo(original[0].y - 50);
+  });
+
+  it('gira la representacion con la inclinacion de la cabeza', () => {
+    const derecho = generarPuntosRostroSintetico(ROSTRO)[0];
+    const girado = generarPuntosRostroSintetico({ ...ROSTRO, angulo: Math.PI / 2 })[0];
+
+    expect(derecho.x).toBeGreaterThan(ROSTRO.centro.x);
+    expect(girado.y).toBeGreaterThan(ROSTRO.centro.y);
+    expect(girado.x).toBeLessThan(ROSTRO.centro.x);
+  });
+
+  it('no genera puntos sin un rostro valido', () => {
+    expect(generarPuntosRostroSintetico(null)).toEqual([]);
+    expect(generarPuntosRostroSintetico({ ...ROSTRO, radio: 0 })).toEqual([]);
   });
 });

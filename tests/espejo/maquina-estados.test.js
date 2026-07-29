@@ -5,7 +5,8 @@ const TIEMPOS = {
   enganche: 2000,
   sorteo: 3000,
   revelacion: 2000,
-  escena: 30000,
+  escena: 20000,
+  reflexion: 10000,
   cierre: 4000,
   enfriamiento: 3000,
   ausenciaParaCortar: 3000,
@@ -60,11 +61,12 @@ describe('crearMaquina', () => {
       ahora += 100;
     }
 
-    expect(vistos.slice(0, 6)).toEqual([
+    expect(vistos.slice(0, 7)).toEqual([
       ESTADOS.ENGANCHE,
       ESTADOS.SORTEO,
       ESTADOS.REVELACION,
       ESTADOS.ESCENA,
+      ESTADOS.REFLEXION,
       ESTADOS.CIERRE,
       ESTADOS.ATRACCION,
     ]);
@@ -113,6 +115,43 @@ describe('crearMaquina', () => {
 
     avanzar(maquina, 9600, 10000, true);
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+  });
+
+  it('abre una reflexion de diez segundos despues de la escena', () => {
+    const maquina = nueva();
+    avanzar(maquina, 0, 26900, true);
+    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+
+    avanzar(maquina, 27000, 27000, true);
+    expect(maquina.estado()).toBe(ESTADOS.REFLEXION);
+
+    avanzar(maquina, 27100, 36900, true);
+    expect(maquina.estado()).toBe(ESTADOS.REFLEXION);
+    expect(maquina.actualizar({ hayRostro: true, ahora: 37000 }).estado).toBe(ESTADOS.CIERRE);
+  });
+
+  it('registra una sola respuesta durante la reflexion', () => {
+    const maquina = nueva();
+    avanzar(maquina, 0, 27000, true);
+
+    const respuesta = maquina.responderReflexion('si-sorprendio', 28000);
+    expect(respuesta.respuestaReflexion).toBe('si-sorprendio');
+    expect(respuesta.respuestaDesde).toBe(28000);
+    expect(respuesta.eventos).toEqual([
+      {
+        tipo: 'respuesta',
+        respuesta: 'si-sorprendio',
+        carrera: 'civil',
+        sesion: 1,
+      },
+    ]);
+    expect(maquina.responderReflexion('no-podria-verme', 28100)).toBeNull();
+  });
+
+  it('ignora respuestas fuera de la reflexion', () => {
+    const maquina = nueva();
+    expect(maquina.responderReflexion('si-sorprendio', 0)).toBeNull();
+    expect(maquina.responderReflexion('desconocida', 0)).toBeNull();
   });
 
   it('el enganche aborta apenas se pierde el rostro, sin esperar la tolerancia', () => {
@@ -200,8 +239,9 @@ describe('crearMaquina', () => {
     expect(maquina.avanzar(100).estado).toBe(ESTADOS.SORTEO);
     expect(maquina.avanzar(200).estado).toBe(ESTADOS.REVELACION);
     expect(maquina.avanzar(300).estado).toBe(ESTADOS.ESCENA);
-    expect(maquina.avanzar(400).estado).toBe(ESTADOS.CIERRE);
-    expect(maquina.avanzar(500).estado).toBe(ESTADOS.ATRACCION);
+    expect(maquina.avanzar(400).estado).toBe(ESTADOS.REFLEXION);
+    expect(maquina.avanzar(500).estado).toBe(ESTADOS.CIERRE);
+    expect(maquina.avanzar(600).estado).toBe(ESTADOS.ATRACCION);
   });
 
   it('avanzar elige la carrera y emite los mismos eventos que el ciclo automatico', () => {
@@ -216,7 +256,8 @@ describe('crearMaquina', () => {
     ]);
 
     maquina.avanzar(300);
-    expect(tipos(maquina.avanzar(400).eventos, 'reposo')).toHaveLength(1);
+    maquina.avanzar(400);
+    expect(tipos(maquina.avanzar(500).eventos, 'reposo')).toHaveLength(1);
   });
 
   it('avanzar no respeta el enfriamiento: si aprieto el boton, arranca', () => {
@@ -252,7 +293,7 @@ describe('modo manual', () => {
 
   it('la escena no se termina sola, que es para lo que sirve', () => {
     const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
-    for (let i = 0; i < 4; i++) maquina.avanzar(i * 100);
+    for (let indice = 0; indice < 4; indice++) maquina.avanzar(indice * 100);
 
     avanzar(maquina, 1000, 300000, true);
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
@@ -264,6 +305,14 @@ describe('modo manual', () => {
 
     expect(maquina.alternarManual()).toBe(false);
     expect(maquina.actualizar({ hayRostro: true, ahora: 0 }).estado).toBe(ESTADOS.ENGANCHE);
+  });
+
+  it('permite fijar el modo de avance sin depender de su valor anterior', () => {
+    const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
+
+    expect(maquina.establecerManual(false)).toBe(false);
+    expect(maquina.establecerManual(false)).toBe(false);
+    expect(maquina.esManual()).toBe(false);
   });
 
   it('arranca en automatico si no se pide lo contrario', () => {
