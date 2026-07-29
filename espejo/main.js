@@ -46,8 +46,8 @@ import {
   dibujarPuntosRostro,
   dibujarManosSinteticas,
   dibujarCierreDeAusencia,
-  dibujarAntesDeReflexion,
   dibujarCierreConceptual,
+  dibujarEncuentro,
   dibujarTextos,
   dibujarInvitacion,
   dibujarMensajeSorteo,
@@ -546,22 +546,21 @@ function cuadro(ahora) {
   if (estado === ESTADOS.ATRACCION) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
+  } else if (estado === ESTADOS.ENGANCHE) {
+    dibujarEncuentro(ctx, disposicion);
   } else if (estado === ESTADOS.SORTEO) {
     dibujarMensajeSorteo(ctx, disposicion, (Math.sin(ahora / 500) + 1) / 2);
   } else if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    const mostrandoAntesDeReflexion =
-      estado === ESTADOS.ESCENA &&
-      enEstadoDesde >= CONFIG.tiempos.escena - CONFIG.interfazGestual.avisoReflexionMs;
-    if (mostrandoAntesDeReflexion) dibujarAntesDeReflexion(ctx, disposicion);
-    else dibujarTextos(ctx, carrera, disposicion, 1);
+    dibujarTextos(ctx, carrera, disposicion, 1);
   } else if (estado === ESTADOS.REFLEXION) {
-    dibujarReflexion(ctx, carrera, disposicion, salida.respuestaReflexion);
+    dibujarReflexion(ctx, carrera, disposicion);
   } else if (estado === ESTADOS.CIERRE) {
     const progresoDeCierre = enEstadoDesde / CONFIG.tiempos.cierre;
     const alfaDeCierre = Math.max(0, 1 - Math.max(0, progresoDeCierre - 0.75) / 0.25);
     dibujarCierreConceptual(
       ctx,
       disposicion,
+      progresoDeCierre,
       alfaDeCierre,
     );
   }

@@ -130,30 +130,6 @@ describe('crearMaquina', () => {
     expect(maquina.actualizar({ hayRostro: true, ahora: 37000 }).estado).toBe(ESTADOS.CIERRE);
   });
 
-  it('registra una sola respuesta durante la reflexion', () => {
-    const maquina = nueva();
-    avanzar(maquina, 0, 27000, true);
-
-    const respuesta = maquina.responderReflexion('si-sorprendio', 28000);
-    expect(respuesta.respuestaReflexion).toBe('si-sorprendio');
-    expect(respuesta.respuestaDesde).toBe(28000);
-    expect(respuesta.eventos).toEqual([
-      {
-        tipo: 'respuesta',
-        respuesta: 'si-sorprendio',
-        carrera: 'civil',
-        sesion: 1,
-      },
-    ]);
-    expect(maquina.responderReflexion('no-podria-verme', 28100)).toBeNull();
-  });
-
-  it('ignora respuestas fuera de la reflexion', () => {
-    const maquina = nueva();
-    expect(maquina.responderReflexion('si-sorprendio', 0)).toBeNull();
-    expect(maquina.responderReflexion('desconocida', 0)).toBeNull();
-  });
-
   it('el enganche aborta apenas se pierde el rostro, sin esperar la tolerancia', () => {
     const maquina = nueva();
     maquina.actualizar({ hayRostro: true, ahora: 0 });

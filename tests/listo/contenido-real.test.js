@@ -10,7 +10,10 @@ import { describe, it, expect } from 'vitest';
 import { readFile, access } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validarContenido } from '../../espejo/contenido.js';
+import {
+  DIMENSIONES_REFERENTES,
+  validarContenido,
+} from '../../espejo/contenido.js';
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const ASSETS = resolve(RAIZ, 'assets');
@@ -60,6 +63,16 @@ describe('contenido real', () => {
     const datos = await leer();
     const colores = datos.carreras.map((c) => c.color.toUpperCase());
     expect(new Set(colores).size).toBe(colores.length);
+  });
+
+  it('los testimonios cubren todas las dimensiones de los otros espejos', async () => {
+    const datos = await leer();
+    const dimensiones = new Set(
+      datos.carreras.flatMap((carrera) =>
+        carrera.referentes.map((referente) => referente.dimension),
+      ),
+    );
+    expect([...dimensiones].sort()).toEqual([...DIMENSIONES_REFERENTES].sort());
   });
 
   it('todos los PNG declarados existen en el disco', async () => {

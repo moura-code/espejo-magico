@@ -1,13 +1,29 @@
 import { describe, it, expect, vi } from 'vitest';
-import { elegirReferente, crearTablet } from '../../tablet/tablet.js';
+import {
+  elegirReferente,
+  crearPantallaDeVideo,
+  crearTablet,
+} from '../../tablet/tablet.js';
 
 const CIVIL = {
   id: 'civil',
   nombre: 'Ingeniería Civil',
   color: '#FF8A3D',
   referentes: [
-    { video: 'videos/civil/ana.mp4', nombre: 'Ana Pérez', detalle: 'Egresada' },
-    { video: 'videos/civil/sol.mp4', nombre: 'Sol Díaz', detalle: 'Docente' },
+    {
+      video: 'videos/civil/ana.mp4',
+      dimension: 'Yo diseño.',
+      nombre: 'Ana Pérez',
+      detalle: 'Egresada de Ingeniería Civil',
+      frase: 'Diseño los espacios que habitamos.',
+    },
+    {
+      video: 'videos/civil/sol.mp4',
+      dimension: 'Yo enseño.',
+      nombre: 'Sol Díaz',
+      detalle: 'Docente de Ingeniería Civil',
+      frase: 'Enseño a construir infraestructura para la vida cotidiana.',
+    },
   ],
 };
 
@@ -135,5 +151,43 @@ describe('crearTablet', () => {
     });
 
     expect(a.mostrar.mock.calls[0][0].nombre).not.toBe(b.mostrar.mock.calls[0][0].nombre);
+  });
+});
+
+describe('crearPantallaDeVideo', () => {
+  it('muestra dimension, nombre, vinculo y frase de la referente', () => {
+    const video = {
+      src: '',
+      currentTime: 10,
+      play: vi.fn(() => Promise.resolve()),
+      pause: vi.fn(),
+    };
+    const rotulo = { style: {} };
+    const dimension = { textContent: '', style: {} };
+    const nombre = { textContent: '' };
+    const detalle = { textContent: '' };
+    const frase = { textContent: '' };
+    const cuerpo = { classList: { add: vi.fn(), remove: vi.fn() } };
+    const pantalla = crearPantallaDeVideo({
+      video,
+      rotulo,
+      dimension,
+      nombre,
+      detalle,
+      frase,
+      cuerpo,
+    });
+
+    pantalla.mostrar(CIVIL.referentes[0], CIVIL);
+
+    expect(dimension.textContent).toBe('Yo diseño.');
+    expect(nombre.textContent).toBe('Ana Pérez');
+    expect(detalle.textContent).toBe('Egresada de Ingeniería Civil');
+    expect(frase.textContent).toBe('Diseño los espacios que habitamos.');
+    expect(dimension.style.color).toBe(CIVIL.color);
+    expect(rotulo.style.borderBottomColor).toBe(CIVIL.color);
+    expect(video.src).toBe('/videos/civil/ana.mp4');
+    expect(video.currentTime).toBe(0);
+    expect(cuerpo.classList.add).toHaveBeenCalledWith('encendida');
   });
 });

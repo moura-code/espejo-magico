@@ -34,12 +34,23 @@ export function crearTablet({ slot, contenido, pantalla }) {
   };
 }
 
-export function crearPantallaDeVideo({ video, rotulo, nombre, detalle, cuerpo, raiz = '/' }) {
+export function crearPantallaDeVideo({
+  video,
+  rotulo,
+  dimension,
+  nombre,
+  detalle,
+  frase,
+  cuerpo,
+  raiz = '/',
+}) {
   return {
     mostrar(referente, carrera) {
+      dimension.textContent = referente.dimension;
       nombre.textContent = referente.nombre;
-      detalle.textContent = referente.detalle ?? '';
-      nombre.style.color = carrera.color;
+      detalle.textContent = referente.detalle;
+      frase.textContent = referente.frase;
+      dimension.style.color = carrera.color;
       rotulo.style.borderBottomColor = carrera.color;
 
       const fuente = raiz + referente.video;

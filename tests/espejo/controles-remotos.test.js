@@ -87,7 +87,7 @@ describe('controles remotos', () => {
 
     expect(
       ejecutarAccionRemota({
-        id: ACCIONES.SI_SORPRENDIO,
+        id: 'si-sorprendio',
         estado: ESTADOS.REFLEXION,
         maquina,
         ahora: 800,

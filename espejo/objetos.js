@@ -12,19 +12,17 @@ const MS_DE_DESVANECIDO = 500;
 /**
  * Que objetos caen en cada estado.
  *
- * En atraccion caen los de todas las carreras, como anzuelo. Desde la revelacion
- * caen SOLO los de la carrera sorteada, y en el medio no cae nada.
+ * En atraccion y sorteo caen los de todas las carreras. Desde la revelacion
+ * caen SOLO los de la carrera sorteada.
  *
- * El "en el medio no cae nada" es deliberado y costo una prueba con publico: los
- * objetos de las seis carreras que caian durante el enganche y el sorteo seguian
- * en pantalla cuando se abria la niebla, asi que la revelacion mostraba una pila
- * mezclada en vez de la carrera que le habia tocado al visitante.
+ * Al entrar en revelacion, main vacia el pool mientras la niebla sigue cerrada.
+ * Asi el sorteo puede mostrar futuros diversos sin contaminar la escena elegida.
  */
 export function fuenteDeObjetos(estado, carrera, carreras) {
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
     return carrera ? carrera.objetos : null;
   }
-  if (estado === ESTADOS.ATRACCION) {
+  if (estado === ESTADOS.ATRACCION || estado === ESTADOS.SORTEO) {
     return carreras.flatMap((c) => c.objetos);
   }
   return null;

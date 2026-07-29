@@ -17,7 +17,7 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
 5. **Encender la tablet de controles** ubicada frente al espejo y abrir:
    `http://IP-DE-LA-PC:8080/tablet/controles.html`.
 6. **Hacer una prueba completa** antes de que entre el público: acercarse, esperar el
-   sorteo, responder la reflexión y ver que las tablets arranquen y se apaguen.
+   sorteo, completar el recorrido y ver que las tablets arranquen y se apaguen.
 
 La ventana negra del servidor muestra la dirección de **Red local** que deben usar
 las tablets. Como alternativa, abrir el menú de inicio, escribir `cmd` y ejecutar
@@ -35,11 +35,15 @@ La tuerca de la esquina superior derecha abre la configuración. Desde ahí se
 puede elegir la cámara y activar el modo demo, el avance manual o la malla de
 diagnóstico sin usar el teclado.
 
-Después de veinte segundos de escena aparece la reflexión. No se muestran
-botones de respuesta ni en el espejo ni en la tablet de controles. En modo
-automático la experiencia continúa al terminar el tiempo; en modo manual se usa
-`AVANZAR`. Cuando no hay nadie, el espejo hace una animación periódica de cierre
-y apertura en forma de caracol; es el comportamiento esperado.
+La espera pregunta `¿Cómo es la cara de la ingeniería?`. Al detectar una cara,
+el espejo aclara que no intenta adivinar a la persona y muestra una posibilidad.
+Después de la escena explica que la carrera fue sorteada; no se muestran botones
+de respuesta. En modo automático la experiencia continúa al terminar el tiempo;
+en modo manual se usa `AVANZAR`. El cierre termina con `La ingeniería tiene
+muchas caras. Una puede ser la tuya.`
+
+Cuando no hay nadie, el espejo hace una animación periódica de cierre y apertura
+en forma de caracol; es el comportamiento esperado.
 
 La tablet frontal ofrece las mismas acciones con botones táctiles grandes. Su
 contenido cambia automáticamente junto con el espejo: no hay que recargarla
@@ -57,7 +61,7 @@ botón.
 | `1` a `6` | Fuerza una carrera y salta directo a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `C` | Cambia a la siguiente cámara disponible |
-| `D` | Demo automática: prueba el ciclo completo, todas las carreras y los botones |
+| `D` | Demo automática: prueba el ciclo completo y todas las carreras |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
 | `Ctrl` + `R` | Recarga todo |
@@ -77,7 +81,7 @@ avance anterior.
 
 ## Si algo anda mal
 
-**La pantalla dice "¿Podés verte haciendo ingeniería?" y no reacciona a nadie.**
+**La pantalla dice "¿Cómo es la cara de la ingeniería?" y no reacciona a nadie.**
 Apretar `P` y mirar la línea `camara`. Si dice algo distinto de `ok`, revisar el
 cable de la cámara. El sistema reintenta solo cada cinco segundos: al reconectarla
 se recupera sin tocar nada.
@@ -129,7 +133,7 @@ matices.
 | Dibujos de cada carrera | `assets/<carrera>/` |
 | Videos de las referentes | `assets/videos/<carrera>/` |
 | Iconos de la interfaz | `assets/iconos/` |
-| Nombres, colores, frases y reflexión | `assets/carreras.json` |
+| Nombres, colores, finalidades y testimonios | `assets/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |
 
 Para corregir el nombre de una referente **no hay que volver a renderizar el

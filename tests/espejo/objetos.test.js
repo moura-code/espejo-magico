@@ -141,12 +141,12 @@ describe('fuenteDeObjetos', () => {
     expect(fuenteDeObjetos(ESTADOS.ESCENA, CIVIL, TODAS)).toEqual(CIVIL.objetos);
   });
 
-  // El motivo del cambio: los objetos de las seis carreras que caian durante el
-  // enganche y el sorteo seguian en pantalla al abrirse la niebla, y la
-  // revelacion mostraba una pila mezclada en vez de la carrera sorteada.
-  it('no aparece nada durante el enganche ni el sorteo', () => {
+  it('durante el sorteo circulan objetos de todas las carreras', () => {
+    expect(fuenteDeObjetos(ESTADOS.SORTEO, CIVIL, TODAS)).toHaveLength(2);
+  });
+
+  it('no aparece nada durante el enganche', () => {
     expect(fuenteDeObjetos(ESTADOS.ENGANCHE, null, TODAS)).toBeNull();
-    expect(fuenteDeObjetos(ESTADOS.SORTEO, CIVIL, TODAS)).toBeNull();
   });
 
   it('no aparece nada durante el cierre', () => {

@@ -15,14 +15,14 @@ de esa carrera que caen y rebotan contra su cabeza, con un accesorio (casco, gaf
 antiparras) acoplado al rostro.
 
 El sorteo es explícitamente azaroso: el sistema no intenta deducir identidad, género,
-aptitudes ni vocación a partir de la imagen. Después de la escena, esa asignación abre una
-reflexión sobre por qué algunas combinaciones entre personas y profesiones pueden resultar
-sorprendentes. El concepto rector es: **el espejo no adivina quién sos; revela qué
-esperábamos ver.**
+aptitudes ni vocación a partir de la imagen. La experiencia presenta una posibilidad y
+conecta cada carrera con su dimensión humana, creativa y social. El concepto rector es:
+**la ingeniería tiene muchas caras; una puede ser la tuya.**
 
-En simultáneo, cuatro o cinco tablets enmarcadas alrededor reproducen animaciones breves
-de mujeres vinculadas a esa carrera —docentes, estudiantes, egresadas, referentes— con su
-nombre y una descripción corta. Cuando la sesión termina, las tablets vuelven a negro.
+En simultáneo, cuatro o cinco tablets enmarcadas alrededor funcionan como otros espejos:
+reproducen animaciones breves de mujeres vinculadas a esa carrera —docentes, estudiantes,
+egresadas, investigadoras y profesionales— con su nombre, vínculo y una frase sobre lo que
+hacen. Cuando la sesión termina, las tablets vuelven a negro.
 
 Las animaciones ya están producidas por el equipo. El desarrollo cubre el espejo, el
 sorteo, la composición gráfica por carrera y la sincronización con las tablets.
@@ -80,11 +80,64 @@ de arranque adecuados cubre casi lo mismo sin costo. Queda como mejora opcional 
 - Detección de cuerpo completo, manos o gestos.
 - Segmentación o recorte del participante.
 - Producción de las animaciones de las referentes (ya resuelta por el equipo).
-- Producción de los PNG de objetos y accesorios (ver sección 11: es un encargo a diseño).
+- Producción de los PNG de objetos y accesorios (ver sección 12: es un encargo a diseño).
 
 ---
 
-## 4. Arquitectura
+## 4. Narrativa de la experiencia
+
+### 4.1. Atracción
+
+El reflejo del espacio aparece atenuado y ligeramente desenfocado. Sobre la imagen se
+muestra: **“¿Cómo es la cara de la ingeniería?”** La pregunta activa una representación
+mental antes de presentar una respuesta.
+
+### 4.2. Encuentro
+
+Cuando el sistema detecta una persona, el reflejo se vuelve nítido y aparece:
+**“No vamos a adivinar quién sos. Vamos a mostrarte una posibilidad.”** El texto evita
+que la detección facial se interprete como un análisis de personalidad, género o aptitudes.
+
+### 4.3. Sorteo
+
+La pantalla se cubre de niebla, circulan objetos de las distintas carreras y aparece:
+**“Entre muchos futuros posibles…”** La carrera se selecciona mediante una bolsa aleatoria
+equilibrada. El azar garantiza que ninguna característica visible determine el resultado.
+
+### 4.4. Revelación
+
+Al despejarse la niebla aparece: **“Hoy podés verte en Ingeniería en Computación.”**
+La formulación presenta una posibilidad sin convertir el juego en un diagnóstico vocacional.
+
+### 4.5. Interacción
+
+Los objetos y símbolos de la carrera caen, rebotan e interactúan con la cabeza y las manos.
+Además de herramientas, la pantalla muestra la finalidad social de cada disciplina:
+
+- **Ingeniería en Computación:** crear tecnologías para comunicar, aprender y resolver problemas.
+- **Ingeniería Mecánica:** diseñar máquinas y sistemas que transforman la vida cotidiana.
+- **Ingeniería Eléctrica:** hacer posibles la energía, las comunicaciones y la automatización.
+- **Ingeniería Físico-Matemática:** modelar problemas complejos para comprenderlos y tomar decisiones.
+- **Ingeniería Civil:** construir las infraestructuras y los espacios que habitamos.
+- **Ingeniería Química:** transformar la materia para producir, innovar y cuidar el ambiente.
+
+### 4.6. Los otros espejos
+
+Las tablets muestran personas reales que ya ocupan el lugar que el visitante acaba de
+imaginar. Cada video incluye una dimensión —**“Yo estudio.”, “Yo investigo.”,
+“Yo enseño.”, “Yo diseño.” o “Yo trabajo.”**—, el nombre, el vínculo con la carrera y una
+frase breve sobre lo que esa persona hace. La selección debe combinar estudiantes,
+docentes, egresadas, investigadoras y profesionales, no sólo figuras extraordinarias.
+
+### 4.7. Cierre
+
+Los objetos desaparecen y el reflejo vuelve a quedar limpio. Primero aparece:
+**“No era una predicción. Era una posibilidad.”** Luego:
+**“La ingeniería tiene muchas caras. Una puede ser la tuya.”**
+
+---
+
+## 5. Arquitectura
 
 Una sola PC hace todo. Nada sale a internet.
 
@@ -118,7 +171,7 @@ cámara ──▶ rostro.js ──▶ {rostro} ──┬──▶ maquina-estado
 
 ---
 
-## 5. Estructura del código
+## 6. Estructura del código
 
 La regla de corte: cada archivo se tiene que poder entender y probar solo.
 
@@ -168,17 +221,17 @@ que es la única forma de que varias personas avancen en paralelo con una sola w
 
 ---
 
-## 6. Ciclo de la experiencia
+## 7. Ciclo de la experiencia
 
 | Estado | Duración | Qué ocurre |
 |---|---|---|
-| `ATRACCION` | indefinida | Nadie sentado. El video de cámara se muestra atenuado y desenfocado, con la invitación encima y objetos de todas las carreras flotando suave. La cámara ya está detectando. |
-| `ENGANCHE` | ~2 s | Hay una cara estable. El espejo despierta: el video pasa a nítido y a brillo pleno. |
-| `SORTEO` | ~3 s | La pantalla se cubre de niebla y aclara que está buscando una posibilidad. |
-| `REVELACION` | ~2 s | La niebla se abre desde la posición del rostro. Aparece “Hoy te ves en…”, el accesorio se acopla y caen los primeros objetos. **Se envía el mensaje a las tablets.** |
-| `ESCENA` | ~20 s | Los objetos caen, rebotan contra la cabeza y se apilan abajo. Al final invita a mirar la imagen antes de reflexionar. |
-| `REFLEXION` | ~10 s | Los objetos se detienen, el accesorio desaparece y se explicita el azar. No se muestran botones de respuesta en el espejo ni en la tablet. |
-| `CIERRE` | ~4 s | “La ingeniería no tiene un rostro único. Los estereotipos sí.” **Se envía `reposo` a las tablets.** |
+| `ATRACCION` | indefinida | El reflejo aparece atenuado y desenfocado con “¿Cómo es la cara de la ingeniería?”. Objetos de todas las carreras flotan suavemente. |
+| `ENGANCHE` | ~2 s | El reflejo se vuelve nítido y aclara: “No vamos a adivinar quién sos. Vamos a mostrarte una posibilidad.” |
+| `SORTEO` | ~3 s | La niebla cubre la pantalla, circulan objetos diversos y aparece “Entre muchos futuros posibles…”. |
+| `REVELACION` | ~2 s | La niebla se abre. Aparece “Hoy podés verte en…”, el accesorio se acopla y se envía la carrera a las tablets. |
+| `ESCENA` | ~20 s | Los objetos interactúan con cabeza y manos; el texto explica la finalidad social de la disciplina. |
+| `REFLEXION` | ~10 s | Los objetos se detienen y se explicita que ninguna característica visible determinó el sorteo. |
+| `CIERRE` | ~4 s | “No era una predicción. Era una posibilidad.” Luego: “La ingeniería tiene muchas caras. Una puede ser la tuya.” Se envía `reposo` a las tablets. |
 
 Después vuelve a `ATRACCION` con unos 3 segundos de enfriamiento, para que la misma persona
 no dispare otra sesión sin querer al moverse.
@@ -204,7 +257,7 @@ mujeres toda la tarde.
 
 ---
 
-## 7. Detección de rostro
+## 8. Detección de rostro
 
 Librería: **MediaPipe Tasks Vision, Face Landmarker**, con los archivos WASM y el modelo
 copiados dentro de `vendor/mediapipe/`. Nunca desde CDN: el día del evento no hay internet.
@@ -259,7 +312,7 @@ cualquiera.
 
 ---
 
-## 8. Anclaje del accesorio
+## 9. Anclaje del accesorio
 
 Cada accesorio declara dónde están los ojos **dentro de su propio dibujo**, en coordenadas
 normalizadas de la imagen:
@@ -284,7 +337,7 @@ línea de los ojos, como un casco que va sobre la frente.
 
 ---
 
-## 9. Escena y física
+## 10. Escena y física
 
 Física escrita a mano, sin motor externo: gravedad, colisión contra el círculo de la cabeza,
 piso, paredes laterales y amortiguación. Alrededor de cien líneas.
@@ -311,7 +364,7 @@ apaisado, se ajustan proporciones en `config.js`, no se reescribe la escena.
 
 ---
 
-## 10. El contenido como datos
+## 11. El contenido como datos
 
 Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:
 
@@ -322,7 +375,7 @@ Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:
       "id": "computacion",
       "nombre": "Ingeniería en Computación",
       "color": "#00E5A0",
-      "frase": "Programás lo que todavía no existe",
+      "finalidad": "Crear tecnologías para comunicar, aprender y resolver problemas.",
       "accesorio": {
         "img": "assets/computacion/gafas-vr.png",
         "anclaOjoIzq": [0.28, 0.52],
@@ -334,8 +387,13 @@ Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:
         { "img": "assets/computacion/robot.png",  "escala": 0.22, "peso": 0.8 }
       ],
       "referentes": [
-        { "video": "videos/computacion/ana.mp4",   "nombre": "Ana Rodríguez",  "detalle": "Egresada de Ingeniería en Computación" },
-        { "video": "videos/computacion/lucia.mp4", "nombre": "Lucía Fernández","detalle": "Docente e investigadora" }
+        {
+          "video": "assets/videos/computacion/ana.mp4",
+          "dimension": "Yo trabajo.",
+          "nombre": "Ana Rodríguez",
+          "detalle": "Egresada de Ingeniería en Computación",
+          "frase": "Creo tecnologías para comunicar, aprender y resolver problemas."
+        }
       ]
     }
   ]
@@ -351,7 +409,7 @@ mitad de una sesión con público delante.
 
 ---
 
-## 11. Encargo de diseño
+## 12. Encargo de diseño
 
 Es el camino crítico real del proyecto, más que el código.
 
@@ -360,7 +418,7 @@ Es el camino crítico real del proyecto, más que el código.
 - 6 a 10 objetos característicos. PNG con transparencia, lado mayor 512 px.
 - 1 accesorio para la cabeza. PNG con transparencia, con los dos puntos de ojos indicados.
 - 1 color de identidad.
-- 1 frase corta.
+- 1 finalidad social breve.
 
 **Transversal:** mismo estilo gráfico entre carreras, pensado para leerse a dos o tres metros
 de distancia y sobre un fondo de video real que puede ser claro u oscuro. Contornos definidos
@@ -396,7 +454,7 @@ Punto de partida para diseño, no una lista cerrada. Se necesitan entre 6 y 10 p
 
 ---
 
-## 12. Sincronización con tablets
+## 13. Sincronización con tablets
 
 Todo el protocolo son dos mensajes, en JSON sobre WebSocket:
 
@@ -418,8 +476,10 @@ y no reinicia el video que ya está reproduciendo.
 - Video `muted` + `playsinline` + `loop`. Al ser mudos, el autoplay está permitido en todos
   los navegadores, iPad incluido. Esa sola decisión elimina el problema más molesto de este
   tipo de instalación.
-- Nombre y descripción los dibuja el sistema desde el JSON, no vienen quemados en el video.
-  Así se corrige un nombre mal escrito sin volver a renderizar la animación.
+- Dimensión, nombre, vínculo y frase los dibuja el sistema desde el JSON, no vienen quemados
+  en el video. Así se corrige un texto sin volver a renderizar la animación.
+- El conjunto de referentes combina estudiantes, docentes, egresadas, investigadoras y
+  profesionales para mostrar una presencia cotidiana, no sólo figuras extraordinarias.
 - **Precarga:** al abrir la página, la tablet precarga todos los videos que le tocan. Sin
   esto, la primera reproducción de cada carrera arranca con un parpadeo.
 - **Reconexión automática** cada 2 segundos si se cae la conexión. Nadie tiene que ir a tocar
@@ -437,7 +497,7 @@ también sirve porque los videos son mudos.
 
 ---
 
-## 13. Robustez operativa
+## 14. Robustez operativa
 
 Esta es la parte que decide si la instalación funciona, y la que normalmente no se escribe.
 
@@ -459,7 +519,7 @@ Esta es la parte que decide si la instalación funciona, y la que normalmente no
 
 ---
 
-## 14. Estrategia de pruebas
+## 15. Estrategia de pruebas
 
 Automatizado:
 
@@ -484,7 +544,7 @@ No automatizable, y más importante que todo lo anterior:
 
 ---
 
-## 15. Privacidad
+## 16. Privacidad
 
 La imagen de la cámara nunca sale de la PC. No se graba, no se guarda, no se transmite, no
 se pide ningún dato al visitante. El procesamiento de rostro ocurre íntegramente en el
@@ -495,7 +555,7 @@ en vez de restar.
 
 ---
 
-## 16. Riesgos
+## 17. Riesgos
 
 | # | Riesgo | Mitigación |
 |---|---|---|
@@ -506,7 +566,7 @@ en vez de restar.
 
 ---
 
-## 17. Plan de recorte
+## 18. Plan de recorte
 
 Si el tiempo aprieta, se recorta en este orden:
 
@@ -520,7 +580,7 @@ de la carrera apareciendo alrededor del participante.
 
 ---
 
-## 18. Puntos abiertos
+## 19. Puntos abiertos
 
 - **Qué tablets se usan y cuántas.** Postergado a propósito. No bloquea el desarrollo: el
   único requisito es navegador moderno con pantalla completa.

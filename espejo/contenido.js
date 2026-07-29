@@ -11,6 +11,16 @@
 const esPunto = (p) =>
   Array.isArray(p) && p.length === 2 && p.every((v) => typeof v === 'number' && v >= 0 && v <= 1);
 
+export const DIMENSIONES_REFERENTES = Object.freeze([
+  'Yo estudio.',
+  'Yo investigo.',
+  'Yo enseño.',
+  'Yo diseño.',
+  'Yo trabajo.',
+]);
+
+const dimensionesValidas = new Set(DIMENSIONES_REFERENTES);
+
 /**
  * `figurasValidas` y `efectosValidos` son opcionales. Cuando se pasan, se
  * verifica que cada nombre declarado exista de verdad: asi un error de tipeo
@@ -32,9 +42,7 @@ export function validarContenido(datos, { figurasValidas = null, efectosValidos 
     else vistos.add(carrera.id);
 
     if (!carrera.nombre) errores.push(`${donde}: falta "nombre"`);
-    if (!carrera.frase) errores.push(`${donde}: falta "frase"`);
-    if (!carrera.preguntaReflexiva) errores.push(`${donde}: falta "preguntaReflexiva"`);
-    if (!carrera.mensajeReflexivo) errores.push(`${donde}: falta "mensajeReflexivo"`);
+    if (!carrera.finalidad) errores.push(`${donde}: falta "finalidad"`);
     if (!/^#[0-9a-fA-F]{6}$/.test(carrera.color ?? '')) {
       errores.push(`${donde}: "color" tiene que ser #rrggbb`);
     }
@@ -78,7 +86,12 @@ export function validarContenido(datos, { figurasValidas = null, efectosValidos 
     } else {
       carrera.referentes.forEach((referente, j) => {
         if (!referente.video) errores.push(`${donde}: referentes[${j}] sin "video"`);
+        if (!dimensionesValidas.has(referente.dimension)) {
+          errores.push(`${donde}: referentes[${j}] tiene una "dimension" invalida`);
+        }
         if (!referente.nombre) errores.push(`${donde}: referentes[${j}] sin "nombre"`);
+        if (!referente.detalle) errores.push(`${donde}: referentes[${j}] sin "detalle"`);
+        if (!referente.frase) errores.push(`${donde}: referentes[${j}] sin "frase"`);
       });
     }
   });

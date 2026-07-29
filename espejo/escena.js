@@ -3,11 +3,7 @@
 
 import { calcularAnclaje } from './anclaje.js';
 import { dibujarFigura } from './figuras.js';
-import {
-  preguntaDeReflexion,
-  TEXTOS_EXPERIENCIA,
-  tituloDeRevelacion,
-} from './narrativa.js';
+import { TEXTOS_EXPERIENCIA, tituloDeRevelacion } from './narrativa.js';
 
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
@@ -323,12 +319,17 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.font = `700 ${tamanoNombre}px system-ui, sans-serif`;
   ctx.fillText(titulo, ancho / 2, texto.nombreY);
 
-  if (carrera.frase) {
+  if (carrera.finalidad) {
     const medirFrase = medirCon(400, 'system-ui, sans-serif');
-    const tamanoFrase = tamanoQueEntra(carrera.frase, texto.tamanoFrase, disponible, medirFrase);
+    const tamanoFrase = tamanoQueEntra(
+      carrera.finalidad,
+      texto.tamanoFrase,
+      disponible,
+      medirFrase,
+    );
     ctx.fillStyle = '#ffffff';
     ctx.font = `400 ${tamanoFrase}px system-ui, sans-serif`;
-    ctx.fillText(carrera.frase, ancho / 2, texto.fraseY);
+    ctx.fillText(carrera.finalidad, ancho / 2, texto.fraseY);
   }
   ctx.restore();
 }
@@ -405,10 +406,28 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
     anchoMaximo: disponible,
     peso: 700,
   });
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.esperaBajada, {
+  ctx.restore();
+}
+
+export function dibujarEncuentro(ctx, disposicion) {
+  const { ancho, alto, texto } = disposicion;
+  const disponible = ancho * MARGEN_TEXTO;
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.85)';
+  ctx.shadowBlur = 24;
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.encuentroTitulo, {
     x: ancho / 2,
-    y: alto * 0.5 + texto.tamanoNombre,
-    tamano: texto.tamanoFrase,
+    y: alto * 0.46,
+    tamano: texto.tamanoNombre * 0.8,
+    anchoMaximo: disponible,
+    peso: 700,
+  });
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.encuentroBajada, {
+    x: ancho / 2,
+    y: alto * 0.46 + texto.tamanoNombre,
+    tamano: texto.tamanoFrase * 1.08,
     anchoMaximo: disponible,
   });
   ctx.restore();
@@ -432,32 +451,7 @@ export function dibujarMensajeSorteo(ctx, disposicion, pulso) {
   ctx.restore();
 }
 
-export function dibujarAntesDeReflexion(ctx, disposicion) {
-  const { ancho, alto, texto } = disposicion;
-
-  ctx.save();
-  ctx.fillStyle = 'rgba(3,7,10,0.48)';
-  ctx.fillRect(0, 0, ancho, alto);
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.9)';
-  ctx.shadowBlur = 22;
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.antesDeReflexionTitulo, {
-    x: ancho / 2,
-    y: alto * 0.46,
-    tamano: texto.tamanoNombre,
-    anchoMaximo: ancho * MARGEN_TEXTO,
-    peso: 700,
-  });
-  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.antesDeReflexionPregunta, {
-    x: ancho / 2,
-    y: alto * 0.46 + texto.tamanoNombre * 1.2,
-    tamano: texto.tamanoFrase * 1.15,
-    anchoMaximo: ancho * MARGEN_TEXTO,
-  });
-  ctx.restore();
-}
-
-export function dibujarReflexion(ctx, carrera, disposicion, respuesta) {
+export function dibujarReflexion(ctx, carrera, disposicion) {
   if (!carrera) return;
   const { ancho, alto, texto } = disposicion;
   const centroX = ancho / 2;
@@ -471,76 +465,68 @@ export function dibujarReflexion(ctx, carrera, disposicion, respuesta) {
   ctx.shadowColor = 'rgba(0,0,0,0.9)';
   ctx.shadowBlur = 20;
 
-  if (!respuesta) {
-    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.azarTitulo, {
-      x: centroX,
-      y: alto * 0.24,
-      tamano: texto.tamanoNombre,
-      anchoMaximo: disponible,
-      peso: 700,
-      color: carrera.color,
-    });
-    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.azarDetalle, {
-      x: centroX,
-      y: alto * 0.24 + texto.tamanoNombre * 1.15,
-      tamano: texto.tamanoFrase,
-      anchoMaximo: disponible,
-    });
-    dibujarParrafo(ctx, preguntaDeReflexion(carrera), {
-      x: centroX,
-      y: alto * 0.46,
-      tamano: texto.tamanoNombre * 0.74,
-      anchoMaximo: disponible,
-      interlineado: 1.15,
-      color: '#ffffff',
-      peso: 700,
-    });
-  } else {
-    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.devolucionTitulo, {
-      x: centroX,
-      y: alto * 0.28,
-      tamano: texto.tamanoNombre,
-      anchoMaximo: disponible,
-      peso: 700,
-      color: carrera.color,
-    });
-    dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.devolucionBajada, {
-      x: centroX,
-      y: alto * 0.28 + texto.tamanoNombre * 1.15,
-      tamano: texto.tamanoNombre * 0.72,
-      anchoMaximo: disponible,
-      peso: 700,
-    });
-    dibujarParrafo(ctx, carrera.mensajeReflexivo, {
-      x: centroX,
-      y: alto * 0.48,
-      tamano: texto.tamanoFrase,
-      anchoMaximo: disponible,
-      color: carrera.color,
-      peso: 700,
-    });
-    dibujarParrafo(ctx, TEXTOS_EXPERIENCIA.devolucion, {
-      x: centroX,
-      y: alto * 0.58,
-      tamano: texto.tamanoFrase * 0.88,
-      anchoMaximo: disponible,
-      interlineado: 1.3,
-    });
-  }
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.azarTitulo, {
+    x: centroX,
+    y: alto * 0.43,
+    tamano: texto.tamanoNombre,
+    anchoMaximo: disponible,
+    peso: 700,
+    color: carrera.color,
+  });
+  dibujarParrafo(ctx, TEXTOS_EXPERIENCIA.azarDetalle, {
+    x: centroX,
+    y: alto * 0.43 + texto.tamanoNombre * 1.2,
+    tamano: texto.tamanoFrase * 1.08,
+    anchoMaximo: disponible,
+    interlineado: 1.25,
+  });
   ctx.restore();
 }
 
-export function dibujarCierreConceptual(ctx, disposicion, alfa = 1) {
+const limitarUnidad = (valor) => Math.max(0, Math.min(1, valor));
+const suavizarUnidad = (valor) => {
+  const limitado = limitarUnidad(valor);
+  return limitado * limitado * (3 - 2 * limitado);
+};
+
+export function calcularFasesDeCierre(progreso) {
+  return {
+    prediccion: 1 - suavizarUnidad((progreso - 0.32) / 0.2),
+    concepto: suavizarUnidad((progreso - 0.42) / 0.2),
+  };
+}
+
+export function dibujarCierreConceptual(ctx, disposicion, progreso, alfa = 1) {
   if (alfa <= 0) return;
   const { ancho, alto, texto } = disposicion;
+  const fases = calcularFasesDeCierre(progreso);
 
   ctx.save();
   ctx.globalAlpha = alfa;
-  ctx.fillStyle = 'rgba(3,7,10,0.82)';
+  ctx.fillStyle = 'rgba(3,7,10,0.38)';
   ctx.fillRect(0, 0, ancho, alto);
   ctx.textAlign = 'center';
   ctx.shadowColor = 'rgba(0,0,0,0.9)';
   ctx.shadowBlur = 22;
+
+  ctx.globalAlpha = alfa * fases.prediccion;
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.cierrePrediccionTitulo, {
+    x: ancho / 2,
+    y: alto * 0.47,
+    tamano: texto.tamanoNombre,
+    anchoMaximo: ancho * MARGEN_TEXTO,
+    peso: 700,
+  });
+  dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.cierrePrediccionBajada, {
+    x: ancho / 2,
+    y: alto * 0.47 + texto.tamanoNombre * 1.2,
+    tamano: texto.tamanoNombre * 0.82,
+    anchoMaximo: ancho * MARGEN_TEXTO,
+    peso: 700,
+    color: '#62D8FF',
+  });
+
+  ctx.globalAlpha = alfa * fases.concepto;
   dibujarLineaAjustada(ctx, TEXTOS_EXPERIENCIA.cierreTitulo, {
     x: ancho / 2,
     y: alto * 0.47,
@@ -554,7 +540,7 @@ export function dibujarCierreConceptual(ctx, disposicion, alfa = 1) {
     tamano: texto.tamanoNombre * 0.82,
     anchoMaximo: ancho * MARGEN_TEXTO,
     peso: 700,
-    color: '#FF8AB3',
+    color: '#7CFFB2',
   });
   ctx.restore();
 }

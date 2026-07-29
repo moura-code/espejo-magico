@@ -5,9 +5,7 @@
       "id": "mecanica",
       "nombre": "Ingeniería Mecánica",
       "color": "#4FC3F7",
-      "frase": "Diseño y análisis de máquinas y sistemas térmicos",
-      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Mecánica?",
-      "mensajeReflexivo": "Diseñar máquinas y sistemas no tiene género.",
+      "finalidad": "Diseñar máquinas y sistemas que transforman la vida cotidiana.",
       "efecto": "engranajes",
       "accesorio": {
         "img": "assets/mecanica/antiparras.png",
@@ -24,16 +22,20 @@
         { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 }
       ],
       "referentes": [
-        { "video": "assets/videos/mecanica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Mecánica" }
+        {
+          "video": "assets/videos/mecanica/prueba.mp4",
+          "dimension": "Yo diseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Ingeniería Mecánica",
+          "frase": "Diseño sistemas que transforman la vida cotidiana."
+        }
       ]
     },
     {
       "id": "electrica",
       "nombre": "Ingeniería Eléctrica",
       "color": "#FFD23F",
-      "frase": "Generación, transmisión y control de la energía",
-      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Eléctrica?",
-      "mensajeReflexivo": "Transformar la energía no tiene género.",
+      "finalidad": "Hacer posibles la energía, las comunicaciones y la automatización.",
       "efecto": "chispas",
       "accesorio": {
         "img": "assets/electrica/casco-visor.png",
@@ -50,16 +52,20 @@
         { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 }
       ],
       "referentes": [
-        { "video": "assets/videos/electrica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Eléctrica" }
+        {
+          "video": "assets/videos/electrica/prueba.mp4",
+          "dimension": "Yo enseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Docente de Ingeniería Eléctrica",
+          "frase": "Acompaño a nuevas generaciones a transformar la energía y las comunicaciones."
+        }
       ]
     },
     {
       "id": "computacion",
       "nombre": "Ingeniería en Computación",
       "color": "#00E5A0",
-      "frase": "Diseño de sistemas de cómputo, del hardware al software",
-      "preguntaReflexiva": "¿Te sorprendió verte en Computación?",
-      "mensajeReflexivo": "La capacidad para crear tecnología no tiene género.",
+      "finalidad": "Crear tecnologías para comunicar, aprender y resolver problemas.",
       "efecto": "codigo",
       "accesorio": {
         "img": "assets/computacion/gafas-vr.png",
@@ -76,16 +82,20 @@
         { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
       ],
       "referentes": [
-        { "video": "assets/videos/computacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería en Computación" }
+        {
+          "video": "assets/videos/computacion/prueba.mp4",
+          "dimension": "Yo trabajo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Egresada de Ingeniería en Computación",
+          "frase": "Creo tecnologías para comunicar, aprender y resolver problemas."
+        }
       ]
     },
     {
       "id": "fisico-matematico",
       "nombre": "Ingeniería Físico-Matemática",
       "color": "#A78BFA",
-      "frase": "Modelado matemático y físico de sistemas complejos",
-      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Físico-Matemática?",
-      "mensajeReflexivo": "Investigar y modelar el mundo no tiene género.",
+      "finalidad": "Modelar problemas complejos para comprenderlos y tomar decisiones.",
       "efecto": "formulas",
       "accesorio": {
         "img": "assets/fisico-matematico/orbitas.png",
@@ -102,16 +112,20 @@
         { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 }
       ],
       "referentes": [
-        { "video": "assets/videos/fisico-matematico/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Investigadora" }
+        {
+          "video": "assets/videos/fisico-matematico/prueba.mp4",
+          "dimension": "Yo investigo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Investigadora en Ingeniería Físico-Matemática",
+          "frase": "Modelo problemas complejos para comprenderlos y tomar decisiones."
+        }
       ]
     },
     {
       "id": "civil",
       "nombre": "Ingeniería Civil",
       "color": "#FF8A3D",
-      "frase": "Diseño y construcción de estructuras e infraestructura",
-      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Civil?",
-      "mensajeReflexivo": "Diseñar los espacios que habitamos no tiene género.",
+      "finalidad": "Construir las infraestructuras y los espacios que habitamos.",
       "efecto": "planos",
       "accesorio": {
         "img": "assets/civil/casco.png",
@@ -128,16 +142,20 @@
         { "img": "assets/civil/viga.png", "figura": "viga", "escala": 0.22, "peso": 1 }
       ],
       "referentes": [
-        { "video": "assets/videos/civil/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Civil" }
+        {
+          "video": "assets/videos/civil/prueba.mp4",
+          "dimension": "Yo estudio.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Ingeniería Civil",
+          "frase": "Aprendo a construir las infraestructuras y los espacios que habitamos."
+        }
       ]
     },
     {
       "id": "quimica",
       "nombre": "Ingeniería Química",
       "color": "#FF5D8F",
-      "frase": "Procesos de transformación de la materia y la energía",
-      "preguntaReflexiva": "¿Te sorprendió verte en Ingeniería Química?",
-      "mensajeReflexivo": "Transformar la materia y la energía no tiene género.",
+      "finalidad": "Transformar la materia para producir, innovar y cuidar el ambiente.",
       "efecto": "burbujas",
       "accesorio": {
         "img": "assets/quimica/antiparras-lab.png",
@@ -154,7 +172,13 @@
         { "img": "assets/quimica/gota.png", "figura": "gota", "escala": 0.14, "peso": 1 }
       ],
       "referentes": [
-        { "video": "assets/videos/quimica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Química" }
+        {
+          "video": "assets/videos/quimica/prueba.mp4",
+          "dimension": "Yo enseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Docente de Ingeniería Química",
+          "frase": "Enseño a transformar la materia para producir, innovar y cuidar el ambiente."
+        }
       ]
     }
   ]

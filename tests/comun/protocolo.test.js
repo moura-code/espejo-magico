@@ -38,8 +38,6 @@ describe('protocolo', () => {
     expect(esValido(mensajeAccion(ACCIONES.TERMINAR))).toBe(true);
     expect(esValido(mensajeAccion(ACCIONES.EMPEZAR))).toBe(true);
     expect(esValido(mensajeAccion(ACCIONES.AVANZAR))).toBe(true);
-    expect(esValido(mensajeAccion(ACCIONES.SI_SORPRENDIO))).toBe(true);
-    expect(esValido(mensajeAccion(ACCIONES.NO_PODRIA_VERME))).toBe(true);
   });
 
   it('rechaza cualquier otra cosa', () => {

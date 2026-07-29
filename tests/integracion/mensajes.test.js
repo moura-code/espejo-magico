@@ -24,8 +24,20 @@ const CIVIL = {
   nombre: 'Ingeniería Civil',
   color: '#FF8A3D',
   referentes: [
-    { video: 'videos/civil/ana.mp4', nombre: 'Ana Pérez', detalle: 'Egresada' },
-    { video: 'videos/civil/sol.mp4', nombre: 'Sol Díaz', detalle: 'Docente' },
+    {
+      video: 'videos/civil/ana.mp4',
+      dimension: 'Yo diseño.',
+      nombre: 'Ana Pérez',
+      detalle: 'Egresada de Ingeniería Civil',
+      frase: 'Diseño los espacios que habitamos.',
+    },
+    {
+      video: 'videos/civil/sol.mp4',
+      dimension: 'Yo enseño.',
+      nombre: 'Sol Díaz',
+      detalle: 'Docente de Ingeniería Civil',
+      frase: 'Enseño a construir infraestructura.',
+    },
   ],
 };
 const contenido = { obtener: (id) => (id === 'civil' ? CIVIL : null) };

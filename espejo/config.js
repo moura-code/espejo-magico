@@ -126,7 +126,6 @@ export const CONFIG = {
   },
 
   interfazGestual: {
-    avisoReflexionMs: 2500,
     reposo: {
       esperaInicialMs: 3000,
       intervaloMs: 5000,

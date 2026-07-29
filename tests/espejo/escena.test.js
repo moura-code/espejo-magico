@@ -3,11 +3,21 @@ import {
   calcularDisposicion,
   calcularRectanguloVideo,
   calcularAspasCaracol,
+  calcularFasesDeCierre,
   calcularPosicionTemporizador,
   dibujarPuntosRostro,
   dibujarTemporizadorEstado,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
+
+describe('calcularFasesDeCierre', () => {
+  it('pasa de la posibilidad al concepto general', () => {
+    expect(calcularFasesDeCierre(0)).toEqual({ prediccion: 1, concepto: 0 });
+    expect(calcularFasesDeCierre(0.5).prediccion).toBeLessThan(1);
+    expect(calcularFasesDeCierre(0.5).concepto).toBeGreaterThan(0);
+    expect(calcularFasesDeCierre(1)).toEqual({ prediccion: 0, concepto: 1 });
+  });
+});
 
 describe('tamanoQueEntra', () => {
   // Medida falsa: cada caracter ocupa la mitad del tamaño de letra.

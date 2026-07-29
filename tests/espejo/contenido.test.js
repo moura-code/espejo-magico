@@ -5,9 +5,7 @@ const carreraValida = () => ({
   id: 'civil',
   nombre: 'Ingeniería Civil',
   color: '#FF8A3D',
-  frase: 'Construís lo que queda de pie',
-  preguntaReflexiva: '¿Te sorprendió verte en Ingeniería Civil?',
-  mensajeReflexivo: 'Construir el futuro no tiene género.',
+  finalidad: 'Construir las infraestructuras y los espacios que habitamos.',
   accesorio: {
     img: 'assets/civil/casco.png',
     anclaOjoIzq: [0.3, 0.7],
@@ -15,7 +13,13 @@ const carreraValida = () => ({
     offsetY: -0.4,
   },
   objetos: [{ img: 'assets/civil/grua.png', escala: 0.2, peso: 1 }],
-  referentes: [{ video: 'videos/civil/ana.mp4', nombre: 'Ana Pérez', detalle: 'Egresada' }],
+  referentes: [{
+    video: 'videos/civil/ana.mp4',
+    dimension: 'Yo diseño.',
+    nombre: 'Ana Pérez',
+    detalle: 'Egresada de Ingeniería Civil',
+    frase: 'Diseño espacios para la vida cotidiana.',
+  }],
 });
 
 const sinErrores = (datos) => expect(validarContenido(datos)).toEqual([]);
@@ -39,15 +43,8 @@ describe('validarContenido', () => {
     conError({ carreras: [{ ...carreraValida(), color: 'naranja' }] }, '#rrggbb');
   });
 
-  it('exige los textos de la reflexion', () => {
-    conError(
-      { carreras: [{ ...carreraValida(), preguntaReflexiva: undefined }] },
-      '"preguntaReflexiva"',
-    );
-    conError(
-      { carreras: [{ ...carreraValida(), mensajeReflexivo: undefined }] },
-      '"mensajeReflexivo"',
-    );
+  it('exige una finalidad social de la carrera', () => {
+    conError({ carreras: [{ ...carreraValida(), finalidad: undefined }] }, '"finalidad"');
   });
 
   it('rechaza ids repetidos', () => {
@@ -78,12 +75,35 @@ describe('validarContenido', () => {
     );
   });
 
-  it('exige al menos una referente con video y nombre', () => {
+  it('exige testimonios con dimension, vinculo y frase', () => {
     conError({ carreras: [{ ...carreraValida(), referentes: [] }] }, '"referentes" vacio');
     conError({ carreras: [{ ...carreraValida(), referentes: [{ nombre: 'Ana' }] }] }, 'sin "video"');
     conError(
-      { carreras: [{ ...carreraValida(), referentes: [{ video: 'a.mp4' }] }] },
+      {
+        carreras: [{
+          ...carreraValida(),
+          referentes: [{
+            video: 'a.mp4',
+            dimension: 'Yo estudio.',
+            detalle: 'Estudiante',
+            frase: 'Aprendo.',
+          }],
+        }],
+      },
       'sin "nombre"',
+    );
+    const referente = carreraValida().referentes[0];
+    conError(
+      { carreras: [{ ...carreraValida(), referentes: [{ ...referente, dimension: 'Yo gano.' }] }] },
+      '"dimension" invalida',
+    );
+    conError(
+      { carreras: [{ ...carreraValida(), referentes: [{ ...referente, detalle: undefined }] }] },
+      'sin "detalle"',
+    );
+    conError(
+      { carreras: [{ ...carreraValida(), referentes: [{ ...referente, frase: undefined }] }] },
+      'sin "frase"',
     );
   });
 

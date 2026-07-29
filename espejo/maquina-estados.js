@@ -5,10 +5,7 @@
 // Eventos:
 //   { tipo: 'entra',   estado }        cambio de estado
 //   { tipo: 'carrera', id, sesion }    anunciar la carrera a las tablets
-//   { tipo: 'respuesta', ... }          respuesta anonima a la reflexion
 //   { tipo: 'reposo' }                 apagar las tablets
-
-import { ACCIONES } from '../comun/protocolo.js';
 
 export const ESTADOS = {
   ATRACCION: 'ATRACCION',
@@ -19,11 +16,6 @@ export const ESTADOS = {
   REFLEXION: 'REFLEXION',
   CIERRE: 'CIERRE',
 };
-
-const RESPUESTAS_VALIDAS = new Set([
-  ACCIONES.SI_SORPRENDIO,
-  ACCIONES.NO_PODRIA_VERME,
-]);
 
 /** El ciclo, en orden. Lo usa avanzar() para saber cual sigue. */
 const SIGUIENTE = {
@@ -45,8 +37,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let carrera = null;
   let sesion = 0;
   let enManual = manual;
-  let respuestaReflexion = null;
-  let respuestaDesde = null;
 
   function ir(nuevo, ahora, eventos) {
     estado = nuevo;
@@ -60,15 +50,9 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
     if (nuevo === ESTADOS.CIERRE) {
       eventos.push({ tipo: 'reposo' });
     }
-    if (nuevo === ESTADOS.REFLEXION) {
-      respuestaReflexion = null;
-      respuestaDesde = null;
-    }
     if (nuevo === ESTADOS.ATRACCION) {
       carrera = null;
       inicioDeSesion = null;
-      respuestaReflexion = null;
-      respuestaDesde = null;
     }
   }
 
@@ -76,8 +60,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
     estado,
     carrera,
     sesion,
-    respuestaReflexion,
-    respuestaDesde,
     eventos,
   });
 
@@ -87,8 +69,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
     sesion: () => sesion,
     desdeCuando: () => desde,
     esManual: () => enManual,
-    respuestaReflexion: () => respuestaReflexion,
-    desdeCuandoRespondio: () => respuestaDesde,
 
     /** Alterna entre avanzar solo y avanzar a pedido. */
     alternarManual() {
@@ -193,27 +173,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       }
 
       return salida(eventos);
-    },
-
-    responderReflexion(respuesta, ahora) {
-      if (
-        estado !== ESTADOS.REFLEXION ||
-        respuestaReflexion !== null ||
-        !RESPUESTAS_VALIDAS.has(respuesta)
-      ) {
-        return null;
-      }
-
-      respuestaReflexion = respuesta;
-      respuestaDesde = ahora;
-      return salida([
-        {
-          tipo: 'respuesta',
-          respuesta,
-          carrera,
-          sesion,
-        },
-      ]);
     },
 
     forzarCarrera(id, ahora) {

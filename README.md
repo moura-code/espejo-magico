@@ -5,9 +5,10 @@ Instalación interactiva para el stand de una Facultad de Ingeniería.
 Un visitante se acerca a una pantalla enmarcada como espejo. El sistema le propone
 al azar una de seis ingenierías, sin inferir aptitudes, género ni vocación a partir
 de su rostro. La pantalla se cubre de niebla, se despeja, y el participante aparece
-rodeado de objetos característicos de esa carrera que puede manotear. La posible
-sorpresa ante esa imagen abre una reflexión sobre los estereotipos profesionales.
-En simultáneo, unas tablets reproducen videos de mujeres vinculadas a la disciplina.
+rodeado de objetos característicos de esa carrera que puede manotear. Cada escena
+explica también para qué sirve socialmente esa disciplina. En simultáneo, las
+tablets funcionan como otros espejos y muestran mujeres que estudian, investigan,
+enseñan, diseñan o trabajan en ingeniería.
 
 Todo corre en el navegador, en una sola PC, **sin conexión a internet**.
 
@@ -53,10 +54,14 @@ direcciones IPv4 disponibles para abrir las tablets desde la red del stand.
 La tuerca de la esquina superior derecha abre un panel para elegir la cámara y
 alternar el modo demo, el avance manual y la malla de diagnóstico.
 
-Después de la escena aparece un momento de reflexión sin botones de respuesta,
-tanto en el espejo como en la tablet. Cuando el espejo queda vacío, la imagen se
-cierra y vuelve a abrir en espiral, como un caracol, para mantener la pantalla
-en movimiento.
+La experiencia pregunta primero `¿Cómo es la cara de la ingeniería?`. Al detectar
+una persona aclara que no intenta adivinar quién es y presenta una posibilidad
+elegida al azar. El cierre recuerda que no era una predicción y propone:
+`La ingeniería tiene muchas caras. Una puede ser la tuya.`
+
+No hay botones de respuesta durante la reflexión. Cuando el espejo queda vacío,
+la imagen se cierra y vuelve a abrir en espiral, como un caracol, para mantener
+la pantalla en movimiento.
 
 En modo automático, un contador circular discreto en la esquina inferior
 izquierda muestra los segundos y la proporción de tiempo que faltan para el
@@ -70,7 +75,7 @@ casos no existe una transición automática programada.
 | `1`–`6` | Fuerza una carrera y salta a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `C` | Cambia a la siguiente cámara disponible |
-| `D` | Demo automática: recorre toda la experiencia, las seis carreras y ambos botones |
+| `D` | Demo automática: recorre toda la experiencia y las seis carreras |
 | `M` | Muestra los puntos que el sistema detecta en cara y manos |
 | `P` | Panel de estado y FPS |
 
@@ -95,6 +100,10 @@ al inicio. Si el avance manual está activo, agrega
 `AVANZAR` en los pasos que necesitan intervención y el espejo no muestra avisos
 de teclado sobre la imagen.
 
+Cada tablet de video muestra una dimensión (`Yo estudio.`, `Yo investigo.`,
+`Yo enseño.`, `Yo diseño.` o `Yo trabajo.`), el nombre de la persona, su vínculo
+con la carrera y una frase breve sobre lo que hace.
+
 ## Cómo está armado
 
 ```
@@ -113,8 +122,9 @@ círculos y rectángulos. Por eso la máquina de estados se prueba entera sin c�
 ni pantalla.
 
 **Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:**
-nombre, color, frase, pregunta y mensaje reflexivo, objetos, efecto de partículas
-y referentes. Agregar o cambiar una carrera no toca una línea de código.
+nombre, color, finalidad social, objetos, efecto de partículas y referentes. Cada
+referente declara su dimensión, nombre, vínculo con la carrera y frase. Agregar o
+cambiar una carrera no toca una línea de código.
 
 Los objetos se dibujan con figuras vectoriales (`espejo/figuras.js`) mientras no
 haya PNG. El orden de preferencia es **PNG → figura → círculo del color**, así
