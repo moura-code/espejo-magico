@@ -1,16 +1,25 @@
 import { describe, it, expect } from 'vitest';
 import { crearContadorFps, interpretarTecla } from '../../espejo/operacion.js';
 
-const IDS = ['mecanica', 'electrica', 'computacion', 'fisico-matematico', 'civil', 'quimica'];
+const IDS = [
+  'civil',
+  'alimentos',
+  'produccion',
+  'electrica',
+  'agrimensura',
+  'computacion',
+  'sistemas-comunicacion',
+  'fisico-matematico',
+  'mecanica',
+];
 
 describe('interpretarTecla', () => {
-  it('las teclas 1 a 6 fuerzan la carrera de esa posicion', () => {
-    expect(interpretarTecla('1', IDS)).toEqual({ accion: 'forzar', id: 'mecanica' });
-    expect(interpretarTecla('6', IDS)).toEqual({ accion: 'forzar', id: 'quimica' });
+  it('las teclas 1 a 9 fuerzan la propuesta de esa posicion', () => {
+    expect(interpretarTecla('1', IDS)).toEqual({ accion: 'forzar', id: 'civil' });
+    expect(interpretarTecla('9', IDS)).toEqual({ accion: 'forzar', id: 'mecanica' });
   });
 
   it('ignora numeros sin carrera detras', () => {
-    expect(interpretarTecla('7', IDS)).toBeNull();
     expect(interpretarTecla('0', IDS)).toBeNull();
     expect(interpretarTecla('3', ['a', 'b'])).toBeNull();
   });

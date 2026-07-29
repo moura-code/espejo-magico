@@ -19,8 +19,10 @@ export function calcularDisposicion(ancho, alto) {
     caja: { x: 0, y: 0, ancho, alto: piso },
     unidad: Math.min(ancho, alto * 0.5625),
     texto: {
+      categoriaY: alto - alturaTexto * 0.82,
       nombreY: alto - alturaTexto * 0.55,
       fraseY: alto - alturaTexto * 0.18,
+      tamanoCategoria: Math.round(corto * 0.019),
       tamanoNombre: Math.round(corto * 0.055),
       tamanoFrase: Math.round(corto * 0.03),
     },
@@ -359,6 +361,14 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.textAlign = 'center';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';
   ctx.shadowBlur = 18;
+
+  if (carrera.categoria) {
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = alfa * 0.82;
+    ctx.font = `700 ${texto.tamanoCategoria}px system-ui, sans-serif`;
+    ctx.fillText(carrera.categoria.toLocaleUpperCase('es'), ancho / 2, texto.categoriaY);
+    ctx.globalAlpha = alfa;
+  }
 
   const medirNombre = medirCon(700, 'system-ui, sans-serif');
   const tamanoNombre = tamanoQueEntra(titulo, texto.tamanoNombre, disponible, medirNombre);

@@ -3,6 +3,8 @@ import { validarContenido, cargarContenido } from '../../espejo/contenido.js';
 
 const carreraValida = () => ({
   id: 'civil',
+  categoria: 'Carrera de grado',
+  url: 'https://www.fing.edu.uy/es/carrera/grado/ingenieria-civil',
   nombre: 'Ingeniería Civil',
   color: '#FF8A3D',
   finalidad: 'Construir las infraestructuras y los espacios que habitamos.',
@@ -45,6 +47,21 @@ describe('validarContenido', () => {
 
   it('exige una finalidad social de la carrera', () => {
     conError({ carreras: [{ ...carreraValida(), finalidad: undefined }] }, '"finalidad"');
+  });
+
+  it('exige una categoria conocida y un enlace oficial de FING', () => {
+    conError(
+      { carreras: [{ ...carreraValida(), categoria: 'Posgrado' }] },
+      '"categoria"',
+    );
+    conError(
+      { carreras: [{ ...carreraValida(), url: 'https://ejemplo.com/civil' }] },
+      'oficial de FING',
+    );
+    conError(
+      { carreras: [{ ...carreraValida(), url: 'http://www.fing.edu.uy/civil' }] },
+      'HTTPS',
+    );
   });
 
   it('rechaza ids repetidos', () => {

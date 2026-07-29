@@ -124,7 +124,7 @@ export function instalarOperacion({
         `avance      ${espejo.maquina.esManual() ? 'MANUAL' : 'automatico'}`,
         ``,
         `ESPACIO avanzar   A auto/manual`,
-        `1-6 carrera       R reiniciar`,
+        `1-9 propuesta     R reiniciar`,
         `C camara   D demo   M malla  P cerrar`,
       ].join('\n');
     },

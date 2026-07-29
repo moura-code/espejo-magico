@@ -89,6 +89,7 @@ describe('calcularDisposicion', () => {
 
   it('pone el nombre arriba de la frase', () => {
     const d = calcularDisposicion(1080, 1920);
+    expect(d.texto.categoriaY).toBeLessThan(d.texto.nombreY);
     expect(d.texto.nombreY).toBeLessThan(d.texto.fraseY);
     expect(d.texto.fraseY).toBeLessThan(1920);
   });

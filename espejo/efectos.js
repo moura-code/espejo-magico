@@ -1,5 +1,5 @@
-// Un comportamiento de particulas por carrera, para que cada ingenieria tenga
-// textura propia sin depender de un solo archivo de diseño.
+// Familias de particulas reutilizables, para que cada propuesta tenga textura
+// propia sin depender de un solo archivo de diseño.
 //
 // Se dibujan encima del video y debajo de los objetos, para que el participante
 // quede dentro de la escena y no tapado por ella.

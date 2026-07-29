@@ -1,129 +1,11 @@
 {
-  "_nota": "Los PNG y los videos todavia no existen. Mientras tanto cada objeto se dibuja con la figura vectorial declarada en 'figura' (ver espejo/figuras.js). Cuando lleguen los PNG, reemplazan a las figuras sin tocar codigo. Las referentes son provisorias y npm run listo falla hasta que se reemplacen.",
+  "_nota": "Los PNG y los videos todavía no existen. Mientras tanto cada objeto se dibuja con la figura vectorial declarada en 'figura' (ver espejo/figuras.js). Las nuevas propuestas reutilizan familias visuales existentes hasta recibir recursos específicos.",
   "carreras": [
-    {
-      "id": "mecanica",
-      "nombre": "Ingeniería Mecánica",
-      "color": "#4FC3F7",
-      "finalidad": "Diseñar máquinas y sistemas que transforman la vida cotidiana.",
-      "efecto": "engranajes",
-      "accesorio": {
-        "img": "assets/mecanica/antiparras.png",
-        "anclaOjoIzq": [0.3, 0.5],
-        "anclaOjoDer": [0.7, 0.5],
-        "offsetY": 0
-      },
-      "objetos": [
-        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
-        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
-        { "img": "assets/mecanica/piston.png", "figura": "piston", "escala": 0.17, "peso": 1 },
-        { "img": "assets/mecanica/resorte.png", "figura": "resorte", "escala": 0.15, "peso": 1 },
-        { "img": "assets/mecanica/rodamiento.png", "figura": "rodamiento", "escala": 0.14, "peso": 1 },
-        { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 }
-      ],
-      "referentes": [
-        {
-          "video": "assets/videos/mecanica/prueba.mp4",
-          "dimension": "Yo diseño.",
-          "nombre": "Nombre Apellido",
-          "detalle": "Estudiante de Ingeniería Mecánica",
-          "frase": "Diseño sistemas que transforman la vida cotidiana."
-        }
-      ]
-    },
-    {
-      "id": "electrica",
-      "nombre": "Ingeniería Eléctrica",
-      "color": "#FFD23F",
-      "finalidad": "Hacer posibles la energía, las comunicaciones y la automatización.",
-      "efecto": "chispas",
-      "accesorio": {
-        "img": "assets/electrica/casco-visor.png",
-        "anclaOjoIzq": [0.3, 0.6],
-        "anclaOjoDer": [0.7, 0.6],
-        "offsetY": -0.3
-      },
-      "objetos": [
-        { "img": "assets/electrica/rayo.png", "figura": "rayo", "escala": 0.18, "peso": 1 },
-        { "img": "assets/electrica/resistencia.png", "figura": "resistencia", "escala": 0.16, "peso": 1 },
-        { "img": "assets/electrica/lampara.png", "figura": "lampara", "escala": 0.17, "peso": 1 },
-        { "img": "assets/electrica/bateria.png", "figura": "bateria", "escala": 0.16, "peso": 1 },
-        { "img": "assets/electrica/panel-solar.png", "figura": "panel-solar", "escala": 0.22, "peso": 1 },
-        { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 }
-      ],
-      "referentes": [
-        {
-          "video": "assets/videos/electrica/prueba.mp4",
-          "dimension": "Yo enseño.",
-          "nombre": "Nombre Apellido",
-          "detalle": "Docente de Ingeniería Eléctrica",
-          "frase": "Acompaño a nuevas generaciones a transformar la energía y las comunicaciones."
-        }
-      ]
-    },
-    {
-      "id": "computacion",
-      "nombre": "Ingeniería en Computación",
-      "color": "#00E5A0",
-      "finalidad": "Crear tecnologías para comunicar, aprender y resolver problemas.",
-      "efecto": "codigo",
-      "accesorio": {
-        "img": "assets/computacion/gafas-vr.png",
-        "anclaOjoIzq": [0.28, 0.52],
-        "anclaOjoDer": [0.72, 0.52],
-        "offsetY": 0
-      },
-      "objetos": [
-        { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
-        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
-        { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
-        { "img": "assets/computacion/llaves.png", "figura": "llaves", "escala": 0.15, "peso": 1 },
-        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
-        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
-      ],
-      "referentes": [
-        {
-          "video": "assets/videos/computacion/prueba.mp4",
-          "dimension": "Yo trabajo.",
-          "nombre": "Nombre Apellido",
-          "detalle": "Egresada de Ingeniería en Computación",
-          "frase": "Creo tecnologías para comunicar, aprender y resolver problemas."
-        }
-      ]
-    },
-    {
-      "id": "fisico-matematico",
-      "nombre": "Ingeniería Físico-Matemática",
-      "color": "#A78BFA",
-      "finalidad": "Modelar problemas complejos para comprenderlos y tomar decisiones.",
-      "efecto": "formulas",
-      "accesorio": {
-        "img": "assets/fisico-matematico/orbitas.png",
-        "anclaOjoIzq": [0.32, 0.62],
-        "anclaOjoDer": [0.68, 0.62],
-        "offsetY": -0.2
-      },
-      "objetos": [
-        { "img": "assets/fisico-matematico/pi.png", "figura": "pi", "escala": 0.16, "peso": 1 },
-        { "img": "assets/fisico-matematico/sumatoria.png", "figura": "sumatoria", "escala": 0.16, "peso": 1 },
-        { "img": "assets/fisico-matematico/integral.png", "figura": "integral", "escala": 0.16, "peso": 1 },
-        { "img": "assets/fisico-matematico/atomo.png", "figura": "atomo", "escala": 0.19, "peso": 1 },
-        { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
-        { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 }
-      ],
-      "referentes": [
-        {
-          "video": "assets/videos/fisico-matematico/prueba.mp4",
-          "dimension": "Yo investigo.",
-          "nombre": "Nombre Apellido",
-          "detalle": "Investigadora en Ingeniería Físico-Matemática",
-          "frase": "Modelo problemas complejos para comprenderlos y tomar decisiones."
-        }
-      ]
-    },
     {
       "id": "civil",
       "nombre": "Ingeniería Civil",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/ingenier%C3%ADa-civil",
       "color": "#FF8A3D",
       "finalidad": "Construir las infraestructuras y los espacios que habitamos.",
       "efecto": "planos",
@@ -152,8 +34,298 @@
       ]
     },
     {
+      "id": "alimentos",
+      "nombre": "Ingeniería de Alimentos",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/ingenier%C3%ADa-de-alimentos",
+      "color": "#F2C14E",
+      "finalidad": "Diseñar alimentos y procesos seguros, nutritivos y sostenibles.",
+      "efecto": "burbujas",
+      "accesorio": {
+        "img": "assets/quimica/antiparras-lab.png",
+        "anclaOjoIzq": [0.3, 0.5],
+        "anclaOjoDer": [0.7, 0.5],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/quimica/matraz.png", "figura": "matraz", "escala": 0.19, "peso": 1 },
+        { "img": "assets/quimica/tubo.png", "figura": "tubo", "escala": 0.16, "peso": 1 },
+        { "img": "assets/quimica/molecula.png", "figura": "molecula", "escala": 0.2, "peso": 1 },
+        { "img": "assets/quimica/mechero.png", "figura": "mechero", "escala": 0.18, "peso": 1 },
+        { "img": "assets/quimica/pipeta.png", "figura": "pipeta", "escala": 0.16, "peso": 1 },
+        { "img": "assets/quimica/gota.png", "figura": "gota", "escala": 0.14, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/alimentos/prueba.mp4",
+          "dimension": "Yo diseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Ingeniería de Alimentos",
+          "frase": "Diseño alimentos y procesos que cuidan la calidad y la seguridad."
+        }
+      ]
+    },
+    {
+      "id": "produccion",
+      "nombre": "Ingeniería de Producción",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/ingenier%C3%ADa-de-producci%C3%B3n",
+      "color": "#2EC4B6",
+      "finalidad": "Optimizar sistemas de producción integrando tecnología, personas y ambiente.",
+      "efecto": "engranajes",
+      "accesorio": {
+        "img": "assets/mecanica/antiparras.png",
+        "anclaOjoIzq": [0.3, 0.5],
+        "anclaOjoDer": [0.7, 0.5],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
+        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
+        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
+        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
+        { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
+        { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/produccion/prueba.mp4",
+          "dimension": "Yo trabajo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Egresada de Ingeniería de Producción",
+          "frase": "Mejoro sistemas productivos pensando en las personas y el ambiente."
+        }
+      ]
+    },
+    {
+      "id": "electrica",
+      "nombre": "Ingeniería Eléctrica",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carreras/grado/ingenieriaelectrica",
+      "color": "#FFD23F",
+      "finalidad": "Hacer posibles la energía, las comunicaciones y la automatización.",
+      "efecto": "chispas",
+      "accesorio": {
+        "img": "assets/electrica/casco-visor.png",
+        "anclaOjoIzq": [0.3, 0.6],
+        "anclaOjoDer": [0.7, 0.6],
+        "offsetY": -0.3
+      },
+      "objetos": [
+        { "img": "assets/electrica/rayo.png", "figura": "rayo", "escala": 0.18, "peso": 1 },
+        { "img": "assets/electrica/resistencia.png", "figura": "resistencia", "escala": 0.16, "peso": 1 },
+        { "img": "assets/electrica/lampara.png", "figura": "lampara", "escala": 0.17, "peso": 1 },
+        { "img": "assets/electrica/bateria.png", "figura": "bateria", "escala": 0.16, "peso": 1 },
+        { "img": "assets/electrica/panel-solar.png", "figura": "panel-solar", "escala": 0.22, "peso": 1 },
+        { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/electrica/prueba.mp4",
+          "dimension": "Yo enseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Docente de Ingeniería Eléctrica",
+          "frase": "Acompaño a nuevas generaciones a transformar la energía y las comunicaciones."
+        }
+      ]
+    },
+    {
+      "id": "agrimensura",
+      "nombre": "Ingeniería en Agrimensura",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/agrimensura",
+      "color": "#6CC551",
+      "finalidad": "Medir y modelar el territorio para planificarlo al servicio de la sociedad.",
+      "efecto": "planos",
+      "accesorio": {
+        "img": "assets/civil/casco.png",
+        "anclaOjoIzq": [0.3, 0.72],
+        "anclaOjoDer": [0.7, 0.72],
+        "offsetY": -0.45
+      },
+      "objetos": [
+        { "img": "assets/civil/teodolito.png", "figura": "teodolito", "escala": 0.19, "peso": 1 },
+        { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
+        { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 },
+        { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
+        { "img": "assets/civil/puente.png", "figura": "puente", "escala": 0.24, "peso": 1 },
+        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/agrimensura/prueba.mp4",
+          "dimension": "Yo trabajo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Egresada de Ingeniería en Agrimensura",
+          "frase": "Modelo el territorio para ayudar a planificarlo y comprenderlo."
+        }
+      ]
+    },
+    {
+      "id": "computacion",
+      "nombre": "Ingeniería en Computación",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/ingenier%C3%ADa-en-computaci%C3%B3n",
+      "color": "#00E5A0",
+      "finalidad": "Crear tecnologías para comunicar, aprender y resolver problemas.",
+      "efecto": "codigo",
+      "accesorio": {
+        "img": "assets/computacion/gafas-vr.png",
+        "anclaOjoIzq": [0.28, 0.52],
+        "anclaOjoDer": [0.72, 0.52],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
+        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
+        { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
+        { "img": "assets/computacion/llaves.png", "figura": "llaves", "escala": 0.15, "peso": 1 },
+        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
+        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/computacion/prueba.mp4",
+          "dimension": "Yo trabajo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Egresada de Ingeniería en Computación",
+          "frase": "Creo tecnologías para comunicar, aprender y resolver problemas."
+        }
+      ]
+    },
+    {
+      "id": "sistemas-comunicacion",
+      "nombre": "Ingeniería en Sistemas de Comunicación",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/categoria/grupo/carrera-ingenieria-en-sistemas-de-comunicacion",
+      "color": "#00B8D9",
+      "finalidad": "Diseñar redes y servicios que conectan personas, dispositivos y comunidades.",
+      "efecto": "chispas",
+      "accesorio": {
+        "img": "assets/electrica/casco-visor.png",
+        "anclaOjoIzq": [0.3, 0.6],
+        "anclaOjoDer": [0.7, 0.6],
+        "offsetY": -0.3
+      },
+      "objetos": [
+        { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 },
+        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
+        { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
+        { "img": "assets/electrica/bateria.png", "figura": "bateria", "escala": 0.16, "peso": 1 },
+        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 },
+        { "img": "assets/computacion/llaves.png", "figura": "llaves", "escala": 0.15, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/sistemas-comunicacion/prueba.mp4",
+          "dimension": "Yo diseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Ingeniería en Sistemas de Comunicación",
+          "frase": "Diseño redes y servicios para que personas y dispositivos se comuniquen."
+        }
+      ]
+    },
+    {
+      "id": "fisico-matematico",
+      "nombre": "Ingeniería Físico-Matemática",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/node/45266",
+      "color": "#A78BFA",
+      "finalidad": "Modelar problemas complejos para comprenderlos y tomar decisiones.",
+      "efecto": "formulas",
+      "accesorio": {
+        "img": "assets/fisico-matematico/orbitas.png",
+        "anclaOjoIzq": [0.32, 0.62],
+        "anclaOjoDer": [0.68, 0.62],
+        "offsetY": -0.2
+      },
+      "objetos": [
+        { "img": "assets/fisico-matematico/pi.png", "figura": "pi", "escala": 0.16, "peso": 1 },
+        { "img": "assets/fisico-matematico/sumatoria.png", "figura": "sumatoria", "escala": 0.16, "peso": 1 },
+        { "img": "assets/fisico-matematico/integral.png", "figura": "integral", "escala": 0.16, "peso": 1 },
+        { "img": "assets/fisico-matematico/atomo.png", "figura": "atomo", "escala": 0.19, "peso": 1 },
+        { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
+        { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/fisico-matematico/prueba.mp4",
+          "dimension": "Yo investigo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Investigadora en Ingeniería Físico-Matemática",
+          "frase": "Modelo problemas complejos para comprenderlos y tomar decisiones."
+        }
+      ]
+    },
+    {
+      "id": "mecanica",
+      "nombre": "Ingeniería Industrial Mecánica",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/ingenier%C3%ADa-industrial-mec%C3%A1nica",
+      "color": "#4FC3F7",
+      "finalidad": "Diseñar sistemas mecánicos, térmicos y productivos para la vida cotidiana.",
+      "efecto": "engranajes",
+      "accesorio": {
+        "img": "assets/mecanica/antiparras.png",
+        "anclaOjoIzq": [0.3, 0.5],
+        "anclaOjoDer": [0.7, 0.5],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
+        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
+        { "img": "assets/mecanica/piston.png", "figura": "piston", "escala": 0.17, "peso": 1 },
+        { "img": "assets/mecanica/resorte.png", "figura": "resorte", "escala": 0.15, "peso": 1 },
+        { "img": "assets/mecanica/rodamiento.png", "figura": "rodamiento", "escala": 0.14, "peso": 1 },
+        { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/mecanica/prueba.mp4",
+          "dimension": "Yo diseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Ingeniería Industrial Mecánica",
+          "frase": "Diseño sistemas mecánicos y térmicos para transformar la vida cotidiana."
+        }
+      ]
+    },
+    {
+      "id": "naval",
+      "nombre": "Ingeniería Naval",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/ingenier%C3%ADa-naval",
+      "color": "#1E88E5",
+      "finalidad": "Diseñar, construir y mantener embarcaciones e infraestructura naval.",
+      "efecto": "planos",
+      "accesorio": {
+        "img": "assets/mecanica/antiparras.png",
+        "anclaOjoIzq": [0.3, 0.5],
+        "anclaOjoDer": [0.7, 0.5],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 },
+        { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
+        { "img": "assets/civil/viga.png", "figura": "viga", "escala": 0.22, "peso": 1 },
+        { "img": "assets/civil/puente.png", "figura": "puente", "escala": 0.24, "peso": 1 },
+        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
+        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/naval/prueba.mp4",
+          "dimension": "Yo diseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Ingeniería Naval",
+          "frase": "Diseño embarcaciones y soluciones para la industria naval."
+        }
+      ]
+    },
+    {
       "id": "quimica",
       "nombre": "Ingeniería Química",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/ingenier%C3%ADa-qu%C3%ADmica",
       "color": "#FF5D8F",
       "finalidad": "Transformar la materia para producir, innovar y cuidar el ambiente.",
       "efecto": "burbujas",
@@ -178,6 +350,230 @@
           "nombre": "Nombre Apellido",
           "detalle": "Docente de Ingeniería Química",
           "frase": "Enseño a transformar la materia para producir, innovar y cuidar el ambiente."
+        }
+      ]
+    },
+    {
+      "id": "ciencias-atmosfera",
+      "nombre": "Lic. en Ciencias de la Atmósfera",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/lic-en-ciencias-de-la-atm%C3%B3sfera",
+      "color": "#7FDBFF",
+      "finalidad": "Comprender y predecir el tiempo, el clima y sus impactos en la sociedad.",
+      "efecto": "formulas",
+      "accesorio": {
+        "img": "assets/fisico-matematico/orbitas.png",
+        "anclaOjoIzq": [0.32, 0.62],
+        "anclaOjoDer": [0.68, 0.62],
+        "offsetY": -0.2
+      },
+      "objetos": [
+        { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 },
+        { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 },
+        { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
+        { "img": "assets/fisico-matematico/atomo.png", "figura": "atomo", "escala": 0.19, "peso": 1 },
+        { "img": "assets/electrica/panel-solar.png", "figura": "panel-solar", "escala": 0.22, "peso": 1 },
+        { "img": "assets/fisico-matematico/integral.png", "figura": "integral", "escala": 0.16, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/ciencias-atmosfera/prueba.mp4",
+          "dimension": "Yo investigo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Ciencias de la Atmósfera",
+          "frase": "Estudio el tiempo y el clima para comprender sus impactos."
+        }
+      ]
+    },
+    {
+      "id": "licenciatura-computacion",
+      "nombre": "Lic. en Computación",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/lic-en-computaci%C3%B3n",
+      "color": "#19C37D",
+      "finalidad": "Crear y analizar soluciones computacionales con una mirada científica e innovadora.",
+      "efecto": "codigo",
+      "accesorio": {
+        "img": "assets/computacion/gafas-vr.png",
+        "anclaOjoIzq": [0.28, 0.52],
+        "anclaOjoDer": [0.72, 0.52],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
+        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
+        { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
+        { "img": "assets/computacion/llaves.png", "figura": "llaves", "escala": 0.15, "peso": 1 },
+        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
+        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/licenciatura-computacion/prueba.mp4",
+          "dimension": "Yo estudio.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Licenciatura en Computación",
+          "frase": "Exploro la computación para crear soluciones nuevas y rigurosas."
+        }
+      ]
+    },
+    {
+      "id": "ingenieria-biologica",
+      "nombre": "Lic. en Ingeniería Biológica",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/lic-en-ingenier%C3%ADa-biol%C3%B3gica-salto-y-paysand%C3%BA",
+      "color": "#E76F51",
+      "finalidad": "Aplicar ingeniería a los sistemas vivos para mejorar diagnósticos y tratamientos.",
+      "efecto": "burbujas",
+      "accesorio": {
+        "img": "assets/quimica/antiparras-lab.png",
+        "anclaOjoIzq": [0.3, 0.5],
+        "anclaOjoDer": [0.7, 0.5],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/quimica/molecula.png", "figura": "molecula", "escala": 0.2, "peso": 1 },
+        { "img": "assets/fisico-matematico/atomo.png", "figura": "atomo", "escala": 0.19, "peso": 1 },
+        { "img": "assets/quimica/gota.png", "figura": "gota", "escala": 0.14, "peso": 1 },
+        { "img": "assets/quimica/matraz.png", "figura": "matraz", "escala": 0.19, "peso": 1 },
+        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
+        { "img": "assets/fisico-matematico/integral.png", "figura": "integral", "escala": 0.16, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/ingenieria-biologica/prueba.mp4",
+          "dimension": "Yo investigo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Licenciatura en Ingeniería Biológica",
+          "frase": "Uso herramientas de ingeniería para comprender sistemas vivos."
+        }
+      ]
+    },
+    {
+      "id": "tecnologo-carnico",
+      "nombre": "Tecnólogo Cárnico",
+      "categoria": "Tecnólogo",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/tecn%C3%B3logo-c%C3%A1rnico",
+      "color": "#B56576",
+      "finalidad": "Mejorar procesos de producción cárnica, calidad e inocuidad alimentaria.",
+      "efecto": "burbujas",
+      "accesorio": {
+        "img": "assets/quimica/antiparras-lab.png",
+        "anclaOjoIzq": [0.3, 0.5],
+        "anclaOjoDer": [0.7, 0.5],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/quimica/matraz.png", "figura": "matraz", "escala": 0.19, "peso": 1 },
+        { "img": "assets/quimica/tubo.png", "figura": "tubo", "escala": 0.16, "peso": 1 },
+        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
+        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
+        { "img": "assets/quimica/gota.png", "figura": "gota", "escala": 0.14, "peso": 1 },
+        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/tecnologo-carnico/prueba.mp4",
+          "dimension": "Yo trabajo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Tecnólogo Cárnico",
+          "frase": "Aprendo a mejorar la producción, la calidad y la inocuidad."
+        }
+      ]
+    },
+    {
+      "id": "tecnologo-cartografia",
+      "nombre": "Tecnólogo en Cartografía",
+      "categoria": "Tecnólogo",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/tecn%C3%B3logo-en-cartograf%C3%ADa",
+      "color": "#8BC34A",
+      "finalidad": "Crear y analizar información geográfica para resolver problemas del territorio.",
+      "efecto": "planos",
+      "accesorio": {
+        "img": "assets/civil/casco.png",
+        "anclaOjoIzq": [0.3, 0.72],
+        "anclaOjoDer": [0.7, 0.72],
+        "offsetY": -0.45
+      },
+      "objetos": [
+        { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
+        { "img": "assets/civil/teodolito.png", "figura": "teodolito", "escala": 0.19, "peso": 1 },
+        { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 },
+        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 },
+        { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
+        { "img": "assets/civil/puente.png", "figura": "puente", "escala": 0.24, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/tecnologo-cartografia/prueba.mp4",
+          "dimension": "Yo diseño.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Tecnólogo en Cartografía",
+          "frase": "Creo información geográfica para comprender y planificar el territorio."
+        }
+      ]
+    },
+    {
+      "id": "tecnologo-industrial-mecanico",
+      "nombre": "Tecnólogo Industrial Mecánico",
+      "categoria": "Tecnólogo",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/tecn%C3%B3logo-mec%C3%A1nico",
+      "color": "#90CAF9",
+      "finalidad": "Mantener, diseñar y mejorar equipos, instalaciones y procesos industriales.",
+      "efecto": "engranajes",
+      "accesorio": {
+        "img": "assets/mecanica/antiparras.png",
+        "anclaOjoIzq": [0.3, 0.5],
+        "anclaOjoDer": [0.7, 0.5],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
+        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
+        { "img": "assets/mecanica/piston.png", "figura": "piston", "escala": 0.17, "peso": 1 },
+        { "img": "assets/mecanica/resorte.png", "figura": "resorte", "escala": 0.15, "peso": 1 },
+        { "img": "assets/mecanica/rodamiento.png", "figura": "rodamiento", "escala": 0.14, "peso": 1 },
+        { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/tecnologo-industrial-mecanico/prueba.mp4",
+          "dimension": "Yo trabajo.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Tecnólogo Industrial Mecánico",
+          "frase": "Aprendo a mantener y mejorar equipos y procesos industriales."
+        }
+      ]
+    },
+    {
+      "id": "tecnologo-informatico",
+      "nombre": "Tecnólogo Informático",
+      "categoria": "Tecnólogo",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/tecn%C3%B3logo-inform%C3%A1tico",
+      "color": "#26A69A",
+      "finalidad": "Construir, probar y documentar soluciones informáticas para organizaciones y comunidades.",
+      "efecto": "codigo",
+      "accesorio": {
+        "img": "assets/computacion/gafas-vr.png",
+        "anclaOjoIzq": [0.28, 0.52],
+        "anclaOjoDer": [0.72, 0.52],
+        "offsetY": 0
+      },
+      "objetos": [
+        { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
+        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
+        { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
+        { "img": "assets/computacion/llaves.png", "figura": "llaves", "escala": 0.15, "peso": 1 },
+        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
+        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
+      ],
+      "referentes": [
+        {
+          "video": "assets/videos/tecnologo-informatico/prueba.mp4",
+          "dimension": "Yo estudio.",
+          "nombre": "Nombre Apellido",
+          "detalle": "Estudiante de Tecnólogo Informático",
+          "frase": "Construyo y pruebo soluciones informáticas para problemas concretos."
         }
       ]
     }

@@ -22,12 +22,24 @@ const leer = async () => JSON.parse(await readFile(resolve(ASSETS, 'carreras.jso
 const existe = (ruta) => access(resolve(RAIZ, ruta)).then(() => true, () => false);
 
 const IDS_ESPERADOS = [
-  'mecanica',
-  'electrica',
-  'computacion',
-  'fisico-matematico',
   'civil',
+  'alimentos',
+  'produccion',
+  'electrica',
+  'agrimensura',
+  'computacion',
+  'sistemas-comunicacion',
+  'fisico-matematico',
+  'mecanica',
+  'naval',
   'quimica',
+  'ciencias-atmosfera',
+  'licenciatura-computacion',
+  'ingenieria-biologica',
+  'tecnologo-carnico',
+  'tecnologo-cartografia',
+  'tecnologo-industrial-mecanico',
+  'tecnologo-informatico',
 ];
 
 describe('contenido real', () => {
@@ -35,7 +47,7 @@ describe('contenido real', () => {
     expect(validarContenido(await leer())).toEqual([]);
   });
 
-  it('tiene las seis carreras acordadas', async () => {
+  it('tiene las dieciocho propuestas acordadas', async () => {
     const datos = await leer();
     expect(datos.carreras.map((c) => c.id).sort()).toEqual([...IDS_ESPERADOS].sort());
   });

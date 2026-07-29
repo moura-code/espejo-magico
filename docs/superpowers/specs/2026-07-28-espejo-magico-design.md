@@ -38,7 +38,7 @@ sorteo, la composición gráfica por carrera y la sincronización con las tablet
 | Stack | Todo navegador: Chrome en modo kiosco + servidor Node local |
 | Imagen del participante | Video real de cámara + objetos encima + accesorio anclado al rostro |
 | Disparo de la sesión | Automático por detección de presencia |
-| Carreras | 6: Mecánica, Eléctrica, Computación, Físico-Matemático, Civil, Química |
+| Oferta educativa | 18 propuestas: 14 carreras de grado y 4 tecnólogos |
 | Recuerdo para el visitante | Ninguno. No se guarda ni se envía nada |
 | Audio de los videos | Mudos, con nombre y descripción sobreimpresos |
 | Interacción de objetos | Caen y rebotan contra un círculo de colisión en la cabeza |
@@ -375,6 +375,8 @@ Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:
     {
       "id": "computacion",
       "nombre": "Ingeniería en Computación",
+      "categoria": "Carrera de grado",
+      "url": "https://www.fing.edu.uy/es/carrera/grado/ingenier%C3%ADa-en-computaci%C3%B3n",
       "color": "#00E5A0",
       "finalidad": "Crear tecnologías para comunicar, aprender y resolver problemas.",
       "accesorio": {
@@ -401,8 +403,8 @@ Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:
 }
 ```
 
-Agregar o cambiar una carrera es soltar PNG y editar un bloque. Cero código. **Esta decisión
-es lo que hace que seis carreras entren en un mes.**
+Agregar o cambiar una propuesta es soltar PNG y editar un bloque. Cero código. **Esta
+decisión permite ampliar el catálogo sin reescribir la experiencia.**
 
 El archivo se valida al arrancar: si a una carrera le falta el accesorio, los anclajes o los
 objetos, el sistema lo informa en la consola de operación en vez de fallar en silencio a
@@ -414,7 +416,7 @@ mitad de una sesión con público delante.
 
 Es el camino crítico real del proyecto, más que el código.
 
-**Por cada carrera (5 o 6):**
+**Por cada propuesta:**
 
 - 6 a 10 objetos característicos. PNG con transparencia, lado mayor 512 px.
 - 1 accesorio para la cabeza. PNG con transparencia, con los dos puntos de ojos indicados.
@@ -425,26 +427,38 @@ Es el camino crítico real del proyecto, más que el código.
 de distancia y sobre un fondo de video real que puede ser claro u oscuro. Contornos definidos
 o sombra suave, para que no se pierdan contra la ropa del participante.
 
-**Total aproximado:** 50 archivos PNG.
+Mientras no existan recursos específicos para las 18 propuestas, cada una reutiliza una de
+las seis familias visuales originales. Las figuras vectoriales evitan pantallas vacías.
 
-### Las seis carreras
+### Las 18 propuestas
 
-| id | Nombre | Color | Accesorio |
-|---|---|---|---|
-| `mecanica` | Ingeniería Mecánica | `#4FC3F7` celeste acero | Antiparras de taller |
-| `electrica` | Ingeniería Eléctrica | `#FFD23F` amarillo | Casco dieléctrico con visor |
-| `computacion` | Ingeniería en Computación | `#00E5A0` verde menta | Gafas de realidad virtual |
-| `fisico-matematico` | Ingeniería Físico-Matemática | `#A78BFA` violeta | Aro de órbitas atómicas |
-| `civil` | Ingeniería Civil | `#FF8A3D` naranja | Casco de obra |
-| `quimica` | Ingeniería Química | `#FF5D8F` magenta | Antiparras de laboratorio |
+| id | Nombre | Categoría |
+|---|---|---|
+| `civil` | Ingeniería Civil | Carrera de grado |
+| `alimentos` | Ingeniería de Alimentos | Carrera de grado |
+| `produccion` | Ingeniería de Producción | Carrera de grado |
+| `electrica` | Ingeniería Eléctrica | Carrera de grado |
+| `agrimensura` | Ingeniería en Agrimensura | Carrera de grado |
+| `computacion` | Ingeniería en Computación | Carrera de grado |
+| `sistemas-comunicacion` | Ingeniería en Sistemas de Comunicación | Carrera de grado |
+| `fisico-matematico` | Ingeniería Físico-Matemática | Carrera de grado |
+| `mecanica` | Ingeniería Industrial Mecánica | Carrera de grado |
+| `naval` | Ingeniería Naval | Carrera de grado |
+| `quimica` | Ingeniería Química | Carrera de grado |
+| `ciencias-atmosfera` | Lic. en Ciencias de la Atmósfera | Carrera de grado |
+| `licenciatura-computacion` | Lic. en Computación | Carrera de grado |
+| `ingenieria-biologica` | Lic. en Ingeniería Biológica | Carrera de grado |
+| `tecnologo-carnico` | Tecnólogo Cárnico | Tecnólogo |
+| `tecnologo-cartografia` | Tecnólogo en Cartografía | Tecnólogo |
+| `tecnologo-industrial-mecanico` | Tecnólogo Industrial Mecánico | Tecnólogo |
+| `tecnologo-informatico` | Tecnólogo Informático | Tecnólogo |
 
-Los seis tonos están elegidos bien separados en el círculo cromático y con brillo suficiente
-para leerse sobre video real. Los nombres exactos de las carreras se confirman con la
-facultad antes de imprimir nada.
+Cada propuesta tiene un color propio y un enlace HTTPS a su página oficial de FING.
 
-### Objetos sugeridos por carrera
+### Familias visuales iniciales
 
-Punto de partida para diseño, no una lista cerrada. Se necesitan entre 6 y 10 por carrera.
+Punto de partida para diseño, no una lista cerrada. Las 18 propuestas combinan objetos de
+estas seis familias mientras no existan recursos específicos.
 
 - **Mecánica:** engranaje, llave inglesa, pistón, resorte, rodamiento, motor, calibre, tornillo
 - **Eléctrica:** rayo, resistencia, lámpara LED, batería, transformador, enchufe, panel solar, onda de osciloscopio
@@ -593,7 +607,7 @@ de la carrera apareciendo alrededor del participante.
 
 ---
 
-# Anexo A — Objetos dibujados por código y efectos por carrera
+# Anexo A — Objetos dibujados por código y familias de efectos
 
 **Fecha:** 2026-07-28. Cambio de diseño posterior a la primera prueba en pantalla.
 
@@ -621,8 +635,8 @@ Las tres capas conviven. La primera y la tercera ya existían; se agrega la del 
 
 Contrapartida asumida: son íconos vectoriales, no ilustraciones. Un engranaje
 dibujado con código se ve como un engranaje, no como el dibujo de alguien. A
-cambio, las treinta y seis figuras son consistentes entre sí por construcción,
-que es lo más difícil de lograr con seis carreras y poco tiempo.
+cambio, las treinta y seis figuras son consistentes entre sí por construcción y
+pueden combinarse para representar el catálogo completo.
 
 ## Módulos nuevos
 
@@ -630,11 +644,11 @@ que es lo más difícil de lograr con seis carreras y poco tiempo.
 dibuja centrada en el origen dentro de un radio dado, con el color de la carrera.
 `carreras.json` gana un campo `figura` por objeto.
 
-**`espejo/efectos.js`** — un comportamiento de partículas por carrera, declarado
+**`espejo/efectos.js`** — seis familias de partículas reutilizables, declaradas
 en `carreras.json`. Se dibujan encima del video y debajo de los objetos, para que
 el participante quede dentro de la escena y no tapado por ella.
 
-| Carrera | Efecto |
+| Familia visual | Efecto |
 |---|---|
 | Mecánica | engranajes girando lento en el fondo |
 | Eléctrica | chispas y arcos que saltan entre puntos |
@@ -652,7 +666,7 @@ sin esperar que salgan sorteadas en el espejo.
 
 ## Textos
 
-Las frases de las seis carreras se reescriben en registro institucional. Las
+Las frases de las 18 propuestas se escriben en registro institucional. Las
 anteriores usaban voseo coloquial, que no corresponde a una facultad.
 
 Además, `dibujarTextos` pasa a **ajustar el tamaño de letra para que el texto

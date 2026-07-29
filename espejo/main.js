@@ -541,7 +541,7 @@ function cuadro(ahora) {
     ctx.textAlign = 'left';
     ctx.globalAlpha = 0.9;
     ctx.fillText(
-      `DEMO AUTOMÁTICA · ${resumenDemo.carrerasVistas}/${resumenDemo.totalCarreras} CARRERAS`,
+      `DEMO AUTOMÁTICA · ${resumenDemo.carrerasVistas}/${resumenDemo.totalCarreras} PROPUESTAS`,
       24,
       estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA ? 150 : 96,
     );

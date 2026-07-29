@@ -72,10 +72,10 @@ casos no existe una transición automática programada.
 |---|---|
 | `ESPACIO` | Avanza al estado siguiente (modo manual) |
 | `A` | Alterna avance manual / automático |
-| `1`–`6` | Fuerza una carrera y salta a la revelación |
+| `1`–`9` | Fuerza una de las primeras nueve propuestas y salta a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `C` | Cambia a la siguiente cámara disponible |
-| `D` | Demo automática: recorre toda la experiencia y las seis carreras |
+| `D` | Demo automática: recorre toda la experiencia y las 18 propuestas |
 | `M` | Muestra los puntos que el sistema detecta en cara y manos |
 | `P` | Panel de estado y FPS |
 
@@ -121,10 +121,11 @@ dibuja, `escena.js` no sabe que existe MediaPipe, y `fisica.js` sólo conoce
 círculos y rectángulos. Por eso la máquina de estados se prueba entera sin cámara
 ni pantalla.
 
-**Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:**
-nombre, color, finalidad social, objetos, efecto de partículas y referentes. Cada
-referente declara su dimensión, nombre, vínculo con la carrera y frase. Agregar o
-cambiar una carrera no toca una línea de código.
+**Todo lo que distingue una propuesta de otra vive en `assets/carreras.json`:**
+nombre, categoría, enlace oficial, color, finalidad social, objetos, efecto de
+partículas y referentes. El catálogo incluye 14 carreras de grado y 4 tecnólogos.
+Cada referente declara su dimensión, nombre, vínculo con la carrera y frase.
+Agregar o cambiar una propuesta no toca una línea de código.
 
 Durante la revelación y la interacción se muestra el logo institucional combinado
 FING–Udelar desde `assets/logos/fing-udelar-horizontal-diapo.png`.

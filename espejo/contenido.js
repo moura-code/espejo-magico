@@ -1,8 +1,7 @@
 // Carga y validacion de carreras.json.
 //
-// Todo lo que distingue una carrera de otra es dato, no codigo: agregar una
-// carrera es soltar PNG y pegar un bloque. Eso es lo que hace que seis carreras
-// entren en un mes.
+// Todo lo que distingue una propuesta de otra es dato, no codigo: agregar una
+// carrera es soltar PNG y pegar un bloque.
 //
 // El validador junta TODOS los problemas y nombra la carrera en cada mensaje.
 // A las ocho de la mañana del dia del evento, "carreras[3] (quimica): objetos[5]
@@ -20,6 +19,17 @@ export const DIMENSIONES_REFERENTES = Object.freeze([
 ]);
 
 const dimensionesValidas = new Set(DIMENSIONES_REFERENTES);
+export const CATEGORIAS_CARRERAS = Object.freeze(['Carrera de grado', 'Tecnólogo']);
+const categoriasValidas = new Set(CATEGORIAS_CARRERAS);
+
+function esUrlOficialFing(valor) {
+  try {
+    const url = new URL(valor);
+    return url.protocol === 'https:' && url.hostname === 'www.fing.edu.uy';
+  } catch {
+    return false;
+  }
+}
 
 /**
  * `figurasValidas` y `efectosValidos` son opcionales. Cuando se pasan, se
@@ -42,6 +52,12 @@ export function validarContenido(datos, { figurasValidas = null, efectosValidos 
     else vistos.add(carrera.id);
 
     if (!carrera.nombre) errores.push(`${donde}: falta "nombre"`);
+    if (!categoriasValidas.has(carrera.categoria)) {
+      errores.push(`${donde}: "categoria" tiene que ser Carrera de grado o Tecnólogo`);
+    }
+    if (!esUrlOficialFing(carrera.url)) {
+      errores.push(`${donde}: "url" tiene que ser un enlace HTTPS oficial de FING`);
+    }
     if (!carrera.finalidad) errores.push(`${donde}: falta "finalidad"`);
     if (!/^#[0-9a-fA-F]{6}$/.test(carrera.color ?? '')) {
       errores.push(`${donde}: "color" tiene que ser #rrggbb`);

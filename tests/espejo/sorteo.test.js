@@ -22,7 +22,7 @@ describe('barajar', () => {
 });
 
 describe('crearSorteo', () => {
-  it('entrega las seis carreras antes de repetir ninguna', () => {
+  it('entrega todas las propuestas antes de repetir ninguna', () => {
     const sorteo = crearSorteo({ ids: IDS });
     const salidas = IDS.map(() => sorteo.siguiente());
     expect(new Set(salidas).size).toBe(6);

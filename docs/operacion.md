@@ -58,7 +58,7 @@ botón.
 
 | Tecla | Qué hace |
 |---|---|
-| `1` a `6` | Fuerza una carrera y salta directo a la revelación |
+| `1` a `9` | Fuerza una de las primeras nueve propuestas y salta directo a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `C` | Cambia a la siguiente cámara disponible |
 | `D` | Demo automática: prueba el ciclo completo y todas las carreras |
@@ -66,7 +66,7 @@ botón.
 | `P` | Muestra u oculta el panel de estado |
 | `Ctrl` + `R` | Recarga todo |
 
-El orden de las teclas `1` a `6` es el mismo que el de las carreras en
+El orden de las teclas `1` a `9` es el mismo que el de las propuestas en
 `assets/carreras.json`.
 
 La cámara elegida con `C` queda guardada aunque Chrome se recargue. Para confirmar
@@ -74,7 +74,7 @@ cuál está activa, apretar `P` y mirar la línea `camara`.
 
 La demo controla el avance automáticamente aunque el interruptor manual estuviera
 activo. Primero deja la pantalla vacía para probar el caracol y luego recorre
-todos los estados y las seis carreras. Al salir de la demo restaura el ajuste de
+todos los estados y las 18 propuestas. Al salir de la demo restaura el ajuste de
 avance anterior.
 
 ---
@@ -107,8 +107,8 @@ de la PC. Si sigue lento, avisar al equipo técnico: hay que bajar `objetos.maxi
 en `espejo/config.js`.
 
 **Siempre sale la misma carrera.**
-No puede pasar: el sistema recorre las seis antes de repetir ninguna. Si pasa,
-alguien está apretando las teclas `1` a `6` sin querer.
+No puede pasar: el sistema recorre las 18 antes de repetir ninguna. Si pasa,
+alguien está usando los atajos numéricos sin querer.
 
 **Aparecen círculos de colores en vez de dibujos.**
 Falta ese PNG. Apretar `P` y mirar `png faltan`. No rompe nada: es el
@@ -134,7 +134,7 @@ matices.
 | Videos de las referentes | `assets/videos/<carrera>/` |
 | Logo institucional FING–Udelar | `assets/logos/fing-udelar-horizontal-diapo.png` |
 | Iconos de la interfaz | `assets/iconos/` |
-| Nombres, colores, finalidades y testimonios | `assets/carreras.json` |
+| Nombres, categorías, enlaces, colores, finalidades y testimonios | `assets/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |
 
 Para corregir el nombre de una referente **no hay que volver a renderizar el
