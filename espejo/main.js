@@ -372,12 +372,10 @@ function cuadro(ahora) {
 
   const estado = salida.estado;
   estadoAnterior = estado;
-  const claveDeControles =
-    `${estado}:${salida.respuestaReflexion ?? ''}:${maquina.esManual()}`;
+  const claveDeControles = `${estado}:${maquina.esManual()}`;
   if (claveDeControles !== estadoDeControles) {
     estadoDeControles = claveDeControles;
     ultimoMensajeControles = controlesParaEstado(estado, {
-      respuestaReflexion: salida.respuestaReflexion,
       manual: maquina.esManual(),
     });
     bus.enviar(ultimoMensajeControles);

@@ -35,11 +35,11 @@ La tuerca de la esquina superior derecha abre la configuración. Desde ahí se
 puede elegir la cámara y activar el modo demo, el avance manual o la malla de
 diagnóstico sin usar el teclado.
 
-Después de veinte segundos de escena aparece la reflexión. La persona puede
-responder tocando `SÍ, ME SORPRENDIÓ` o `NO, PODRÍA VERME AHÍ` en la tablet de
-controles. El espejo no muestra botones virtuales. La respuesta no registra
-imágenes ni datos personales. Cuando no hay nadie, el espejo hace una animación
-periódica de cierre y apertura en forma de caracol; es el comportamiento esperado.
+Después de veinte segundos de escena aparece la reflexión. No se muestran
+botones de respuesta ni en el espejo ni en la tablet de controles. En modo
+automático la experiencia continúa al terminar el tiempo; en modo manual se usa
+`AVANZAR`. Cuando no hay nadie, el espejo hace una animación periódica de cierre
+y apertura en forma de caracol; es el comportamiento esperado.
 
 La tablet frontal ofrece las mismas acciones con botones táctiles grandes. Su
 contenido cambia automáticamente junto con el espejo: no hay que recargarla

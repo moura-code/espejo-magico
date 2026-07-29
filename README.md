@@ -53,10 +53,10 @@ direcciones IPv4 disponibles para abrir las tablets desde la red del stand.
 La tuerca de la esquina superior derecha abre un panel para elegir la cámara y
 alternar el modo demo, el avance manual y la malla de diagnóstico.
 
-Después de la escena, la tablet de controles presenta `SÍ, ME SORPRENDIÓ` y
-`NO, PODRÍA VERME AHÍ`. El espejo permanece despejado, sin botones virtuales.
-Cuando queda vacío, la imagen se cierra y vuelve a abrir en espiral, como un
-caracol, para mantener la pantalla en movimiento.
+Después de la escena aparece un momento de reflexión sin botones de respuesta,
+tanto en el espejo como en la tablet. Cuando el espejo queda vacío, la imagen se
+cierra y vuelve a abrir en espiral, como un caracol, para mantener la pantalla
+en movimiento.
 
 En modo automático, un contador circular discreto en la esquina inferior
 izquierda muestra los segundos y la proporción de tiempo que faltan para el
@@ -90,8 +90,8 @@ Además del espejo en `/`, existen tres pantallas específicas:
 La tablet de controles muestra únicamente las acciones válidas para el estado
 actual. Mientras el espejo espera presenta `EMPEZAR`; durante el sorteo permite
 cancelar; durante la escena presenta `OTRA CARRERA` y `TERMINAR`; durante el
-momento de reflexión presenta las dos respuestas; durante el cierre permite
-volver al inicio. Si el avance manual está activo, agrega
+momento de reflexión no presenta respuestas; durante el cierre permite volver
+al inicio. Si el avance manual está activo, agrega
 `AVANZAR` en los pasos que necesitan intervención y el espejo no muestra avisos
 de teclado sobre la imagen.
 

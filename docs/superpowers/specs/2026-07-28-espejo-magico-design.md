@@ -177,7 +177,7 @@ que es la única forma de que varias personas avancen en paralelo con una sola w
 | `SORTEO` | ~3 s | La pantalla se cubre de niebla y aclara que está buscando una posibilidad. |
 | `REVELACION` | ~2 s | La niebla se abre desde la posición del rostro. Aparece “Hoy te ves en…”, el accesorio se acopla y caen los primeros objetos. **Se envía el mensaje a las tablets.** |
 | `ESCENA` | ~20 s | Los objetos caen, rebotan contra la cabeza y se apilan abajo. Al final invita a mirar la imagen antes de reflexionar. |
-| `REFLEXION` | ~10 s | Los objetos se detienen, el accesorio desaparece y se explicita el azar. La persona responde desde la tablet de controles si le sorprendió verse ahí. |
+| `REFLEXION` | ~10 s | Los objetos se detienen, el accesorio desaparece y se explicita el azar. No se muestran botones de respuesta en el espejo ni en la tablet. |
 | `CIERRE` | ~4 s | “La ingeniería no tiene un rostro único. Los estereotipos sí.” **Se envía `reposo` a las tablets.** |
 
 Después vuelve a `ATRACCION` con unos 3 segundos de enfriamiento, para que la misma persona
