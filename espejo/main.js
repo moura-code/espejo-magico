@@ -321,7 +321,6 @@ let efecto = null;
 let efectoDe = null;
 let ultimaDeteccionManos = 0;
 let ultimaDeteccionPose = 0;
-let estadoAnterior = ESTADOS.ATRACCION;
 let ausenciaVisualDesde = null;
 let ladoDelTexto = null;
 let ultimoRostroDelTexto = null;
@@ -400,14 +399,13 @@ function cuadro(ahora) {
 
   // Las manos corren en su propio reloj, mas rapido que la cara: se mueven mucho
   // mas rapido y a 22 cuadros por segundo el circulo va siempre atras de la mano
-  // de verdad. Solo se buscan cuando hay algo con que interactuar, porque es el
-  // detector mas caro del cuadro.
+  // de verdad. Se siguen durante toda la presencia para que no aparezcan de
+  // golpe recien al revelar la carrera.
   const manosRealesSirven =
     detectorDeManos &&
     video &&
     modo !== 'demo' &&
-    (estadoAnterior === ESTADOS.REVELACION ||
-      estadoAnterior === ESTADOS.ESCENA);
+    histeresis.presente();
 
   if (modo === 'demo' && ahora - ultimaDeteccionManos >= intervaloManos) {
     ultimaDeteccionManos = ahora;
@@ -461,7 +459,6 @@ function cuadro(ahora) {
   atender(salida.eventos, ahora);
 
   const estado = salida.estado;
-  estadoAnterior = estado;
   const claveDeControles = `${estado}:${maquina.esManual()}`;
   if (claveDeControles !== estadoDeControles) {
     estadoDeControles = claveDeControles;
