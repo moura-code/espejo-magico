@@ -99,7 +99,7 @@ const contenido = await cargarContenido({
   figurasValidas: figurasDisponibles(),
   efectosValidos: efectosDisponibles(),
 });
-const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
+const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/' });
 const informe = await banco.precargar(contenido.todasLasImagenes());
 if (informe.faltantes.length > 0) {
   console.warn(

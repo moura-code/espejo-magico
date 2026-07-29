@@ -13,10 +13,10 @@ import { fileURLToPath } from 'node:url';
 import { validarContenido } from '../../espejo/contenido.js';
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const CONTENIDO = resolve(RAIZ, 'contenido');
+const ASSETS = resolve(RAIZ, 'assets');
 
-const leer = async () => JSON.parse(await readFile(resolve(CONTENIDO, 'carreras.json'), 'utf8'));
-const existe = (ruta) => access(resolve(CONTENIDO, ruta)).then(() => true, () => false);
+const leer = async () => JSON.parse(await readFile(resolve(ASSETS, 'carreras.json'), 'utf8'));
+const existe = (ruta) => access(resolve(RAIZ, ruta)).then(() => true, () => false);
 
 const IDS_ESPERADOS = [
   'mecanica',

@@ -102,7 +102,7 @@ servidor/    archivos estáticos + relé WebSocket. Sin lógica de negocio.
 comun/       el protocolo, compartido por el espejo y las tablets
 espejo/      la aplicación principal
 tablet/      la página de cada tablet
-contenido/   carreras.json, PNG y videos
+assets/      carreras.json, PNG, videos e iconos de interfaz
 docs/        especificación, plan y guía de operación del stand
 ```
 
@@ -112,7 +112,7 @@ dibuja, `escena.js` no sabe que existe MediaPipe, y `fisica.js` sólo conoce
 círculos y rectángulos. Por eso la máquina de estados se prueba entera sin cámara
 ni pantalla.
 
-**Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:**
+**Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:**
 nombre, color, frase, pregunta y mensaje reflexivo, objetos, efecto de partículas
 y referentes. Agregar o cambiar una carrera no toca una línea de código.
 

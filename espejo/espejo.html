@@ -49,17 +49,12 @@
       outline: 3px solid rgba(116, 210, 255, 0.72);
       outline-offset: 3px;
     }
-    .boton-configuracion svg {
+    .boton-configuracion img {
       width: 25px;
       height: 25px;
-      fill: none;
-      stroke: currentColor;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-width: 1.8;
       transition: transform 350ms ease;
     }
-    .configuracion-abierta .boton-configuracion svg { transform: rotate(55deg); }
+    .configuracion-abierta .boton-configuracion img { transform: rotate(55deg); }
 
     .fondo-configuracion {
       position: fixed;
@@ -126,7 +121,9 @@
     }
     .boton-cerrar,
     .boton-recargar {
+      display: grid;
       flex: none;
+      place-items: center;
       color: rgba(255, 255, 255, 0.82);
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -142,6 +139,10 @@
     }
     .boton-cerrar:hover,
     .boton-recargar:hover { background: rgba(255, 255, 255, 0.14); }
+    .boton-cerrar img {
+      width: 18px;
+      height: 18px;
+    }
 
     .grupo-configuracion {
       display: grid;
@@ -177,6 +178,10 @@
       padding: 0;
       border-radius: 12px;
       font-size: 21px;
+    }
+    .boton-recargar img {
+      width: 22px;
+      height: 22px;
     }
 
     .lista-ajustes {
@@ -255,7 +260,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .boton-configuracion,
-      .boton-configuracion svg,
+      .boton-configuracion img,
       .fondo-configuracion,
       .panel-configuracion,
       .pista,
@@ -273,10 +278,7 @@
     aria-controls="panel-configuracion"
     aria-expanded="false"
   >
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"/>
-      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06-1.87 1.87-.06-.06A1.7 1.7 0 0 0 16 18.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V20h-5v-.1A1.7 1.7 0 0 0 8.6 18.4a1.7 1.7 0 0 0-1.87.34l-.06.06-1.87-1.87.06-.06A1.7 1.7 0 0 0 5.2 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4h-.1v-2.7h.1A1.7 1.7 0 0 0 5.2 9.5a1.7 1.7 0 0 0-.34-1.87L4.8 7.57 6.67 5.7l.06.06A1.7 1.7 0 0 0 8.6 6.1a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1v-.1h4.6v.1A1.7 1.7 0 0 0 16 6.1a1.7 1.7 0 0 0 1.87-.34l.06-.06 1.87 1.87-.06.06A1.7 1.7 0 0 0 19.4 9.5a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v2.7h-.1a1.7 1.7 0 0 0-1.7 1.4Z"/>
-    </svg>
+    <img src="/assets/iconos/configuracion.svg" alt="" aria-hidden="true" draggable="false">
   </button>
 
   <div id="fondo-configuracion" class="fondo-configuracion" aria-hidden="true"></div>
@@ -297,7 +299,9 @@
         class="boton-cerrar"
         type="button"
         aria-label="Cerrar configuración"
-      >×</button>
+      >
+        <img src="/assets/iconos/cerrar.svg" alt="" aria-hidden="true" draggable="false">
+      </button>
     </header>
 
     <section class="grupo-configuracion" aria-labelledby="titulo-camara">
@@ -310,7 +314,9 @@
           type="button"
           aria-label="Buscar cámaras nuevamente"
           title="Buscar cámaras nuevamente"
-        >↻</button>
+        >
+          <img src="/assets/iconos/recargar.svg" alt="" aria-hidden="true" draggable="false">
+        </button>
       </div>
       <p id="estado-camara-configuracion" class="ayuda-control" aria-live="polite">
         Buscando cámaras...
@@ -331,7 +337,7 @@
       <label class="ajuste">
         <span>
           <strong>Avance manual</strong>
-          <small>Espera ESPACIO antes de cambiar de escena.</small>
+          <small>Usa AVANZAR en la tablet antes de cambiar de escena.</small>
         </span>
         <span class="interruptor">
           <input id="avance-manual" type="checkbox">

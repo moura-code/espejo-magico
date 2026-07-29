@@ -87,7 +87,7 @@ export function validarContenido(datos, { figurasValidas = null, efectosValidos 
 }
 
 export async function cargarContenido({
-  ruta = '/contenido/carreras.json',
+  ruta = '/assets/carreras.json',
   traer = fetch,
   ...comprobaciones
 } = {}) {

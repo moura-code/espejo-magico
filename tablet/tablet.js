@@ -34,7 +34,7 @@ export function crearTablet({ slot, contenido, pantalla }) {
   };
 }
 
-export function crearPantallaDeVideo({ video, rotulo, nombre, detalle, cuerpo, raiz = '/contenido/' }) {
+export function crearPantallaDeVideo({ video, rotulo, nombre, detalle, cuerpo, raiz = '/' }) {
   return {
     mostrar(referente, carrera) {
       nombre.textContent = referente.nombre;

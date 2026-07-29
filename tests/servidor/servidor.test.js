@@ -121,6 +121,22 @@ describe('servidor', () => {
     expect(await respuesta.text()).toContain('<base href="/espejo/">');
   });
 
+  it('sirve el contenido y los iconos desde assets', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const [contenido, icono, rutaAnterior] = await Promise.all([
+      fetch(`http://localhost:${puerto}/assets/carreras.json`),
+      fetch(`http://localhost:${puerto}/assets/iconos/configuracion.svg`),
+      fetch(`http://localhost:${puerto}/contenido/carreras.json`),
+    ]);
+
+    expect(contenido.status).toBe(200);
+    expect(contenido.headers.get('content-type')).toContain('application/json');
+    expect(icono.status).toBe(200);
+    expect(icono.headers.get('content-type')).toContain('image/svg+xml');
+    expect(rutaAnterior.status).toBe(404);
+  });
+
   it('encuentra las direcciones IPv4 utilizables de la red local', () => {
     expect(
       obtenerDireccionesLocales({

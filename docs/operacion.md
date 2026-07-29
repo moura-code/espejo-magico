@@ -63,7 +63,7 @@ aparece, porque el cambio depende de detectar a una persona o tocar un botón.
 | `Ctrl` + `R` | Recarga todo |
 
 El orden de las teclas `1` a `6` es el mismo que el de las carreras en
-`contenido/carreras.json`.
+`assets/carreras.json`.
 
 La cámara elegida con `C` queda guardada aunque Chrome se recargue. Para confirmar
 cuál está activa, apretar `P` y mirar la línea `camara`.
@@ -126,13 +126,14 @@ matices.
 
 | Qué | Dónde |
 |---|---|
-| Dibujos de cada carrera | `contenido/assets/<carrera>/` |
-| Videos de las referentes | `contenido/videos/<carrera>/` |
-| Nombres, colores, frases y reflexión | `contenido/carreras.json` |
+| Dibujos de cada carrera | `assets/<carrera>/` |
+| Videos de las referentes | `assets/videos/<carrera>/` |
+| Iconos de la interfaz | `assets/iconos/` |
+| Nombres, colores, frases y reflexión | `assets/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |
 
 Para corregir el nombre de una referente **no hay que volver a renderizar el
-video**: se edita `contenido/carreras.json` y listo. Lo mismo con los colores, las
+video**: se edita `assets/carreras.json` y listo. Lo mismo con los colores, las
 frases y los nombres de las carreras.
 
 ---

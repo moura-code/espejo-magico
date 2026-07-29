@@ -24,7 +24,7 @@
         { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/mecanica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Mecánica" }
+        { "video": "assets/videos/mecanica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Mecánica" }
       ]
     },
     {
@@ -50,7 +50,7 @@
         { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/electrica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Eléctrica" }
+        { "video": "assets/videos/electrica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Eléctrica" }
       ]
     },
     {
@@ -76,7 +76,7 @@
         { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/computacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería en Computación" }
+        { "video": "assets/videos/computacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería en Computación" }
       ]
     },
     {
@@ -102,7 +102,7 @@
         { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/fisico-matematico/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Investigadora" }
+        { "video": "assets/videos/fisico-matematico/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Investigadora" }
       ]
     },
     {
@@ -128,7 +128,7 @@
         { "img": "assets/civil/viga.png", "figura": "viga", "escala": 0.22, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/civil/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Civil" }
+        { "video": "assets/videos/civil/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Civil" }
       ]
     },
     {
@@ -154,7 +154,7 @@
         { "img": "assets/quimica/gota.png", "figura": "gota", "escala": 0.14, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/quimica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Química" }
+        { "video": "assets/videos/quimica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Química" }
       ]
     }
   ]

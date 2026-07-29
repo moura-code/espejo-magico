@@ -143,10 +143,11 @@ tablet/
   tablet.html
   tablet.js             escucha el bus, precarga y reproduce el video de su slot
 
-contenido/
+assets/
   carreras.json         definición de cada carrera
-  assets/<carrera>/     PNG de objetos y accesorio
+  <carrera>/            PNG de objetos y accesorio
   videos/<carrera>/     MP4 de las referentes
+  iconos/               SVG de la interfaz
 
 vendor/
   mediapipe/            WASM + modelo, copiados. Nunca desde CDN.
@@ -312,7 +313,7 @@ apaisado, se ajustan proporciones en `config.js`, no se reescribe la escena.
 
 ## 10. El contenido como datos
 
-Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:
+Todo lo que distingue una carrera de otra vive en `assets/carreras.json`:
 
 ```json
 {
