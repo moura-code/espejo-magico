@@ -121,6 +121,16 @@ describe('servidor', () => {
     expect(await respuesta.text()).toContain('<base href="/espejo/">');
   });
 
+  it('sirve los controles en la ruta corta', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const respuesta = await fetch(`http://localhost:${puerto}/controles`);
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.headers.get('content-type')).toContain('text/html');
+    expect(await respuesta.text()).toContain('crearTabletDeControles');
+  });
+
   it('sirve el contenido y los iconos desde assets', async () => {
     servidor = crearServidor();
     const puerto = await servidor.escuchar(0);

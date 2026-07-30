@@ -15,7 +15,7 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    `http://IP-DE-LA-PC:8080/tablet/tablet.html?slot=N`
    con un número distinto en cada tablet, empezando por `0`.
 5. **Encender la tablet de controles** ubicada frente al espejo y abrir:
-   `http://IP-DE-LA-PC:8080/tablet/controles.html`.
+   `http://IP-DE-LA-PC:8080/controles`.
 6. **Hacer una prueba completa** antes de que entre el público: acercarse, esperar el
    sorteo, completar el recorrido y ver que las tablets arranquen y se apaguen.
 

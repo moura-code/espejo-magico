@@ -96,7 +96,7 @@ manos. Mientras está activa ignora el avance manual.
 Además del espejo en `/`, existen tres pantallas específicas:
 
 - `/tablet/tablet.html?slot=0` — vista para cada tablet, cambiando el número de `slot`.
-- `/tablet/controles.html` — segunda pantalla táctil con botones dinámicos.
+- `/controles` — segunda pantalla táctil con botones dinámicos.
 - `/herramientas/figuras.html` — visor técnico de las figuras disponibles.
 
 La tablet de controles muestra únicamente las acciones válidas para el estado

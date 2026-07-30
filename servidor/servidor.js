@@ -44,7 +44,11 @@ export function obtenerDireccionesLocales(interfaces = networkInterfaces()) {
 export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
   const servidorHttp = createServer(async (pedido, respuesta) => {
     const ruta = new URL(pedido.url, 'http://local').pathname;
-    const absoluta = resolve(raiz, '.' + (ruta === '/' ? '/espejo/espejo.html' : ruta));
+    const rutasEspeciales = {
+      '/': '/espejo/espejo.html',
+      '/controles': '/tablet/controles.html',
+    };
+    const absoluta = resolve(raiz, '.' + (rutasEspeciales[ruta] ?? ruta));
 
     if (absoluta !== raiz && !absoluta.startsWith(raiz + sep)) {
       respuesta.writeHead(403).end('Fuera de la raiz');
@@ -121,7 +125,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     `  Videos:    http://${direccionParaTablets}:${puerto}/tablet/tablet.html?slot=0`,
   );
   console.log(
-    `  Controles: http://${direccionParaTablets}:${puerto}/tablet/controles.html`,
+    `  Controles: http://${direccionParaTablets}:${puerto}/controles`,
   );
   console.log(`  Figuras:   http://localhost:${puerto}/herramientas/figuras.html`);
 }
