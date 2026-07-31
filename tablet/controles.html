@@ -26,11 +26,10 @@
     }
 
     #controles {
-      --cantidad: 1;
       --margen: clamp(14px, 3vmin, 28px);
       --separacion: clamp(10px, 2.4vmin, 42px);
       display: grid;
-      grid-template-columns: repeat(var(--cantidad), minmax(0, 1fr));
+      grid-template-rows: clamp(88px, 20dvh, 150px) minmax(0, 1fr);
       gap: var(--separacion);
       width: 100%;
       height: 100vh;
@@ -42,9 +41,14 @@
         max(var(--margen), env(safe-area-inset-right))
         max(var(--margen), env(safe-area-inset-bottom))
         max(var(--margen), env(safe-area-inset-left));
+      view-transition-name: panel-controles;
     }
 
-    #controles.sin-controles::after {
+    #controles.sin-acciones {
+      grid-template-rows: 1fr;
+    }
+
+    #controles:empty::after {
       content: '';
       width: 18px;
       height: 18px;
@@ -53,6 +57,146 @@
       background: #26313a;
       box-shadow: 0 0 28px rgba(98, 216, 255, 0.16);
       animation: espera-controles 1.6s ease-in-out infinite;
+    }
+
+    .estado,
+    .acciones {
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .estado {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 2vmin, 24px);
+      overflow: hidden;
+      padding: clamp(10px, 2vmin, 22px);
+      border: 1px solid #2b363e;
+      border-radius: clamp(14px, 3vmin, 30px);
+      color: #f7fbfd;
+      background: #10161a;
+      box-shadow:
+        0 16px 54px rgba(0, 0, 0, 0.34),
+        inset 0 0 42px color-mix(in srgb, var(--color-carrera, #62d8ff) 8%, transparent);
+      animation: entrar-estado 440ms cubic-bezier(.16, .8, .24, 1) both;
+    }
+
+    .estado::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-left: 5px solid var(--color-carrera, #62d8ff);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .estado p {
+      max-width: 28ch;
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 760;
+      line-height: 1.15;
+      letter-spacing: 0;
+      text-align: center;
+      text-wrap: balance;
+    }
+
+    .estado-sorteo {
+      --color-carrera: #62d8ff;
+    }
+
+    .estado-sorteo::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 5px;
+      background: #62d8ff;
+      transform: scaleX(0);
+      transform-origin: left;
+      animation: avance-sorteo var(--duracion-sorteo, 8000ms) linear forwards;
+    }
+
+    .indicador-sorteo {
+      --duracion-sorteo: 8000ms;
+      position: relative;
+      flex: 0 0 auto;
+      width: clamp(50px, 8vmin, 78px);
+      aspect-ratio: 1;
+      border: clamp(5px, 0.8vmin, 8px) solid #27343c;
+      border-top-color: #62d8ff;
+      border-right-color: #b2efff;
+      border-radius: 50%;
+      filter: drop-shadow(0 0 14px rgba(98, 216, 255, 0.26));
+      animation: girar-carga 1.1s linear infinite;
+    }
+
+    .indicador-sorteo span {
+      position: absolute;
+      inset: 27%;
+      border-radius: 50%;
+      background: #62d8ff;
+      box-shadow: 0 0 20px rgba(98, 216, 255, 0.55);
+      animation: respirar-carga 1.1s ease-in-out infinite;
+    }
+
+    .simbolo-carrera {
+      flex: 0 1 auto;
+      display: grid;
+      place-items: center;
+      width: min(13vmin, 108px);
+      height: min(11vmin, 88px);
+      min-width: 62px;
+      border: 1px solid color-mix(in srgb, var(--color-carrera) 58%, #ffffff);
+      border-radius: 8px;
+      color: var(--color-carrera);
+      background: color-mix(in srgb, var(--color-carrera) 12%, #10161a);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0;
+      filter:
+        drop-shadow(0 10px 16px rgba(0, 0, 0, 0.42))
+        drop-shadow(0 0 14px color-mix(in srgb, var(--color-carrera) 35%, transparent));
+      animation: aparecer-simbolo 580ms 100ms cubic-bezier(.16, .8, .24, 1.15) both;
+    }
+
+    .resultado-carrera {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      max-width: 34rem;
+    }
+
+    .resultado-carrera span {
+      color: #aebac1;
+      font-size: 0.78rem;
+      font-weight: 750;
+      line-height: 1.1;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .resultado-carrera strong {
+      color: var(--color-carrera);
+      font-size: 1.5rem;
+      line-height: 1.05;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    .acciones {
+      display: grid;
+      grid-template-columns: repeat(var(--cantidad), minmax(0, 1fr));
+      gap: var(--separacion);
+    }
+
+    .acciones.sin-controles {
+      display: none;
     }
 
     .control {
@@ -74,13 +218,12 @@
         inset 0 0 50px color-mix(in srgb, var(--color) 10%, transparent);
       container-type: size;
       font-family: inherit;
-      font-size: clamp(1.35rem, min(12cqh, 9cqw), 5.5rem);
+      font-size: clamp(1.25rem, min(12cqh, 8cqw), 4.5rem);
       font-weight: 800;
       line-height: 1.05;
       letter-spacing: 0;
       text-align: center;
       text-wrap: balance;
-      overflow-wrap: anywhere;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       overflow: hidden;
@@ -91,6 +234,12 @@
         transform 160ms cubic-bezier(.2, .9, .2, 1),
         filter 160ms ease,
         box-shadow 160ms ease;
+    }
+
+    .control > span {
+      position: relative;
+      z-index: 1;
+      max-width: 100%;
     }
 
     .control::before {
@@ -190,8 +339,66 @@
       }
     }
 
+    @keyframes entrar-estado {
+      from {
+        opacity: 0;
+        transform: translateX(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes aparecer-simbolo {
+      from {
+        opacity: 0;
+        transform: scale(0.72) rotate(-6deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotate(0);
+      }
+    }
+
+    @keyframes girar-carga {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes respirar-carga {
+      0%,
+      100% { transform: scale(0.72); opacity: 0.55; }
+      50% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes avance-sorteo {
+      to { transform: scaleX(1); }
+    }
+
+    @keyframes salir-vista {
+      to {
+        opacity: 0;
+        transform: translateX(-24px) scale(0.985);
+      }
+    }
+
+    @keyframes entrar-vista {
+      from {
+        opacity: 0;
+        transform: translateX(24px) scale(0.985);
+      }
+    }
+
+    ::view-transition-old(panel-controles) {
+      animation: 220ms ease-in both salir-vista;
+    }
+
+    ::view-transition-new(panel-controles) {
+      animation: 380ms cubic-bezier(.16, .8, .24, 1) both entrar-vista;
+    }
+
     @media (orientation: portrait) {
-      #controles {
+      .acciones {
         grid-template-columns: 1fr;
         grid-template-rows: repeat(var(--cantidad), minmax(0, 1fr));
       }
@@ -201,6 +408,36 @@
       #controles {
         --margen: clamp(10px, 3.2vmin, 16px);
         --separacion: clamp(8px, 2.6vmin, 14px);
+        grid-template-rows: clamp(92px, 17dvh, 124px) minmax(0, 1fr);
+      }
+
+      #controles.sin-acciones {
+        grid-template-rows: 1fr;
+      }
+
+      .estado {
+        gap: 10px;
+        padding: 9px 14px;
+        border-radius: 18px;
+      }
+
+      .estado p {
+        font-size: 1.08rem;
+      }
+
+      .simbolo-carrera {
+        width: 68px;
+        height: 60px;
+        min-width: 54px;
+        font-size: 1.45rem;
+      }
+
+      .resultado-carrera span {
+        font-size: 0.66rem;
+      }
+
+      .resultado-carrera strong {
+        font-size: 1.05rem;
       }
 
       .control {
@@ -210,11 +447,11 @@
         box-shadow:
           0 12px 36px rgba(0, 0, 0, 0.48),
           inset 0 0 34px color-mix(in srgb, var(--color) 10%, transparent);
-        font-size: clamp(1.2rem, min(11cqh, 8cqw), 3rem);
+        font-size: clamp(1.08rem, min(11cqh, 7cqw), 2.65rem);
       }
 
-      #controles[data-cantidad="3"] .control,
-      #controles[data-cantidad="4"] .control {
+      .acciones[data-cantidad="3"] .control,
+      .acciones[data-cantidad="4"] .control {
         font-size: clamp(1rem, min(9.5cqh, 7.2cqw), 2.6rem);
       }
 
@@ -231,7 +468,7 @@
     }
 
     @media (max-width: 640px) and (orientation: landscape) {
-      #controles {
+      .acciones {
         grid-template-columns: repeat(var(--cantidad), minmax(84px, 1fr));
       }
 
@@ -244,6 +481,29 @@
       #controles {
         --margen: clamp(8px, 2.6vmin, 14px);
         --separacion: clamp(8px, 2.2vmin, 14px);
+        grid-template-rows: clamp(70px, 23dvh, 88px) minmax(0, 1fr);
+      }
+
+      #controles.sin-acciones {
+        grid-template-rows: 1fr;
+      }
+
+      .estado {
+        padding-block: 8px;
+      }
+
+      .estado p {
+        font-size: 0.95rem;
+      }
+
+      .simbolo-carrera {
+        width: 58px;
+        height: 48px;
+        font-size: 1.25rem;
+      }
+
+      .resultado-carrera strong {
+        font-size: 0.95rem;
       }
 
       .control {
@@ -254,13 +514,23 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      #controles.sin-controles::after,
+      #controles:empty::after,
+      .estado,
+      .estado-sorteo::after,
+      .indicador-sorteo,
+      .indicador-sorteo span,
+      .simbolo-carrera,
       .control,
       .control.pulsado::before {
         animation: none;
       }
 
       .control { transition: none; }
+
+      ::view-transition-old(panel-controles),
+      ::view-transition-new(panel-controles) {
+        animation: none;
+      }
     }
   </style>
 </head>
@@ -270,14 +540,29 @@
 
   <script type="module">
     import { crearBus } from '/espejo/bus.js';
+    import { CONFIG } from '/espejo/config.js';
     import { crearPantallaDeControles, crearTabletDeControles } from '/tablet/controles.js';
 
     const contenedor = document.getElementById('controles');
     const conexion = document.getElementById('conexion');
-    const pantalla = crearPantallaDeControles({ contenedor });
+    let carreras = new Map();
+    try {
+      const respuesta = await fetch('/assets/carreras.json');
+      if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+      carreras = new Map(
+        (await respuesta.json()).carreras.map((carrera) => [carrera.id, carrera]),
+      );
+    } catch (error) {
+      console.warn('No se pudieron cargar los símbolos de las carreras:', error);
+    }
+    const pantalla = crearPantallaDeControles({
+      contenedor,
+      duracionSorteoMs: CONFIG.tiempos.sorteo,
+    });
     let bus = null;
     const tablet = crearTabletDeControles({
       pantalla,
+      obtenerCarrera: (id) => carreras.get(id) ?? null,
       enviar: (mensaje) => bus?.enviar(mensaje) ?? false,
     });
 

@@ -26,7 +26,7 @@ describe('controles remotos', () => {
   it('reemplaza el aviso de teclado por avanzar en la tablet durante el modo manual', () => {
     expect(
       botonesParaEstado(ESTADOS.SORTEO, { manual: true }).map((boton) => boton.id),
-    ).toEqual([ACCIONES.REINICIAR, ACCIONES.AVANZAR]);
+    ).toEqual([ACCIONES.REINICIAR]);
     expect(
       botonesParaEstado(ESTADOS.REFLEXION, {
         manual: true,
@@ -104,7 +104,7 @@ describe('controles remotos', () => {
     ).toBeNull();
   });
 
-  it('permite avanzar desde la tablet solamente en modo manual', () => {
+  it('permite avanzar desde la tablet solamente en estados manuales que esperan', () => {
     const maquina = {
       avanzar: vi.fn(() => ({ eventos: ['avanza'] })),
       reiniciar: vi.fn(),
@@ -114,7 +114,7 @@ describe('controles remotos', () => {
     expect(
       ejecutarAccionRemota({
         id: ACCIONES.AVANZAR,
-        estado: ESTADOS.SORTEO,
+        estado: ESTADOS.REFLEXION,
         maquina,
         ahora: 1200,
       }),
@@ -125,7 +125,7 @@ describe('controles remotos', () => {
     expect(
       ejecutarAccionRemota({
         id: ACCIONES.AVANZAR,
-        estado: ESTADOS.SORTEO,
+        estado: ESTADOS.REFLEXION,
         maquina,
         ahora: 1300,
       }),

@@ -104,16 +104,21 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
 
       if (hayRostro) ausenteDesde = null;
       else if (ausenteDesde === null) ausenteDesde = ahora;
+      const transcurrido = ahora - desde;
 
-      // En manual el reloj no decide nada: ni los tiempos de cada estado ni los
-      // cortes por ausencia. Solo avanzar() mueve la maquina.
-      if (enManual) return salida(eventos);
+      // En manual solo el sorteo conserva su reloj. La animacion de progreso y
+      // la revelacion deben terminar juntas aunque el resto se opere a demanda.
+      if (enManual) {
+        if (estado === ESTADOS.SORTEO && transcurrido >= tiempos.sorteo) {
+          ir(ESTADOS.REVELACION, ahora, eventos);
+        }
+        return salida(eventos);
+      }
 
       const seFue =
         !hayRostro && ausenteDesde !== null && ahora - ausenteDesde >= tiempos.ausenciaParaCortar;
       const pasoElTope =
         inicioDeSesion !== null && ahora - inicioDeSesion >= tiempos.sesionMaxima;
-      const transcurrido = ahora - desde;
 
       switch (estado) {
         case ESTADOS.ATRACCION:

@@ -267,6 +267,20 @@ describe('modo manual', () => {
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
   });
 
+  it('el sorteo avanza solo al cumplirse su duracion', () => {
+    const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
+    maquina.avanzar(0);
+    maquina.avanzar(100);
+
+    expect(maquina.actualizar({ hayRostro: true, ahora: 3099 }).estado).toBe(ESTADOS.SORTEO);
+    const salida = maquina.actualizar({ hayRostro: true, ahora: 3100 });
+
+    expect(salida.estado).toBe(ESTADOS.REVELACION);
+    expect(tipos(salida.eventos, 'carrera')).toEqual([
+      { tipo: 'carrera', id: 'civil', sesion: 1 },
+    ]);
+  });
+
   it('la escena no se termina sola, que es para lo que sirve', () => {
     const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
     for (let indice = 0; indice < 4; indice++) maquina.avanzar(indice * 100);

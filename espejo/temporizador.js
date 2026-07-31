@@ -12,7 +12,7 @@ const CLAVE_DE_TIEMPO = {
 const limitar = (valor, minimo, maximo) => Math.max(minimo, Math.min(maximo, valor));
 
 export function calcularTemporizadorEstado({ estado, transcurrido, tiempos, manual }) {
-  if (manual) return null;
+  if (manual && estado !== ESTADOS.SORTEO) return null;
 
   const clave = CLAVE_DE_TIEMPO[estado];
   const duracionMs = tiempos?.[clave];

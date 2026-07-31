@@ -186,7 +186,7 @@ describe('cadena de mensajes espejo -> servidor -> tablets', () => {
     const puerto = await levantar();
     let pulsar = null;
     const pantalla = {
-      mostrar: vi.fn((_botones, alPulsar) => {
+      mostrar: vi.fn((_estado, alPulsar) => {
         pulsar = alPulsar;
       }),
     };

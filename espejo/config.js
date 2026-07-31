@@ -2,9 +2,10 @@
 // constantes magicas: si algo hay que calibrar el dia del evento, se calibra aca.
 
 export const CONFIG = {
-  // En manual la experiencia no avanza sola: cada estado espera un ESPACIO.
-  // Sirve para probar sin pelear con el reloj — la escena no se corta a los
-  // treinta segundos ni cuando salis de cuadro.
+  // En manual cada estado espera un ESPACIO, excepto el sorteo: su progreso
+  // siempre termina solo para mantener sincronizadas todas las pantallas.
+  // Sirve para probar sin pelear con el resto del reloj — la escena no se corta
+  // a los treinta segundos ni cuando salis de cuadro.
   //
   // La experiencia arranca en automatico al detectar una cara. El modo manual
   // se puede activar desde la configuracion cuando haga falta probarla.
@@ -19,7 +20,8 @@ export const CONFIG = {
   // Duraciones de cada estado, en milisegundos.
   tiempos: {
     enganche: 4000,
-    sorteo: 6000,
+    // Tambien gobierna el progreso animado de /controles.
+    sorteo: 8000,
     revelacion: 5000,
     escena: 30000,
     reflexion: 12000,
