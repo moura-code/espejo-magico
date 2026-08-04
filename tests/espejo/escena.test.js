@@ -2,8 +2,55 @@ import { describe, it, expect } from 'vitest';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
+  dibujarManos,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
+
+// Lienzo falso: registra las llamadas para poder afirmar sobre lo dibujado.
+function crearCtxFalso() {
+  const llamadas = [];
+  return {
+    llamadas,
+    strokeStyle: '',
+    lineWidth: 0,
+    globalAlpha: 1,
+    save: () => llamadas.push(['save']),
+    restore: () => llamadas.push(['restore']),
+    beginPath: () => llamadas.push(['beginPath']),
+    arc: (x, y, radio) => llamadas.push(['arc', x, y, radio]),
+    stroke: () => llamadas.push(['stroke']),
+  };
+}
+
+describe('dibujarManos', () => {
+  const mano = { palma: { x: 300, y: 400 }, radio: 100 };
+
+  it('dibuja dos aros por mano: el circulo de colision y uno chico adentro', () => {
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [mano], '#ffffff');
+
+    const arcos = ctx.llamadas.filter(([nombre]) => nombre === 'arc');
+    expect(arcos).toEqual([
+      ['arc', 300, 400, 100],
+      ['arc', 300, 400, 35],
+    ]);
+    expect(ctx.strokeStyle).toBe('#ffffff');
+  });
+
+  it('no toca el lienzo sin manos', () => {
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [], '#ffffff');
+    dibujarManos(ctx, null, '#ffffff');
+    expect(ctx.llamadas).toEqual([]);
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [mano, { palma: { x: 700, y: 200 }, radio: 80 }], '#ffffff');
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
+});
 
 describe('tamanoQueEntra', () => {
   // Medida falsa: cada caracter ocupa la mitad del tamaño de letra.

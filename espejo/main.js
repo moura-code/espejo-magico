@@ -443,6 +443,15 @@ function cuadro(ahora) {
 
   dibujarObjetos(ctx, pool.vivos(), banco, carrera?.color ?? '#8899aa');
 
+  // Los aros de las manos se ven siempre: son la señal de que las manos
+  // interactuan. Se dibuja la mano que manda segun el modo — la filtrada en
+  // iman (donde esta el atractor), la cruda en golpe (donde pega el manotazo).
+  dibujarManos(
+    ctx,
+    interaccionDeManos === 'atraer' ? manosSuaves : manos,
+    carrera?.color ?? '#ffffff',
+  );
+
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
     dibujarAccesorio(ctx, rostro, carrera, banco);
   }

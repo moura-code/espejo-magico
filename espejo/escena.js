@@ -140,9 +140,10 @@ const MARGEN_TEXTO = 0.9;
 /**
  * Un aro en cada palma, del tamaño real del circulo de colision.
  *
- * Solo se dibuja con el diagnostico de malla encendido (tecla M): en la
- * experiencia el visitante no ve nada de esto. Sirve para confirmar que lo que
- * golpea los objetos coincide con donde esta la mano de verdad.
+ * Se dibuja siempre que hay manos detectadas: es lo que le avisa al visitante
+ * que puede interactuar con las suyas. La malla (tecla M) agrega ademas la
+ * version cruda en amarillo, para comparar el circulo que golpea con la mano
+ * de verdad.
  */
 export function dibujarManos(ctx, manos, color) {
   if (!manos || manos.length === 0) return;
