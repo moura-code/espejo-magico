@@ -1,28 +1,42 @@
-// La niebla del sorteo y el agujero de la revelacion.
+// Las nubes del espejo: su estado de reposo, no un efecto de mitad de sesion.
 //
-// `cobertura` es cuanta niebla hay. `revelado` es cuanto se abrio el agujero
-// alrededor de la cara. Separarlos deja que la revelacion se anime sin que la
-// niebla desaparezca de golpe.
+// El espejo descansa cubierto; las nubes se abren desde la cara del visitante
+// en la revelacion y se vuelven a cerrar cuando la persona se va. `cobertura`
+// es cuanta niebla hay; `revelado` es cuanto se abrio el agujero alrededor de
+// la cara. Separarlos deja que la revelacion se anime sin que la niebla
+// desaparezca de golpe.
+//
+// objetivoDeNiebla dice a donde quiere llegar cada estado. acercarNiebla es
+// quien la lleva, a velocidad acotada: la maquina puede saltar de estado de un
+// cuadro al otro (alguien se levanta en plena revelacion), pero la niebla no
+// salta nunca con ella.
 
 import { ESTADOS } from './maquina-estados.js';
 
-const FRACCION_DE_ENTRADA = 0.4;
-const acotar = (valor) => Math.min(1, Math.max(0, valor));
-
-export function calcularNiebla({ estado, transcurrido, tiempos }) {
+export function objetivoDeNiebla(estado) {
   switch (estado) {
-    case ESTADOS.SORTEO:
-      return {
-        cobertura: acotar(transcurrido / (tiempos.sorteo * FRACCION_DE_ENTRADA)),
-        revelado: 0,
-      };
     case ESTADOS.REVELACION:
-      return { cobertura: 1, revelado: acotar(transcurrido / tiempos.revelacion) };
+      return { cobertura: 1, revelado: 1 };
     case ESTADOS.ESCENA:
       return { cobertura: 0, revelado: 1 };
+    // ATRACCION, ENGANCHE, SORTEO y CIERRE: espejo tapado. El cierre es el
+    // momento en que las nubes vuelven a cubrirlo.
     default:
-      return { cobertura: 0, revelado: 0 };
+      return { cobertura: 1, revelado: 0 };
   }
+}
+
+export function acercarNiebla(actual, objetivo, dt, velocidades) {
+  const paso = (de, a, velocidad) => {
+    const maximo = velocidad * dt;
+    const delta = a - de;
+    return Math.abs(delta) <= maximo ? a : de + Math.sign(delta) * maximo;
+  };
+
+  return {
+    cobertura: paso(actual.cobertura, objetivo.cobertura, velocidades.cobertura),
+    revelado: paso(actual.revelado, objetivo.revelado, velocidades.revelado),
+  };
 }
 
 export function crearNiebla({ cantidad, azar = Math.random }) {
@@ -39,10 +53,13 @@ export function crearNiebla({ cantidad, azar = Math.random }) {
   return {
     jirones: () => jirones,
 
-    actualizar(dt) {
-      tiempo += dt;
+    // La agitacion multiplica el movimiento: es el redoble del sorteo. Como la
+    // niebla ya esta puesta desde el reposo, lo que anuncia que algo esta
+    // pasando es que los jirones se agitan.
+    actualizar(dt, agitacion = 1) {
+      tiempo += dt * agitacion;
       for (const jiron of jirones) {
-        jiron.x += jiron.velocidad * dt;
+        jiron.x += jiron.velocidad * dt * agitacion;
         // Se envuelven a los costados. Los limites son mas anchos que la
         // pantalla para que un jiron no aparezca de la nada en el borde.
         if (jiron.x < -0.3) jiron.x = 1.3;

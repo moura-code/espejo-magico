@@ -40,15 +40,17 @@ describe('calcularDisposicion', () => {
     expect(calcularDisposicion(1920, 1080).vertical).toBe(false);
   });
 
-  it('deja el piso arriba del borde para que el texto no quede tapado', () => {
+  // Los objetos tienen que llegar hasta el borde de abajo: un piso mas arriba se
+  // percibe como una repisa invisible flotando en el aire (feedback de la primera
+  // prueba). El texto no se defiende con un piso sino con el orden de dibujo.
+  it('la caja de fisica llega hasta el borde inferior de la pantalla', () => {
     const d = calcularDisposicion(1080, 1920);
-    expect(d.piso).toBeLessThan(1920);
-    expect(d.piso).toBeGreaterThan(1920 * 0.7);
+    expect(d.caja).toEqual({ x: 0, y: 0, ancho: 1080, alto: 1920 });
   });
 
-  it('la caja de fisica termina en el piso', () => {
-    const d = calcularDisposicion(1080, 1920);
-    expect(d.caja).toEqual({ x: 0, y: 0, ancho: 1080, alto: d.piso });
+  it('la caja llega al borde tambien en pantalla apaisada', () => {
+    const d = calcularDisposicion(1920, 1080);
+    expect(d.caja.alto).toBe(1080);
   });
 
   it('la caja nunca se sale de la pantalla', () => {

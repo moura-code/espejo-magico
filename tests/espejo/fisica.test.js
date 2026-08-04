@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
+  atraerHaciaCirculo,
+  separarCuerpos,
   crearCuerpo,
   integrar,
   rebotarContraCirculo,
@@ -114,6 +116,125 @@ describe('rebotarContraCirculo', () => {
   });
 });
 
+// El modo iman: en lugar de manotear los objetos, la mano los junta a su
+// alrededor. El campo es un resorte hacia un anillo de reposo alrededor de la
+// palma — afuera del anillo tira, adentro empuja — y dentro del campo los
+// objetos se frenan para no pasar de largo. Sin anillo, todo lo capturado
+// converge a un unico punto y se encima; sin freno, pasa de largo como una
+// honda. Las dos cosas se vieron en pantalla antes de llegar a esta forma.
+describe('atraerHaciaCirculo', () => {
+  const CAMPO = { fuerza: 4000, amortiguacion: 2.5 };
+  // Un cuerpo de radio 10 descansa a 110 del centro (reposo + su radio).
+  const atractor = { x: 400, y: 500, alcance: 300, reposo: 100 };
+
+  it('acelera hacia el anillo de reposo a un objeto que esta afuera', () => {
+    const cuerpo = crearCuerpo({ x: 250, y: 500, radio: 10 });
+    expect(atraerHaciaCirculo(cuerpo, atractor, 0.1, CAMPO)).toBe(true);
+    expect(cuerpo.vx).toBeGreaterThan(0);
+    expect(cuerpo.vy).toBeCloseTo(0);
+  });
+
+  it('empuja hacia afuera a un objeto metido dentro del anillo', () => {
+    const cuerpo = crearCuerpo({ x: 360, y: 500, radio: 10 });
+    expect(atraerHaciaCirculo(cuerpo, atractor, 0.1, CAMPO)).toBe(true);
+    expect(cuerpo.vx).toBeLessThan(0);
+  });
+
+  it('no hace nada fuera del alcance', () => {
+    const cuerpo = crearCuerpo({ x: 50, y: 500, vx: 30, radio: 10 });
+    expect(atraerHaciaCirculo(cuerpo, atractor, 0.1, CAMPO)).toBe(false);
+    expect(cuerpo.vx).toBe(30);
+  });
+
+  it('el resorte tira mas fuerte cuanto mas lejos del anillo', () => {
+    const cerca = crearCuerpo({ x: 270, y: 500, radio: 10 });
+    const lejos = crearCuerpo({ x: 130, y: 500, radio: 10 });
+    atraerHaciaCirculo(cerca, atractor, 0.1, CAMPO);
+    atraerHaciaCirculo(lejos, atractor, 0.1, CAMPO);
+    expect(Math.abs(lejos.vx)).toBeGreaterThan(Math.abs(cerca.vx));
+  });
+
+  it('frena al objeto dentro del campo para que no pase de largo', () => {
+    const cuerpo = crearCuerpo({ x: 400, y: 450, vy: 1000, radio: 10 });
+    atraerHaciaCirculo(cuerpo, atractor, 0.2, { fuerza: 0, amortiguacion: 2.5 });
+    expect(cuerpo.vy).toBeLessThan(1000);
+    expect(cuerpo.vy).toBeGreaterThan(0);
+  });
+
+  it('el frenado no depende del tamaño del paso', () => {
+    const dePaso = crearCuerpo({ x: 400, y: 450, vy: 1000, radio: 10 });
+    const dePasitos = crearCuerpo({ x: 400, y: 450, vy: 1000, radio: 10 });
+
+    atraerHaciaCirculo(dePaso, atractor, 0.4, { fuerza: 0, amortiguacion: 2.5 });
+    atraerHaciaCirculo(dePasitos, atractor, 0.2, { fuerza: 0, amortiguacion: 2.5 });
+    atraerHaciaCirculo(dePasitos, atractor, 0.2, { fuerza: 0, amortiguacion: 2.5 });
+
+    expect(dePaso.vy).toBeCloseTo(dePasitos.vy, 5);
+  });
+
+  it('no divide por cero si el objeto esta justo en el centro', () => {
+    const cuerpo = crearCuerpo({ x: 400, y: 500, vx: 100, radio: 10 });
+    expect(() => atraerHaciaCirculo(cuerpo, atractor, 0.1, CAMPO)).not.toThrow();
+    expect(Number.isFinite(cuerpo.vx) && Number.isFinite(cuerpo.vy)).toBe(true);
+  });
+});
+
+// La otra mitad del racimo: los objetos capturados no pueden encimarse. La
+// correccion es posicional y ademas anula la velocidad de acercamiento
+// (contacto inelastico): solo apartar posiciones deja que el resorte reacelere
+// lo corregido y el racimo hierve en vez de asentarse.
+describe('separarCuerpos', () => {
+  it('aparta de a poco un par solapado, sin inyectarle velocidad', () => {
+    const a = crearCuerpo({ x: 500, y: 500, radio: 25 });
+    const b = crearCuerpo({ x: 520, y: 500, radio: 25 });
+
+    separarCuerpos([a, b], 1 / 60, 10);
+
+    const distancia = Math.hypot(b.x - a.x, b.y - a.y);
+    expect(distancia).toBeGreaterThan(20);
+    expect(distancia).toBeLessThan(50);
+    expect(a.vx).toBe(0);
+    expect(b.vx).toBe(0);
+  });
+
+  it('anula la velocidad con la que un par solapado se acerca', () => {
+    const a = crearCuerpo({ x: 500, y: 500, vx: 100, radio: 25 });
+    const b = crearCuerpo({ x: 520, y: 500, vx: -100, radio: 25 });
+
+    separarCuerpos([a, b], 1 / 60, 10);
+
+    const acercamiento = (b.vx - a.vx) * 1;
+    expect(acercamiento).toBeGreaterThanOrEqual(0);
+  });
+
+  it('a un par que se esta alejando no lo frena', () => {
+    const a = crearCuerpo({ x: 500, y: 500, vx: -80, radio: 25 });
+    const b = crearCuerpo({ x: 520, y: 500, vx: 80, radio: 25 });
+
+    separarCuerpos([a, b], 1 / 60, 10);
+
+    expect(a.vx).toBe(-80);
+    expect(b.vx).toBe(80);
+  });
+
+  it('no toca un par que no se solapa', () => {
+    const a = crearCuerpo({ x: 100, y: 500, vx: 10, radio: 25 });
+    const b = crearCuerpo({ x: 400, y: 500, vx: -10, radio: 25 });
+
+    separarCuerpos([a, b], 1 / 60, 10);
+
+    expect([a.x, a.vx, b.x, b.vx]).toEqual([100, 10, 400, -10]);
+  });
+
+  it('no divide por cero con dos cuerpos exactamente encimados', () => {
+    const a = crearCuerpo({ x: 500, y: 500, radio: 25 });
+    const b = crearCuerpo({ x: 500, y: 500, radio: 25 });
+
+    expect(() => separarCuerpos([a, b], 1 / 60, 10)).not.toThrow();
+    expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeGreaterThan(0);
+  });
+});
+
 describe('limitarACaja', () => {
   it('no deja que atraviese el piso', () => {
     const cuerpo = crearCuerpo({ x: 500, y: 995, vy: 400, radio: 20 });
@@ -206,6 +327,69 @@ describe('paso', () => {
       expect(cuerpo.y).toBeLessThanOrEqual(CAJA.y + CAJA.alto - cuerpo.radio + 0.5);
       expect(Number.isFinite(cuerpo.x) && Number.isFinite(cuerpo.y)).toBe(true);
     }
+  });
+
+  it('los atractores del mundo tiran de los objetos', () => {
+    const mundo = {
+      gravedad: 0,
+      restitucion: 0.5,
+      friccion: 1,
+      caja: CAJA,
+      colisionadores: [],
+      atractores: [{ x: 800, y: 500, alcance: 300, reposo: 100 }],
+      atraccion: { fuerza: 4000, amortiguacion: 2.5, separacion: 10 },
+    };
+
+    const cuerpo = crearCuerpo({ x: 600, y: 500, radio: 20 });
+    paso([cuerpo], 1 / 60, mundo);
+    expect(cuerpo.vx).toBeGreaterThan(0);
+  });
+
+  // En modo iman la mano NO es colisionador: el anillo de reposo del propio
+  // campo es lo que regula donde descansan los objetos. El anillo es bien chico
+  // (reposoFactor) para que el racimo se abrace a la palma en vez de flotar
+  // lejos. Los numeros son los de config.js: si alguien los baja hasta que el
+  // iman deja de sostener contra la gravedad, o de calmar el racimo, esto avisa.
+  const MUNDO_IMAN = () => ({
+    gravedad: 1600,
+    restitucion: 0.55,
+    friccion: 0.98,
+    caja: CAJA,
+    colisionadores: [],
+    atractores: [{ x: 500, y: 400, alcance: 90 * 2.6, reposo: 90 * 0.3 }],
+    atraccion: { fuerza: 8000, amortiguacion: 3.5, separacion: 10 },
+  });
+
+  it('un objeto cerca de la mano queda abrazado a la palma en vez de caer', () => {
+    // Arranca al costado de la mano, donde nada lo sostiene: sin el iman cae al
+    // piso y la prueba falla.
+    const cuerpo = crearCuerpo({ x: 650, y: 400, radio: 25 });
+    for (let i = 0; i < 600; i++) paso([cuerpo], 1 / 60, MUNDO_IMAN());
+
+    const distancia = Math.hypot(cuerpo.x - 500, cuerpo.y - 400);
+    // Cuelga apenas debajo del anillo de reposo (27 + 25 px), pegado a la mano.
+    expect(distancia).toBeLessThan(120);
+    expect(distancia).toBeGreaterThan(40);
+    expect(cuerpo.y).toBeLessThan(750);
+  });
+
+  // El zumbido que se vio en pantalla: el objeto capturado nunca se aquietaba,
+  // porque el tiron continuo del iman peleaba con el rebote del colisionador.
+  it('un objeto capturado se aquieta en vez de vibrar contra la mano', () => {
+    const cuerpo = crearCuerpo({ x: 650, y: 400, radio: 25 });
+    for (let i = 0; i < 600; i++) paso([cuerpo], 1 / 60, MUNDO_IMAN());
+
+    expect(Math.hypot(cuerpo.vx, cuerpo.vy)).toBeLessThan(80);
+  });
+
+  // El bollo que se vio en pantalla: todos los capturados convergian al mismo
+  // punto de equilibrio y quedaban encimados en un solo lugar.
+  it('dos objetos capturados no quedan encimados', () => {
+    const a = crearCuerpo({ x: 650, y: 400, radio: 25 });
+    const b = crearCuerpo({ x: 360, y: 380, radio: 25 });
+    for (let i = 0; i < 600; i++) paso([a, b], 1 / 60, MUNDO_IMAN());
+
+    expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeGreaterThan(40);
   });
 
   it('los objetos se aquietan en el piso en vez de rebotar para siempre', () => {

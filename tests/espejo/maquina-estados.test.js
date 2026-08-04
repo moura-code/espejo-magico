@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { crearMaquina, ESTADOS } from '../../espejo/maquina-estados.js';
 
+// La escena no tiene duracion propia: dura mientras la persona siga sentada,
+// con sesionMaxima como unico tope.
 const TIEMPOS = {
   enganche: 2000,
   sorteo: 3000,
   revelacion: 2000,
-  escena: 30000,
   cierre: 4000,
   enfriamiento: 3000,
   ausenciaParaCortar: 3000,
@@ -47,20 +48,17 @@ describe('crearMaquina', () => {
     expect(tipos(salida.eventos, 'entra')).toHaveLength(1);
   });
 
-  it('recorre el ciclo completo con alguien sentado', () => {
+  it('recorre el ciclo completo: la persona entra, vive su escena y se va', () => {
     const maquina = nueva();
-    const vistos = [];
 
-    let ahora = 0;
-    while (ahora <= 45000) {
-      const salida = maquina.actualizar({ hayRostro: true, ahora });
-      for (const evento of salida.eventos) {
-        if (evento.tipo === 'entra') vistos.push(evento.estado);
-      }
-      ahora += 100;
-    }
+    const conPersona = avanzar(maquina, 0, 10000, true);
+    const sinPersona = avanzar(maquina, 10100, 20000, false);
 
-    expect(vistos.slice(0, 6)).toEqual([
+    const vistos = [...conPersona.eventos, ...sinPersona.eventos]
+      .filter((e) => e.tipo === 'entra')
+      .map((e) => e.estado);
+
+    expect(vistos).toEqual([
       ESTADOS.ENGANCHE,
       ESTADOS.SORTEO,
       ESTADOS.REVELACION,
@@ -91,8 +89,25 @@ describe('crearMaquina', () => {
 
   it('emite reposo al entrar en cierre', () => {
     const maquina = nueva();
-    const salida = avanzar(maquina, 0, 40000, true);
+    avanzar(maquina, 0, 8000, true);
+    const salida = avanzar(maquina, 8100, 16000, false);
     expect(tipos(salida.eventos, 'reposo')).toHaveLength(1);
+  });
+
+  // La escena es de la persona, no del reloj: mientras siga sentada, sigue su
+  // escena (feedback de la primera prueba). Los unicos cortes son que se vaya
+  // o el tope de sesion, que queda como red de seguridad del stand.
+  it('la escena no termina sola: sigue mientras la persona siga sentada', () => {
+    const maquina = nueva();
+    avanzar(maquina, 0, 8000, true);
+    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+
+    // No alcanza con mirar el estado final: el ciclo entero dura menos de un
+    // minuto, asi que podria dar la vuelta y volver a caer en ESCENA. Lo que
+    // se exige es que no haya habido ni un solo cambio de estado en el medio.
+    const salida = avanzar(maquina, 8100, 60000, true);
+    expect(salida.estado).toBe(ESTADOS.ESCENA);
+    expect(tipos(salida.eventos, 'entra')).toHaveLength(0);
   });
 
   it('corta a cierre si el rostro falta mas de lo permitido durante la escena', () => {
@@ -137,13 +152,16 @@ describe('crearMaquina', () => {
 
   it('no arranca otra sesion durante el enfriamiento', () => {
     const maquina = nueva();
-    const finDelCiclo = avanzar(maquina, 0, 42000, true);
+    avanzar(maquina, 0, 8000, true);
+    // Se va: cierre por ausencia (11100) y vuelta a atraccion (15100).
+    const finDelCiclo = avanzar(maquina, 8100, 15500, false);
     expect(finDelCiclo.estado).toBe(ESTADOS.ATRACCION);
 
-    const enFrio = avanzar(maquina, finDelCiclo.ahora + 100, finDelCiclo.ahora + 1000, true);
+    // Vuelve enseguida: el enfriamiento todavia lo frena.
+    const enFrio = avanzar(maquina, 15600, 17500, true);
     expect(enFrio.estado).toBe(ESTADOS.ATRACCION);
 
-    const yaCaliente = maquina.actualizar({ hayRostro: true, ahora: finDelCiclo.ahora + 5000 });
+    const yaCaliente = maquina.actualizar({ hayRostro: true, ahora: 19000 });
     expect(yaCaliente.estado).toBe(ESTADOS.ENGANCHE);
   });
 
@@ -158,8 +176,8 @@ describe('crearMaquina', () => {
   });
 
   it('corta por tope de sesion aunque la persona siga ahi', () => {
-    const tiemposLargos = { ...TIEMPOS, escena: 600000, sesionMaxima: 20000 };
-    const maquina = crearMaquina({ tiempos: tiemposLargos, sortear: () => 'civil' });
+    const tiemposCortos = { ...TIEMPOS, sesionMaxima: 20000 };
+    const maquina = crearMaquina({ tiempos: tiemposCortos, sortear: () => 'civil' });
 
     const salida = avanzar(maquina, 0, 25000, true);
     expect([ESTADOS.CIERRE, ESTADOS.ATRACCION]).toContain(salida.estado);
@@ -190,7 +208,8 @@ describe('crearMaquina', () => {
 
   it('limpia la carrera al volver a atraccion', () => {
     const maquina = nueva();
-    avanzar(maquina, 0, 42000, true);
+    avanzar(maquina, 0, 8000, true);
+    avanzar(maquina, 8100, 16000, false);
     expect(maquina.carrera()).toBeNull();
   });
 
@@ -221,10 +240,12 @@ describe('crearMaquina', () => {
 
   it('avanzar no respeta el enfriamiento: si aprieto el boton, arranca', () => {
     const maquina = nueva();
-    avanzar(maquina, 0, 42000, true);
+    avanzar(maquina, 0, 8000, true);
+    avanzar(maquina, 8100, 15500, false);
     expect(maquina.estado()).toBe(ESTADOS.ATRACCION);
 
-    expect(maquina.avanzar(42100).estado).toBe(ESTADOS.ENGANCHE);
+    // 15600 esta en pleno enfriamiento (hasta 18100): el boton manda igual.
+    expect(maquina.avanzar(15600).estado).toBe(ESTADOS.ENGANCHE);
   });
 });
 

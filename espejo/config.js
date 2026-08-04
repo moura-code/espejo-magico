@@ -3,21 +3,21 @@
 
 export const CONFIG = {
   // En manual la experiencia no avanza sola: cada estado espera un ESPACIO.
-  // Sirve para probar sin pelear con el reloj — la escena no se corta a los
-  // treinta segundos ni cuando salis de cuadro.
-  //
-  // PARA EL EVENTO ESTO TIENE QUE ESTAR EN false. Mientras este en true, el
-  // espejo avisa en pantalla, asi no se llega al stand con el modo puesto.
+  // Sirve para probar sin pelear con el reloj — la sesion no se corta cuando
+  // salis de cuadro. En false (lo normal, y lo unico valido para el evento) la
+  // experiencia es automatica; la tecla A alterna en vivo, y mientras el modo
+  // manual este activo el espejo lo avisa en pantalla.
   avance: {
-    manual: true,
+    manual: false,
   },
 
-  // Duraciones de cada estado, en milisegundos.
+  // Duraciones de cada estado, en milisegundos. La escena no tiene duracion
+  // propia a proposito: dura mientras la persona siga sentada, y el unico tope
+  // es sesionMaxima, que hace de red de seguridad y de rotacion de la fila.
   tiempos: {
     enganche: 2000,
     sorteo: 3000,
     revelacion: 2000,
-    escena: 30000,
     cierre: 4000,
     enfriamiento: 3000,
     ausenciaParaCortar: 3000,
@@ -84,6 +84,35 @@ export const CONFIG = {
     // velocidad absurda.
     alfaVelocidad: 0.4,
     velocidadMaxima: 4000,
+
+    // Que hacen las manos con los objetos que caen.
+    //   'atraer':  iman — los objetos se juntan y quedan flotando alrededor de
+    //              la palma (pedido de la primera prueba con publico).
+    //   'golpear': los objetos rebotan y se manotean.
+    // La tecla I alterna en vivo, para comparar los dos modos con gente delante.
+    interaccion: 'atraer',
+
+    // El campo del iman: un resorte hacia un anillo de reposo alrededor de la
+    // palma, con los capturados separandose entre si para no encimarse. La
+    // fuerza tiene que ganarle comodo a fisica.gravedad, o los objetos se
+    // escurren por debajo del campo; con 8000 el iman captura desde cualquier
+    // angulo y el racimo queda quieto (fisica.test.js lo vigila).
+    atraccion: {
+      alcanceFactor: 2.6, // alcance del campo, en radios de mano
+      reposoFactor: 0.3, // anillo de reposo, en radios de mano: bien chico para que el racimo se abrace a la palma y no flote lejos
+      fuerza: 8000, // aceleracion maxima del resorte, en px/s2
+      amortiguacion: 3.5, // 1/s: cuanto se frenan los objetos dentro del campo
+      separacion: 10, // 1/s: que tan rapido se apartan dos capturados encimados
+    },
+
+    // Suavizado SOLO para el iman: el racimo cuelga de la palma en forma
+    // permanente, asi que el temblor de la deteccion se le traslada entero; el
+    // atractor sigue una palma filtrada que lo corta. El modo golpe usa la
+    // palma cruda a proposito — el filtro mete retardo y el manotazo lo sufre.
+    suavizadoDelIman: {
+      posicion: 0.35,
+      radio: 0.25,
+    },
   },
 
   objetos: {
@@ -96,6 +125,19 @@ export const CONFIG = {
     // Particulas por carrera. Como los objetos, tope fijo: el rendimiento no
     // puede depender de cuanto tiempo lleve alguien sentado.
     presupuesto: 60,
+  },
+
+  // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
+  // hay nadie, se abren desde la cara en la revelacion y se vuelven a cerrar en
+  // el cierre. Las velocidades acotan cuanto puede cambiar la niebla por
+  // segundo: son lo que garantiza que ningun corte de estado pegue un salto.
+  niebla: {
+    cantidad: 26, // jirones en pantalla
+    agitacionSorteo: 3, // cuanto se aceleran los jirones durante el sorteo
+    velocidades: {
+      cobertura: 0.7, // fraccion por segundo: tapar o despejar lleva ~1.4 s
+      revelado: 0.5, // el agujero de la revelacion se abre en ~2 s
+    },
   },
 
   fisica: {

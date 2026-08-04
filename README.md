@@ -2,12 +2,14 @@
 
 Instalación interactiva para el stand de una Facultad de Ingeniería.
 
-Un visitante se sienta frente a una pantalla enmarcada como espejo. Una cámara lo
-captura, el sistema detecta su rostro y le sortea una de seis ingenierías. La
-pantalla se cubre de niebla, se despeja, y el participante aparece rodeado de
-objetos característicos de esa carrera que caen, rebotan contra su cabeza y se
-pueden manotear con las manos. En simultáneo, unas tablets alrededor reproducen
-videos de mujeres vinculadas a esa disciplina.
+Un visitante se sienta frente a una pantalla enmarcada como espejo, que descansa
+cubierta de nubes. Una cámara detecta su rostro, la niebla se agita y se abre, y
+le sortea una de seis ingenierías: el participante aparece rodeado de objetos
+característicos de esa carrera que caen, rebotan contra su cabeza y se juntan
+como un imán alrededor de sus manos (o se manotean, con la tecla `I`). La escena
+dura mientras la persona siga sentada; cuando se va, las nubes vuelven a cubrir
+el espejo. En simultáneo, unas tablets alrededor reproducen videos de mujeres
+vinculadas a esa disciplina.
 
 Todo corre en el navegador, en una sola PC, **sin conexión a internet**.
 
@@ -18,7 +20,7 @@ Hace falta Node.js y Chrome.
 ```bash
 npm install
 npm run vendorizar   # copia MediaPipe y baja los modelos — única vez que necesita red
-npm test             # 412 pruebas
+npm test             # 441 pruebas
 ```
 
 Para levantarlo:
@@ -38,7 +40,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 
 | Comando | Para qué |
 |---|---|
-| `npm test` | ¿Funciona el código? 412 pruebas. Tiene que estar en verde siempre. |
+| `npm test` | ¿Funciona el código? 441 pruebas. Tiene que estar en verde siempre. |
 | `npm run listo` | ¿Se puede montar el stand? Verifica que el contenido real esté completo. Está en rojo hasta que lleguen los PNG y los videos, y eso es lo esperado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro y manos. |
 | `npm start` | Levanta el servidor local. |
@@ -51,6 +53,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | `A` | Alterna avance manual / automático |
 | `1`–`6` | Fuerza una carrera y salta a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
+| `I` | Cambia qué hacen las manos: imán (junta los objetos) o manotazo |
 | `D` | Modo demo: funciona sin cámara |
 | `M` | Muestra los puntos que el sistema detecta en cara y manos |
 | `P` | Panel de estado y FPS |

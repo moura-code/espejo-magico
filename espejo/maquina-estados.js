@@ -140,8 +140,11 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
           else if (transcurrido >= tiempos.revelacion) ir(ESTADOS.ESCENA, ahora, eventos);
           break;
 
+        // La escena es de la persona, no del reloj: dura mientras siga sentada.
+        // Se corta cuando se va, o al tope de sesion, que queda como red de
+        // seguridad del stand (y como rotacion de la fila en horas pico).
         case ESTADOS.ESCENA:
-          if (seFue || pasoElTope || transcurrido >= tiempos.escena) {
+          if (seFue || pasoElTope) {
             ir(ESTADOS.CIERRE, ahora, eventos);
           }
           break;

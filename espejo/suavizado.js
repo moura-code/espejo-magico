@@ -66,6 +66,64 @@ export function crearFiltroRostro({ posicion, radio, angulo }) {
 }
 
 /**
+ * Suavizado de manos, SOLO para el iman. El atractor cuelga el racimo de la
+ * palma en forma permanente, asi que el temblor de la deteccion se traslada
+ * entero a los objetos; el filtro lo corta. El modo golpe usa la palma cruda a
+ * proposito: el filtro mete retardo y el manotazo necesita reflejos.
+ *
+ * Cada mano lleva su propio filtro. La clave es el lado mas su numero de
+ * aparicion, porque MediaPipe puede reportar dos manos del mismo lado; si
+ * compartieran filtro, el suavizado rebotaria entre las dos posiciones. Una
+ * mano que desaparece pierde su historia: al reaparecer arranca donde esta,
+ * no deslizandose desde donde estaba la anterior.
+ */
+export function crearFiltroDeManos({ posicion, radio }) {
+  const porClave = new Map();
+
+  const nuevoJuego = () => ({
+    x: crearFiltroExponencial(posicion),
+    y: crearFiltroExponencial(posicion),
+    radio: crearFiltroExponencial(radio),
+  });
+
+  return {
+    filtrar(manos) {
+      const vecesPorLado = new Map();
+      const vistas = new Set();
+
+      const filtradas = manos.map((mano) => {
+        const veces = vecesPorLado.get(mano.lado) ?? 0;
+        vecesPorLado.set(mano.lado, veces + 1);
+        const clave = `${mano.lado}#${veces}`;
+        vistas.add(clave);
+
+        if (!porClave.has(clave)) porClave.set(clave, nuevoJuego());
+        const filtros = porClave.get(clave);
+
+        return {
+          ...mano,
+          palma: {
+            x: filtros.x.filtrar(mano.palma.x),
+            y: filtros.y.filtrar(mano.palma.y),
+          },
+          radio: filtros.radio.filtrar(mano.radio),
+        };
+      });
+
+      for (const clave of porClave.keys()) {
+        if (!vistas.has(clave)) porClave.delete(clave);
+      }
+
+      return filtradas;
+    },
+
+    reiniciar() {
+      porClave.clear();
+    },
+  };
+}
+
+/**
  * Entrar es rapido, salir es lento. La asimetria es deliberada: unos pocos
  * cuadros bastan para reconocer que alguien se sento, pero hace falta casi
  * medio segundo sin rostro para dar por hecho que se fue.

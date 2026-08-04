@@ -1,5 +1,6 @@
-// Fisica de los objetos que caen: gravedad, rebote contra la cabeza, piso y
-// paredes. Escrita a mano, sin motor externo.
+// Fisica de los objetos que caen: gravedad, rebote contra la cabeza, piso,
+// paredes y campos de atraccion (el modo iman de las manos). Escrita a mano,
+// sin motor externo.
 //
 // Un motor como Matter.js daria apilamiento mas convincente, pero suma peso, una
 // API que aprender y comportamientos dificiles de acotar. El contrato de este
@@ -51,6 +52,87 @@ export function rebotarContraCirculo(cuerpo, circulo, restitucion) {
   return true;
 }
 
+/**
+ * El modo iman: un resorte hacia un anillo de reposo alrededor de la palma.
+ *
+ * Cada cuerpo descansa a `atractor.reposo + su propio radio` del centro:
+ * afuera de ese anillo el campo tira, adentro empuja. Tirar hacia el centro a
+ * secas no sirve — todo lo capturado converge a un unico punto de equilibrio y
+ * se encima — y combinarlo con la palma como colisionador tampoco: el tiron
+ * continuo pelea con el rebote y el objeto vibra sin aquietarse nunca. El
+ * anillo resuelve los dos frentes y ademas deja que cuerpos de distinto tamaño
+ * se acomoden en capas.
+ *
+ * Dentro del campo la velocidad se amortigua: sin ese freno el objeto pasa de
+ * largo como una honda. El freno es exponencial para no depender del paso.
+ */
+export function atraerHaciaCirculo(cuerpo, atractor, dt, campo) {
+  const dx = atractor.x - cuerpo.x;
+  const dy = atractor.y - cuerpo.y;
+  const distancia = Math.hypot(dx, dy);
+  if (distancia >= atractor.alcance) return false;
+
+  // Justo en el centro no hay direccion de resorte: solo se frena.
+  if (distancia > 0) {
+    const reposo = atractor.reposo + cuerpo.radio;
+    const error = distancia - reposo;
+    const factor = Math.max(-1, Math.min(1, error / Math.max(1, atractor.alcance - reposo)));
+    const aceleracion = campo.fuerza * factor;
+    cuerpo.vx += (dx / distancia) * aceleracion * dt;
+    cuerpo.vy += (dy / distancia) * aceleracion * dt;
+  }
+
+  const freno = Math.exp(-campo.amortiguacion * dt);
+  cuerpo.vx *= freno;
+  cuerpo.vy *= freno;
+  return true;
+}
+
+/**
+ * Aparta de a poco los cuerpos solapados, para que el racimo del iman no sea
+ * un bollo de objetos encimados.
+ *
+ * La correccion es posicional y ademas anula la velocidad de acercamiento del
+ * par (contacto inelastico, sin rebote). Solo apartar posiciones no alcanza:
+ * el resorte del iman reacelera lo corregido y el racimo hierve en vez de
+ * asentarse. `rigidez` va en 1/s; la fraccion corregida por cuadro se deriva
+ * con una exponencial para no depender del tamaño del paso.
+ */
+export function separarCuerpos(cuerpos, dt, rigidez) {
+  const fraccion = 1 - Math.exp(-rigidez * dt);
+
+  for (let i = 0; i < cuerpos.length; i++) {
+    for (let j = i + 1; j < cuerpos.length; j++) {
+      const a = cuerpos[i];
+      const b = cuerpos[j];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const distancia = Math.hypot(dx, dy);
+      const minima = a.radio + b.radio;
+      if (distancia >= minima) continue;
+
+      // Exactamente encimados no hay direccion: se apartan en una fija.
+      const nx = distancia === 0 ? 1 : dx / distancia;
+      const ny = distancia === 0 ? 0 : dy / distancia;
+
+      const corregir = ((minima - distancia) * fraccion) / 2;
+      a.x -= nx * corregir;
+      a.y -= ny * corregir;
+      b.x += nx * corregir;
+      b.y += ny * corregir;
+
+      const acercamiento = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+      if (acercamiento < 0) {
+        const mitad = acercamiento / 2;
+        a.vx += nx * mitad;
+        a.vy += ny * mitad;
+        b.vx -= nx * mitad;
+        b.vy -= ny * mitad;
+      }
+    }
+  }
+}
+
 export function limitarACaja(cuerpo, caja, restitucion, friccion) {
   let toco = false;
 
@@ -76,16 +158,36 @@ export function limitarACaja(cuerpo, caja, restitucion, friccion) {
   return toco;
 }
 
-/** `mundo.colisionadores` son circulos con posicion, radio y velocidad opcional:
- *  la cabeza y las manos del visitante. */
+/**
+ * `mundo.colisionadores` son circulos con posicion, radio y velocidad opcional:
+ * la cabeza y, en modo golpe, las manos del visitante. `mundo.atractores` son
+ * campos de iman `{x, y, alcance, reposo}` que comparten los ajustes de
+ * `mundo.atraccion`.
+ *
+ * Una mano en modo iman es SOLO atractor, no colisionador: el anillo de reposo
+ * del propio campo mantiene los objetos fuera de la palma, y sumarle el
+ * circulo duro hace vibrar el racimo. Los capturados ademas se separan entre
+ * si, para que el racimo no sea un bollo.
+ */
 export function paso(cuerpos, dt, mundo) {
   const colisionadores = mundo.colisionadores ?? [];
+  const atractores = mundo.atractores ?? [];
+  const capturados = [];
 
   for (const cuerpo of cuerpos) {
     integrar(cuerpo, dt, mundo.gravedad);
+    for (const atractor of atractores) {
+      if (atraerHaciaCirculo(cuerpo, atractor, dt, mundo.atraccion)) {
+        if (capturados.at(-1) !== cuerpo) capturados.push(cuerpo);
+      }
+    }
     for (const circulo of colisionadores) {
       rebotarContraCirculo(cuerpo, circulo, mundo.restitucion);
     }
     limitarACaja(cuerpo, mundo.caja, mundo.restitucion, mundo.friccion);
+  }
+
+  if (capturados.length > 1) {
+    separarCuerpos(capturados, dt, mundo.atraccion.separacion);
   }
 }

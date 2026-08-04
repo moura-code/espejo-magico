@@ -9,12 +9,17 @@ import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
 import { crearDetectorDeManosMediaPipe } from './manos.js';
-import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from './suavizado.js';
+import {
+  crearFiltroRostro,
+  crearFiltroDeManos,
+  crearHisteresis,
+  crearRastreadorDeVelocidad,
+} from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearPool, fuenteDeObjetos } from './objetos.js';
 import { crearCuerpo } from './fisica.js';
-import { crearNiebla, calcularNiebla } from './niebla.js';
+import { crearNiebla, objetivoDeNiebla, acercarNiebla } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
 import { figurasDisponibles } from './figuras.js';
 import {
@@ -125,6 +130,7 @@ try {
 
 const sintetica = crearFuenteSintetica();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
+const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizadoDelIman);
 const histeresis = crearHisteresis(CONFIG.presencia);
 
 // Velocidad de cada colisionador, para que pueda golpear y no solo hacer rebotar.
@@ -150,7 +156,15 @@ const maquina = crearMaquina({
   manual: CONFIG.avance.manual,
 });
 const pool = crearPool(CONFIG.objetos);
-const niebla = crearNiebla({ cantidad: 26 });
+const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
+
+// La niebla arranca cerrada: el espejo descansa cubierto de nubes y recien se
+// despeja cuando alguien se sienta. Se anima acercandose al objetivo del estado
+// actual, nunca saltando con el.
+let nieblaActual = { cobertura: 1, revelado: 0 };
+// Ultimo centro conocido del rostro: si la persona se levanta en plena
+// revelacion, el agujero se cierra desde donde estaba la cara, no desaparece.
+let centroNiebla = null;
 
 const bus = crearBus({
   url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
@@ -211,6 +225,8 @@ let anterior = performance.now();
 let ultimaDeteccion = 0;
 let rostro = null;
 let manos = [];
+let manosSuaves = [];
+let interaccionDeManos = CONFIG.manos.interaccion;
 let verMalla = false;
 let efecto = null;
 let efectoDe = null;
@@ -282,8 +298,13 @@ function cuadro(ahora) {
   if (manosSirven && ahora - ultimaDeteccionManos >= intervaloManos) {
     ultimaDeteccionManos = ahora;
     manos = detectorDeManos.detectar(video, ahora, rectangulo);
+    // La copia filtrada es solo para el iman: corta el temblor de la deteccion
+    // sin meterle retardo al manotazo, que sigue usando la palma cruda.
+    manosSuaves = filtroDeManos.filtrar(manos);
   } else if (!manosSirven) {
     manos = [];
+    manosSuaves = [];
+    filtroDeManos.reiniciar();
     velocidadDeMano.clear();
   }
 
@@ -312,24 +333,41 @@ function cuadro(ahora) {
     aparecerObjeto(fuente[Math.floor(Math.random() * fuente.length)], ahora);
   }
 
-  // La cabeza y las manos son colisionadores con velocidad propia: por eso
-  // golpean los objetos en vez de solo hacerlos rebotar.
+  // La cabeza es colisionador con velocidad propia: por eso golpea los objetos
+  // en vez de solo hacerlos rebotar. Las manos cambian de papel segun el modo:
+  // en golpe son colisionadores como la cabeza; en iman son SOLO atractores —
+  // el anillo de reposo del campo mantiene los objetos fuera de la palma, y
+  // sumarle el circulo duro hace vibrar el racimo.
   const colisionadores = [];
+  const atractores = [];
   if (rostro) {
     const { vx, vy } = velocidadCabeza.actualizar(rostro.centro.x, rostro.centro.y, ahora);
     colisionadores.push({ x: rostro.centro.x, y: rostro.centro.y, radio: rostro.radio, vx, vy });
   }
-  for (const mano of manos) {
-    const { vx, vy } = seguirVelocidad(mano.lado, mano.palma.x, mano.palma.y, ahora);
-    colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
+  if (interaccionDeManos === 'atraer') {
+    for (const mano of manosSuaves) {
+      atractores.push({
+        x: mano.palma.x,
+        y: mano.palma.y,
+        alcance: mano.radio * CONFIG.manos.atraccion.alcanceFactor,
+        reposo: mano.radio * CONFIG.manos.atraccion.reposoFactor,
+      });
+    }
+  } else {
+    for (const mano of manos) {
+      const { vx, vy } = seguirVelocidad(mano.lado, mano.palma.x, mano.palma.y, ahora);
+      colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
+    }
   }
 
   pool.actualizar(dt, ahora, {
     ...CONFIG.fisica,
     caja: disposicion.caja,
     colisionadores,
+    atractores,
+    atraccion: CONFIG.manos.atraccion,
   });
-  niebla.actualizar(dt);
+  niebla.actualizar(dt, estado === ESTADOS.SORTEO ? CONFIG.niebla.agitacionSorteo : 1);
 
   // --- efecto de la carrera ---
   // Se arma al saberse la carrera (en SORTEO) y se tira al volver a atraccion.
@@ -409,10 +447,16 @@ function cuadro(ahora) {
     dibujarAccesorio(ctx, rostro, carrera, banco);
   }
 
-  const capa = calcularNiebla({ estado, transcurrido: enEstadoDesde, tiempos: CONFIG.tiempos });
-  if (capa.cobertura > 0) {
+  if (rostro) centroNiebla = rostro.centro;
+  nieblaActual = acercarNiebla(
+    nieblaActual,
+    objetivoDeNiebla(estado),
+    dt,
+    CONFIG.niebla.velocidades,
+  );
+  if (nieblaActual.cobertura > 0) {
     ctxNiebla.clearRect(0, 0, disposicion.ancho, disposicion.alto);
-    niebla.dibujar(ctxNiebla, disposicion, { ...capa, centro: rostro?.centro });
+    niebla.dibujar(ctxNiebla, disposicion, { ...nieblaActual, centro: centroNiebla });
     ctx.drawImage(capaNiebla, 0, 0);
   }
 
@@ -465,6 +509,9 @@ window.espejo = {
   alternarMalla: () => {
     verMalla = !verMalla;
   },
+  interaccionDeManos: () => interaccionDeManos,
+  alternarInteraccion: () =>
+    (interaccionDeManos = interaccionDeManos === 'atraer' ? 'golpear' : 'atraer'),
   // Los atajos tienen que pasar por atender(): si no, forzar una carrera con las
   // teclas no le avisa a las tablets ni limpia los objetos de la sesion anterior.
   avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos, ahora),

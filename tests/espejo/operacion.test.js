@@ -24,6 +24,11 @@ describe('interpretarTecla', () => {
     expect(interpretarTecla('a', IDS)).toEqual({ accion: 'alternarManual' });
   });
 
+  it('la tecla I alterna entre iman y manotazo', () => {
+    expect(interpretarTecla('i', IDS)).toEqual({ accion: 'interaccion' });
+    expect(interpretarTecla('I', IDS)).toEqual({ accion: 'interaccion' });
+  });
+
   it('la barra espaciadora avanza al estado siguiente', () => {
     expect(interpretarTecla(' ', IDS)).toEqual({ accion: 'avanzar' });
   });

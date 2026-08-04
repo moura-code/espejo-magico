@@ -7,6 +7,7 @@ const ACCIONES_SUELTAS = {
   p: 'panel',
   m: 'malla',
   a: 'alternarManual',
+  i: 'interaccion',
   ' ': 'avanzar',
 };
 
@@ -76,6 +77,7 @@ export function instalarOperacion({
       espejo.cambiarModo(espejo.modo() === 'demo' ? 'camara' : 'demo');
     }
     if (orden.accion === 'malla') espejo.alternarMalla();
+    if (orden.accion === 'interaccion') espejo.alternarInteraccion();
     if (orden.accion === 'panel') {
       visible = !visible;
       panel.style.display = visible ? 'block' : 'none';
@@ -107,6 +109,7 @@ export function instalarOperacion({
         `manos       ${espejo.manosCrudas()} vistas / ${espejo.manos().length} usadas`,
         `apertura    ${espejo.manos().map((m) => m.apertura.toFixed(1)).join('  ') || '-'}`,
         `radio mano  ${espejo.manos().map((m) => m.radio.toFixed(0)).join('  ') || '-'}`,
+        `interaccion ${espejo.interaccionDeManos()}`,
         `bus         ${espejo.bus.conectado() ? 'conectado' : 'CORTADO'}`,
         `objetos     ${espejo.pool.vivos().length}`,
         `png faltan  ${espejo.banco.faltantes().length}`,
@@ -115,7 +118,8 @@ export function instalarOperacion({
         ``,
         `ESPACIO avanzar   A auto/manual`,
         `1-6 carrera       R reiniciar`,
-        `D demo   M malla  P cerrar`,
+        `I iman/golpe      D demo`,
+        `M malla           P cerrar`,
       ].join('\n');
     },
   };

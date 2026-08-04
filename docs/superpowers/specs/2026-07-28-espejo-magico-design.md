@@ -589,3 +589,82 @@ anteriores usaban voseo coloquial, que no corresponde a una facultad.
 Además, `dibujarTextos` pasa a **ajustar el tamaño de letra para que el texto
 entre siempre en el ancho de la pantalla**. Sin eso, una frase larga escrita en
 `carreras.json` se sale de cuadro, y eso se descubre con público delante.
+
+---
+
+# Anexo B — La experiencia sigue a la persona
+
+**Fecha:** 2026-08-04. Cambios posteriores a la primera prueba interactiva con
+una persona ajena al desarrollo. Su devolución trajo cuatro observaciones; las
+cuatro eran válidas y las cuatro apuntaban a lo mismo: la experiencia se notaba
+gobernada por el sistema (relojes, límites invisibles, interacciones mudas) en
+vez de por la persona sentada frente al espejo.
+
+## 1. Los objetos llegan al piso de verdad
+
+Los objetos se acumulaban a tres cuartos de pantalla: el piso de la física
+estaba en el borde superior de la franja reservada al texto, y eso se percibía
+como una repisa invisible («las cosas se apilan a la altura de mi pera»).
+
+La caja de física ahora llega hasta el borde inferior. El texto se defiende
+solo, por orden de dibujo: se pinta después de los objetos, con sombra, y las
+piezas que lo pisan se desvanecen a los 12 segundos. Contrapartida asumida: un
+objeto puede pasar por detrás del nombre de la carrera durante unos segundos.
+
+## 2. Las manos son un imán (y el manotazo queda a una tecla)
+
+En lugar de solo rechazar los objetos, las manos ahora los **atraen**: un campo
+en cada palma junta los objetos cercanos y los deja flotando alrededor de la
+mano.
+
+La forma del campo importa, y la primera versión estuvo mal. Tirar hacia el
+centro de la palma con la palma como colisionador producía dos artefactos que
+se vieron en pantalla: el tirón continuo peleaba con el rebote y los objetos
+vibraban sin aquietarse, y todos los capturados convergían al mismo punto de
+equilibrio y quedaban encimados en un bollo. La forma final: un **resorte hacia
+un anillo de reposo** alrededor de la palma (afuera tira, adentro empuja — en
+modo imán la palma deja de ser colisionador), y los capturados se **separan
+entre sí** con contacto inelástico, así el racimo se reparte en capas y se
+asienta en vez de hervir. Cada cuerpo descansa a `reposo + su propio radio`,
+de modo que objetos de distinto tamaño se acomodan solos.
+
+Es un cambio de sensación difícil de juzgar en abstracto, así que quedaron los
+dos modos: `manos.interaccion` en `config.js` («atraer» por defecto) y la tecla
+`I` para alternar en vivo con público delante. Los números del campo están
+calibrados para ganarle a la gravedad desde cualquier ángulo y dejar el racimo
+quieto — hay pruebas en `fisica.test.js` que fallan si alguien los baja de más.
+
+Como el racimo cuelga de la palma en forma permanente, el atractor sigue una
+palma **filtrada** (`manos.suavizadoDelIman`) que corta el temblor de la
+detección; el manotazo sigue usando la palma cruda a propósito, porque el
+filtro mete retardo y el golpe necesita reflejos. Con alfas en `1` el filtro
+queda neutro, por si hay que compararlo en vivo.
+
+## 3. Las manos se señalan solas
+
+No había ninguna señal en pantalla de que las manos participaran: el visitante
+tenía que descubrirlo por accidente. Se probó un halo dibujado en cada palma y
+se descartó — en pantalla se leía como burbujas ajenas a la estética. La señal
+es el propio imán: el anillo de reposo se achicó (`reposoFactor`) para que los
+objetos capturados se abracen a la palma, y ver tus manos juntando engranajes
+es un indicador más claro que cualquier círculo dibujado.
+
+## 4. Las nubes son el reposo del espejo
+
+La niebla aparecía recién en el sorteo, con la persona ya sentada, y
+desaparecía por reloj. El modelo pasa a ser el que la devolución describía: el
+espejo **descansa cubierto de nubes**; cuando alguien se sienta, la niebla se
+agita (el redoble del sorteo) y se abre desde su cara; cuando la persona se
+levanta, las nubes vuelven a cerrarse sobre el espejo.
+
+Dos consecuencias técnicas:
+
+- `niebla.js` ya no calcula la niebla desde el tiempo transcurrido del estado:
+  cada estado declara un **objetivo** y la niebla se le acerca a velocidad
+  acotada (`config.js → niebla.velocidades`). La máquina puede saltar de estado
+  de un cuadro al otro — alguien se levanta en plena revelación — pero la
+  niebla no salta nunca con ella.
+- La **escena ya no dura 30 segundos**: dura mientras la persona siga sentada.
+  Los únicos cortes son la ausencia (~3 s) y `sesionMaxima` (75 s), que queda
+  como red de seguridad y como rotación de la fila en horas pico. Quien quiera
+  sesiones más cortas el día del evento ajusta `sesionMaxima`, no la escena.

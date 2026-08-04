@@ -7,15 +7,15 @@ import { dibujarFigura } from './figuras.js';
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
   const alturaTexto = alto * (vertical ? 0.16 : 0.22);
-  const piso = alto - alturaTexto;
   const corto = Math.min(ancho, alto);
 
   return {
     ancho,
     alto,
     vertical,
-    piso,
-    caja: { x: 0, y: 0, ancho, alto: piso },
+    // Hasta el borde: un piso mas arriba se lee como una repisa invisible. Los
+    // textos se dibujan despues de los objetos, asi que quedan encima igual.
+    caja: { x: 0, y: 0, ancho, alto },
     unidad: Math.min(ancho, alto * 0.5625),
     texto: {
       nombreY: alto - alturaTexto * 0.55,
