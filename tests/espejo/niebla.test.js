@@ -3,6 +3,7 @@ import {
   calcularNiebla,
   calcularTransicionEscena,
   crearNiebla,
+  posicionLateralNube,
 } from '../../espejo/niebla.js';
 import { ESTADOS } from '../../espejo/maquina-estados.js';
 
@@ -11,32 +12,32 @@ const en = (estado, transcurrido) => calcularNiebla({ estado, transcurrido, tiem
 
 describe('calcularNiebla', () => {
   it('hay nubes en atraccion', () => {
-    expect(en(ESTADOS.ATRACCION, 0)).toEqual({ cobertura: 1, revelado: 0 });
+    expect(en(ESTADOS.ATRACCION, 0)).toEqual({ cobertura: 1, desplazamiento: 0 });
   });
 
   it('las nubes se despejan durante el enganche', () => {
-    expect(en(ESTADOS.ENGANCHE, 0)).toEqual({ cobertura: 1, revelado: 0 });
+    expect(en(ESTADOS.ENGANCHE, 0)).toEqual({ cobertura: 1, desplazamiento: 0 });
     expect(en(ESTADOS.ENGANCHE, 1000).cobertura).toBeCloseTo(0.5);
-    expect(en(ESTADOS.ENGANCHE, 2000)).toEqual({ cobertura: 0, revelado: 1 });
+    expect(en(ESTADOS.ENGANCHE, 2000)).toEqual({ cobertura: 0, desplazamiento: 1 });
   });
 
   it('durante el sorteo ya no quedan nubes', () => {
-    expect(en(ESTADOS.SORTEO, 0)).toEqual({ cobertura: 0, revelado: 1 });
-    expect(en(ESTADOS.SORTEO, 2900)).toEqual({ cobertura: 0, revelado: 1 });
+    expect(en(ESTADOS.SORTEO, 0)).toEqual({ cobertura: 0, desplazamiento: 1 });
+    expect(en(ESTADOS.SORTEO, 2900)).toEqual({ cobertura: 0, desplazamiento: 1 });
   });
 
   it('en la revelacion ya no quedan nubes', () => {
-    expect(en(ESTADOS.REVELACION, 0)).toEqual({ cobertura: 0, revelado: 1 });
+    expect(en(ESTADOS.REVELACION, 0)).toEqual({ cobertura: 0, desplazamiento: 1 });
   });
 
   it('en escena ya no queda nada de niebla', () => {
-    expect(en(ESTADOS.ESCENA, 5000)).toEqual({ cobertura: 0, revelado: 1 });
+    expect(en(ESTADOS.ESCENA, 5000)).toEqual({ cobertura: 0, desplazamiento: 1 });
   });
 
   it('en cierre las nubes vuelven gradualmente', () => {
-    expect(en(ESTADOS.CIERRE, 0)).toEqual({ cobertura: 0, revelado: 1 });
+    expect(en(ESTADOS.CIERRE, 0)).toEqual({ cobertura: 0, desplazamiento: 1 });
     expect(en(ESTADOS.CIERRE, 2000).cobertura).toBeCloseTo(0.5);
-    expect(en(ESTADOS.CIERRE, 4000)).toEqual({ cobertura: 1, revelado: 0 });
+    expect(en(ESTADOS.CIERRE, 4000)).toEqual({ cobertura: 1, desplazamiento: 0 });
   });
 
   it('nunca devuelve valores fuera de 0 a 1', () => {
@@ -47,11 +48,11 @@ describe('calcularNiebla', () => {
       [ESTADOS.CIERRE, 99999],
     ];
     for (const [estado, t] of casos) {
-      const { cobertura, revelado } = en(estado, t);
+      const { cobertura, desplazamiento } = en(estado, t);
       expect(cobertura).toBeGreaterThanOrEqual(0);
       expect(cobertura).toBeLessThanOrEqual(1);
-      expect(revelado).toBeGreaterThanOrEqual(0);
-      expect(revelado).toBeLessThanOrEqual(1);
+      expect(desplazamiento).toBeGreaterThanOrEqual(0);
+      expect(desplazamiento).toBeLessThanOrEqual(1);
     }
   });
 
@@ -71,6 +72,20 @@ describe('calcularNiebla', () => {
       expect(cobertura).toBeGreaterThanOrEqual(anterior);
       anterior = cobertura;
     }
+  });
+});
+
+describe('posicionLateralNube', () => {
+  it('disipa las nubes hacia el borde mas cercano', () => {
+    const izquierda = posicionLateralNube(0.45, 100, 1000, 1);
+    const derecha = posicionLateralNube(0.55, 100, 1000, 1);
+
+    expect(izquierda + 100).toBeLessThan(0);
+    expect(derecha - 100).toBeGreaterThan(1000);
+  });
+
+  it('mantiene la posicion de reposo cuando no hay desplazamiento', () => {
+    expect(posicionLateralNube(0.3, 80, 1000, 0)).toBe(300);
   });
 });
 

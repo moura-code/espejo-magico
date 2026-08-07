@@ -36,9 +36,8 @@ import { instalarOperacion } from './operacion.js';
 import { mensajeCarrera, mensajeReposo } from '../comun/protocolo.js';
 
 // ---------- lienzos ----------
-// La niebla va en su propia capa porque el agujero de la revelacion se abre
-// borrando (destination-out), y si estuviera en el lienzo principal borraria
-// tambien el video y los objetos.
+// La niebla va en su propia capa para mover y componer todos los jirones como
+// una sola transicion sin alterar el video ni los objetos.
 const lienzo = document.getElementById('lienzo');
 const ctx = lienzo.getContext('2d');
 const capaNiebla = document.createElement('canvas');
@@ -468,7 +467,7 @@ function cuadro(ahora) {
 
   if (capa.cobertura > 0) {
     ctxNiebla.clearRect(0, 0, disposicion.ancho, disposicion.alto);
-    niebla.dibujar(ctxNiebla, disposicion, { ...capa, centro: rostro?.centro });
+    niebla.dibujar(ctxNiebla, disposicion, capa);
     ctx.drawImage(capaNiebla, 0, 0);
   }
 

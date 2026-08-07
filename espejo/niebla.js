@@ -1,8 +1,8 @@
-// La niebla del sorteo y el agujero de la revelacion.
+// La niebla que cubre el reposo y se abre hacia los costados.
 //
-// `cobertura` es cuanta niebla hay. `revelado` es cuanto se abrio el agujero
-// alrededor de la cara. Separarlos deja que la revelacion se anime sin que la
-// niebla desaparezca de golpe.
+// `cobertura` controla la opacidad y `desplazamiento` cuanto se alejaron los
+// jirones hacia su borde mas cercano. Separarlos evita que la niebla aparezca o
+// desaparezca como un simple fundido.
 
 import { ESTADOS } from './maquina-estados.js';
 
@@ -17,28 +17,34 @@ const progreso = (transcurrido, duracion) => suavizar(transcurrido / Math.max(1,
 export function calcularNiebla({ estado, transcurrido, tiempos }) {
   switch (estado) {
     case ESTADOS.ATRACCION:
-      return { cobertura: 1, revelado: 0 };
+      return { cobertura: 1, desplazamiento: 0 };
     case ESTADOS.ENGANCHE:
       {
         const apertura = progreso(transcurrido, tiempos.enganche);
         return {
           cobertura: 1 - apertura,
-          revelado: apertura,
+          desplazamiento: apertura,
         };
       }
     case ESTADOS.SORTEO:
-      return { cobertura: 0, revelado: 1 };
+      return { cobertura: 0, desplazamiento: 1 };
     case ESTADOS.REVELACION:
     case ESTADOS.ESCENA:
-      return { cobertura: 0, revelado: 1 };
+      return { cobertura: 0, desplazamiento: 1 };
     case ESTADOS.CIERRE:
       {
         const cierre = progreso(transcurrido, tiempos.cierre);
-        return { cobertura: cierre, revelado: 1 - cierre };
+        return { cobertura: cierre, desplazamiento: 1 - cierre };
       }
     default:
-      return { cobertura: 0, revelado: 0 };
+      return { cobertura: 0, desplazamiento: 1 };
   }
+}
+
+export function posicionLateralNube(xNormalizada, radio, ancho, desplazamiento) {
+  const base = xNormalizada * ancho;
+  const direccion = xNormalizada < 0.5 ? -1 : 1;
+  return base + direccion * acotar(desplazamiento) * (ancho * 0.65 + radio);
 }
 
 /** Coordina la entrada y salida del efecto, el accesorio y los textos. */
@@ -94,7 +100,7 @@ export function crearNiebla({ cantidad, azar = Math.random }) {
       }
     },
 
-    dibujar(ctx, disposicion, { cobertura, revelado, centro }) {
+    dibujar(ctx, disposicion, { cobertura, desplazamiento = 0 }) {
       if (cobertura <= 0) return;
       const { ancho, alto } = disposicion;
 
@@ -102,9 +108,9 @@ export function crearNiebla({ cantidad, azar = Math.random }) {
       ctx.globalAlpha = cobertura;
 
       for (const jiron of jirones) {
-        const x = jiron.x * ancho;
-        const y = (jiron.y + Math.sin(tiempo * 0.4 + jiron.fase) * 0.02) * alto;
         const radio = jiron.radio * Math.max(ancho, alto) * 0.6;
+        const x = posicionLateralNube(jiron.x, radio, ancho, desplazamiento);
+        const y = (jiron.y + Math.sin(tiempo * 0.4 + jiron.fase) * 0.02) * alto;
 
         const degradado = ctx.createRadialGradient(x, y, 0, x, y, radio);
         degradado.addColorStop(0, 'rgba(232,240,255,0.55)');
@@ -112,30 +118,6 @@ export function crearNiebla({ cantidad, azar = Math.random }) {
         ctx.fillStyle = degradado;
         ctx.beginPath();
         ctx.arc(x, y, radio, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // El agujero borra la niebla ya dibujada en vez de pintar encima. Por eso
-      // la niebla va en su propia capa: asi el borrado no toca el video ni los
-      // objetos que estan debajo.
-      if (revelado > 0 && centro) {
-        const maximo = Math.hypot(ancho, alto);
-        const radio = Math.pow(revelado, 0.7) * maximo;
-
-        ctx.globalCompositeOperation = 'destination-out';
-        const agujero = ctx.createRadialGradient(
-          centro.x,
-          centro.y,
-          radio * 0.6,
-          centro.x,
-          centro.y,
-          radio,
-        );
-        agujero.addColorStop(0, 'rgba(0,0,0,1)');
-        agujero.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = agujero;
-        ctx.beginPath();
-        ctx.arc(centro.x, centro.y, radio, 0, Math.PI * 2);
         ctx.fill();
       }
 
