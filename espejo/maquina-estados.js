@@ -183,7 +183,9 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
     },
 
     reiniciar(ahora) {
-      const eventos = [{ tipo: 'reposo' }];
+      // Si ya estaba cerrando, ir(ATRACCION) agrega reposo al terminar el salto.
+      // En los demas estados hace falta incluirlo de forma explicita.
+      const eventos = estado === ESTADOS.CIERRE ? [] : [{ tipo: 'reposo' }];
       finDeCierre = null;
       ausenteDesde = null;
       rostroAusenteDesde = null;

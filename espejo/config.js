@@ -119,8 +119,10 @@ export const CONFIG = {
   },
 
   pose: {
-    fps: 15,
-    segmentacion: true,
+    fps: 12,
+    // Los hombros sostienen la presencia cuando la cara gira. La mascara solo
+    // se usaba en diagnostico y su clon por cuadro era un costo innecesario.
+    segmentacion: false,
   },
 
   objetos: {
@@ -143,7 +145,7 @@ export const CONFIG = {
     agitacionSorteo: 3, // cuanto se aceleran los jirones durante el sorteo
     velocidades: {
       abrir: 1.7, // fraccion por segundo: el espejo se despeja en ~0.6 s
-      cerrar: 0.85, // el regreso es suave y lleva ~1.2 s
+      cerrar: 0.25, // acompaña los cuatro segundos del estado de cierre
     },
   },
 
@@ -173,5 +175,9 @@ export const CONFIG = {
     puerto: 8080,
     reconexionMs: 2000,
     latidoMs: 2000,
+  },
+
+  tablet: {
+    precargaIntervaloMs: 250,
   },
 };

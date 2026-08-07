@@ -54,17 +54,23 @@
 
     const contenido = await cargarContenido();
 
-    // Precarga. Sin esto la primera reproduccion de cada carrera arranca con un
-    // parpadeo, y en un stand eso se nota mucho mas que en un escritorio.
-    for (const carrera of contenido.carreras) {
-      const referente = elegirReferente(carrera, slot);
-      if (!referente) continue;
-      const previo = document.createElement('video');
-      previo.preload = 'auto';
-      previo.muted = true;
-      previo.src = '/contenido/' + referente.video;
-      previo.load();
+    // Se piden metadatos de a uno y sin demorar la conexion al espejo. Guardar
+    // las referencias evita que el navegador descarte los elementos enseguida.
+    const videosPrecargados = [];
+    async function precargarReferentes() {
+      for (const carrera of contenido.carreras) {
+        const referente = elegirReferente(carrera, slot);
+        if (!referente) continue;
+        const previo = document.createElement('video');
+        previo.preload = 'metadata';
+        previo.muted = true;
+        previo.src = '/contenido/' + referente.video;
+        videosPrecargados.push(previo);
+        previo.load();
+        await new Promise((ok) => setTimeout(ok, CONFIG.tablet.precargaIntervaloMs));
+      }
     }
+    void precargarReferentes();
 
     const pantalla = crearPantallaDeVideo({
       video: document.getElementById('video'),

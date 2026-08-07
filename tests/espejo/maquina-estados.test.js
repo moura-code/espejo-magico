@@ -241,6 +241,18 @@ describe('crearMaquina', () => {
     expect(maquina.actualizar({ hayRostro: true, ahora: 8200 }).estado).toBe(ESTADOS.ENGANCHE);
   });
 
+  it('reiniciar durante el cierre emite un solo reposo', () => {
+    const maquina = nueva();
+    avanzar(maquina, 0, 8000, true);
+    avanzar(maquina, 8100, 13500, false);
+    expect(maquina.estado()).toBe(ESTADOS.CIERRE);
+
+    const salida = maquina.reiniciar(13600);
+
+    expect(salida.estado).toBe(ESTADOS.ATRACCION);
+    expect(tipos(salida.eventos, 'reposo')).toHaveLength(1);
+  });
+
   it('limpia la carrera al volver a atraccion', () => {
     const maquina = nueva();
     avanzar(maquina, 0, 8000, true);
