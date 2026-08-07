@@ -3,6 +3,7 @@ import {
   calcularDisposicion,
   calcularRectanguloVideo,
   dibujarManos,
+  recortarFueraDeCara,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
 
@@ -49,6 +50,30 @@ describe('dibujarManos', () => {
     dibujarManos(ctx, [mano, { palma: { x: 700, y: 200 }, radio: 80 }], '#ffffff');
     expect(ctx.llamadas[0]).toEqual(['save']);
     expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
+});
+
+describe('recortarFueraDeCara', () => {
+  it('no aplica recorte si no hay rostro', () => {
+    const llamadas = [];
+    const ctx = { clip: () => llamadas.push('clip') };
+    expect(recortarFueraDeCara(ctx, null, { ancho: 1000, alto: 800 })).toBe(false);
+    expect(llamadas).toEqual([]);
+  });
+
+  it('recorta una zona amplia alrededor de la cara', () => {
+    const llamadas = [];
+    const ctx = {
+      beginPath: () => llamadas.push(['beginPath']),
+      rect: (...args) => llamadas.push(['rect', ...args]),
+      ellipse: (...args) => llamadas.push(['ellipse', ...args]),
+      clip: (...args) => llamadas.push(['clip', ...args]),
+    };
+    const rostro = { centro: { x: 500, y: 300 }, radio: 100, angulo: 0.2 };
+
+    expect(recortarFueraDeCara(ctx, rostro, { ancho: 1000, alto: 800 })).toBe(true);
+    expect(llamadas[1]).toEqual(['rect', 0, 0, 1000, 800]);
+    expect(llamadas.at(-1)).toEqual(['clip', 'evenodd']);
   });
 });
 

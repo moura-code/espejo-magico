@@ -30,6 +30,8 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let estado = ESTADOS.ATRACCION;
   let desde = 0;
   let ausenteDesde = null;
+  let rostroAusenteDesde = null;
+  let rostroContinuoDesde = null;
   let inicioDeSesion = null;
   let finDeCierre = null;
   let carrera = null;
@@ -37,18 +39,21 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let enManual = manual;
 
   function ir(nuevo, ahora, eventos) {
+    const anterior = estado;
     estado = nuevo;
     desde = ahora;
+    // Solo el enganche lleva cuenta de rostro continuo, y arranca al entrar.
+    rostroContinuoDesde = nuevo === ESTADOS.ENGANCHE ? ahora : null;
     eventos.push({ tipo: 'entra', estado: nuevo });
 
     if (nuevo === ESTADOS.REVELACION) {
       sesion += 1;
       eventos.push({ tipo: 'carrera', id: carrera, sesion });
     }
-    if (nuevo === ESTADOS.CIERRE) {
-      eventos.push({ tipo: 'reposo' });
-    }
     if (nuevo === ESTADOS.ATRACCION) {
+      // Las tablets acompañan el cierre visual y se apagan cuando las nubes ya
+      // terminaron de cubrir el espejo, no cuatro segundos antes.
+      if (anterior === ESTADOS.CIERRE) eventos.push({ tipo: 'reposo' });
       carrera = null;
       inicioDeSesion = null;
     }
@@ -83,22 +88,29 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       if (proximo === ESTADOS.ATRACCION) finDeCierre = null;
 
       ausenteDesde = null;
+      rostroAusenteDesde = null;
       ir(proximo, ahora, eventos);
       return salida(eventos);
     },
 
-    actualizar({ hayRostro, ahora }) {
+    actualizar({ hayRostro, puedeIniciar = hayRostro, hayPersona = hayRostro, ahora }) {
       const eventos = [];
 
-      if (hayRostro) ausenteDesde = null;
+      if (hayPersona) ausenteDesde = null;
       else if (ausenteDesde === null) ausenteDesde = ahora;
+      if (puedeIniciar) rostroAusenteDesde = null;
+      else if (rostroAusenteDesde === null) rostroAusenteDesde = ahora;
 
       // En manual el reloj no decide nada: ni los tiempos de cada estado ni los
       // cortes por ausencia. Solo avanzar() mueve la maquina.
       if (enManual) return salida(eventos);
 
       const seFue =
-        !hayRostro && ausenteDesde !== null && ahora - ausenteDesde >= tiempos.ausenciaParaCortar;
+        !hayPersona && ausenteDesde !== null && ahora - ausenteDesde >= tiempos.ausenciaParaCortar;
+      const sePerdioElRostro =
+        !puedeIniciar &&
+        rostroAusenteDesde !== null &&
+        ahora - rostroAusenteDesde >= tiempos.ausenciaParaCortar;
       const pasoElTope =
         inicioDeSesion !== null && ahora - inicioDeSesion >= tiempos.sesionMaxima;
       const transcurrido = ahora - desde;
@@ -106,21 +118,29 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       switch (estado) {
         case ESTADOS.ATRACCION:
           if (finDeCierre !== null && ahora - finDeCierre < tiempos.enfriamiento) break;
-          if (hayRostro) {
+          if (puedeIniciar) {
             inicioDeSesion = ahora;
             ir(ESTADOS.ENGANCHE, ahora, eventos);
           }
           break;
 
-        // El enganche aborta apenas se pierde el rostro, sin esperar los tres
-        // segundos de tolerancia. Esos tres segundos son para alguien que ya vio
-        // su carrera y se movio; aca todavia no paso nada, y esperar significaria
-        // arrancar un sorteo frente a un sillon vacio. Los parpadeos cortos ya
-        // los absorbe la histeresis, asi que la señal llega limpia.
+        // Si se pierde el rostro durante el enganche, se espera la misma
+        // tolerancia que en el resto de la experiencia. Las nubes solo vuelven
+        // cuando la ausencia es real y sostenida; mientras tanto no se inicia
+        // el sorteo frente a un lugar vacio.
         case ESTADOS.ENGANCHE:
-          if (!hayRostro) {
-            ir(ESTADOS.ATRACCION, ahora, eventos);
-          } else if (transcurrido >= tiempos.enganche) {
+          if (!puedeIniciar) {
+            // El enganche exige rostro continuo. Una pose mantiene viva una
+            // sesion ya iniciada, pero no acumula tiempo para comenzar otra.
+            // El reloj propio deja intacto `desde`, que es lo que mide la
+            // transicion visual del estado.
+            rostroContinuoDesde = null;
+            if (sePerdioElRostro) ir(ESTADOS.ATRACCION, ahora, eventos);
+            break;
+          }
+
+          if (rostroContinuoDesde === null) rostroContinuoDesde = ahora;
+          if (ahora - rostroContinuoDesde >= tiempos.enganche) {
             // La carrera se elige aca, tres segundos antes de anunciarla: ese
             // margen le sirve al espejo para tener listos los PNG cuando se
             // despeje la niebla. El mensaje a las tablets sale en REVELACION,
@@ -166,15 +186,23 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       inicioDeSesion = ahora;
       finDeCierre = null;
       ausenteDesde = null;
+      rostroAusenteDesde = null;
       ir(ESTADOS.REVELACION, ahora, eventos);
       return salida(eventos);
     },
 
     reiniciar(ahora) {
-      const eventos = [{ tipo: 'reposo' }];
+      const eventos = [];
       finDeCierre = null;
       ausenteDesde = null;
+      rostroAusenteDesde = null;
       ir(ESTADOS.ATRACCION, ahora, eventos);
+      // Si ya estaba cerrando, ir() ya anuncio el reposo. Desde cualquier otro
+      // estado la sesion se corta a mitad de camino y hay que anunciarlo igual,
+      // siempre despues del `entra` para no dejar dos ordenes posibles.
+      if (!eventos.some((evento) => evento.tipo === 'reposo')) {
+        eventos.push({ tipo: 'reposo' });
+      }
       return salida(eventos);
     },
   };

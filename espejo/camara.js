@@ -9,11 +9,30 @@
 
 export const dormir = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
-export async function abrirCamara({ ancho, alto, obtenerMedia }) {
+/**
+ * Avisa una sola vez cuando el flujo se corta: un cable pateado, un dispositivo
+ * desconectado. Es lo que despierta al reintentador; sin esto el espejo se
+ * queda mirando una camara muerta hasta que alguien recargue la pagina.
+ */
+export function vigilarFlujo(flujo, alPerder) {
+  let avisado = false;
+  const avisar = () => {
+    if (avisado) return;
+    avisado = true;
+    alPerder();
+  };
+
+  for (const pista of flujo.getTracks()) pista.addEventListener('ended', avisar);
+  return avisar;
+}
+
+export async function abrirCamara({ ancho, alto, obtenerMedia, alPerder = () => {} }) {
   const flujo = await obtenerMedia({
     video: { width: { ideal: ancho }, height: { ideal: alto }, facingMode: 'user' },
     audio: false,
   });
+
+  vigilarFlujo(flujo, alPerder);
 
   const video = document.createElement('video');
   video.srcObject = flujo;

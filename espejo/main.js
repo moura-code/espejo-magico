@@ -9,6 +9,7 @@ import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
 import { crearDetectorDeManosMediaPipe } from './manos.js';
+import { crearDetectorDePoseMediaPipe } from './pose.js';
 import {
   crearFiltroRostro,
   crearFiltroDeManos,
@@ -19,7 +20,12 @@ import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearPool, fuenteDeObjetos } from './objetos.js';
 import { crearCuerpo } from './fisica.js';
-import { crearNiebla, objetivoDeNiebla, acercarNiebla } from './niebla.js';
+import {
+  crearNiebla,
+  objetivoDeNiebla,
+  acercarNiebla,
+  calcularTransicionEscena,
+} from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
 import { figurasDisponibles } from './figuras.js';
 import {
@@ -27,19 +33,20 @@ import {
   calcularRectanguloVideo,
   dibujarVideoEspejado,
   dibujarObjetos,
+  dibujarFueraDeCara,
   dibujarAccesorio,
   dibujarManos,
+  dibujarPersona,
   dibujarTextos,
   dibujarInvitacion,
 } from './escena.js';
 import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
-import { mensajeCarrera, mensajeReposo } from '../comun/protocolo.js';
+import { mensajeCarrera, mensajeHolaEspejo, mensajeReposo } from '../comun/protocolo.js';
 
 // ---------- lienzos ----------
-// La niebla va en su propia capa porque el agujero de la revelacion se abre
-// borrando (destination-out), y si estuviera en el lienzo principal borraria
-// tambien el video y los objetos.
+// La niebla va en su propia capa para componer todos los jirones laterales sin
+// alterar el video ni los objetos que quedan debajo.
 const lienzo = document.getElementById('lienzo');
 const ctx = lienzo.getContext('2d');
 const capaNiebla = document.createElement('canvas');
@@ -90,6 +97,9 @@ const camara = crearReintentador({
       ancho: CONFIG.deteccion.anchoCamara,
       alto: CONFIG.deteccion.altoCamara,
       obtenerMedia: (pedido) => navigator.mediaDevices.getUserMedia(pedido),
+      // Cuando la pista muere, el reintentador vuelve a abrir solo. `camara` ya
+      // esta asignada para cuando esto se ejecuta: la camara tarda en caerse.
+      alPerder: () => camara.perdida(),
     }),
   reintentoMs: 5000,
   alEstado: (estado) => {
@@ -128,10 +138,26 @@ try {
   console.warn('Deteccion de manos no disponible:', error);
 }
 
+let detectorDePose = null;
+try {
+  detectorDePose = await crearDetectorDePoseMediaPipe({
+    base: '/vendor/mediapipe',
+    segmentacion: CONFIG.pose.segmentacion,
+  });
+} catch (error) {
+  console.warn('Deteccion de pose no disponible:', error);
+}
+
 const sintetica = crearFuenteSintetica();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
 const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizadoDelIman);
+// Dos histeresis sobre dos señales distintas. `histeresis` mira rostro O pose:
+// es lo que SOSTIENE una sesion, y por eso los hombros alcanzan cuando la cara
+// gira. `histeresisDeRostro` mira solo la cara: es lo que ARRANCA una sesion, y
+// tiene que ser la mas exigente de las dos. Un falso positivo suelto destaparia
+// el espejo frente a un sillon vacio durante varios segundos.
 const histeresis = crearHisteresis(CONFIG.presencia);
+const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
 
 // Velocidad de cada colisionador, para que pueda golpear y no solo hacer rebotar.
 const opcionesVelocidad = {
@@ -157,32 +183,33 @@ const maquina = crearMaquina({
 });
 const pool = crearPool(CONFIG.objetos);
 const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
+const instancia = crypto.randomUUID();
 
-// La niebla arranca cerrada: el espejo descansa cubierto de nubes y recien se
-// despeja cuando alguien se sienta. Se anima acercandose al objetivo del estado
-// actual, nunca saltando con el.
-let nieblaActual = { cobertura: 1, revelado: 0 };
-// Ultimo centro conocido del rostro: si la persona se levanta en plena
-// revelacion, el agujero se cierra desde donde estaba la cara, no desaparece.
-let centroNiebla = null;
+// La niebla arranca cerrada. Su apertura cambia de forma continua aunque la
+// maquina salte de estado, y solo desplaza nubes hacia los lados.
+let nieblaActual = { apertura: 0 };
+
+let ultimoLatido = 0;
+let ultimoAnuncio = mensajeReposo(instancia);
 
 const bus = crearBus({
   url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
   reconexionMs: CONFIG.red.reconexionMs,
-  alEstado: (estado) => console.log('bus:', estado),
+  identidad: mensajeHolaEspejo(instancia),
+  alEstado: (estado) => {
+    console.log('bus:', estado);
+    if (estado.conectado) bus.enviar(ultimoAnuncio);
+  },
 });
-
-let ultimoLatido = 0;
-let ultimoAnuncio = null;
 
 function atender(eventos, ahora) {
   for (const evento of eventos) {
     if (evento.tipo === 'carrera') {
-      ultimoAnuncio = mensajeCarrera(evento.id, evento.sesion);
+      ultimoAnuncio = mensajeCarrera(evento.id, evento.sesion, instancia);
       bus.enviar(ultimoAnuncio);
     }
     if (evento.tipo === 'reposo') {
-      ultimoAnuncio = mensajeReposo();
+      ultimoAnuncio = mensajeReposo(instancia);
       bus.enviar(ultimoAnuncio);
     }
     if (evento.tipo !== 'entra') continue;
@@ -224,6 +251,10 @@ function aparecerObjeto(definicion, ahora) {
 let anterior = performance.now();
 let ultimaDeteccion = 0;
 let rostro = null;
+let crudoRostro = null;
+let pose = null;
+let hayPersona = false;
+let hayRostroEstable = false;
 let manos = [];
 let manosSuaves = [];
 let interaccionDeManos = CONFIG.manos.interaccion;
@@ -231,9 +262,11 @@ let verMalla = false;
 let efecto = null;
 let efectoDe = null;
 let ultimaDeteccionManos = 0;
+let ultimaDeteccionPose = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
+const intervaloPose = 1000 / CONFIG.pose.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
 
 function cuadro(ahora) {
@@ -267,22 +300,34 @@ function cuadro(ahora) {
   if (ahora - ultimaDeteccion >= intervaloDeteccion) {
     ultimaDeteccion = ahora;
 
-    const crudo =
+    crudoRostro =
       modo === 'demo'
         ? sintetica.detectar(ahora, disposicion)
         : video
           ? detector.detectar(video, ahora, rectangulo)
           : null;
 
-    const habiaPresencia = histeresis.presente();
-    const hayPresencia = histeresis.actualizar(Boolean(crudo), ahora);
-    if (habiaPresencia && !hayPresencia) {
-      filtro.reiniciar();
-      velocidadCabeza.reiniciar();
-      velocidadDeMano.clear();
-    }
+    rostro = crudoRostro ? filtro.filtrar(crudoRostro) : null;
+  }
 
-    rostro = hayPresencia ? filtro.filtrar(crudo) : null;
+  const poseSirve = detectorDePose && video && modo !== 'demo';
+  if (poseSirve && ahora - ultimaDeteccionPose >= intervaloPose) {
+    ultimaDeteccionPose = ahora;
+    pose = detectorDePose.detectar(video, ahora, rectangulo);
+  } else if (!poseSirve) {
+    pose = null;
+  }
+
+  const habiaPresencia = hayPersona;
+  hayPersona = histeresis.actualizar(Boolean(crudoRostro || pose), ahora);
+  hayRostroEstable = histeresisDeRostro.actualizar(Boolean(crudoRostro), ahora);
+  if (habiaPresencia && !hayPersona) {
+    filtro.reiniciar();
+    velocidadCabeza.reiniciar();
+    velocidadDeMano.clear();
+    crudoRostro = null;
+    rostro = null;
+    pose = null;
   }
 
   // Las manos corren en su propio reloj, mas rapido que la cara: se mueven mucho
@@ -300,7 +345,11 @@ function cuadro(ahora) {
     manos = detectorDeManos.detectar(video, ahora, rectangulo);
     // La copia filtrada es solo para el iman: corta el temblor de la deteccion
     // sin meterle retardo al manotazo, que sigue usando la palma cruda.
-    manosSuaves = filtroDeManos.filtrar(manos);
+    manosSuaves = filtroDeManos.filtrar(manos, ahora);
+    manos = manos.map((mano, indice) => ({
+      ...mano,
+      idSeguimiento: manosSuaves[indice]?.idSeguimiento,
+    }));
   } else if (!manosSirven) {
     manos = [];
     manosSuaves = [];
@@ -309,7 +358,11 @@ function cuadro(ahora) {
   }
 
   // --- estado ---
-  const salida = maquina.actualizar({ hayRostro: Boolean(rostro), ahora });
+  const salida = maquina.actualizar({
+    puedeIniciar: hayRostroEstable,
+    hayPersona,
+    ahora,
+  });
   atender(salida.eventos, ahora);
 
   if (ahora - ultimoLatido >= CONFIG.red.latidoMs) {
@@ -321,6 +374,11 @@ function cuadro(ahora) {
   estadoAnterior = estado;
   const carrera = salida.carrera ? contenido.obtener(salida.carrera) : null;
   const enEstadoDesde = ahora - maquina.desdeCuando();
+  const transicion = calcularTransicionEscena({
+    estado,
+    transcurrido: enEstadoDesde,
+    tiempos: CONFIG.tiempos,
+  });
 
   // --- fisica ---
   const fuente = fuenteDeObjetos(estado, carrera, contenido.carreras);
@@ -344,9 +402,11 @@ function cuadro(ahora) {
     const { vx, vy } = velocidadCabeza.actualizar(rostro.centro.x, rostro.centro.y, ahora);
     colisionadores.push({ x: rostro.centro.x, y: rostro.centro.y, radio: rostro.radio, vx, vy });
   }
+
   if (interaccionDeManos === 'atraer') {
     for (const mano of manosSuaves) {
       atractores.push({
+        id: mano.idSeguimiento,
         x: mano.palma.x,
         y: mano.palma.y,
         alcance: mano.radio * CONFIG.manos.atraccion.alcanceFactor,
@@ -354,8 +414,11 @@ function cuadro(ahora) {
       });
     }
   } else {
+    // La velocidad solo la usa el modo golpe: en iman los atractores no la
+    // miran, y calcularla igual seria trabajo por cuadro sin consumidor.
     for (const mano of manos) {
-      const { vx, vy } = seguirVelocidad(mano.lado, mano.palma.x, mano.palma.y, ahora);
+      const clave = mano.idSeguimiento ?? mano.lado;
+      const { vx, vy } = seguirVelocidad(clave, mano.palma.x, mano.palma.y, ahora);
       colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
     }
   }
@@ -385,6 +448,7 @@ function cuadro(ahora) {
     color: carrera?.color ?? '#ffffff',
     rostro,
     ahora,
+    alfa: transicion.efecto,
   };
   if (efecto) efecto.actualizar(dt, contextoEfecto);
 
@@ -404,14 +468,15 @@ function cuadro(ahora) {
 
   // El efecto va encima del video y debajo de los objetos, para que el
   // participante quede dentro de la escena y no tapado por ella.
-  if (efecto && (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA)) {
-    efecto.dibujar(ctx, contextoEfecto);
+  if (efecto && transicion.efecto > 0) {
+    dibujarFueraDeCara(ctx, rostro, disposicion, () => efecto.dibujar(ctx, contextoEfecto));
   }
 
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el
   // mapeo esta bien; si estan corridos, el rectangulo del video y el del mapeo
   // se separaron.
   if (verMalla && modo !== 'demo') {
+    dibujarPersona(ctx, pose, rostro, rectangulo, carrera?.color ?? '#FFD23F');
     const puntos = detector.puntosCrudos();
     if (puntos) {
       ctx.fillStyle = 'rgba(80,200,255,0.75)';
@@ -452,20 +517,17 @@ function cuadro(ahora) {
     carrera?.color ?? '#ffffff',
   );
 
-  if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    dibujarAccesorio(ctx, rostro, carrera, banco);
-  }
+  dibujarAccesorio(ctx, rostro, carrera, banco, transicion.contenido);
 
-  if (rostro) centroNiebla = rostro.centro;
   nieblaActual = acercarNiebla(
     nieblaActual,
     objetivoDeNiebla(estado),
     dt,
     CONFIG.niebla.velocidades,
   );
-  if (nieblaActual.cobertura > 0) {
+  if (nieblaActual.apertura < 1) {
     ctxNiebla.clearRect(0, 0, disposicion.ancho, disposicion.alto);
-    niebla.dibujar(ctxNiebla, disposicion, { ...nieblaActual, centro: centroNiebla });
+    niebla.dibujar(ctxNiebla, disposicion, nieblaActual);
     ctx.drawImage(capaNiebla, 0, 0);
   }
 
@@ -488,16 +550,8 @@ function cuadro(ahora) {
   if (estado === ESTADOS.ATRACCION) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
-  } else if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    dibujarTextos(ctx, carrera, disposicion, 1);
-  } else if (estado === ESTADOS.CIERRE) {
-    dibujarTextos(
-      ctx,
-      carrera,
-      disposicion,
-      Math.max(0, 1 - enEstadoDesde / CONFIG.tiempos.cierre),
-    );
   }
+  dibujarTextos(ctx, carrera, disposicion, transicion.contenido);
 }
 
 window.espejo = {
@@ -510,6 +564,8 @@ window.espejo = {
   estadoDeCamara: () => estadoDeCamara,
   manos: () => manos,
   manosCrudas: () => detectorDeManos?.crudasDetectadas() ?? 0,
+  pose: () => pose,
+  poseCrudas: () => detectorDePose?.crudasDetectadas() ?? 0,
   modo: () => modo,
   cambiarModo: (nuevo) => {
     modo = nuevo;
@@ -519,8 +575,12 @@ window.espejo = {
     verMalla = !verMalla;
   },
   interaccionDeManos: () => interaccionDeManos,
-  alternarInteraccion: () =>
-    (interaccionDeManos = interaccionDeManos === 'atraer' ? 'golpear' : 'atraer'),
+  alternarInteraccion: () => {
+    interaccionDeManos = interaccionDeManos === 'atraer' ? 'golpear' : 'atraer';
+    filtroDeManos.reiniciar();
+    velocidadDeMano.clear();
+    return interaccionDeManos;
+  },
   // Los atajos tienen que pasar por atender(): si no, forzar una carrera con las
   // teclas no le avisa a las tablets ni limpia los objetos de la sesion anterior.
   avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos, ahora),

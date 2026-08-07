@@ -1,12 +1,14 @@
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
+import { interpretar, TIPOS as TIPOS_MENSAJE } from '../comun/protocolo.js';
 
 const RAIZ_POR_DEFECTO = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
-const TIPOS = {
+const TIPOS_MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -20,8 +22,40 @@ const TIPOS = {
   '.task': 'application/octet-stream',
 };
 
+export function interpretarRango(encabezado, tamano) {
+  const coincidencia = /^bytes=(\d*)-(\d*)$/.exec(encabezado ?? '');
+  if (!coincidencia || (!coincidencia[1] && !coincidencia[2])) return null;
+
+  let inicio;
+  let fin;
+  if (!coincidencia[1]) {
+    const cantidad = Number(coincidencia[2]);
+    if (!Number.isSafeInteger(cantidad) || cantidad <= 0) return null;
+    inicio = Math.max(0, tamano - cantidad);
+    fin = tamano - 1;
+  } else {
+    inicio = Number(coincidencia[1]);
+    if (!Number.isSafeInteger(inicio) || inicio < 0) return null;
+
+    if (coincidencia[2]) {
+      fin = Number(coincidencia[2]);
+      if (!Number.isSafeInteger(fin)) return null;
+    } else {
+      fin = tamano - 1;
+    }
+  }
+
+  if (inicio < 0 || inicio >= tamano || fin < inicio) return null;
+  return { inicio, fin: Math.min(fin, tamano - 1) };
+}
+
 export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
   const servidorHttp = createServer(async (pedido, respuesta) => {
+    if (pedido.method !== 'GET' && pedido.method !== 'HEAD') {
+      respuesta.writeHead(405, { Allow: 'GET, HEAD' }).end();
+      return;
+    }
+
     const ruta = new URL(pedido.url, 'http://local').pathname;
     const absoluta = resolve(raiz, '.' + (ruta === '/' ? '/espejo/espejo.html' : ruta));
 
@@ -30,28 +64,120 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       return;
     }
     try {
-      const cuerpo = await readFile(absoluta);
-      respuesta
-        .writeHead(200, {
-          'Content-Type': TIPOS[extname(absoluta)] ?? 'application/octet-stream',
-          'Cache-Control': 'no-cache',
-        })
-        .end(cuerpo);
+      const datos = await stat(absoluta);
+      if (!datos.isFile()) throw new Error('No es un archivo');
+
+      const extension = extname(absoluta);
+      const etag = `W/"${datos.size}-${Math.trunc(datos.mtimeMs)}"`;
+      const encabezados = {
+        'Content-Type': TIPOS_MIME[extension] ?? 'application/octet-stream',
+        'Cache-Control': ruta.startsWith('/vendor/')
+          ? 'public, max-age=31536000, immutable'
+          : 'no-cache',
+        ETag: etag,
+      };
+
+      if (pedido.headers['if-none-match'] === etag) {
+        respuesta.writeHead(304, encabezados).end();
+        return;
+      }
+
+      const esVideo = extension === '.mp4';
+      if (esVideo) encabezados['Accept-Ranges'] = 'bytes';
+      const rango = esVideo ? interpretarRango(pedido.headers.range, datos.size) : null;
+      if (esVideo && pedido.headers.range && !rango) {
+        respuesta.writeHead(416, { ...encabezados, 'Content-Range': `bytes */${datos.size}` }).end();
+        return;
+      }
+
+      const estado = rango ? 206 : 200;
+      const inicio = rango?.inicio ?? 0;
+      const fin = rango?.fin ?? datos.size - 1;
+      // Un archivo de 0 bytes deja `fin` en -1 y no hay nada que leer. El flujo
+      // se abre ANTES de mandar los encabezados: createReadStream valida el
+      // rango de forma sincronica, y si tira con los encabezados ya enviados el
+      // catch no puede responder y el proceso entero se cae.
+      const cuerpo =
+        fin < inicio || pedido.method === 'HEAD'
+          ? null
+          : createReadStream(absoluta, { start: inicio, end: fin });
+
+      respuesta.writeHead(estado, {
+        ...encabezados,
+        'Content-Length': Math.max(0, fin - inicio + 1),
+        ...(rango ? { 'Content-Range': `bytes ${inicio}-${fin}/${datos.size}` } : {}),
+      });
+
+      if (!cuerpo) {
+        respuesta.end();
+        return;
+      }
+      cuerpo.on('error', () => respuesta.destroy()).pipe(respuesta);
     } catch {
-      respuesta.writeHead(404).end('No encontrado');
+      // Segunda linea de defensa: si algo falla despues de mandar encabezados,
+      // el 404 seria un error nuevo. Cortar la conexion y dejar vivo el proceso.
+      if (respuesta.headersSent) respuesta.destroy();
+      else respuesta.writeHead(404).end('No encontrado');
     }
   });
 
   const sockets = new WebSocketServer({ server: servidorHttp });
   let ultimoMensaje = null;
+  let instanciaActiva = null;
+  const identidadPorCliente = new WeakMap();
+  let espejoActivo = null;
 
   sockets.on('connection', (cliente) => {
-    if (ultimoMensaje) cliente.send(ultimoMensaje);
     cliente.on('message', (crudo) => {
-      ultimoMensaje = crudo.toString();
-      for (const otro of sockets.clients) {
-        if (otro !== cliente && otro.readyState === otro.OPEN) otro.send(ultimoMensaje);
+      const texto = crudo.toString();
+      const mensaje = interpretar(texto);
+      if (!mensaje) return;
+
+      if (mensaje.tipo === TIPOS_MENSAJE.HOLA) {
+        // La identidad se declara una sola vez. Una tablet no puede ascenderse
+        // a espejo reutilizando el mismo socket.
+        if (identidadPorCliente.has(cliente)) return;
+
+        if (mensaje.rol === 'espejo') {
+          if (espejoActivo && espejoActivo !== cliente) {
+            cliente.close(1008, 'Ya existe un espejo activo');
+            return;
+          }
+          espejoActivo = cliente;
+          if (mensaje.instancia !== instanciaActiva) ultimoMensaje = null;
+          instanciaActiva = mensaje.instancia;
+        }
+
+        identidadPorCliente.set(cliente, mensaje);
+        if (mensaje.rol === 'tablet' && ultimoMensaje) {
+          cliente.send(ultimoMensaje);
+        }
+        return;
       }
+
+      const identidad = identidadPorCliente.get(cliente);
+      if (
+        identidad?.rol !== 'espejo' ||
+        identidad.instancia !== instanciaActiva ||
+        mensaje.instancia !== instanciaActiva
+      ) {
+        return;
+      }
+
+      ultimoMensaje = texto;
+      for (const otro of sockets.clients) {
+        if (
+          otro !== cliente &&
+          otro.readyState === otro.OPEN &&
+          identidadPorCliente.get(otro)?.rol === 'tablet'
+        ) {
+          otro.send(ultimoMensaje);
+        }
+      }
+    });
+
+    cliente.on('close', () => {
+      if (espejoActivo === cliente) espejoActivo = null;
     });
   });
 

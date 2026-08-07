@@ -46,6 +46,7 @@
     import { cargarContenido } from '../espejo/contenido.js';
     import { crearBus } from '../espejo/bus.js';
     import { CONFIG } from '../espejo/config.js';
+    import { mensajeHolaTablet } from '../comun/protocolo.js';
     import { crearTablet, crearPantallaDeVideo, elegirReferente } from './tablet.js';
 
     const slot = Number(new URLSearchParams(location.search).get('slot') ?? 0);
@@ -53,17 +54,23 @@
 
     const contenido = await cargarContenido();
 
-    // Precarga. Sin esto la primera reproduccion de cada carrera arranca con un
-    // parpadeo, y en un stand eso se nota mucho mas que en un escritorio.
-    for (const carrera of contenido.carreras) {
-      const referente = elegirReferente(carrera, slot);
-      if (!referente) continue;
-      const previo = document.createElement('video');
-      previo.preload = 'auto';
-      previo.muted = true;
-      previo.src = '/contenido/' + referente.video;
-      previo.load();
+    // Se piden metadatos de a uno y sin demorar la conexion al espejo. Guardar
+    // las referencias evita que el navegador descarte los elementos enseguida.
+    const videosPrecargados = [];
+    async function precargarReferentes() {
+      for (const carrera of contenido.carreras) {
+        const referente = elegirReferente(carrera, slot);
+        if (!referente) continue;
+        const previo = document.createElement('video');
+        previo.preload = 'metadata';
+        previo.muted = true;
+        previo.src = '/contenido/' + referente.video;
+        videosPrecargados.push(previo);
+        previo.load();
+        await new Promise((ok) => setTimeout(ok, CONFIG.tablet.precargaIntervaloMs));
+      }
     }
+    void precargarReferentes();
 
     const pantalla = crearPantallaDeVideo({
       video: document.getElementById('video'),
@@ -78,6 +85,7 @@
     crearBus({
       url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
       reconexionMs: CONFIG.red.reconexionMs,
+      identidad: mensajeHolaTablet(slot),
       alMensaje: (mensaje) => tablet.recibir(mensaje),
       alEstado: (estado) => {
         console.log('bus:', estado);

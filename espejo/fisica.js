@@ -88,6 +88,21 @@ export function atraerHaciaCirculo(cuerpo, atractor, dt, campo) {
   return true;
 }
 
+/** Elige un solo campo por cuerpo para que dos manos no tiren en sentidos opuestos. */
+export function elegirAtractor(cuerpo, atractores) {
+  let elegido = null;
+  let mejorDistancia = Infinity;
+
+  for (const atractor of atractores) {
+    const distancia = Math.hypot(atractor.x - cuerpo.x, atractor.y - cuerpo.y);
+    if (distancia >= atractor.alcance || distancia >= mejorDistancia) continue;
+    elegido = atractor;
+    mejorDistancia = distancia;
+  }
+
+  return elegido;
+}
+
 /**
  * Aparta de a poco los cuerpos solapados, para que el racimo del iman no sea
  * un bollo de objetos encimados.
@@ -133,6 +148,22 @@ export function separarCuerpos(cuerpos, dt, rigidez) {
   }
 }
 
+/**
+ * Repase de posicion, sin rebote ni friccion. Va despues de separar cuerpos:
+ * ahi lo unico que hace falta es que nadie quede afuera. Rebotar de nuevo en el
+ * mismo cuadro invertiria una velocidad ya invertida por `limitarACaja` y el
+ * cuerpo terminaria pegado a la pared empujando hacia afuera.
+ */
+export function encajarEnCaja(cuerpo, caja) {
+  const izquierda = caja.x + cuerpo.radio;
+  const derecha = caja.x + caja.ancho - cuerpo.radio;
+  cuerpo.x = Math.min(Math.max(cuerpo.x, izquierda), derecha);
+
+  // El techo se deja abierto, igual que en limitarACaja.
+  const piso = caja.y + caja.alto - cuerpo.radio;
+  if (cuerpo.y > piso) cuerpo.y = piso;
+}
+
 export function limitarACaja(cuerpo, caja, restitucion, friccion) {
   let toco = false;
 
@@ -162,7 +193,7 @@ export function limitarACaja(cuerpo, caja, restitucion, friccion) {
  * `mundo.colisionadores` son circulos con posicion, radio y velocidad opcional:
  * la cabeza y, en modo golpe, las manos del visitante. `mundo.atractores` son
  * campos de iman `{x, y, alcance, reposo}` que comparten los ajustes de
- * `mundo.atraccion`.
+ * `mundo.atraccion`. Cada cuerpo responde solo al atractor mas cercano.
  *
  * Una mano en modo iman es SOLO atractor, no colisionador: el anillo de reposo
  * del propio campo mantiene los objetos fuera de la palma, y sumarle el
@@ -176,10 +207,9 @@ export function paso(cuerpos, dt, mundo) {
 
   for (const cuerpo of cuerpos) {
     integrar(cuerpo, dt, mundo.gravedad);
-    for (const atractor of atractores) {
-      if (atraerHaciaCirculo(cuerpo, atractor, dt, mundo.atraccion)) {
-        capturados.add(cuerpo);
-      }
+    const atractor = elegirAtractor(cuerpo, atractores);
+    if (atractor && atraerHaciaCirculo(cuerpo, atractor, dt, mundo.atraccion)) {
+      capturados.add(cuerpo);
     }
     for (const circulo of colisionadores) {
       rebotarContraCirculo(cuerpo, circulo, mundo.restitucion);
@@ -189,5 +219,11 @@ export function paso(cuerpos, dt, mundo) {
 
   if (capturados.size > 1) {
     separarCuerpos([...capturados], dt, mundo.atraccion.separacion);
+    // La separacion tambien cambia posiciones. Se repasan los limites para que
+    // el ultimo paso del cuadro nunca deje un objeto afuera; solo la posicion,
+    // porque el rebote de este cuadro ya lo aplico limitarACaja.
+    for (const cuerpo of capturados) {
+      encajarEnCaja(cuerpo, mundo.caja);
+    }
   }
 }

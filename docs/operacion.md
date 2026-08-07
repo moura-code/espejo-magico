@@ -112,7 +112,7 @@ frases y los nombres de las carreras.
 ```
 npm install
 npm run vendorizar    # baja MediaPipe y el modelo de rostro. Unica vez que necesita internet.
-npm test              # 444 pruebas
+npm test              # suite automática
 ```
 
 `npm run vendorizar` deja los archivos en `vendor/mediapipe/`, que no está en el

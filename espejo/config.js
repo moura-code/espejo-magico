@@ -20,7 +20,7 @@ export const CONFIG = {
     revelacion: 2000,
     cierre: 4000,
     enfriamiento: 3000,
-    ausenciaParaCortar: 3000,
+    ausenciaParaCortar: 5000,
     sesionMaxima: 75000,
   },
 
@@ -28,7 +28,7 @@ export const CONFIG = {
   // Entrar es rapido; salir es lento, para que la experiencia no parpadee
   // cada vez que alguien gira la cabeza.
   presencia: {
-    cuadrosParaEntrar: 6,
+    msParaEntrar: 270, // seis detecciones seguidas a 22 cuadros por segundo
     msParaSalir: 400,
   },
 
@@ -112,12 +112,21 @@ export const CONFIG = {
     suavizadoDelIman: {
       posicion: 0.35,
       radio: 0.25,
+      retencionMs: 250,
+      distanciaMaximaEnRadios: 3,
     },
   },
 
+  pose: {
+    fps: 12,
+    // Los hombros sostienen la presencia cuando la cara gira. La mascara solo
+    // se usaba en diagnostico y su clon por cuadro era un costo innecesario.
+    segmentacion: false,
+  },
+
   objetos: {
-    maximo: 40,
-    intervaloAparicion: 350,
+    maximo: 24,
+    intervaloAparicion: 450,
     vidaMs: 12000,
   },
 
@@ -128,15 +137,14 @@ export const CONFIG = {
   },
 
   // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
-  // hay nadie, se abren desde la cara en la revelacion y se vuelven a cerrar en
-  // el cierre. Las velocidades acotan cuanto puede cambiar la niebla por
-  // segundo: son lo que garantiza que ningun corte de estado pegue un salto.
+  // hay nadie, salen hacia los lados al detectar a alguien y vuelven por el
+  // mismo camino cuando la persona lleva cinco segundos ausente.
   niebla: {
     cantidad: 26, // jirones en pantalla
     agitacionSorteo: 3, // cuanto se aceleran los jirones durante el sorteo
     velocidades: {
-      cobertura: 0.7, // fraccion por segundo: tapar o despejar lleva ~1.4 s
-      revelado: 0.5, // el agujero de la revelacion se abre en ~2 s
+      abrir: 1.7, // fraccion por segundo: el espejo se despeja en ~0.6 s
+      cerrar: 0.25, // acompaña los cuatro segundos del estado de cierre
     },
   },
 
@@ -166,5 +174,9 @@ export const CONFIG = {
     puerto: 8080,
     reconexionMs: 2000,
     latidoMs: 2000,
+  },
+
+  tablet: {
+    precargaIntervaloMs: 250,
   },
 };

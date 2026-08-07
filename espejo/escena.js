@@ -104,8 +104,33 @@ export function dibujarObjetos(ctx, objetos, banco, color) {
   }
 }
 
-export function dibujarAccesorio(ctx, rostro, carrera, banco) {
-  if (!rostro || !carrera) return;
+export function recortarFueraDeCara(ctx, rostro, disposicion) {
+  if (!rostro) return false;
+
+  ctx.beginPath();
+  ctx.rect(0, 0, disposicion.ancho, disposicion.alto);
+  ctx.ellipse(
+    rostro.centro.x,
+    rostro.centro.y + rostro.radio * 0.35,
+    rostro.radio * 1.25,
+    rostro.radio * 1.75,
+    rostro.angulo ?? 0,
+    0,
+    Math.PI * 2,
+  );
+  ctx.clip('evenodd');
+  return true;
+}
+
+export function dibujarFueraDeCara(ctx, rostro, disposicion, dibujar) {
+  ctx.save();
+  recortarFueraDeCara(ctx, rostro, disposicion);
+  dibujar();
+  ctx.restore();
+}
+
+export function dibujarAccesorio(ctx, rostro, carrera, banco, alfa = 1) {
+  if (!rostro || !carrera || alfa <= 0) return;
   const imagen = banco.obtener(carrera.accesorio.img);
   if (!imagen) return;
 
@@ -116,6 +141,7 @@ export function dibujarAccesorio(ctx, rostro, carrera, banco) {
   if (!anclaje) return;
 
   ctx.save();
+  ctx.globalAlpha = alfa;
   ctx.translate(anclaje.x, anclaje.y);
   ctx.rotate(anclaje.angulo);
   ctx.scale(anclaje.escala, anclaje.escala);
@@ -163,6 +189,68 @@ export function dibujarManos(ctx, manos, color) {
     ctx.arc(mano.palma.x, mano.palma.y, mano.radio * 0.35, 0, Math.PI * 2);
     ctx.stroke();
   }
+  ctx.restore();
+}
+
+export function dibujarPersona(ctx, pose, rostro, rectangulo, color) {
+  if (!pose && !rostro) return;
+
+  ctx.save();
+
+  const mascara = pose?.mascara?.canvas;
+  if (mascara) {
+    // El espejado se deshace con restore(), no reponiendo la identidad a mano:
+    // setTransform(1,0,0,1,0,0) pisaria cualquier transformacion que el llamador
+    // ya tuviera puesta.
+    ctx.save();
+    ctx.globalAlpha = 0.16;
+    ctx.globalCompositeOperation = 'screen';
+    ctx.translate(rectangulo.x + rectangulo.ancho, rectangulo.y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(mascara, 0, 0, rectangulo.ancho, rectangulo.alto);
+    ctx.restore();
+  }
+
+  if (pose) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(3, pose.anchoHombros * 0.035);
+    ctx.globalAlpha = 0.32;
+    ctx.beginPath();
+    ctx.moveTo(pose.hombroIzq.x, pose.hombroIzq.y);
+    ctx.quadraticCurveTo(
+      pose.centroHombros.x,
+      pose.centroHombros.y + pose.anchoHombros * 0.08,
+      pose.hombroDer.x,
+      pose.hombroDer.y,
+    );
+    ctx.stroke();
+  }
+
+  if (rostro) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(16, 20, 24, 0.28)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(2, rostro.radio * 0.045);
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.ellipse(
+      rostro.centro.x,
+      rostro.centro.y - rostro.radio * 0.38,
+      rostro.radio * 0.8,
+      rostro.radio * 0.6,
+      rostro.angulo,
+      Math.PI,
+      Math.PI * 2,
+    );
+    ctx.lineTo(rostro.centro.x + Math.cos(rostro.angulo) * rostro.radio * 0.45, rostro.centro.y);
+    ctx.lineTo(rostro.centro.x - Math.cos(rostro.angulo) * rostro.radio * 0.45, rostro.centro.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 0.35;
+    ctx.stroke();
+  }
+
   ctx.restore();
 }
 

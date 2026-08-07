@@ -11,7 +11,14 @@ import WebSocket from 'ws';
 import { crearServidor } from '../../servidor/servidor.js';
 import { crearBus } from '../../espejo/bus.js';
 import { crearTablet } from '../../tablet/tablet.js';
-import { mensajeCarrera, mensajeReposo } from '../../comun/protocolo.js';
+import {
+  mensajeCarrera,
+  mensajeHolaEspejo,
+  mensajeHolaTablet,
+  mensajeReposo,
+} from '../../comun/protocolo.js';
+
+const INSTANCIA = 'espejo-de-prueba';
 
 const CIVIL = {
   id: 'civil',
@@ -35,11 +42,12 @@ afterEach(async () => {
 
 const esperar = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
-function conectar(puerto, alMensaje) {
+function conectar(puerto, alMensaje, identidad) {
   const bus = crearBus({
     url: `ws://localhost:${puerto}`,
     reconexionMs: 50,
     alMensaje,
+    identidad,
     CrearSocket: WebSocket,
   });
   buses.push(bus);
@@ -68,15 +76,15 @@ describe('cadena de mensajes espejo -> servidor -> tablets', () => {
     const pantallas = Array.from({ length: 5 }, () => ({ mostrar: vi.fn(), ocultar: vi.fn() }));
     const tablets = pantallas.map((pantalla, slot) => crearTablet({ slot, contenido, pantalla }));
     for (const [i, tablet] of tablets.entries()) {
-      conectar(puerto, (mensaje) => tablet.recibir(mensaje));
+      conectar(puerto, (mensaje) => tablet.recibir(mensaje), mensajeHolaTablet(i));
       void i;
     }
 
-    const espejo = conectar(puerto, () => {});
+    const espejo = conectar(puerto, () => {}, mensajeHolaEspejo(INSTANCIA));
     await hasta(() => espejo.conectado());
     await esperar(100);
 
-    espejo.enviar(mensajeCarrera('civil', 1));
+    espejo.enviar(mensajeCarrera('civil', 1, INSTANCIA));
     await hasta(() => pantallas.every((p) => p.mostrar.mock.calls.length === 1));
 
     const mostradas = pantallas.map((p) => p.mostrar.mock.calls[0][0].nombre);
@@ -94,16 +102,16 @@ describe('cadena de mensajes espejo -> servidor -> tablets', () => {
 
     const pantalla = { mostrar: vi.fn(), ocultar: vi.fn() };
     const tablet = crearTablet({ slot: 0, contenido, pantalla });
-    conectar(puerto, (m) => tablet.recibir(m));
+    conectar(puerto, (m) => tablet.recibir(m), mensajeHolaTablet(0));
 
-    const espejo = conectar(puerto, () => {});
+    const espejo = conectar(puerto, () => {}, mensajeHolaEspejo(INSTANCIA));
     await hasta(() => espejo.conectado());
     await esperar(100);
 
-    espejo.enviar(mensajeCarrera('civil', 1));
+    espejo.enviar(mensajeCarrera('civil', 1, INSTANCIA));
     await hasta(() => pantalla.mostrar.mock.calls.length === 1);
 
-    espejo.enviar(mensajeReposo());
+    espejo.enviar(mensajeReposo(INSTANCIA));
     await hasta(() => pantalla.ocultar.mock.calls.length === 1);
   });
 
@@ -112,14 +120,14 @@ describe('cadena de mensajes espejo -> servidor -> tablets', () => {
 
     const pantalla = { mostrar: vi.fn(), ocultar: vi.fn() };
     const tablet = crearTablet({ slot: 0, contenido, pantalla });
-    conectar(puerto, (m) => tablet.recibir(m));
+    conectar(puerto, (m) => tablet.recibir(m), mensajeHolaTablet(0));
 
-    const espejo = conectar(puerto, () => {});
+    const espejo = conectar(puerto, () => {}, mensajeHolaEspejo(INSTANCIA));
     await hasta(() => espejo.conectado());
     await esperar(100);
 
     for (let i = 0; i < 6; i++) {
-      espejo.enviar(mensajeCarrera('civil', 1));
+      espejo.enviar(mensajeCarrera('civil', 1, INSTANCIA));
       await esperar(30);
     }
 
@@ -129,15 +137,15 @@ describe('cadena de mensajes espejo -> servidor -> tablets', () => {
   it('una tablet que llega tarde se pone al dia con el ultimo mensaje', async () => {
     const puerto = await levantar();
 
-    const espejo = conectar(puerto, () => {});
+    const espejo = conectar(puerto, () => {}, mensajeHolaEspejo(INSTANCIA));
     await hasta(() => espejo.conectado());
-    espejo.enviar(mensajeCarrera('civil', 7));
+    espejo.enviar(mensajeCarrera('civil', 7, INSTANCIA));
     await esperar(100);
 
     // Recien ahora se enciende la tablet, con la sesion ya en curso.
     const pantalla = { mostrar: vi.fn(), ocultar: vi.fn() };
     const tablet = crearTablet({ slot: 1, contenido, pantalla });
-    conectar(puerto, (m) => tablet.recibir(m));
+    conectar(puerto, (m) => tablet.recibir(m), mensajeHolaTablet(1));
 
     await hasta(() => pantalla.mostrar.mock.calls.length === 1);
     expect(pantalla.mostrar.mock.calls[0][0].nombre).toBe('Sol Díaz');
@@ -148,7 +156,7 @@ describe('cadena de mensajes espejo -> servidor -> tablets', () => {
 
     const pantalla = { mostrar: vi.fn(), ocultar: vi.fn() };
     const tablet = crearTablet({ slot: 0, contenido, pantalla });
-    const busTablet = conectar(puerto, (m) => tablet.recibir(m));
+    const busTablet = conectar(puerto, (m) => tablet.recibir(m), mensajeHolaTablet(0));
     await hasta(() => busTablet.conectado());
 
     // Se le corta la conexion a esa tablet, como si se cayera el wifi.
@@ -156,11 +164,11 @@ describe('cadena de mensajes espejo -> servidor -> tablets', () => {
     await hasta(() => !busTablet.conectado());
     await hasta(() => busTablet.conectado(), 4000);
 
-    const espejo = conectar(puerto, () => {});
+    const espejo = conectar(puerto, () => {}, mensajeHolaEspejo(INSTANCIA));
     await hasta(() => espejo.conectado());
     await esperar(100);
 
-    espejo.enviar(mensajeCarrera('civil', 2));
+    espejo.enviar(mensajeCarrera('civil', 2, INSTANCIA));
     await hasta(() => pantalla.mostrar.mock.calls.length === 1);
   });
 });
