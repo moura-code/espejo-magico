@@ -373,6 +373,39 @@ describe('paso', () => {
     expect(cuerpo.y).toBeLessThan(750);
   });
 
+  it('combina el iman con una colision de cabeza', () => {
+    const mundo = {
+      ...MUNDO_IMAN(),
+      gravedad: 0,
+      colisionadores: [{ x: 500, y: 300, radio: 60 }],
+    };
+    const cuerpo = crearCuerpo({ x: 500, y: 340, radio: 20 });
+    const distanciaInicialAlIman = Math.hypot(cuerpo.x - 500, cuerpo.y - 500);
+
+    mundo.atractores = [{ x: 500, y: 500, alcance: 300, reposo: 30 }];
+    paso([cuerpo], 1 / 60, mundo);
+
+    expect(Math.hypot(cuerpo.x - 500, cuerpo.y - 500)).toBeLessThan(distanciaInicialAlIman);
+    expect(Math.hypot(cuerpo.x - 500, cuerpo.y - 300)).toBeGreaterThanOrEqual(80);
+  });
+
+  it('solo separa cuerpos capturados por el iman', () => {
+    const mundo = {
+      ...MUNDO_IMAN(),
+      gravedad: 0,
+      atractores: [{ x: 100, y: 400, alcance: 100, reposo: 20 }],
+    };
+    const capturadoA = crearCuerpo({ x: 140, y: 400, radio: 30 });
+    const capturadoB = crearCuerpo({ x: 145, y: 400, radio: 30 });
+    const fuera = crearCuerpo({ x: 230, y: 400, radio: 60 });
+
+    paso([capturadoA, capturadoB, fuera], 1 / 60, mundo);
+
+    expect(Math.hypot(capturadoB.x - capturadoA.x, capturadoB.y - capturadoA.y)).toBeGreaterThan(5);
+    expect(fuera.x).toBe(230);
+    expect(fuera.y).toBe(400);
+  });
+
   // El zumbido que se vio en pantalla: el objeto capturado nunca se aquietaba,
   // porque el tiron continuo del iman peleaba con el rebote del colisionador.
   it('un objeto capturado se aquieta en vez de vibrar contra la mano', () => {

@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { crearContadorFps, interpretarTecla } from '../../espejo/operacion.js';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  crearContadorFps,
+  instalarOperacion,
+  interpretarTecla,
+} from '../../espejo/operacion.js';
 
 const IDS = ['mecanica', 'electrica', 'computacion', 'fisico-matematico', 'civil', 'quimica'];
 
@@ -74,5 +78,56 @@ describe('crearContadorFps', () => {
     contador.registrar(100);
     contador.registrar(100);
     expect(Number.isFinite(contador.valor())).toBe(true);
+  });
+});
+
+describe('instalarOperacion', () => {
+  it('conecta la tecla I y refleja el modo actualizado en el panel', () => {
+    const escuchas = new Map();
+    const ventana = {
+      addEventListener: (tipo, escuchar) => escuchas.set(tipo, escuchar),
+      setInterval: vi.fn(),
+    };
+    const panel = { style: {}, textContent: '' };
+    const documento = {
+      createElement: () => panel,
+      body: { appendChild: vi.fn() },
+    };
+    let interaccion = 'atraer';
+    const espejo = {
+      contenido: { ids: IDS },
+      alternarInteraccion: vi.fn(() => {
+        interaccion = 'golpear';
+      }),
+      interaccionDeManos: () => interaccion,
+      estadoDeCamara: () => ({ lista: true }),
+      maquina: {
+        estado: () => 'ESCENA',
+        carrera: () => 'mecanica',
+        sesion: () => 1,
+        esManual: () => false,
+      },
+      modo: () => 'camara',
+      detector: { cantidadDePuntos: () => 478 },
+      manosCrudas: () => 1,
+      manos: () => [],
+      bus: { conectado: () => true },
+      pool: { vivos: () => [] },
+      banco: { faltantes: () => [] },
+    };
+    const operacion = instalarOperacion({
+      espejo,
+      tiempos: { recargaCadaMs: 1000 },
+      ventana,
+      documento,
+    });
+    const tecla = (key) => escuchas.get('keydown')({ key, preventDefault: vi.fn() });
+
+    tecla('p');
+    tecla('i');
+    operacion.registrarCuadro(100);
+
+    expect(espejo.alternarInteraccion).toHaveBeenCalledOnce();
+    expect(panel.textContent).toContain('interaccion golpear');
   });
 });

@@ -209,6 +209,16 @@ describe('crearFiltroDeManos', () => {
     expect(segunda.palma.x).toBe(910);
   });
 
+  it('no intercambia historias si MediaPipe invierte el orden del arreglo', () => {
+    const filtro = nuevo();
+    filtro.filtrar([manoEn(100), manoEn(900)]);
+
+    const [derecha, izquierda] = filtro.filtrar([manoEn(920), manoEn(120)]);
+
+    expect(derecha.palma.x).toBe(910);
+    expect(izquierda.palma.x).toBe(110);
+  });
+
   // Al reaparecer arranca en la posicion real: retomar la historia vieja haria
   // que el atractor se deslice desde donde estaba la mano anterior.
   it('una mano que desaparece pierde su historia', () => {

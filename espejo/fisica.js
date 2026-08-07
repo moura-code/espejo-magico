@@ -172,13 +172,13 @@ export function limitarACaja(cuerpo, caja, restitucion, friccion) {
 export function paso(cuerpos, dt, mundo) {
   const colisionadores = mundo.colisionadores ?? [];
   const atractores = mundo.atractores ?? [];
-  const capturados = [];
+  const capturados = new Set();
 
   for (const cuerpo of cuerpos) {
     integrar(cuerpo, dt, mundo.gravedad);
     for (const atractor of atractores) {
       if (atraerHaciaCirculo(cuerpo, atractor, dt, mundo.atraccion)) {
-        if (capturados.at(-1) !== cuerpo) capturados.push(cuerpo);
+        capturados.add(cuerpo);
       }
     }
     for (const circulo of colisionadores) {
@@ -187,7 +187,7 @@ export function paso(cuerpos, dt, mundo) {
     limitarACaja(cuerpo, mundo.caja, mundo.restitucion, mundo.friccion);
   }
 
-  if (capturados.length > 1) {
-    separarCuerpos(capturados, dt, mundo.atraccion.separacion);
+  if (capturados.size > 1) {
+    separarCuerpos([...capturados], dt, mundo.atraccion.separacion);
   }
 }
