@@ -9,7 +9,7 @@ export const CONFIG = {
   // PARA EL EVENTO ESTO TIENE QUE ESTAR EN false. Mientras este en true, el
   // espejo avisa en pantalla, asi no se llega al stand con el modo puesto.
   avance: {
-    manual: true,
+    manual: false,
   },
 
   // Duraciones de cada estado, en milisegundos.
@@ -17,7 +17,6 @@ export const CONFIG = {
     enganche: 2000,
     sorteo: 3000,
     revelacion: 2000,
-    escena: 30000,
     cierre: 4000,
     enfriamiento: 3000,
     ausenciaParaCortar: 3000,
@@ -79,11 +78,15 @@ export const CONFIG = {
     factorRadio: 1.4,
     radioMinimoEnPalmas: 1.0,
 
-    // Suavizado y tope de la velocidad con la que la cabeza y las manos golpean
-    // los objetos. Sin tope, un parpadeo de la deteccion dispara un objeto a
-    // velocidad absurda.
+    // Suavizado y tope para medir el movimiento de cabeza y manos. Sin tope, un
+    // parpadeo de la deteccion dispara valores de velocidad absurdos.
     alfaVelocidad: 0.4,
     velocidadMaxima: 4000,
+
+    // Las manos funcionan como imanes suaves: acercan los objetos a la palma en
+    // vez de rechazarlos. El radio visible sigue siendo el area de interaccion.
+    atraccion: 2600,
+    alcanceAtraccion: 1.9,
   },
 
   objetos: {

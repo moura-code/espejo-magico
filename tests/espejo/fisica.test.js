@@ -3,6 +3,7 @@ import {
   crearCuerpo,
   integrar,
   rebotarContraCirculo,
+  atraerHaciaCirculo,
   limitarACaja,
   paso,
 } from '../../espejo/fisica.js';
@@ -152,6 +153,25 @@ describe('limitarACaja', () => {
   });
 });
 
+describe('atraerHaciaCirculo', () => {
+  it('acelera el objeto hacia el centro del circulo', () => {
+    const cuerpo = crearCuerpo({ x: 60, y: 100, radio: 10 });
+    const mano = { x: 100, y: 100, alcance: 80, fuerza: 1000 };
+
+    expect(atraerHaciaCirculo(cuerpo, mano, 0.1)).toBe(true);
+    expect(cuerpo.vx).toBeGreaterThan(0);
+    expect(cuerpo.vy).toBeCloseTo(0);
+  });
+
+  it('no atrae objetos fuera de alcance', () => {
+    const cuerpo = crearCuerpo({ x: 0, y: 100, radio: 10 });
+    const mano = { x: 100, y: 100, alcance: 50, fuerza: 1000 };
+
+    expect(atraerHaciaCirculo(cuerpo, mano, 0.1)).toBe(false);
+    expect(cuerpo.vx).toBe(0);
+  });
+});
+
 describe('paso', () => {
   it('choca contra todos los colisionadores, no solo el primero', () => {
     const mundo = {
@@ -184,6 +204,21 @@ describe('paso', () => {
         colisionadores: [],
       }),
     ).not.toThrow();
+  });
+
+  it('permite que un colisionador atraiga en vez de rebotar', () => {
+    const cuerpo = crearCuerpo({ x: 60, y: 100, radio: 10 });
+    paso([cuerpo], 1 / 60, {
+      gravedad: 0,
+      restitucion: 0.5,
+      friccion: 1,
+      caja: CAJA,
+      colisionadores: [
+        { x: 100, y: 100, radio: 40, interaccion: 'atraer', alcance: 80, fuerza: 1200 },
+      ],
+    });
+
+    expect(cuerpo.vx).toBeGreaterThan(0);
   });
 
   it('ningun objeto termina fuera de la caja despues de caer un rato', () => {

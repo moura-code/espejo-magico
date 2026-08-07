@@ -7,7 +7,7 @@ import { dibujarFigura } from './figuras.js';
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
   const alturaTexto = alto * (vertical ? 0.16 : 0.22);
-  const piso = alto - alturaTexto;
+  const piso = alto;
   const corto = Math.min(ancho, alto);
 
   return {
@@ -140,26 +140,44 @@ const MARGEN_TEXTO = 0.9;
 /**
  * Un aro en cada palma, del tamaño real del circulo de colision.
  *
- * Solo se dibuja con el diagnostico de malla encendido (tecla M): en la
- * experiencia el visitante no ve nada de esto. Sirve para confirmar que lo que
- * golpea los objetos coincide con donde esta la mano de verdad.
+ * Silueta simple de la mano detectada. En la experiencia ayuda a entender que
+ * la interaccion ocurre con la propia mano, y en diagnostico confirma el mapeo.
  */
 export function dibujarManos(ctx, manos, color) {
   if (!manos || manos.length === 0) return;
 
   ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, manos[0].radio * 0.06);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 
   for (const mano of manos) {
-    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = Math.max(2, mano.radio * 0.045);
+    ctx.globalAlpha = 0.62;
+
+    for (const punta of mano.puntas ?? []) {
+      ctx.beginPath();
+      ctx.moveTo(mano.palma.x, mano.palma.y);
+      ctx.lineTo(punta.x, punta.y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(punta.x, punta.y, Math.max(4, mano.radio * 0.09), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(mano.palma.x, mano.palma.y, Math.max(6, mano.radio * 0.18), 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(2, mano.radio * 0.025);
     ctx.beginPath();
     ctx.arc(mano.palma.x, mano.palma.y, mano.radio, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.globalAlpha = 0.28;
-    ctx.beginPath();
-    ctx.arc(mano.palma.x, mano.palma.y, mano.radio * 0.35, 0, Math.PI * 2);
     ctx.stroke();
   }
   ctx.restore();

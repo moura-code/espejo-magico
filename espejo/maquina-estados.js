@@ -141,7 +141,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
           break;
 
         case ESTADOS.ESCENA:
-          if (seFue || pasoElTope || transcurrido >= tiempos.escena) {
+          if (seFue || pasoElTope) {
             ir(ESTADOS.CIERRE, ahora, eventos);
           }
           break;

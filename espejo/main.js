@@ -127,7 +127,8 @@ const sintetica = crearFuenteSintetica();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
 const histeresis = crearHisteresis(CONFIG.presencia);
 
-// Velocidad de cada colisionador, para que pueda golpear y no solo hacer rebotar.
+// Velocidad de cada colisionador. La cabeza rebota objetos; las manos usan su
+// posicion para atraerlos hacia la palma.
 const opcionesVelocidad = {
   alfa: CONFIG.manos.alfaVelocidad,
   maxima: CONFIG.manos.velocidadMaxima,
@@ -312,8 +313,7 @@ function cuadro(ahora) {
     aparecerObjeto(fuente[Math.floor(Math.random() * fuente.length)], ahora);
   }
 
-  // La cabeza y las manos son colisionadores con velocidad propia: por eso
-  // golpean los objetos en vez de solo hacerlos rebotar.
+  // La cabeza rebota objetos y las manos los atraen hacia la palma.
   const colisionadores = [];
   if (rostro) {
     const { vx, vy } = velocidadCabeza.actualizar(rostro.centro.x, rostro.centro.y, ahora);
@@ -321,7 +321,16 @@ function cuadro(ahora) {
   }
   for (const mano of manos) {
     const { vx, vy } = seguirVelocidad(mano.lado, mano.palma.x, mano.palma.y, ahora);
-    colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
+    colisionadores.push({
+      x: mano.palma.x,
+      y: mano.palma.y,
+      radio: mano.radio,
+      vx,
+      vy,
+      interaccion: 'atraer',
+      alcance: mano.radio * CONFIG.manos.alcanceAtraccion,
+      fuerza: CONFIG.manos.atraccion,
+    });
   }
 
   pool.actualizar(dt, ahora, {
@@ -400,10 +409,13 @@ function cuadro(ahora) {
         );
       }
     }
-    dibujarManos(ctx, manos, '#FFD23F');
   }
 
   dibujarObjetos(ctx, pool.vivos(), banco, carrera?.color ?? '#8899aa');
+
+  if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
+    dibujarManos(ctx, manos, carrera?.color ?? '#FFD23F');
+  }
 
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
     dibujarAccesorio(ctx, rostro, carrera, banco);

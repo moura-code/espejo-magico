@@ -5,7 +5,6 @@ const TIEMPOS = {
   enganche: 2000,
   sorteo: 3000,
   revelacion: 2000,
-  escena: 30000,
   cierre: 4000,
   enfriamiento: 3000,
   ausenciaParaCortar: 3000,
@@ -47,7 +46,7 @@ describe('crearMaquina', () => {
     expect(tipos(salida.eventos, 'entra')).toHaveLength(1);
   });
 
-  it('recorre el ciclo completo con alguien sentado', () => {
+  it('llega hasta la escena con alguien sentado', () => {
     const maquina = nueva();
     const vistos = [];
 
@@ -60,14 +59,13 @@ describe('crearMaquina', () => {
       ahora += 100;
     }
 
-    expect(vistos.slice(0, 6)).toEqual([
+    expect(vistos.slice(0, 4)).toEqual([
       ESTADOS.ENGANCHE,
       ESTADOS.SORTEO,
       ESTADOS.REVELACION,
       ESTADOS.ESCENA,
-      ESTADOS.CIERRE,
-      ESTADOS.ATRACCION,
     ]);
+    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
   });
 
   it('elige la carrera al entrar en sorteo, antes de anunciarla', () => {
@@ -89,9 +87,10 @@ describe('crearMaquina', () => {
     ]);
   });
 
-  it('emite reposo al entrar en cierre', () => {
+  it('emite reposo al entrar en cierre cuando la persona se retira', () => {
     const maquina = nueva();
-    const salida = avanzar(maquina, 0, 40000, true);
+    avanzar(maquina, 0, 8000, true);
+    const salida = avanzar(maquina, 8100, 11500, false);
     expect(tipos(salida.eventos, 'reposo')).toHaveLength(1);
   });
 
@@ -113,6 +112,14 @@ describe('crearMaquina', () => {
 
     avanzar(maquina, 9600, 10000, true);
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+  });
+
+  it('mantiene la escena mientras la persona siga presente', () => {
+    const maquina = nueva();
+    const salida = avanzar(maquina, 0, 60000, true);
+
+    expect(salida.estado).toBe(ESTADOS.ESCENA);
+    expect(tipos(salida.eventos, 'reposo')).toHaveLength(0);
   });
 
   it('el enganche aborta apenas se pierde el rostro, sin esperar la tolerancia', () => {
@@ -137,7 +144,8 @@ describe('crearMaquina', () => {
 
   it('no arranca otra sesion durante el enfriamiento', () => {
     const maquina = nueva();
-    const finDelCiclo = avanzar(maquina, 0, 42000, true);
+    avanzar(maquina, 0, 8000, true);
+    const finDelCiclo = avanzar(maquina, 8100, 15600, false);
     expect(finDelCiclo.estado).toBe(ESTADOS.ATRACCION);
 
     const enFrio = avanzar(maquina, finDelCiclo.ahora + 100, finDelCiclo.ahora + 1000, true);
@@ -149,8 +157,9 @@ describe('crearMaquina', () => {
 
   it('numera las sesiones de forma creciente', () => {
     const maquina = nueva();
-    avanzar(maquina, 0, 42000, true);
-    const segunda = avanzar(maquina, 48000, 90000, true);
+    avanzar(maquina, 0, 8000, true);
+    avanzar(maquina, 8100, 15600, false);
+    const segunda = avanzar(maquina, 20000, 28000, true);
     const anuncios = tipos(segunda.eventos, 'carrera');
 
     expect(anuncios).toHaveLength(1);
@@ -158,7 +167,7 @@ describe('crearMaquina', () => {
   });
 
   it('corta por tope de sesion aunque la persona siga ahi', () => {
-    const tiemposLargos = { ...TIEMPOS, escena: 600000, sesionMaxima: 20000 };
+    const tiemposLargos = { ...TIEMPOS, sesionMaxima: 20000 };
     const maquina = crearMaquina({ tiempos: tiemposLargos, sortear: () => 'civil' });
 
     const salida = avanzar(maquina, 0, 25000, true);
@@ -190,7 +199,8 @@ describe('crearMaquina', () => {
 
   it('limpia la carrera al volver a atraccion', () => {
     const maquina = nueva();
-    avanzar(maquina, 0, 42000, true);
+    avanzar(maquina, 0, 8000, true);
+    avanzar(maquina, 8100, 15600, false);
     expect(maquina.carrera()).toBeNull();
   });
 
@@ -221,7 +231,8 @@ describe('crearMaquina', () => {
 
   it('avanzar no respeta el enfriamiento: si aprieto el boton, arranca', () => {
     const maquina = nueva();
-    avanzar(maquina, 0, 42000, true);
+    avanzar(maquina, 0, 8000, true);
+    avanzar(maquina, 8100, 15600, false);
     expect(maquina.estado()).toBe(ESTADOS.ATRACCION);
 
     expect(maquina.avanzar(42100).estado).toBe(ESTADOS.ENGANCHE);

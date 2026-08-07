@@ -40,10 +40,9 @@ describe('calcularDisposicion', () => {
     expect(calcularDisposicion(1920, 1080).vertical).toBe(false);
   });
 
-  it('deja el piso arriba del borde para que el texto no quede tapado', () => {
+  it('deja el piso en el borde inferior de la pantalla', () => {
     const d = calcularDisposicion(1080, 1920);
-    expect(d.piso).toBeLessThan(1920);
-    expect(d.piso).toBeGreaterThan(1920 * 0.7);
+    expect(d.piso).toBe(1920);
   });
 
   it('la caja de fisica termina en el piso', () => {

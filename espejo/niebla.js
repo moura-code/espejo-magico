@@ -6,20 +6,27 @@
 
 import { ESTADOS } from './maquina-estados.js';
 
-const FRACCION_DE_ENTRADA = 0.4;
 const acotar = (valor) => Math.min(1, Math.max(0, valor));
 
 export function calcularNiebla({ estado, transcurrido, tiempos }) {
   switch (estado) {
-    case ESTADOS.SORTEO:
+    case ESTADOS.ATRACCION:
+      return { cobertura: 1, revelado: 0 };
+    case ESTADOS.ENGANCHE:
       return {
-        cobertura: acotar(transcurrido / (tiempos.sorteo * FRACCION_DE_ENTRADA)),
-        revelado: 0,
+        cobertura: 1 - acotar(transcurrido / tiempos.enganche),
+        revelado: acotar(transcurrido / tiempos.enganche),
       };
+    case ESTADOS.SORTEO:
+      return { cobertura: 0, revelado: 1 };
     case ESTADOS.REVELACION:
-      return { cobertura: 1, revelado: acotar(transcurrido / tiempos.revelacion) };
     case ESTADOS.ESCENA:
       return { cobertura: 0, revelado: 1 };
+    case ESTADOS.CIERRE:
+      return {
+        cobertura: acotar(transcurrido / tiempos.cierre),
+        revelado: 0,
+      };
     default:
       return { cobertura: 0, revelado: 0 };
   }

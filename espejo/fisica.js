@@ -51,6 +51,25 @@ export function rebotarContraCirculo(cuerpo, circulo, restitucion) {
   return true;
 }
 
+export function atraerHaciaCirculo(cuerpo, circulo, dt) {
+  const alcance = circulo.alcance ?? circulo.radio;
+  const fuerza = circulo.fuerza ?? 0;
+  if (alcance <= 0 || fuerza <= 0) return false;
+
+  const dx = circulo.x - cuerpo.x;
+  const dy = circulo.y - cuerpo.y;
+  const distancia = Math.hypot(dx, dy);
+  if (distancia === 0 || distancia > alcance + cuerpo.radio) return false;
+
+  const intensidad = 1 - distancia / (alcance + cuerpo.radio);
+  const ax = (dx / distancia) * fuerza * intensidad;
+  const ay = (dy / distancia) * fuerza * intensidad;
+
+  cuerpo.vx += ax * dt;
+  cuerpo.vy += ay * dt;
+  return true;
+}
+
 export function limitarACaja(cuerpo, caja, restitucion, friccion) {
   let toco = false;
 
@@ -84,7 +103,11 @@ export function paso(cuerpos, dt, mundo) {
   for (const cuerpo of cuerpos) {
     integrar(cuerpo, dt, mundo.gravedad);
     for (const circulo of colisionadores) {
-      rebotarContraCirculo(cuerpo, circulo, mundo.restitucion);
+      if (circulo.interaccion === 'atraer') {
+        atraerHaciaCirculo(cuerpo, circulo, dt);
+      } else {
+        rebotarContraCirculo(cuerpo, circulo, mundo.restitucion);
+      }
     }
     limitarACaja(cuerpo, mundo.caja, mundo.restitucion, mundo.friccion);
   }
