@@ -20,7 +20,7 @@ export const CONFIG = {
     revelacion: 2000,
     cierre: 4000,
     enfriamiento: 3000,
-    ausenciaParaCortar: 3000,
+    ausenciaParaCortar: 5000,
     sesionMaxima: 75000,
   },
 
@@ -128,15 +128,14 @@ export const CONFIG = {
   },
 
   // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
-  // hay nadie, se abren desde la cara en la revelacion y se vuelven a cerrar en
-  // el cierre. Las velocidades acotan cuanto puede cambiar la niebla por
-  // segundo: son lo que garantiza que ningun corte de estado pegue un salto.
+  // hay nadie, salen hacia los lados al detectar a alguien y vuelven por el
+  // mismo camino cuando la persona lleva cinco segundos ausente.
   niebla: {
     cantidad: 26, // jirones en pantalla
     agitacionSorteo: 3, // cuanto se aceleran los jirones durante el sorteo
     velocidades: {
-      cobertura: 0.7, // fraccion por segundo: tapar o despejar lleva ~1.4 s
-      revelado: 0.5, // el agujero de la revelacion se abre en ~2 s
+      abrir: 1.7, // fraccion por segundo: el espejo se despeja en ~0.6 s
+      cerrar: 0.85, // el regreso es suave y lleva ~1.2 s
     },
   },
 

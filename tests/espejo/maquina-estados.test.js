@@ -9,7 +9,7 @@ const TIEMPOS = {
   revelacion: 2000,
   cierre: 4000,
   enfriamiento: 3000,
-  ausenciaParaCortar: 3000,
+  ausenciaParaCortar: 5000,
   sesionMaxima: 75000,
 };
 
@@ -115,7 +115,7 @@ describe('crearMaquina', () => {
     avanzar(maquina, 0, 8000, true);
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
 
-    const salida = avanzar(maquina, 8100, 11500, false);
+    const salida = avanzar(maquina, 8100, 13500, false);
     expect(salida.estado).toBe(ESTADOS.CIERRE);
     expect(tipos(salida.eventos, 'reposo')).toHaveLength(1);
   });
@@ -130,11 +130,14 @@ describe('crearMaquina', () => {
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
   });
 
-  it('el enganche aborta apenas se pierde el rostro, sin esperar la tolerancia', () => {
+  it('el enganche espera cinco segundos antes de volver al reposo', () => {
     const maquina = nueva();
     maquina.actualizar({ hayRostro: true, ahora: 0 });
 
-    const salida = maquina.actualizar({ hayRostro: false, ahora: 100 });
+    const breve = maquina.actualizar({ hayRostro: false, ahora: 100 });
+    expect(breve.estado).toBe(ESTADOS.ENGANCHE);
+
+    const salida = maquina.actualizar({ hayRostro: false, ahora: 5100 });
 
     expect(salida.estado).toBe(ESTADOS.ATRACCION);
     expect(tipos(salida.eventos, 'reposo')).toHaveLength(0);
@@ -144,7 +147,7 @@ describe('crearMaquina', () => {
   it('no arranca el sorteo si la persona se fue durante el enganche', () => {
     const maquina = nueva();
     maquina.actualizar({ hayRostro: true, ahora: 0 });
-    const salida = avanzar(maquina, 100, 3500, false);
+    const salida = avanzar(maquina, 100, 5500, false);
 
     expect(salida.estado).toBe(ESTADOS.ATRACCION);
     expect(tipos(salida.eventos, 'carrera')).toHaveLength(0);
@@ -153,15 +156,15 @@ describe('crearMaquina', () => {
   it('no arranca otra sesion durante el enfriamiento', () => {
     const maquina = nueva();
     avanzar(maquina, 0, 8000, true);
-    // Se va: cierre por ausencia (11100) y vuelta a atraccion (15100).
-    const finDelCiclo = avanzar(maquina, 8100, 15500, false);
+    // Se va: cierre por ausencia (13100) y vuelta a atraccion (17100).
+    const finDelCiclo = avanzar(maquina, 8100, 17500, false);
     expect(finDelCiclo.estado).toBe(ESTADOS.ATRACCION);
 
     // Vuelve enseguida: el enfriamiento todavia lo frena.
-    const enFrio = avanzar(maquina, 15600, 17500, true);
+    const enFrio = avanzar(maquina, 17600, 19500, true);
     expect(enFrio.estado).toBe(ESTADOS.ATRACCION);
 
-    const yaCaliente = maquina.actualizar({ hayRostro: true, ahora: 19000 });
+    const yaCaliente = maquina.actualizar({ hayRostro: true, ahora: 21100 });
     expect(yaCaliente.estado).toBe(ESTADOS.ENGANCHE);
   });
 
@@ -209,7 +212,7 @@ describe('crearMaquina', () => {
   it('limpia la carrera al volver a atraccion', () => {
     const maquina = nueva();
     avanzar(maquina, 0, 8000, true);
-    avanzar(maquina, 8100, 16000, false);
+    avanzar(maquina, 8100, 17500, false);
     expect(maquina.carrera()).toBeNull();
   });
 
@@ -241,11 +244,11 @@ describe('crearMaquina', () => {
   it('avanzar no respeta el enfriamiento: si aprieto el boton, arranca', () => {
     const maquina = nueva();
     avanzar(maquina, 0, 8000, true);
-    avanzar(maquina, 8100, 15500, false);
+    avanzar(maquina, 8100, 17500, false);
     expect(maquina.estado()).toBe(ESTADOS.ATRACCION);
 
-    // 15600 esta en pleno enfriamiento (hasta 18100): el boton manda igual.
-    expect(maquina.avanzar(15600).estado).toBe(ESTADOS.ENGANCHE);
+    // 17600 esta en pleno enfriamiento (hasta 20100): el boton manda igual.
+    expect(maquina.avanzar(17600).estado).toBe(ESTADOS.ENGANCHE);
   });
 });
 
@@ -266,7 +269,7 @@ describe('modo manual', () => {
     maquina.avanzar(300);
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
 
-    // Se va, y pasa mucho mas que la tolerancia de tres segundos.
+    // Se va, y pasa mucho mas que la tolerancia de cinco segundos.
     avanzar(maquina, 400, 60000, false);
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
   });

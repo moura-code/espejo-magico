@@ -112,15 +112,14 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
           }
           break;
 
-        // El enganche aborta apenas se pierde el rostro, sin esperar los tres
-        // segundos de tolerancia. Esos tres segundos son para alguien que ya vio
-        // su carrera y se movio; aca todavia no paso nada, y esperar significaria
-        // arrancar un sorteo frente a un sillon vacio. Los parpadeos cortos ya
-        // los absorbe la histeresis, asi que la señal llega limpia.
+        // Si se pierde el rostro durante el enganche, se espera la misma
+        // tolerancia que en el resto de la experiencia. Las nubes solo vuelven
+        // cuando la ausencia es real y sostenida; mientras tanto no se inicia
+        // el sorteo frente a un lugar vacio.
         case ESTADOS.ENGANCHE:
-          if (!hayRostro) {
+          if (seFue) {
             ir(ESTADOS.ATRACCION, ahora, eventos);
-          } else if (transcurrido >= tiempos.enganche) {
+          } else if (hayRostro && transcurrido >= tiempos.enganche) {
             // La carrera se elige aca, tres segundos antes de anunciarla: ese
             // margen le sirve al espejo para tener listos los PNG cuando se
             // despeje la niebla. El mensaje a las tablets sale en REVELACION,

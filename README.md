@@ -3,13 +3,13 @@
 Instalación interactiva para el stand de una Facultad de Ingeniería.
 
 Un visitante se sienta frente a una pantalla enmarcada como espejo, que descansa
-cubierta de nubes. Una cámara detecta su rostro, la niebla se agita y se abre, y
-le sortea una de seis ingenierías: el participante aparece rodeado de objetos
+cubierta de nubes. Una cámara detecta su rostro, las nubes se apartan hacia los
+lados, y le sortea una de seis ingenierías: el participante aparece rodeado de objetos
 característicos de esa carrera que caen, rebotan contra su cabeza y se juntan
 como un imán alrededor de sus manos (o se manotean, con la tecla `I`). La escena
-dura mientras la persona siga sentada; cuando se va, las nubes vuelven a cubrir
-el espejo. En simultáneo, unas tablets alrededor reproducen videos de mujeres
-vinculadas a esa disciplina.
+dura mientras la persona siga sentada; tras cinco segundos sin detectarla, las
+nubes vuelven a cubrir el espejo. En simultáneo, unas tablets alrededor
+reproducen videos de mujeres vinculadas a esa disciplina.
 
 Todo corre en el navegador, en una sola PC, **sin conexión a internet**.
 

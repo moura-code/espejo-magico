@@ -158,13 +158,9 @@ const maquina = crearMaquina({
 const pool = crearPool(CONFIG.objetos);
 const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
 
-// La niebla arranca cerrada: el espejo descansa cubierto de nubes y recien se
-// despeja cuando alguien se sienta. Se anima acercandose al objetivo del estado
-// actual, nunca saltando con el.
-let nieblaActual = { cobertura: 1, revelado: 0 };
-// Ultimo centro conocido del rostro: si la persona se levanta en plena
-// revelacion, el agujero se cierra desde donde estaba la cara, no desaparece.
-let centroNiebla = null;
+// La niebla arranca cerrada. Su apertura cambia de forma continua aunque la
+// maquina salte de estado, y solo desplaza nubes hacia los lados.
+let nieblaActual = { apertura: 0 };
 
 const bus = crearBus({
   url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
@@ -456,16 +452,15 @@ function cuadro(ahora) {
     dibujarAccesorio(ctx, rostro, carrera, banco);
   }
 
-  if (rostro) centroNiebla = rostro.centro;
   nieblaActual = acercarNiebla(
     nieblaActual,
     objetivoDeNiebla(estado),
     dt,
     CONFIG.niebla.velocidades,
   );
-  if (nieblaActual.cobertura > 0) {
+  if (nieblaActual.apertura < 1) {
     ctxNiebla.clearRect(0, 0, disposicion.ancho, disposicion.alto);
-    niebla.dibujar(ctxNiebla, disposicion, { ...nieblaActual, centro: centroNiebla });
+    niebla.dibujar(ctxNiebla, disposicion, nieblaActual);
     ctx.drawImage(capaNiebla, 0, 0);
   }
 
