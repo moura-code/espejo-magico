@@ -1,6 +1,9 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import WebSocket from 'ws';
-import { crearServidor } from '../../servidor/servidor.js';
+import { mkdtemp, writeFile, mkdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { crearServidor, interpretarRango } from '../../servidor/servidor.js';
 
 let servidor = null;
 
@@ -18,6 +21,12 @@ const identificar = async (socket, mensaje) => {
 };
 
 describe('servidor', () => {
+  it('interpreta rangos completos, abiertos y de sufijo', () => {
+    expect(interpretarRango('bytes=10-19', 100)).toEqual({ inicio: 10, fin: 19 });
+    expect(interpretarRango('bytes=90-', 100)).toEqual({ inicio: 90, fin: 99 });
+    expect(interpretarRango('bytes=-10', 100)).toEqual({ inicio: 90, fin: 99 });
+    expect(interpretarRango('bytes=100-120', 100)).toBeNull();
+  });
   it('repite a los demas clientes el mensaje que recibe de uno', async () => {
     servidor = crearServidor();
     const puerto = await servidor.escuchar(0);
@@ -108,5 +117,39 @@ describe('servidor', () => {
     const respuesta = await fetch(`http://localhost:${puerto}/`);
     expect(respuesta.status).toBe(200);
     expect(respuesta.headers.get('content-type')).toContain('text/html');
+  });
+
+  it('entrega videos por rangos sin cargar el archivo completo', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-servidor-'));
+    await mkdir(join(raiz, 'contenido'));
+    await writeFile(join(raiz, 'contenido', 'video.mp4'), Buffer.from('0123456789'));
+    servidor = crearServidor({ raiz });
+    const puerto = await servidor.escuchar(0);
+
+    const respuesta = await fetch(`http://localhost:${puerto}/contenido/video.mp4`, {
+      headers: { Range: 'bytes=2-5' },
+    });
+
+    expect(respuesta.status).toBe(206);
+    expect(respuesta.headers.get('accept-ranges')).toBe('bytes');
+    expect(respuesta.headers.get('content-range')).toBe('bytes 2-5/10');
+    expect(await respuesta.text()).toBe('2345');
+  });
+
+  it('responde HEAD y usa cache inmutable para recursos pesados', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-servidor-'));
+    await mkdir(join(raiz, 'contenido'));
+    await writeFile(join(raiz, 'contenido', 'imagen.png'), Buffer.from('imagen'));
+    servidor = crearServidor({ raiz });
+    const puerto = await servidor.escuchar(0);
+
+    const respuesta = await fetch(`http://localhost:${puerto}/contenido/imagen.png`, {
+      method: 'HEAD',
+    });
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.headers.get('content-length')).toBe('6');
+    expect(respuesta.headers.get('cache-control')).toContain('immutable');
+    expect(await respuesta.text()).toBe('');
   });
 });

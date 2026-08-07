@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
@@ -21,8 +22,35 @@ const TIPOS_MIME = {
   '.task': 'application/octet-stream',
 };
 
+const EXTENSIONES_INMUTABLES = new Set(['.png', '.jpg', '.webp', '.mp4', '.wasm', '.task']);
+
+export function interpretarRango(encabezado, tamano) {
+  const coincidencia = /^bytes=(\d*)-(\d*)$/.exec(encabezado ?? '');
+  if (!coincidencia || (!coincidencia[1] && !coincidencia[2])) return null;
+
+  let inicio;
+  let fin;
+  if (!coincidencia[1]) {
+    const cantidad = Number(coincidencia[2]);
+    if (!Number.isInteger(cantidad) || cantidad <= 0) return null;
+    inicio = Math.max(0, tamano - cantidad);
+    fin = tamano - 1;
+  } else {
+    inicio = Number(coincidencia[1]);
+    fin = coincidencia[2] ? Number(coincidencia[2]) : tamano - 1;
+  }
+
+  if (inicio < 0 || inicio >= tamano || fin < inicio) return null;
+  return { inicio, fin: Math.min(fin, tamano - 1) };
+}
+
 export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
   const servidorHttp = createServer(async (pedido, respuesta) => {
+    if (pedido.method !== 'GET' && pedido.method !== 'HEAD') {
+      respuesta.writeHead(405, { Allow: 'GET, HEAD' }).end();
+      return;
+    }
+
     const ruta = new URL(pedido.url, 'http://local').pathname;
     const absoluta = resolve(raiz, '.' + (ruta === '/' ? '/espejo/espejo.html' : ruta));
 
@@ -31,13 +59,48 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       return;
     }
     try {
-      const cuerpo = await readFile(absoluta);
-      respuesta
-        .writeHead(200, {
-          'Content-Type': TIPOS_MIME[extname(absoluta)] ?? 'application/octet-stream',
-          'Cache-Control': 'no-cache',
-        })
-        .end(cuerpo);
+      const datos = await stat(absoluta);
+      if (!datos.isFile()) throw new Error('No es un archivo');
+
+      const extension = extname(absoluta);
+      const etag = `W/"${datos.size}-${Math.trunc(datos.mtimeMs)}"`;
+      const encabezados = {
+        'Content-Type': TIPOS_MIME[extension] ?? 'application/octet-stream',
+        'Cache-Control': EXTENSIONES_INMUTABLES.has(extension)
+          ? 'public, max-age=31536000, immutable'
+          : 'no-cache',
+        ETag: etag,
+      };
+
+      if (pedido.headers['if-none-match'] === etag) {
+        respuesta.writeHead(304, encabezados).end();
+        return;
+      }
+
+      const esVideo = extension === '.mp4';
+      if (esVideo) encabezados['Accept-Ranges'] = 'bytes';
+      const rango = esVideo ? interpretarRango(pedido.headers.range, datos.size) : null;
+      if (esVideo && pedido.headers.range && !rango) {
+        respuesta.writeHead(416, { ...encabezados, 'Content-Range': `bytes */${datos.size}` }).end();
+        return;
+      }
+
+      const estado = rango ? 206 : 200;
+      const inicio = rango?.inicio ?? 0;
+      const fin = rango?.fin ?? datos.size - 1;
+      respuesta.writeHead(estado, {
+        ...encabezados,
+        'Content-Length': Math.max(0, fin - inicio + 1),
+        ...(rango ? { 'Content-Range': `bytes ${inicio}-${fin}/${datos.size}` } : {}),
+      });
+      if (pedido.method === 'HEAD') {
+        respuesta.end();
+        return;
+      }
+
+      createReadStream(absoluta, { start: inicio, end: fin })
+        .on('error', () => respuesta.destroy())
+        .pipe(respuesta);
     } catch {
       respuesta.writeHead(404).end('No encontrado');
     }
