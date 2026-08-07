@@ -148,6 +148,22 @@ export function separarCuerpos(cuerpos, dt, rigidez) {
   }
 }
 
+/**
+ * Repase de posicion, sin rebote ni friccion. Va despues de separar cuerpos:
+ * ahi lo unico que hace falta es que nadie quede afuera. Rebotar de nuevo en el
+ * mismo cuadro invertiria una velocidad ya invertida por `limitarACaja` y el
+ * cuerpo terminaria pegado a la pared empujando hacia afuera.
+ */
+export function encajarEnCaja(cuerpo, caja) {
+  const izquierda = caja.x + cuerpo.radio;
+  const derecha = caja.x + caja.ancho - cuerpo.radio;
+  cuerpo.x = Math.min(Math.max(cuerpo.x, izquierda), derecha);
+
+  // El techo se deja abierto, igual que en limitarACaja.
+  const piso = caja.y + caja.alto - cuerpo.radio;
+  if (cuerpo.y > piso) cuerpo.y = piso;
+}
+
 export function limitarACaja(cuerpo, caja, restitucion, friccion) {
   let toco = false;
 
@@ -203,10 +219,11 @@ export function paso(cuerpos, dt, mundo) {
 
   if (capturados.size > 1) {
     separarCuerpos([...capturados], dt, mundo.atraccion.separacion);
-    // La separacion tambien cambia posiciones. Se vuelven a aplicar los
-    // limites para que el ultimo paso del cuadro nunca deje un objeto afuera.
+    // La separacion tambien cambia posiciones. Se repasan los limites para que
+    // el ultimo paso del cuadro nunca deje un objeto afuera; solo la posicion,
+    // porque el rebote de este cuadro ya lo aplico limitarACaja.
     for (const cuerpo of capturados) {
-      limitarACaja(cuerpo, mundo.caja, mundo.restitucion, mundo.friccion);
+      encajarEnCaja(cuerpo, mundo.caja);
     }
   }
 }

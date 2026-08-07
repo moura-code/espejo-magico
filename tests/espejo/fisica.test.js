@@ -476,6 +476,25 @@ describe('paso', () => {
     }
   });
 
+  // El repase de limites de despues de separar solo tiene que reubicar. Si
+  // volviera a aplicar el rebote, un cuerpo que ya reboto contra la pared y al
+  // que la separacion vuelve a empujar afuera termina el cuadro con la
+  // velocidad apuntando hacia afuera, y el racimo vibra contra el borde.
+  it('el repase tras separar no deja el racimo empujando contra la pared', () => {
+    const mundo = {
+      ...MUNDO_IMAN(),
+      gravedad: 0,
+      atractores: [{ x: 20, y: 500, alcance: 200, reposo: 20 }],
+    };
+    const a = crearCuerpo({ x: 25, y: 500, radio: 30, vx: -100 });
+    const b = crearCuerpo({ x: 55, y: 500, radio: 30 });
+
+    paso([a, b], 1 / 60, mundo);
+
+    expect(a.x - a.radio).toBeCloseTo(CAJA.x);
+    expect(a.vx).toBeGreaterThanOrEqual(0);
+  });
+
   it('la separacion no hunde un racimo en el piso', () => {
     const mundo = {
       ...MUNDO_IMAN(),

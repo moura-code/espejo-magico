@@ -31,6 +31,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let desde = 0;
   let ausenteDesde = null;
   let rostroAusenteDesde = null;
+  let rostroContinuoDesde = null;
   let inicioDeSesion = null;
   let finDeCierre = null;
   let carrera = null;
@@ -41,6 +42,8 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
     const anterior = estado;
     estado = nuevo;
     desde = ahora;
+    // Solo el enganche lleva cuenta de rostro continuo, y arranca al entrar.
+    rostroContinuoDesde = nuevo === ESTADOS.ENGANCHE ? ahora : null;
     eventos.push({ tipo: 'entra', estado: nuevo });
 
     if (nuevo === ESTADOS.REVELACION) {
@@ -129,9 +132,15 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
           if (!puedeIniciar) {
             // El enganche exige rostro continuo. Una pose mantiene viva una
             // sesion ya iniciada, pero no acumula tiempo para comenzar otra.
-            desde = ahora;
+            // El reloj propio deja intacto `desde`, que es lo que mide la
+            // transicion visual del estado.
+            rostroContinuoDesde = null;
             if (sePerdioElRostro) ir(ESTADOS.ATRACCION, ahora, eventos);
-          } else if (transcurrido >= tiempos.enganche) {
+            break;
+          }
+
+          if (rostroContinuoDesde === null) rostroContinuoDesde = ahora;
+          if (ahora - rostroContinuoDesde >= tiempos.enganche) {
             // La carrera se elige aca, tres segundos antes de anunciarla: ese
             // margen le sirve al espejo para tener listos los PNG cuando se
             // despeje la niebla. El mensaje a las tablets sale en REVELACION,
@@ -183,13 +192,17 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
     },
 
     reiniciar(ahora) {
-      // Si ya estaba cerrando, ir(ATRACCION) agrega reposo al terminar el salto.
-      // En los demas estados hace falta incluirlo de forma explicita.
-      const eventos = estado === ESTADOS.CIERRE ? [] : [{ tipo: 'reposo' }];
+      const eventos = [];
       finDeCierre = null;
       ausenteDesde = null;
       rostroAusenteDesde = null;
       ir(ESTADOS.ATRACCION, ahora, eventos);
+      // Si ya estaba cerrando, ir() ya anuncio el reposo. Desde cualquier otro
+      // estado la sesion se corta a mitad de camino y hay que anunciarlo igual,
+      // siempre despues del `entra` para no dejar dos ordenes posibles.
+      if (!eventos.some((evento) => evento.tipo === 'reposo')) {
+        eventos.push({ tipo: 'reposo' });
+      }
       return salida(eventos);
     },
   };

@@ -196,6 +196,41 @@ describe('servidor', () => {
     expect(await respuesta.text()).toBe('');
   });
 
+  // Un marcador de posicion de 0 bytes es lo normal mientras diseño no entrega:
+  // el servidor tiene que servirlo vacio y seguir en pie, no llevarse puesto el
+  // proceso y con el la sesion del espejo y las tablets.
+  it('sirve un archivo vacio y sigue atendiendo', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-servidor-'));
+    await mkdir(join(raiz, 'contenido'));
+    await writeFile(join(raiz, 'contenido', 'vacio.mp4'), Buffer.alloc(0));
+    servidor = crearServidor({ raiz });
+    const puerto = await servidor.escuchar(0);
+
+    const respuesta = await fetch(`http://localhost:${puerto}/contenido/vacio.mp4`);
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.headers.get('content-length')).toBe('0');
+    expect(await respuesta.text()).toBe('');
+
+    const siguiente = await fetch(`http://localhost:${puerto}/contenido/vacio.mp4`);
+    expect(siguiente.status).toBe(200);
+  });
+
+  it('responde 416 a un rango pedido sobre un archivo vacio', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-servidor-'));
+    await mkdir(join(raiz, 'contenido'));
+    await writeFile(join(raiz, 'contenido', 'vacio.mp4'), Buffer.alloc(0));
+    servidor = crearServidor({ raiz });
+    const puerto = await servidor.escuchar(0);
+
+    const respuesta = await fetch(`http://localhost:${puerto}/contenido/vacio.mp4`, {
+      headers: { Range: 'bytes=0-10' },
+    });
+
+    expect(respuesta.status).toBe(416);
+    expect(respuesta.headers.get('content-range')).toBe('bytes */0');
+  });
+
   it('usa cache inmutable solamente para dependencias versionadas de vendor', async () => {
     const raiz = await mkdtemp(join(tmpdir(), 'espejo-servidor-'));
     await mkdir(join(raiz, 'vendor'));

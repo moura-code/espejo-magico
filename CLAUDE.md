@@ -30,7 +30,7 @@ Tres piezas conectadas por WebSocket:
 - **`espejo/`** — toda la inteligencia. `main.js` es solo cableado: decide qué módulo habla con cuál y en qué orden se dibuja; nada probable vive ahí. Expone `window.espejo` (avanzar, forzarCarrera, cambiarModo…) para operar desde la consola.
 - **`tablet/tablet.js`** — cliente tonto: recibe un mensaje y reacciona. El DOM está detrás de la interfaz `pantalla` para que la lógica se pruebe en Node.
 
-`comun/protocolo.js` define los dos únicos mensajes del sistema (`carrera` y `reposo`) y lo importan los dos lados: es lo que impide que se desincronicen sin que nadie se entere.
+`comun/protocolo.js` define los únicos mensajes del sistema (`hola` para declarar rol al conectar, más `carrera` y `reposo`) y lo importan los dos lados: es lo que impide que se desincronicen sin que nadie se entere.
 
 ### La máquina de estados (`espejo/maquina-estados.js`)
 
@@ -42,7 +42,7 @@ La regla de corte: cada archivo se tiene que poder entender y probar solo.
 
 - `rostro.js` no sabe qué es una carrera. `maquina-estados.js` no dibuja. `escena.js` no sabe que existe MediaPipe. `fisica.js` solo conoce círculos y rectángulos.
 - Todo lo externo se inyecta: el reloj entra como parámetro `ahora` (nunca `Date.now()` dentro de la lógica), y `sortear`, `obtenerMedia`, `cargar`, `pantalla` se pasan como funciones. Por eso las pruebas corren en Node sin cámara, sin pantalla y sin fake timers.
-- `vision.js` carga el WASM de MediaPipe una sola vez para los dos detectores. Las manos son un agregado opcional: si su modelo falta o no carga, el espejo sigue andando con la cabeza sola.
+- `vision.js` carga el WASM de MediaPipe una sola vez para los tres detectores (rostro, manos, pose). Manos y pose son agregados opcionales: si su modelo falta o no carga, el espejo sigue andando con la cabeza sola. Por eso `npm run listo` verifica que los tres `.task` estén: si no, la falla es un `console.warn` que nadie mira.
 
 ## Reglas del proyecto
 

@@ -1,7 +1,10 @@
 name: Pruebas
 
 on:
+  # Solo main en push: en una rama con PR abierto, `push` y `pull_request`
+  # dispararian la misma suite dos veces.
   push:
+    branches: [main]
   pull_request:
 
 permissions:

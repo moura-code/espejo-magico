@@ -150,20 +150,37 @@ describe('crearMaquina', () => {
     expect(tipos(salida.eventos, 'carrera')).toHaveLength(0);
   });
 
+  // `desde` es el reloj del estado y ademas alimenta la transicion visual de la
+  // escena via desdeCuando(). Medir el rostro continuo pisandolo hacia que el
+  // efecto volviera a alfa cero de golpe en cada parpadeo del detector.
+  it('el reloj del estado no se reinicia cuando parpadea la deteccion', () => {
+    const maquina = nueva();
+    maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 0 });
+    expect(maquina.desdeCuando()).toBe(0);
+
+    maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 500 });
+    expect(maquina.desdeCuando()).toBe(0);
+
+    maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 900 });
+    expect(maquina.desdeCuando()).toBe(0);
+  });
+
   it('exige dos segundos continuos de rostro durante el enganche', () => {
     const maquina = nueva();
     maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 0 });
     maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 200 });
     maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 4000 });
 
+    // Los dos segundos se cuentan desde que el rostro vuelve (4100), no desde
+    // el ultimo cuadro sin rostro: es lo que significa "continuo".
     expect(
       maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 4100 }).estado,
     ).toBe(ESTADOS.ENGANCHE);
     expect(
-      maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 5999 }).estado,
+      maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 6099 }).estado,
     ).toBe(ESTADOS.ENGANCHE);
     expect(
-      maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 6000 }).estado,
+      maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 6100 }).estado,
     ).toBe(ESTADOS.SORTEO);
   });
 
@@ -239,6 +256,24 @@ describe('crearMaquina', () => {
     expect(tipos(salida.eventos, 'reposo')).toHaveLength(1);
 
     expect(maquina.actualizar({ hayRostro: true, ahora: 8200 }).estado).toBe(ESTADOS.ENGANCHE);
+  });
+
+  // ir() siempre anuncia `entra` primero. reiniciar() tiene que respetar ese
+  // orden venga del estado que venga, o quien consuma los eventos en orden ve
+  // dos secuencias distintas para la misma accion.
+  it('reiniciar emite los eventos en el mismo orden desde cualquier estado', () => {
+    const desdeEscena = nueva();
+    avanzar(desdeEscena, 0, 8000, true);
+    expect(desdeEscena.estado()).toBe(ESTADOS.ESCENA);
+
+    const desdeCierre = nueva();
+    avanzar(desdeCierre, 0, 8000, true);
+    avanzar(desdeCierre, 8100, 13500, false);
+    expect(desdeCierre.estado()).toBe(ESTADOS.CIERRE);
+
+    const orden = (salida) => salida.eventos.map((evento) => evento.tipo);
+    expect(orden(desdeEscena.reiniciar(8100))).toEqual(['entra', 'reposo']);
+    expect(orden(desdeCierre.reiniciar(13600))).toEqual(['entra', 'reposo']);
   });
 
   it('reiniciar durante el cierre emite un solo reposo', () => {

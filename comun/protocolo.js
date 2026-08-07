@@ -1,5 +1,10 @@
-// Los dos unicos mensajes del sistema. Lo importan el espejo Y la tablet: es lo
-// que impide que los dos lados se desincronicen sin que nadie se entere.
+// Los unicos mensajes del sistema. Lo importan el espejo Y la tablet: es lo que
+// impide que los dos lados se desincronicen sin que nadie se entere.
+//
+// `hola` declara quien esta del otro lado del socket y se manda una sola vez al
+// conectar; `carrera` y `reposo` son la experiencia. La `instancia` identifica
+// el arranque del espejo: si se recarga, las tablets saben que el numero de
+// sesion volvio a empezar y no lo confunden con un latido repetido.
 
 export const TIPOS = { HOLA: 'hola', CARRERA: 'carrera', REPOSO: 'reposo' };
 

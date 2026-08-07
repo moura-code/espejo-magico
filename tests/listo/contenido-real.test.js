@@ -88,6 +88,11 @@ describe('contenido real', () => {
     for (const archivo of [
       'vendor/mediapipe/vision_bundle.mjs',
       'vendor/mediapipe/face_landmarker.task',
+      // Manos y pose son agregados opcionales: si faltan, el espejo arranca
+      // igual y lo unico que queda es un console.warn que nadie mira el dia del
+      // evento. Por eso el semaforo los pide explicitamente.
+      'vendor/mediapipe/hand_landmarker.task',
+      'vendor/mediapipe/pose_landmarker_full.task',
       'vendor/mediapipe/wasm/vision_wasm_internal.wasm',
     ]) {
       const hay = await access(resolve(RAIZ, archivo)).then(() => true, () => false);

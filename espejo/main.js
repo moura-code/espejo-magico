@@ -97,6 +97,9 @@ const camara = crearReintentador({
       ancho: CONFIG.deteccion.anchoCamara,
       alto: CONFIG.deteccion.altoCamara,
       obtenerMedia: (pedido) => navigator.mediaDevices.getUserMedia(pedido),
+      // Cuando la pista muere, el reintentador vuelve a abrir solo. `camara` ya
+      // esta asignada para cuando esto se ejecuta: la camara tarda en caerse.
+      alPerder: () => camara.perdida(),
     }),
   reintentoMs: 5000,
   alEstado: (estado) => {
@@ -148,7 +151,13 @@ try {
 const sintetica = crearFuenteSintetica();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
 const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizadoDelIman);
+// Dos histeresis sobre dos señales distintas. `histeresis` mira rostro O pose:
+// es lo que SOSTIENE una sesion, y por eso los hombros alcanzan cuando la cara
+// gira. `histeresisDeRostro` mira solo la cara: es lo que ARRANCA una sesion, y
+// tiene que ser la mas exigente de las dos. Un falso positivo suelto destaparia
+// el espejo frente a un sillon vacio durante varios segundos.
 const histeresis = crearHisteresis(CONFIG.presencia);
+const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
 
 // Velocidad de cada colisionador, para que pueda golpear y no solo hacer rebotar.
 const opcionesVelocidad = {
@@ -245,6 +254,7 @@ let rostro = null;
 let crudoRostro = null;
 let pose = null;
 let hayPersona = false;
+let hayRostroEstable = false;
 let manos = [];
 let manosSuaves = [];
 let interaccionDeManos = CONFIG.manos.interaccion;
@@ -310,6 +320,7 @@ function cuadro(ahora) {
 
   const habiaPresencia = hayPersona;
   hayPersona = histeresis.actualizar(Boolean(crudoRostro || pose), ahora);
+  hayRostroEstable = histeresisDeRostro.actualizar(Boolean(crudoRostro), ahora);
   if (habiaPresencia && !hayPersona) {
     filtro.reiniciar();
     velocidadCabeza.reiniciar();
@@ -348,7 +359,7 @@ function cuadro(ahora) {
 
   // --- estado ---
   const salida = maquina.actualizar({
-    puedeIniciar: Boolean(crudoRostro),
+    puedeIniciar: hayRostroEstable,
     hayPersona,
     ahora,
   });
@@ -387,15 +398,9 @@ function cuadro(ahora) {
   // sumarle el circulo duro hace vibrar el racimo.
   const colisionadores = [];
   const atractores = [];
-  const velocidadesManos = new Map();
   if (rostro) {
     const { vx, vy } = velocidadCabeza.actualizar(rostro.centro.x, rostro.centro.y, ahora);
     colisionadores.push({ x: rostro.centro.x, y: rostro.centro.y, radio: rostro.radio, vx, vy });
-  }
-  for (const mano of manos) {
-    const clave = mano.idSeguimiento ?? mano.lado;
-    const velocidad = seguirVelocidad(clave, mano.palma.x, mano.palma.y, ahora);
-    velocidadesManos.set(clave, velocidad);
   }
 
   if (interaccionDeManos === 'atraer') {
@@ -409,8 +414,11 @@ function cuadro(ahora) {
       });
     }
   } else {
+    // La velocidad solo la usa el modo golpe: en iman los atractores no la
+    // miran, y calcularla igual seria trabajo por cuadro sin consumidor.
     for (const mano of manos) {
-      const { vx, vy } = velocidadesManos.get(mano.idSeguimiento ?? mano.lado);
+      const clave = mano.idSeguimiento ?? mano.lado;
+      const { vx, vy } = seguirVelocidad(clave, mano.palma.x, mano.palma.y, ahora);
       colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
     }
   }

@@ -28,7 +28,7 @@ export const CONFIG = {
   // Entrar es rapido; salir es lento, para que la experiencia no parpadee
   // cada vez que alguien gira la cabeza.
   presencia: {
-    cuadrosParaEntrar: 6,
+    msParaEntrar: 270, // seis detecciones seguidas a 22 cuadros por segundo
     msParaSalir: 400,
   },
 
@@ -115,7 +115,6 @@ export const CONFIG = {
       retencionMs: 250,
       distanciaMaximaEnRadios: 3,
     },
-
   },
 
   pose: {

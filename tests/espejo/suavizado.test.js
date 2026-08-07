@@ -175,32 +175,39 @@ describe('crearFiltroDeManos', () => {
       distanciaMaximaEnRadios: 3,
     });
 
+  // El reloj entra siempre desde afuera, como en el resto del espejo. Sin este
+  // corte, olvidarlo dejaria NaN circulando por la retencion de pistas sin que
+  // nada avise.
+  it('no acepta que le falte el reloj', () => {
+    expect(() => nuevo().filtrar([manoEn(100)])).toThrow(/reloj/);
+  });
+
   it('suaviza el desplazamiento de la palma en vez de copiarlo', () => {
     const filtro = nuevo();
-    filtro.filtrar([manoEn(100)]);
-    const [mano] = filtro.filtrar([manoEn(300)]);
+    filtro.filtrar([manoEn(100)], 0);
+    const [mano] = filtro.filtrar([manoEn(300)], 30);
     expect(mano.palma.x).toBe(200);
   });
 
   it('una mano nueva arranca donde aparece, sin arrastre', () => {
-    const [mano] = nuevo().filtrar([manoEn(700)]);
+    const [mano] = nuevo().filtrar([manoEn(700)], 0);
     expect(mano.palma.x).toBe(700);
   });
 
   it('el radio tambien se suaviza', () => {
     const filtro = nuevo();
-    filtro.filtrar([manoEn(100, { radio: 100 })]);
-    const [mano] = filtro.filtrar([manoEn(100, { radio: 200 })]);
+    filtro.filtrar([manoEn(100, { radio: 100 })], 0);
+    const [mano] = filtro.filtrar([manoEn(100, { radio: 200 })], 30);
     expect(mano.radio).toBeCloseTo(150);
   });
 
   it('cada mano tiene su propio filtro', () => {
     const filtro = nuevo();
-    filtro.filtrar([manoEn(100, { lado: 'Left' }), manoEn(900, { lado: 'Right' })]);
-    const [izq, der] = filtro.filtrar([
-      manoEn(200, { lado: 'Left' }),
-      manoEn(800, { lado: 'Right' }),
-    ]);
+    filtro.filtrar([manoEn(100, { lado: 'Left' }), manoEn(900, { lado: 'Right' })], 0);
+    const [izq, der] = filtro.filtrar(
+      [manoEn(200, { lado: 'Left' }), manoEn(800, { lado: 'Right' })],
+      30,
+    );
     expect(izq.palma.x).toBe(150);
     expect(der.palma.x).toBe(850);
   });
@@ -209,17 +216,17 @@ describe('crearFiltroDeManos', () => {
   // el suavizado rebotaria entre las dos posiciones y saldria peor que crudo.
   it('dos manos del mismo lado no comparten filtro', () => {
     const filtro = nuevo();
-    filtro.filtrar([manoEn(100), manoEn(900)]);
-    const [primera, segunda] = filtro.filtrar([manoEn(120), manoEn(920)]);
+    filtro.filtrar([manoEn(100), manoEn(900)], 0);
+    const [primera, segunda] = filtro.filtrar([manoEn(120), manoEn(920)], 30);
     expect(primera.palma.x).toBe(110);
     expect(segunda.palma.x).toBe(910);
   });
 
   it('no intercambia historias si MediaPipe invierte el orden del arreglo', () => {
     const filtro = nuevo();
-    filtro.filtrar([manoEn(100), manoEn(900)]);
+    filtro.filtrar([manoEn(100), manoEn(900)], 0);
 
-    const [derecha, izquierda] = filtro.filtrar([manoEn(920), manoEn(120)]);
+    const [derecha, izquierda] = filtro.filtrar([manoEn(920), manoEn(120)], 30);
 
     expect(derecha.palma.x).toBe(910);
     expect(izquierda.palma.x).toBe(110);
@@ -258,15 +265,15 @@ describe('crearFiltroDeManos', () => {
   // que el atractor se deslice desde donde estaba la mano anterior.
   it('una mano que desaparece pierde su historia', () => {
     const filtro = nuevo();
-    filtro.filtrar([manoEn(100)]);
-    filtro.filtrar([]);
-    const [mano] = filtro.filtrar([manoEn(900)]);
+    filtro.filtrar([manoEn(100)], 0);
+    filtro.filtrar([], 300);
+    const [mano] = filtro.filtrar([manoEn(900)], 320);
     expect(mano.palma.x).toBe(900);
   });
 
   it('conserva los campos que no se filtran', () => {
     const filtro = nuevo();
-    const [mano] = filtro.filtrar([manoEn(100)]);
+    const [mano] = filtro.filtrar([manoEn(100)], 0);
     expect(mano.apertura).toBe(1.5);
     expect(mano.largoPalma).toBe(60);
     expect(mano.lado).toBe('Right');
@@ -274,33 +281,64 @@ describe('crearFiltroDeManos', () => {
 
   it('no muta la mano que le entra', () => {
     const filtro = nuevo();
-    filtro.filtrar([manoEn(100)]);
+    filtro.filtrar([manoEn(100)], 0);
     const entrada = manoEn(300);
-    filtro.filtrar([entrada]);
+    filtro.filtrar([entrada], 30);
     expect(entrada.palma.x).toBe(300);
   });
 
   it('reiniciar olvida todas las manos', () => {
     const filtro = nuevo();
-    filtro.filtrar([manoEn(100)]);
+    filtro.filtrar([manoEn(100)], 0);
     filtro.reiniciar();
-    const [mano] = filtro.filtrar([manoEn(500)]);
+    const [mano] = filtro.filtrar([manoEn(500)], 30);
     expect(mano.palma.x).toBe(500);
   });
 });
 
+// La presencia se mide en tiempo sostenido, no en cantidad de consultas. El
+// espejo pregunta una vez por cuadro de dibujo (~60 fps) pero el detector de
+// rostro corre a 22 y el de pose a 12: entre deteccion y deteccion la señal es
+// la misma lectura repetida. Contar cuadros haria que una sola deteccion valiera
+// por tres y la histeresis dejaria de filtrar los falsos positivos.
 describe('crearHisteresis', () => {
-  const opciones = { cuadrosParaEntrar: 3, msParaSalir: 400 };
+  const opciones = { msParaEntrar: 60, msParaSalir: 400 };
 
   it('arranca en ausente', () => {
     expect(crearHisteresis(opciones).presente()).toBe(false);
   });
 
-  it('no declara presencia antes de acumular los cuadros pedidos', () => {
+  it('no declara presencia antes de sostenerla el tiempo pedido', () => {
     const h = crearHisteresis(opciones);
     expect(h.actualizar(true, 0)).toBe(false);
     expect(h.actualizar(true, 30)).toBe(false);
     expect(h.actualizar(true, 60)).toBe(true);
+  });
+
+  it('no se adelanta porque se la consulte mas seguido', () => {
+    const porDeteccion = crearHisteresis(opciones);
+    const porDibujo = crearHisteresis(opciones);
+
+    // La misma ventana de 45 ms, mirada a 22 fps y a 60 fps.
+    for (const t of [0, 45]) porDeteccion.actualizar(true, t);
+    for (let t = 0; t <= 45; t += 15) porDibujo.actualizar(true, t);
+    expect(porDibujo.presente()).toBe(false);
+    expect(porDibujo.presente()).toBe(porDeteccion.presente());
+
+    // Y a los 60 ms entran las dos: lo que manda es el tiempo, no las consultas.
+    expect(porDeteccion.actualizar(true, 60)).toBe(true);
+    expect(porDibujo.actualizar(true, 60)).toBe(true);
+  });
+
+  it('una deteccion suelta repetida entre cuadros no alcanza para entrar', () => {
+    const h = crearHisteresis(opciones);
+    // Un falso positivo dura lo que tarda la siguiente deteccion en negarlo.
+    for (let t = 0; t < 45; t += 15) h.actualizar(true, t);
+    expect(h.actualizar(false, 45)).toBe(false);
+
+    // Sostenida de verdad, en cambio, si entra.
+    for (const t of [60, 90]) h.actualizar(true, t);
+    expect(h.actualizar(true, 120)).toBe(true);
   });
 
   it('un cuadro perdido no corta la presencia si el rostro vuelve enseguida', () => {
@@ -318,7 +356,7 @@ describe('crearHisteresis', () => {
     expect(h.actualizar(false, 501)).toBe(false);
   });
 
-  it('exige acumular los cuadros de nuevo despues de una ausencia', () => {
+  it('exige sostener la presencia de nuevo despues de una ausencia', () => {
     const h = crearHisteresis(opciones);
     for (const t of [0, 30, 60]) h.actualizar(true, t);
     h.actualizar(false, 100);

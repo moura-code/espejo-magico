@@ -1,5 +1,43 @@
 import { describe, it, expect, vi } from 'vitest';
-import { crearReintentador } from '../../espejo/camara.js';
+import { crearReintentador, vigilarFlujo } from '../../espejo/camara.js';
+
+// El reintentador sabe recuperarse, pero alguien tiene que avisarle. Sin esto,
+// un cable USB pateado deja al espejo mirando una camara muerta para siempre:
+// `obtener()` sigue devolviendo el flujo viejo y nadie vuelve a intentar.
+describe('vigilarFlujo', () => {
+  const pistaFalsa = () => {
+    const oyentes = [];
+    return {
+      pista: { addEventListener: (evento, fn) => oyentes.push({ evento, fn }) },
+      terminar: () => oyentes.filter((o) => o.evento === 'ended').forEach((o) => o.fn()),
+    };
+  };
+
+  it('avisa cuando se corta una pista del flujo', () => {
+    const { pista, terminar } = pistaFalsa();
+    const avisos = [];
+
+    vigilarFlujo({ getTracks: () => [pista] }, () => avisos.push('perdida'));
+    expect(avisos).toEqual([]);
+
+    terminar();
+    expect(avisos).toEqual(['perdida']);
+  });
+
+  it('avisa una sola vez aunque terminen todas las pistas', () => {
+    const primera = pistaFalsa();
+    const segunda = pistaFalsa();
+    const avisos = [];
+
+    vigilarFlujo({ getTracks: () => [primera.pista, segunda.pista] }, () =>
+      avisos.push('perdida'),
+    );
+    primera.terminar();
+    segunda.terminar();
+
+    expect(avisos).toEqual(['perdida']);
+  });
+});
 
 // Cede el turno al reloj de verdad. Con `Promise.resolve()` el bucle de reintento
 // giraria en microtareas y ningun setTimeout del test llegaria a dispararse.

@@ -93,21 +93,31 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       const estado = rango ? 206 : 200;
       const inicio = rango?.inicio ?? 0;
       const fin = rango?.fin ?? datos.size - 1;
+      // Un archivo de 0 bytes deja `fin` en -1 y no hay nada que leer. El flujo
+      // se abre ANTES de mandar los encabezados: createReadStream valida el
+      // rango de forma sincronica, y si tira con los encabezados ya enviados el
+      // catch no puede responder y el proceso entero se cae.
+      const cuerpo =
+        fin < inicio || pedido.method === 'HEAD'
+          ? null
+          : createReadStream(absoluta, { start: inicio, end: fin });
+
       respuesta.writeHead(estado, {
         ...encabezados,
         'Content-Length': Math.max(0, fin - inicio + 1),
         ...(rango ? { 'Content-Range': `bytes ${inicio}-${fin}/${datos.size}` } : {}),
       });
-      if (pedido.method === 'HEAD') {
+
+      if (!cuerpo) {
         respuesta.end();
         return;
       }
-
-      createReadStream(absoluta, { start: inicio, end: fin })
-        .on('error', () => respuesta.destroy())
-        .pipe(respuesta);
+      cuerpo.on('error', () => respuesta.destroy()).pipe(respuesta);
     } catch {
-      respuesta.writeHead(404).end('No encontrado');
+      // Segunda linea de defensa: si algo falla despues de mandar encabezados,
+      // el 404 seria un error nuevo. Cortar la conexion y dejar vivo el proceso.
+      if (respuesta.headersSent) respuesta.destroy();
+      else respuesta.writeHead(404).end('No encontrado');
     }
   });
 

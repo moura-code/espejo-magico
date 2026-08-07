@@ -199,12 +199,16 @@ export function dibujarPersona(ctx, pose, rostro, rectangulo, color) {
 
   const mascara = pose?.mascara?.canvas;
   if (mascara) {
+    // El espejado se deshace con restore(), no reponiendo la identidad a mano:
+    // setTransform(1,0,0,1,0,0) pisaria cualquier transformacion que el llamador
+    // ya tuviera puesta.
+    ctx.save();
     ctx.globalAlpha = 0.16;
     ctx.globalCompositeOperation = 'screen';
     ctx.translate(rectangulo.x + rectangulo.ancho, rectangulo.y);
     ctx.scale(-1, 1);
     ctx.drawImage(mascara, 0, 0, rectangulo.ancho, rectangulo.alto);
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.restore();
   }
 
   if (pose) {
@@ -282,12 +286,11 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.restore();
 }
 
-export function dibujarInvitacion(ctx, disposicion, pulso, alfa = 1) {
-  if (alfa <= 0) return;
+export function dibujarInvitacion(ctx, disposicion, pulso) {
   const { ancho, alto, texto } = disposicion;
 
   ctx.save();
-  ctx.globalAlpha = alfa * (0.65 + 0.35 * pulso);
+  ctx.globalAlpha = 0.65 + 0.35 * pulso;
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';

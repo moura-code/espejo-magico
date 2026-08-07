@@ -84,7 +84,6 @@ export function crearFiltroDeManos({
 }) {
   const pistas = new Map();
   let siguienteId = 1;
-  let relojImplicito = 0;
 
   const nuevaPista = (mano, ahora) => ({
     id: siguienteId++,
@@ -97,7 +96,11 @@ export function crearFiltroDeManos({
   });
 
   return {
-    filtrar(manos, ahora = (relojImplicito += 16)) {
+    filtrar(manos, ahora) {
+      if (!Number.isFinite(ahora)) {
+        throw new TypeError('crearFiltroDeManos.filtrar necesita el reloj `ahora`');
+      }
+
       for (const [id, pista] of pistas) {
         if (ahora - pista.ultimaVez > retencionMs) pistas.delete(id);
       }
@@ -195,19 +198,24 @@ export function crearRastreadorDeVelocidad({ alfa = 0.4, maxima = 4000 } = {}) {
   };
 }
 
-export function crearHisteresis({ cuadrosParaEntrar, msParaSalir }) {
+// Entrar y salir se miden los dos en tiempo, nunca en cuadros: quien pregunta
+// lo hace una vez por cuadro de dibujo, pero los detectores corren mas lento y
+// entre uno y otro devuelven la misma lectura repetida. Si esto contara cuadros,
+// consultar mas seguido adelantaria la presencia y una deteccion suelta valdria
+// por varias — justo lo que la histeresis existe para evitar.
+export function crearHisteresis({ msParaEntrar, msParaSalir }) {
   let presente = false;
-  let seguidos = 0;
+  let desdeQueLlega = null;
   let desdeQueFalta = null;
 
   return {
     actualizar(hayRostro, ahora) {
       if (hayRostro) {
         desdeQueFalta = null;
-        seguidos += 1;
-        if (!presente && seguidos >= cuadrosParaEntrar) presente = true;
+        if (desdeQueLlega === null) desdeQueLlega = ahora;
+        if (!presente && ahora - desdeQueLlega >= msParaEntrar) presente = true;
       } else {
-        seguidos = 0;
+        desdeQueLlega = null;
         if (presente) {
           if (desdeQueFalta === null) desdeQueFalta = ahora;
           if (ahora - desdeQueFalta > msParaSalir) {
