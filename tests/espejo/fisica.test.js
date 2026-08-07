@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   atraerHaciaCirculo,
+  elegirAtractor,
   separarCuerpos,
   crearCuerpo,
   integrar,
@@ -176,6 +177,20 @@ describe('atraerHaciaCirculo', () => {
     const cuerpo = crearCuerpo({ x: 400, y: 500, vx: 100, radio: 10 });
     expect(() => atraerHaciaCirculo(cuerpo, atractor, 0.1, CAMPO)).not.toThrow();
     expect(Number.isFinite(cuerpo.vx) && Number.isFinite(cuerpo.vy)).toBe(true);
+  });
+});
+
+describe('elegirAtractor', () => {
+  const cuerpo = crearCuerpo({ x: 500, y: 500, radio: 20 });
+
+  it('elige la mano mas cercana cuando los campos se superponen', () => {
+    const izquierda = { x: 450, y: 500, alcance: 200, reposo: 20 };
+    const derecha = { x: 620, y: 500, alcance: 200, reposo: 20 };
+    expect(elegirAtractor(cuerpo, [derecha, izquierda])).toBe(izquierda);
+  });
+
+  it('no elige una mano fuera de alcance', () => {
+    expect(elegirAtractor(cuerpo, [{ x: 800, y: 500, alcance: 100, reposo: 20 }])).toBeNull();
   });
 });
 
@@ -439,5 +454,40 @@ describe('paso', () => {
 
     expect(Math.abs(cuerpo.vx)).toBeLessThan(20);
     expect(cuerpo.y).toBeGreaterThan(900);
+  });
+
+  it.each([
+    ['borde izquierdo', 20, 30],
+    ['borde derecho', 980, -30],
+  ])('la separacion no expulsa el racimo por el %s', (_, x, separacion) => {
+    const mundo = {
+      ...MUNDO_IMAN(),
+      gravedad: 0,
+      atractores: [{ x, y: 500, alcance: 200, reposo: 20 }],
+    };
+    const a = crearCuerpo({ x, y: 500, radio: 30 });
+    const b = crearCuerpo({ x: x + separacion, y: 500, radio: 30 });
+
+    paso([a, b], 1 / 60, mundo);
+
+    for (const cuerpo of [a, b]) {
+      expect(cuerpo.x - cuerpo.radio).toBeGreaterThanOrEqual(CAJA.x);
+      expect(cuerpo.x + cuerpo.radio).toBeLessThanOrEqual(CAJA.x + CAJA.ancho);
+    }
+  });
+
+  it('la separacion no hunde un racimo en el piso', () => {
+    const mundo = {
+      ...MUNDO_IMAN(),
+      gravedad: 0,
+      atractores: [{ x: 500, y: 980, alcance: 200, reposo: 20 }],
+    };
+    const a = crearCuerpo({ x: 500, y: 970, radio: 30 });
+    const b = crearCuerpo({ x: 500, y: 980, radio: 30 });
+
+    paso([a, b], 1 / 60, mundo);
+
+    expect(a.y + a.radio).toBeLessThanOrEqual(CAJA.y + CAJA.alto);
+    expect(b.y + b.radio).toBeLessThanOrEqual(CAJA.y + CAJA.alto);
   });
 });
