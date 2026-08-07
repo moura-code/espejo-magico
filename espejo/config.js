@@ -87,6 +87,17 @@ export const CONFIG = {
     // vez de rechazarlos. El radio visible sigue siendo el area de interaccion.
     atraccion: 2600,
     alcanceAtraccion: 1.9,
+
+    agarre: {
+      aperturaParaAgarrar: 1.45,
+      aperturaParaSoltar: 1.75,
+      alcance: 1.15,
+    },
+  },
+
+  pose: {
+    fps: 15,
+    segmentacion: true,
   },
 
   objetos: {

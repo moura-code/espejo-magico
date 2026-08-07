@@ -9,10 +9,12 @@ import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
 import { crearDetectorDeManosMediaPipe } from './manos.js';
+import { crearDetectorDePoseMediaPipe } from './pose.js';
 import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearPool, fuenteDeObjetos } from './objetos.js';
+import { actualizarAgarres } from './agarre.js';
 import { crearCuerpo } from './fisica.js';
 import { crearNiebla, calcularNiebla } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
@@ -24,6 +26,7 @@ import {
   dibujarObjetos,
   dibujarAccesorio,
   dibujarManos,
+  dibujarPersona,
   dibujarTextos,
   dibujarInvitacion,
 } from './escena.js';
@@ -123,6 +126,16 @@ try {
   console.warn('Deteccion de manos no disponible:', error);
 }
 
+let detectorDePose = null;
+try {
+  detectorDePose = await crearDetectorDePoseMediaPipe({
+    base: '/vendor/mediapipe',
+    segmentacion: CONFIG.pose.segmentacion,
+  });
+} catch (error) {
+  console.warn('Deteccion de pose no disponible:', error);
+}
+
 const sintetica = crearFuenteSintetica();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
 const histeresis = crearHisteresis(CONFIG.presencia);
@@ -211,14 +224,19 @@ function aparecerObjeto(definicion, ahora) {
 let anterior = performance.now();
 let ultimaDeteccion = 0;
 let rostro = null;
+let pose = null;
 let manos = [];
 let verMalla = false;
 let efecto = null;
 let efectoDe = null;
 let ultimaDeteccionManos = 0;
+let ultimaDeteccionPose = 0;
+let crudoRostro = null;
+let hayPersona = false;
 let estadoAnterior = ESTADOS.ATRACCION;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
+const intervaloPose = 1000 / CONFIG.pose.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
 
 function cuadro(ahora) {
@@ -252,22 +270,33 @@ function cuadro(ahora) {
   if (ahora - ultimaDeteccion >= intervaloDeteccion) {
     ultimaDeteccion = ahora;
 
-    const crudo =
+    crudoRostro =
       modo === 'demo'
         ? sintetica.detectar(ahora, disposicion)
         : video
           ? detector.detectar(video, ahora, rectangulo)
           : null;
 
-    const habiaPresencia = histeresis.presente();
-    const hayPresencia = histeresis.actualizar(Boolean(crudo), ahora);
-    if (habiaPresencia && !hayPresencia) {
-      filtro.reiniciar();
-      velocidadCabeza.reiniciar();
-      velocidadDeMano.clear();
-    }
+    rostro = crudoRostro ? filtro.filtrar(crudoRostro) : null;
+  }
 
-    rostro = hayPresencia ? filtro.filtrar(crudo) : null;
+  const poseSirve = detectorDePose && video && modo !== 'demo';
+  if (poseSirve && ahora - ultimaDeteccionPose >= intervaloPose) {
+    ultimaDeteccionPose = ahora;
+    pose = detectorDePose.detectar(video, ahora, rectangulo);
+  } else if (!poseSirve) {
+    pose = null;
+  }
+
+  const habiaPresencia = hayPersona;
+  hayPersona = histeresis.actualizar(Boolean(crudoRostro || pose), ahora);
+  if (habiaPresencia && !hayPersona) {
+    filtro.reiniciar();
+    velocidadCabeza.reiniciar();
+    velocidadDeMano.clear();
+    crudoRostro = null;
+    rostro = null;
+    pose = null;
   }
 
   // Las manos corren en su propio reloj, mas rapido que la cara: se mueven mucho
@@ -289,7 +318,7 @@ function cuadro(ahora) {
   }
 
   // --- estado ---
-  const salida = maquina.actualizar({ hayRostro: Boolean(rostro), ahora });
+  const salida = maquina.actualizar({ hayRostro: hayPersona, ahora });
   atender(salida.eventos, ahora);
 
   if (ahora - ultimoLatido >= CONFIG.red.latidoMs) {
@@ -315,12 +344,14 @@ function cuadro(ahora) {
 
   // La cabeza rebota objetos y las manos los atraen hacia la palma.
   const colisionadores = [];
+  const velocidadesManos = new Map();
   if (rostro) {
     const { vx, vy } = velocidadCabeza.actualizar(rostro.centro.x, rostro.centro.y, ahora);
     colisionadores.push({ x: rostro.centro.x, y: rostro.centro.y, radio: rostro.radio, vx, vy });
   }
   for (const mano of manos) {
     const { vx, vy } = seguirVelocidad(mano.lado, mano.palma.x, mano.palma.y, ahora);
+    velocidadesManos.set(mano.lado, { vx, vy });
     colisionadores.push({
       x: mano.palma.x,
       y: mano.palma.y,
@@ -332,6 +363,8 @@ function cuadro(ahora) {
       fuerza: CONFIG.manos.atraccion,
     });
   }
+
+  actualizarAgarres(pool.vivos(), manos, velocidadesManos, CONFIG.manos.agarre);
 
   pool.actualizar(dt, ahora, {
     ...CONFIG.fisica,
@@ -379,6 +412,10 @@ function cuadro(ahora) {
     efecto.dibujar(ctx, contextoEfecto);
   }
 
+  if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
+    dibujarPersona(ctx, pose, rostro, rectangulo, carrera?.color ?? '#FFD23F');
+  }
+
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el
   // mapeo esta bien; si estan corridos, el rectangulo del video y el del mapeo
   // se separaron.
@@ -409,13 +446,10 @@ function cuadro(ahora) {
         );
       }
     }
+    dibujarManos(ctx, manos, '#FFD23F');
   }
 
   dibujarObjetos(ctx, pool.vivos(), banco, carrera?.color ?? '#8899aa');
-
-  if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    dibujarManos(ctx, manos, carrera?.color ?? '#FFD23F');
-  }
 
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
     dibujarAccesorio(ctx, rostro, carrera, banco);
@@ -469,6 +503,8 @@ window.espejo = {
   estadoDeCamara: () => estadoDeCamara,
   manos: () => manos,
   manosCrudas: () => detectorDeManos?.crudasDetectadas() ?? 0,
+  pose: () => pose,
+  poseCrudas: () => detectorDePose?.crudasDetectadas() ?? 0,
   modo: () => modo,
   cambiarModo: (nuevo) => {
     modo = nuevo;

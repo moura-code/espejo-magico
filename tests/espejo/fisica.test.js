@@ -221,6 +221,23 @@ describe('paso', () => {
     expect(cuerpo.vx).toBeGreaterThan(0);
   });
 
+  it('no mueve un cuerpo fijo porque esta agarrado por una mano', () => {
+    const cuerpo = crearCuerpo({ x: 100, y: 100, vx: 1000, vy: 1000, radio: 20 });
+    cuerpo.fijo = true;
+
+    paso([cuerpo], 1, {
+      gravedad: 1600,
+      restitucion: 0.5,
+      friccion: 1,
+      caja: CAJA,
+      colisionadores: [{ x: 100, y: 100, radio: 200 }],
+    });
+
+    expect(cuerpo.x).toBe(100);
+    expect(cuerpo.y).toBe(100);
+    expect(cuerpo.vx).toBe(1000);
+  });
+
   it('ningun objeto termina fuera de la caja despues de caer un rato', () => {
     const mundo = {
       gravedad: 1600,

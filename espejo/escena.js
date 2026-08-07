@@ -183,6 +183,66 @@ export function dibujarManos(ctx, manos, color) {
   ctx.restore();
 }
 
+export function dibujarPersona(ctx, pose, rostro, rectangulo, color) {
+  if (!pose && !rostro) return;
+
+  ctx.save();
+
+  const mascara = pose?.mascara?.canvas;
+  if (mascara) {
+    ctx.globalAlpha = 0.16;
+    ctx.globalCompositeOperation = 'screen';
+    ctx.translate(rectangulo.x + rectangulo.ancho, rectangulo.y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(mascara, 0, 0, rectangulo.ancho, rectangulo.alto);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  if (pose) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(3, pose.anchoHombros * 0.035);
+    ctx.globalAlpha = 0.32;
+    ctx.beginPath();
+    ctx.moveTo(pose.hombroIzq.x, pose.hombroIzq.y);
+    ctx.quadraticCurveTo(
+      pose.centroHombros.x,
+      pose.centroHombros.y + pose.anchoHombros * 0.08,
+      pose.hombroDer.x,
+      pose.hombroDer.y,
+    );
+    ctx.stroke();
+  }
+
+  if (rostro) {
+    const anchoPelo = rostro.radio * 1.6;
+    const altoPelo = rostro.radio * 1.2;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(16, 20, 24, 0.28)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(2, rostro.radio * 0.045);
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.ellipse(
+      rostro.centro.x,
+      rostro.centro.y - rostro.radio * 0.38,
+      anchoPelo / 2,
+      altoPelo / 2,
+      rostro.angulo,
+      Math.PI,
+      Math.PI * 2,
+    );
+    ctx.lineTo(rostro.centro.x + Math.cos(rostro.angulo) * rostro.radio * 0.45, rostro.centro.y);
+    ctx.lineTo(rostro.centro.x - Math.cos(rostro.angulo) * rostro.radio * 0.45, rostro.centro.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 0.35;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   if (!carrera || alfa <= 0) return;
   const { texto, ancho } = disposicion;

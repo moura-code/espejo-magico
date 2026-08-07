@@ -104,6 +104,7 @@ export function instalarOperacion({
         `modo        ${espejo.modo()}`,
         `camara      ${camara.lista ? 'ok' : (camara.error ?? 'sin camara')}`,
         `puntos      ${espejo.detector.cantidadDePuntos()}`,
+        `pose        ${espejo.poseCrudas()} vistas`,
         `manos       ${espejo.manosCrudas()} vistas / ${espejo.manos().length} usadas`,
         `apertura    ${espejo.manos().map((m) => m.apertura.toFixed(1)).join('  ') || '-'}`,
         `radio mano  ${espejo.manos().map((m) => m.radio.toFixed(0)).join('  ') || '-'}`,

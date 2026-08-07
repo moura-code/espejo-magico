@@ -101,6 +101,7 @@ export function paso(cuerpos, dt, mundo) {
   const colisionadores = mundo.colisionadores ?? [];
 
   for (const cuerpo of cuerpos) {
+    if (cuerpo.fijo) continue;
     integrar(cuerpo, dt, mundo.gravedad);
     for (const circulo of colisionadores) {
       if (circulo.interaccion === 'atraer') {
