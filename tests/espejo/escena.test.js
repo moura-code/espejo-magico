@@ -2,9 +2,55 @@ import { describe, it, expect } from 'vitest';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
-  recortarFueraDeCara,
+  dibujarManos,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
+
+// Lienzo falso: registra las llamadas para poder afirmar sobre lo dibujado.
+function crearCtxFalso() {
+  const llamadas = [];
+  return {
+    llamadas,
+    strokeStyle: '',
+    lineWidth: 0,
+    globalAlpha: 1,
+    save: () => llamadas.push(['save']),
+    restore: () => llamadas.push(['restore']),
+    beginPath: () => llamadas.push(['beginPath']),
+    arc: (x, y, radio) => llamadas.push(['arc', x, y, radio]),
+    stroke: () => llamadas.push(['stroke']),
+  };
+}
+
+describe('dibujarManos', () => {
+  const mano = { palma: { x: 300, y: 400 }, radio: 100 };
+
+  it('dibuja dos aros por mano: el circulo de colision y uno chico adentro', () => {
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [mano], '#ffffff');
+
+    const arcos = ctx.llamadas.filter(([nombre]) => nombre === 'arc');
+    expect(arcos).toEqual([
+      ['arc', 300, 400, 100],
+      ['arc', 300, 400, 35],
+    ]);
+    expect(ctx.strokeStyle).toBe('#ffffff');
+  });
+
+  it('no toca el lienzo sin manos', () => {
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [], '#ffffff');
+    dibujarManos(ctx, null, '#ffffff');
+    expect(ctx.llamadas).toEqual([]);
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [mano, { palma: { x: 700, y: 200 }, radio: 80 }], '#ffffff');
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
+});
 
 describe('tamanoQueEntra', () => {
   // Medida falsa: cada caracter ocupa la mitad del tamaño de letra.
@@ -41,14 +87,17 @@ describe('calcularDisposicion', () => {
     expect(calcularDisposicion(1920, 1080).vertical).toBe(false);
   });
 
-  it('deja el piso en el borde inferior de la pantalla', () => {
+  // Los objetos tienen que llegar hasta el borde de abajo: un piso mas arriba se
+  // percibe como una repisa invisible flotando en el aire (feedback de la primera
+  // prueba). El texto no se defiende con un piso sino con el orden de dibujo.
+  it('la caja de fisica llega hasta el borde inferior de la pantalla', () => {
     const d = calcularDisposicion(1080, 1920);
-    expect(d.piso).toBe(1920);
+    expect(d.caja).toEqual({ x: 0, y: 0, ancho: 1080, alto: 1920 });
   });
 
-  it('la caja de fisica termina en el piso', () => {
-    const d = calcularDisposicion(1080, 1920);
-    expect(d.caja).toEqual({ x: 0, y: 0, ancho: 1080, alto: d.piso });
+  it('la caja llega al borde tambien en pantalla apaisada', () => {
+    const d = calcularDisposicion(1920, 1080);
+    expect(d.caja.alto).toBe(1080);
   });
 
   it('la caja nunca se sale de la pantalla', () => {
@@ -139,36 +188,5 @@ describe('calcularRectanguloVideo', () => {
       ancho: 1080,
       alto: 1920,
     });
-  });
-});
-
-describe('recortarFueraDeCara', () => {
-  it('no aplica recorte si no hay rostro', () => {
-    const llamadas = [];
-    const ctx = { clip: () => llamadas.push('clip') };
-
-    expect(recortarFueraDeCara(ctx, null, { ancho: 1000, alto: 800 })).toBe(false);
-    expect(llamadas).toEqual([]);
-  });
-
-  it('recorta una zona amplia alrededor de la cara', () => {
-    const llamadas = [];
-    const ctx = {
-      beginPath: () => llamadas.push(['beginPath']),
-      rect: (...args) => llamadas.push(['rect', ...args]),
-      ellipse: (...args) => llamadas.push(['ellipse', ...args]),
-      clip: (...args) => llamadas.push(['clip', ...args]),
-    };
-
-    const rostro = { centro: { x: 500, y: 300 }, radio: 100, angulo: 0.2 };
-    expect(recortarFueraDeCara(ctx, rostro, { ancho: 1000, alto: 800 })).toBe(true);
-
-    expect(llamadas[1]).toEqual(['rect', 0, 0, 1000, 800]);
-    expect(llamadas[2][0]).toBe('ellipse');
-    expect(llamadas[2][1]).toBe(500);
-    expect(llamadas[2][2]).toBeGreaterThan(300);
-    expect(llamadas[2][3]).toBeGreaterThan(rostro.radio);
-    expect(llamadas[2][4]).toBeGreaterThan(rostro.radio);
-    expect(llamadas.at(-1)).toEqual(['clip', 'evenodd']);
   });
 });

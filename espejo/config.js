@@ -3,32 +3,33 @@
 
 export const CONFIG = {
   // En manual la experiencia no avanza sola: cada estado espera un ESPACIO.
-  // Sirve para probar sin pelear con el reloj — la escena no se corta a los
-  // treinta segundos ni cuando salis de cuadro.
-  //
-  // PARA EL EVENTO ESTO TIENE QUE ESTAR EN false. Mientras este en true, el
-  // espejo avisa en pantalla, asi no se llega al stand con el modo puesto.
+  // Sirve para probar sin pelear con el reloj — la sesion no se corta cuando
+  // salis de cuadro. En false (lo normal, y lo unico valido para el evento) la
+  // experiencia es automatica; la tecla A alterna en vivo, y mientras el modo
+  // manual este activo el espejo lo avisa en pantalla.
   avance: {
     manual: false,
   },
 
-  // Duraciones de cada estado, en milisegundos.
+  // Duraciones de cada estado, en milisegundos. La escena no tiene duracion
+  // propia a proposito: dura mientras la persona siga sentada, y el unico tope
+  // es sesionMaxima, que hace de red de seguridad y de rotacion de la fila.
   tiempos: {
-    enganche: 1400,
-    sorteo: 500,
-    revelacion: 1200,
-    cierre: 900,
-    enfriamiento: 400,
-    ausenciaParaCortar: 350,
+    enganche: 2000,
+    sorteo: 3000,
+    revelacion: 2000,
+    cierre: 4000,
+    enfriamiento: 3000,
+    ausenciaParaCortar: 3000,
     sesionMaxima: 75000,
   },
 
   // Cuando se considera que hay alguien sentado.
-  // Entrar es rapido; al salir hay una tolerancia breve para absorber cuadros
-  // perdidos sin demorar el regreso al reposo.
+  // Entrar es rapido; salir es lento, para que la experiencia no parpadee
+  // cada vez que alguien gira la cabeza.
   presencia: {
     cuadrosParaEntrar: 6,
-    msParaSalir: 250,
+    msParaSalir: 400,
   },
 
   // Filtro exponencial. Mas bajo = mas suave y mas lento.
@@ -78,40 +79,65 @@ export const CONFIG = {
     factorRadio: 1.4,
     radioMinimoEnPalmas: 1.0,
 
-    // Suavizado y tope para medir el movimiento de cabeza y manos. Sin tope, un
-    // parpadeo de la deteccion dispara valores de velocidad absurdos.
+    // Suavizado y tope de la velocidad con la que la cabeza y las manos golpean
+    // los objetos. Sin tope, un parpadeo de la deteccion dispara un objeto a
+    // velocidad absurda.
     alfaVelocidad: 0.4,
     velocidadMaxima: 4000,
 
-    // Tres estados por apertura:
-    // cerrada agarra, intermedia atrae y abierta repele.
-    aperturaCerrada: 1.45,
-    aperturaAbierta: 1.85,
-    atraccion: 2600,
-    alcanceAtraccion: 1.9,
-    repulsion: 3200,
-    alcanceRepulsion: 1.75,
+    // Que hacen las manos con los objetos que caen.
+    //   'atraer':  iman — los objetos se juntan y quedan flotando alrededor de
+    //              la palma (pedido de la primera prueba con publico).
+    //   'golpear': los objetos rebotan y se manotean.
+    // La tecla I alterna en vivo, para comparar los dos modos con gente delante.
+    interaccion: 'atraer',
 
-    agarre: {
-      alcance: 1.15,
+    // El campo del iman: un resorte hacia un anillo de reposo alrededor de la
+    // palma, con los capturados separandose entre si para no encimarse. La
+    // fuerza tiene que ganarle comodo a fisica.gravedad, o los objetos se
+    // escurren por debajo del campo; con 8000 el iman captura desde cualquier
+    // angulo y el racimo queda quieto (fisica.test.js lo vigila).
+    atraccion: {
+      alcanceFactor: 2.6, // alcance del campo, en radios de mano
+      reposoFactor: 0.3, // anillo de reposo, en radios de mano: bien chico para que el racimo se abrace a la palma y no flote lejos
+      fuerza: 8000, // aceleracion maxima del resorte, en px/s2
+      amortiguacion: 3.5, // 1/s: cuanto se frenan los objetos dentro del campo
+      separacion: 10, // 1/s: que tan rapido se apartan dos capturados encimados
+    },
+
+    // Suavizado SOLO para el iman: el racimo cuelga de la palma en forma
+    // permanente, asi que el temblor de la deteccion se le traslada entero; el
+    // atractor sigue una palma filtrada que lo corta. El modo golpe usa la
+    // palma cruda a proposito — el filtro mete retardo y el manotazo lo sufre.
+    suavizadoDelIman: {
+      posicion: 0.35,
+      radio: 0.25,
     },
   },
 
-  pose: {
-    fps: 15,
-    segmentacion: true,
-  },
-
   objetos: {
-    maximo: 24,
-    intervaloAparicion: 500,
-    vidaMs: 10000,
+    maximo: 40,
+    intervaloAparicion: 350,
+    vidaMs: 12000,
   },
 
   efectos: {
     // Particulas por carrera. Como los objetos, tope fijo: el rendimiento no
     // puede depender de cuanto tiempo lleve alguien sentado.
     presupuesto: 60,
+  },
+
+  // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
+  // hay nadie, se abren desde la cara en la revelacion y se vuelven a cerrar en
+  // el cierre. Las velocidades acotan cuanto puede cambiar la niebla por
+  // segundo: son lo que garantiza que ningun corte de estado pegue un salto.
+  niebla: {
+    cantidad: 26, // jirones en pantalla
+    agitacionSorteo: 3, // cuanto se aceleran los jirones durante el sorteo
+    velocidades: {
+      cobertura: 0.7, // fraccion por segundo: tapar o despejar lleva ~1.4 s
+      revelado: 0.5, // el agujero de la revelacion se abre en ~2 s
+    },
   },
 
   fisica: {

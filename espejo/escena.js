@@ -7,15 +7,15 @@ import { dibujarFigura } from './figuras.js';
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
   const alturaTexto = alto * (vertical ? 0.16 : 0.22);
-  const piso = alto;
   const corto = Math.min(ancho, alto);
 
   return {
     ancho,
     alto,
     vertical,
-    piso,
-    caja: { x: 0, y: 0, ancho, alto: piso },
+    // Hasta el borde: un piso mas arriba se lee como una repisa invisible. Los
+    // textos se dibujan despues de los objetos, asi que quedan encima igual.
+    caja: { x: 0, y: 0, ancho, alto },
     unidad: Math.min(ancho, alto * 0.5625),
     texto: {
       nombreY: alto - alturaTexto * 0.55,
@@ -104,33 +104,8 @@ export function dibujarObjetos(ctx, objetos, banco, color) {
   }
 }
 
-export function recortarFueraDeCara(ctx, rostro, disposicion) {
-  if (!rostro) return false;
-
-  ctx.beginPath();
-  ctx.rect(0, 0, disposicion.ancho, disposicion.alto);
-  ctx.ellipse(
-    rostro.centro.x,
-    rostro.centro.y + rostro.radio * 0.35,
-    rostro.radio * 1.25,
-    rostro.radio * 1.75,
-    rostro.angulo ?? 0,
-    0,
-    Math.PI * 2,
-  );
-  ctx.clip('evenodd');
-  return true;
-}
-
-export function dibujarFueraDeCara(ctx, rostro, disposicion, dibujar) {
-  ctx.save();
-  recortarFueraDeCara(ctx, rostro, disposicion);
-  dibujar();
-  ctx.restore();
-}
-
-export function dibujarAccesorio(ctx, rostro, carrera, banco, alfa = 1) {
-  if (!rostro || !carrera || alfa <= 0) return;
+export function dibujarAccesorio(ctx, rostro, carrera, banco) {
+  if (!rostro || !carrera) return;
   const imagen = banco.obtener(carrera.accesorio.img);
   if (!imagen) return;
 
@@ -141,7 +116,6 @@ export function dibujarAccesorio(ctx, rostro, carrera, banco, alfa = 1) {
   if (!anclaje) return;
 
   ctx.save();
-  ctx.globalAlpha = alfa;
   ctx.translate(anclaje.x, anclaje.y);
   ctx.rotate(anclaje.angulo);
   ctx.scale(anclaje.escala, anclaje.escala);
@@ -166,106 +140,29 @@ const MARGEN_TEXTO = 0.9;
 /**
  * Un aro en cada palma, del tamaño real del circulo de colision.
  *
- * Silueta simple de la mano detectada. En la experiencia ayuda a entender que
- * la interaccion ocurre con la propia mano, y en diagnostico confirma el mapeo.
+ * Se dibuja siempre que hay manos detectadas: es lo que le avisa al visitante
+ * que puede interactuar con las suyas. La malla (tecla M) agrega ademas la
+ * version cruda en amarillo, para comparar el circulo que golpea con la mano
+ * de verdad.
  */
 export function dibujarManos(ctx, manos, color) {
   if (!manos || manos.length === 0) return;
 
   ctx.save();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, manos[0].radio * 0.06);
 
   for (const mano of manos) {
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = Math.max(2, mano.radio * 0.045);
-    ctx.globalAlpha = 0.62;
-
-    for (const punta of mano.puntas ?? []) {
-      ctx.beginPath();
-      ctx.moveTo(mano.palma.x, mano.palma.y);
-      ctx.lineTo(punta.x, punta.y);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(punta.x, punta.y, Math.max(4, mano.radio * 0.09), 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.globalAlpha = 0.3;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(mano.palma.x, mano.palma.y, Math.max(6, mano.radio * 0.18), 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.globalAlpha = 0.2;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = Math.max(2, mano.radio * 0.025);
+    ctx.globalAlpha = 0.5;
     ctx.beginPath();
     ctx.arc(mano.palma.x, mano.palma.y, mano.radio, 0, Math.PI * 2);
     ctx.stroke();
-  }
-  ctx.restore();
-}
 
-export function dibujarPersona(ctx, pose, rostro, rectangulo, color) {
-  if (!pose && !rostro) return;
-
-  ctx.save();
-
-  const mascara = pose?.mascara?.canvas;
-  if (mascara) {
-    ctx.globalAlpha = 0.16;
-    ctx.globalCompositeOperation = 'screen';
-    ctx.translate(rectangulo.x + rectangulo.ancho, rectangulo.y);
-    ctx.scale(-1, 1);
-    ctx.drawImage(mascara, 0, 0, rectangulo.ancho, rectangulo.alto);
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }
-
-  if (pose) {
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = Math.max(3, pose.anchoHombros * 0.035);
-    ctx.globalAlpha = 0.32;
+    ctx.globalAlpha = 0.28;
     ctx.beginPath();
-    ctx.moveTo(pose.hombroIzq.x, pose.hombroIzq.y);
-    ctx.quadraticCurveTo(
-      pose.centroHombros.x,
-      pose.centroHombros.y + pose.anchoHombros * 0.08,
-      pose.hombroDer.x,
-      pose.hombroDer.y,
-    );
+    ctx.arc(mano.palma.x, mano.palma.y, mano.radio * 0.35, 0, Math.PI * 2);
     ctx.stroke();
   }
-
-  if (rostro) {
-    const anchoPelo = rostro.radio * 1.6;
-    const altoPelo = rostro.radio * 1.2;
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(16, 20, 24, 0.28)';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = Math.max(2, rostro.radio * 0.045);
-    ctx.globalAlpha = 0.75;
-    ctx.beginPath();
-    ctx.ellipse(
-      rostro.centro.x,
-      rostro.centro.y - rostro.radio * 0.38,
-      anchoPelo / 2,
-      altoPelo / 2,
-      rostro.angulo,
-      Math.PI,
-      Math.PI * 2,
-    );
-    ctx.lineTo(rostro.centro.x + Math.cos(rostro.angulo) * rostro.radio * 0.45, rostro.centro.y);
-    ctx.lineTo(rostro.centro.x - Math.cos(rostro.angulo) * rostro.radio * 0.45, rostro.centro.y);
-    ctx.closePath();
-    ctx.fill();
-    ctx.globalAlpha = 0.35;
-    ctx.stroke();
-  }
-
   ctx.restore();
 }
 
@@ -301,12 +198,11 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.restore();
 }
 
-export function dibujarInvitacion(ctx, disposicion, pulso, alfa = 1) {
-  if (alfa <= 0) return;
+export function dibujarInvitacion(ctx, disposicion, pulso) {
   const { ancho, alto, texto } = disposicion;
 
   ctx.save();
-  ctx.globalAlpha = alfa * (0.65 + 0.35 * pulso);
+  ctx.globalAlpha = 0.65 + 0.35 * pulso;
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   crearFiltroExponencial,
   crearFiltroRostro,
+  crearFiltroDeManos,
   crearHisteresis,
   crearRastreadorDeVelocidad,
 } from '../../espejo/suavizado.js';
@@ -149,6 +150,97 @@ describe('crearFiltroRostro', () => {
     filtro.filtrar(entrada);
     expect(entrada.centro.x).toBe(300);
     expect(entrada.ojoIzq.x).toBe(250);
+  });
+});
+
+const manoEn = (x, extras = {}) => ({
+  palma: { x, y: 100 },
+  radio: 80,
+  apertura: 1.5,
+  largoPalma: 60,
+  lado: 'Right',
+  ...extras,
+});
+
+// Suavizado SOLO para el iman: el atractor sigue una palma filtrada para que el
+// ruido de deteccion no haga temblar el racimo colgado de la mano. El modo
+// golpe usa la palma cruda a proposito — el filtro mete retardo y el manotazo
+// necesita reflejos.
+describe('crearFiltroDeManos', () => {
+  const nuevo = () => crearFiltroDeManos({ posicion: 0.5, radio: 0.5 });
+
+  it('suaviza el desplazamiento de la palma en vez de copiarlo', () => {
+    const filtro = nuevo();
+    filtro.filtrar([manoEn(100)]);
+    const [mano] = filtro.filtrar([manoEn(300)]);
+    expect(mano.palma.x).toBe(200);
+  });
+
+  it('una mano nueva arranca donde aparece, sin arrastre', () => {
+    const [mano] = nuevo().filtrar([manoEn(700)]);
+    expect(mano.palma.x).toBe(700);
+  });
+
+  it('el radio tambien se suaviza', () => {
+    const filtro = nuevo();
+    filtro.filtrar([manoEn(100, { radio: 100 })]);
+    const [mano] = filtro.filtrar([manoEn(100, { radio: 200 })]);
+    expect(mano.radio).toBeCloseTo(150);
+  });
+
+  it('cada mano tiene su propio filtro', () => {
+    const filtro = nuevo();
+    filtro.filtrar([manoEn(100, { lado: 'Left' }), manoEn(900, { lado: 'Right' })]);
+    const [izq, der] = filtro.filtrar([
+      manoEn(200, { lado: 'Left' }),
+      manoEn(800, { lado: 'Right' }),
+    ]);
+    expect(izq.palma.x).toBe(150);
+    expect(der.palma.x).toBe(850);
+  });
+
+  // MediaPipe puede reportar dos manos del mismo lado. Si compartieran filtro,
+  // el suavizado rebotaria entre las dos posiciones y saldria peor que crudo.
+  it('dos manos del mismo lado no comparten filtro', () => {
+    const filtro = nuevo();
+    filtro.filtrar([manoEn(100), manoEn(900)]);
+    const [primera, segunda] = filtro.filtrar([manoEn(120), manoEn(920)]);
+    expect(primera.palma.x).toBe(110);
+    expect(segunda.palma.x).toBe(910);
+  });
+
+  // Al reaparecer arranca en la posicion real: retomar la historia vieja haria
+  // que el atractor se deslice desde donde estaba la mano anterior.
+  it('una mano que desaparece pierde su historia', () => {
+    const filtro = nuevo();
+    filtro.filtrar([manoEn(100)]);
+    filtro.filtrar([]);
+    const [mano] = filtro.filtrar([manoEn(900)]);
+    expect(mano.palma.x).toBe(900);
+  });
+
+  it('conserva los campos que no se filtran', () => {
+    const filtro = nuevo();
+    const [mano] = filtro.filtrar([manoEn(100)]);
+    expect(mano.apertura).toBe(1.5);
+    expect(mano.largoPalma).toBe(60);
+    expect(mano.lado).toBe('Right');
+  });
+
+  it('no muta la mano que le entra', () => {
+    const filtro = nuevo();
+    filtro.filtrar([manoEn(100)]);
+    const entrada = manoEn(300);
+    filtro.filtrar([entrada]);
+    expect(entrada.palma.x).toBe(300);
+  });
+
+  it('reiniciar olvida todas las manos', () => {
+    const filtro = nuevo();
+    filtro.filtrar([manoEn(100)]);
+    filtro.reiniciar();
+    const [mano] = filtro.filtrar([manoEn(500)]);
+    expect(mano.palma.x).toBe(500);
   });
 });
 

@@ -32,6 +32,7 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 |---|---|
 | `1` a `6` | Fuerza una carrera y salta directo a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
+| `I` | Cambia qué hacen las manos: imán (junta los objetos) o manotazo |
 | `D` | Modo demo: funciona sin cámara, con un rostro simulado |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
@@ -111,7 +112,7 @@ frases y los nombres de las carreras.
 ```
 npm install
 npm run vendorizar    # baja MediaPipe y el modelo de rostro. Unica vez que necesita internet.
-npm test              # 217 pruebas
+npm test              # 444 pruebas
 ```
 
 `npm run vendorizar` deja los archivos en `vendor/mediapipe/`, que no está en el

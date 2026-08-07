@@ -1,118 +1,73 @@
-// La niebla que cubre el reposo y se abre hacia los costados.
+// Las nubes del espejo: su estado de reposo, no un efecto de mitad de sesion.
 //
-// `cobertura` controla la opacidad y `desplazamiento` cuanto se alejaron los
-// jirones hacia su borde mas cercano. Separarlos evita que la niebla aparezca o
-// desaparezca como un simple fundido.
+// El espejo descansa cubierto; las nubes se abren desde la cara del visitante
+// en la revelacion y se vuelven a cerrar cuando la persona se va. `cobertura`
+// es cuanta niebla hay; `revelado` es cuanto se abrio el agujero alrededor de
+// la cara. Separarlos deja que la revelacion se anime sin que la niebla
+// desaparezca de golpe.
+//
+// objetivoDeNiebla dice a donde quiere llegar cada estado. acercarNiebla es
+// quien la lleva, a velocidad acotada: la maquina puede saltar de estado de un
+// cuadro al otro (alguien se levanta en plena revelacion), pero la niebla no
+// salta nunca con ella.
 
 import { ESTADOS } from './maquina-estados.js';
 
-const acotar = (valor) => Math.min(1, Math.max(0, valor));
-const suavizar = (valor) => {
-  const t = acotar(valor);
-  return t * t * (3 - 2 * t);
-};
-
-const progreso = (transcurrido, duracion) => suavizar(transcurrido / Math.max(1, duracion));
-
-export function calcularNiebla({ estado, transcurrido, tiempos }) {
+export function objetivoDeNiebla(estado) {
   switch (estado) {
-    case ESTADOS.ATRACCION:
-      return { cobertura: 1, desplazamiento: 0 };
-    case ESTADOS.ENGANCHE:
-      {
-        const apertura = progreso(transcurrido, tiempos.enganche);
-        return {
-          cobertura: 1 - apertura,
-          desplazamiento: apertura,
-        };
-      }
-    case ESTADOS.SORTEO:
-      return { cobertura: 0, desplazamiento: 1 };
     case ESTADOS.REVELACION:
+      return { cobertura: 1, revelado: 1 };
     case ESTADOS.ESCENA:
-      return { cobertura: 0, desplazamiento: 1 };
-    case ESTADOS.CIERRE:
-      {
-        const cierre = progreso(transcurrido, tiempos.cierre);
-        return { cobertura: cierre, desplazamiento: 1 - cierre };
-      }
+      return { cobertura: 0, revelado: 1 };
+    // ATRACCION, ENGANCHE, SORTEO y CIERRE: espejo tapado. El cierre es el
+    // momento en que las nubes vuelven a cubrirlo.
     default:
-      return { cobertura: 0, desplazamiento: 1 };
+      return { cobertura: 1, revelado: 0 };
   }
 }
 
-export function posicionLateralNube(
-  xNormalizada,
-  radio,
-  ancho,
-  desplazamiento,
-  lado = xNormalizada < 0.5 ? -1 : 1,
-) {
-  const base = xNormalizada * ancho;
-  return base + lado * acotar(desplazamiento) * (ancho * 0.65 + radio);
-}
+export function acercarNiebla(actual, objetivo, dt, velocidades) {
+  const paso = (de, a, velocidad) => {
+    const maximo = velocidad * dt;
+    const delta = a - de;
+    return Math.abs(delta) <= maximo ? a : de + Math.sign(delta) * maximo;
+  };
 
-/** Coordina la entrada y salida del efecto, el accesorio y los textos. */
-export function calcularTransicionEscena({ estado, transcurrido, tiempos }) {
-  switch (estado) {
-    case ESTADOS.ATRACCION:
-      return { efecto: 0, contenido: 0 };
-    case ESTADOS.ENGANCHE:
-      return {
-        efecto: progreso(transcurrido, tiempos.enganche) * 0.4,
-        contenido: 0,
-      };
-    case ESTADOS.SORTEO:
-      return {
-        efecto: 0.4 + progreso(transcurrido, tiempos.sorteo) * 0.6,
-        contenido: 0,
-      };
-    case ESTADOS.REVELACION:
-      return { efecto: 1, contenido: progreso(transcurrido, tiempos.revelacion) };
-    case ESTADOS.ESCENA:
-      return { efecto: 1, contenido: 1 };
-    case ESTADOS.CIERRE: {
-      const salida = 1 - progreso(transcurrido, tiempos.cierre);
-      return { efecto: salida, contenido: salida };
-    }
-    default:
-      return { efecto: 0, contenido: 0 };
-  }
+  return {
+    cobertura: paso(actual.cobertura, objetivo.cobertura, velocidades.cobertura),
+    revelado: paso(actual.revelado, objetivo.revelado, velocidades.revelado),
+  };
 }
 
 export function crearNiebla({ cantidad, azar = Math.random }) {
-  const jirones = Array.from({ length: cantidad }, () => {
-    const x = azar();
-    return {
-      x,
-      lado: x < 0.5 ? -1 : 1,
-      y: azar(),
-      radio: 0.18 + azar() * 0.28,
-      velocidad: (azar() - 0.5) * 0.06,
-      fase: azar() * Math.PI * 2,
-    };
-  });
+  const jirones = Array.from({ length: cantidad }, () => ({
+    x: azar(),
+    y: azar(),
+    radio: 0.18 + azar() * 0.28,
+    velocidad: (azar() - 0.5) * 0.06,
+    fase: azar() * Math.PI * 2,
+  }));
 
   let tiempo = 0;
 
   return {
     jirones: () => jirones,
 
-    actualizar(dt) {
-      tiempo += dt;
+    // La agitacion multiplica el movimiento: es el redoble del sorteo. Como la
+    // niebla ya esta puesta desde el reposo, lo que anuncia que algo esta
+    // pasando es que los jirones se agitan.
+    actualizar(dt, agitacion = 1) {
+      tiempo += dt * agitacion;
       for (const jiron of jirones) {
-        jiron.x += jiron.velocidad * dt;
-        // Cada jiron permanece en su mitad para que nunca cambie de direccion
-        // en medio de una entrada o salida lateral.
-        if (jiron.lado < 0) {
-          if (jiron.x < -0.3) jiron.x = 0.5;
-          else if (jiron.x > 0.5) jiron.x = -0.3;
-        } else if (jiron.x < 0.5) jiron.x = 1.3;
-        else if (jiron.x > 1.3) jiron.x = 0.5;
+        jiron.x += jiron.velocidad * dt * agitacion;
+        // Se envuelven a los costados. Los limites son mas anchos que la
+        // pantalla para que un jiron no aparezca de la nada en el borde.
+        if (jiron.x < -0.3) jiron.x = 1.3;
+        else if (jiron.x > 1.3) jiron.x = -0.3;
       }
     },
 
-    dibujar(ctx, disposicion, { cobertura, desplazamiento = 0 }) {
+    dibujar(ctx, disposicion, { cobertura, revelado, centro }) {
       if (cobertura <= 0) return;
       const { ancho, alto } = disposicion;
 
@@ -120,9 +75,9 @@ export function crearNiebla({ cantidad, azar = Math.random }) {
       ctx.globalAlpha = cobertura;
 
       for (const jiron of jirones) {
-        const radio = jiron.radio * Math.max(ancho, alto) * 0.6;
-        const x = posicionLateralNube(jiron.x, radio, ancho, desplazamiento, jiron.lado);
+        const x = jiron.x * ancho;
         const y = (jiron.y + Math.sin(tiempo * 0.4 + jiron.fase) * 0.02) * alto;
+        const radio = jiron.radio * Math.max(ancho, alto) * 0.6;
 
         const degradado = ctx.createRadialGradient(x, y, 0, x, y, radio);
         degradado.addColorStop(0, 'rgba(232,240,255,0.55)');
@@ -130,6 +85,30 @@ export function crearNiebla({ cantidad, azar = Math.random }) {
         ctx.fillStyle = degradado;
         ctx.beginPath();
         ctx.arc(x, y, radio, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // El agujero borra la niebla ya dibujada en vez de pintar encima. Por eso
+      // la niebla va en su propia capa: asi el borrado no toca el video ni los
+      // objetos que estan debajo.
+      if (revelado > 0 && centro) {
+        const maximo = Math.hypot(ancho, alto);
+        const radio = Math.pow(revelado, 0.7) * maximo;
+
+        ctx.globalCompositeOperation = 'destination-out';
+        const agujero = ctx.createRadialGradient(
+          centro.x,
+          centro.y,
+          radio * 0.6,
+          centro.x,
+          centro.y,
+          radio,
+        );
+        agujero.addColorStop(0, 'rgba(0,0,0,1)');
+        agujero.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = agujero;
+        ctx.beginPath();
+        ctx.arc(centro.x, centro.y, radio, 0, Math.PI * 2);
         ctx.fill();
       }
 
