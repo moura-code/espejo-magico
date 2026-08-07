@@ -104,6 +104,31 @@ export function dibujarObjetos(ctx, objetos, banco, color) {
   }
 }
 
+export function recortarFueraDeCara(ctx, rostro, disposicion) {
+  if (!rostro) return false;
+
+  ctx.beginPath();
+  ctx.rect(0, 0, disposicion.ancho, disposicion.alto);
+  ctx.ellipse(
+    rostro.centro.x,
+    rostro.centro.y + rostro.radio * 0.35,
+    rostro.radio * 1.25,
+    rostro.radio * 1.75,
+    rostro.angulo ?? 0,
+    0,
+    Math.PI * 2,
+  );
+  ctx.clip('evenodd');
+  return true;
+}
+
+export function dibujarFueraDeCara(ctx, rostro, disposicion, dibujar) {
+  ctx.save();
+  recortarFueraDeCara(ctx, rostro, disposicion);
+  dibujar();
+  ctx.restore();
+}
+
 export function dibujarAccesorio(ctx, rostro, carrera, banco) {
   if (!rostro || !carrera) return;
   const imagen = banco.obtener(carrera.accesorio.img);

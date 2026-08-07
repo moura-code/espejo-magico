@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
+  recortarFueraDeCara,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
 
@@ -138,5 +139,36 @@ describe('calcularRectanguloVideo', () => {
       ancho: 1080,
       alto: 1920,
     });
+  });
+});
+
+describe('recortarFueraDeCara', () => {
+  it('no aplica recorte si no hay rostro', () => {
+    const llamadas = [];
+    const ctx = { clip: () => llamadas.push('clip') };
+
+    expect(recortarFueraDeCara(ctx, null, { ancho: 1000, alto: 800 })).toBe(false);
+    expect(llamadas).toEqual([]);
+  });
+
+  it('recorta una zona amplia alrededor de la cara', () => {
+    const llamadas = [];
+    const ctx = {
+      beginPath: () => llamadas.push(['beginPath']),
+      rect: (...args) => llamadas.push(['rect', ...args]),
+      ellipse: (...args) => llamadas.push(['ellipse', ...args]),
+      clip: (...args) => llamadas.push(['clip', ...args]),
+    };
+
+    const rostro = { centro: { x: 500, y: 300 }, radio: 100, angulo: 0.2 };
+    expect(recortarFueraDeCara(ctx, rostro, { ancho: 1000, alto: 800 })).toBe(true);
+
+    expect(llamadas[1]).toEqual(['rect', 0, 0, 1000, 800]);
+    expect(llamadas[2][0]).toBe('ellipse');
+    expect(llamadas[2][1]).toBe(500);
+    expect(llamadas[2][2]).toBeGreaterThan(300);
+    expect(llamadas[2][3]).toBeGreaterThan(rostro.radio);
+    expect(llamadas[2][4]).toBeGreaterThan(rostro.radio);
+    expect(llamadas.at(-1)).toEqual(['clip', 'evenodd']);
   });
 });

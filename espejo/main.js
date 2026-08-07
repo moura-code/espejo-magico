@@ -24,6 +24,7 @@ import {
   calcularRectanguloVideo,
   dibujarVideoEspejado,
   dibujarObjetos,
+  dibujarFueraDeCara,
   dibujarAccesorio,
   dibujarManos,
   dibujarPersona,
@@ -421,7 +422,7 @@ function cuadro(ahora) {
   // El efecto va encima del video y debajo de los objetos, para que el
   // participante quede dentro de la escena y no tapado por ella.
   if (efecto && (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA)) {
-    efecto.dibujar(ctx, contextoEfecto);
+    dibujarFueraDeCara(ctx, rostro, disposicion, () => efecto.dibujar(ctx, contextoEfecto));
   }
 
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el
