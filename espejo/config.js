@@ -83,14 +83,16 @@ export const CONFIG = {
     alfaVelocidad: 0.4,
     velocidadMaxima: 4000,
 
-    // Las manos funcionan como imanes suaves: acercan los objetos a la palma en
-    // vez de rechazarlos. El radio visible sigue siendo el area de interaccion.
+    // Tres estados por apertura:
+    // cerrada agarra, intermedia atrae y abierta repele.
+    aperturaCerrada: 1.45,
+    aperturaAbierta: 1.85,
     atraccion: 2600,
     alcanceAtraccion: 1.9,
+    repulsion: 3200,
+    alcanceRepulsion: 1.75,
 
     agarre: {
-      aperturaParaAgarrar: 1.45,
-      aperturaParaSoltar: 1.75,
       alcance: 1.15,
     },
   },

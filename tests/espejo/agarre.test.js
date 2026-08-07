@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { actualizarAgarres } from '../../espejo/agarre.js';
+import { actualizarAgarres, estadoDeMano } from '../../espejo/agarre.js';
 import { crearCuerpo } from '../../espejo/fisica.js';
 
 const OPCIONES = {
-  aperturaParaAgarrar: 1.4,
-  aperturaParaSoltar: 1.7,
+  aperturaCerrada: 1.4,
+  aperturaAbierta: 1.8,
   alcance: 1.2,
 };
 
@@ -18,6 +18,14 @@ const mano = (apertura = 1.1) => ({
 function objeto(x = 120, y = 100) {
   return { cuerpo: crearCuerpo({ x, y, radio: 20 }) };
 }
+
+describe('estadoDeMano', () => {
+  it('clasifica cerrada, intermedia y abierta por apertura', () => {
+    expect(estadoDeMano(mano(1.1), OPCIONES)).toBe('cerrada');
+    expect(estadoDeMano(mano(1.6), OPCIONES)).toBe('intermedia');
+    expect(estadoDeMano(mano(2), OPCIONES)).toBe('abierta');
+  });
+});
 
 describe('actualizarAgarres', () => {
   it('agarra el objeto cercano cuando la mano esta cerrada', () => {
@@ -47,12 +55,12 @@ describe('actualizarAgarres', () => {
     expect(objetos[0].cuerpo.vy).toBe(-40);
   });
 
-  it('suelta el objeto cuando la mano se abre', () => {
+  it('suelta el objeto cuando la mano pasa al estado intermedio', () => {
     const objetos = [objeto()];
     objetos[0].agarradoPor = 'Right';
     objetos[0].cuerpo.fijo = true;
 
-    actualizarAgarres(objetos, [mano(2)], new Map([['Right', { vx: 80, vy: -90 }]]), OPCIONES);
+    actualizarAgarres(objetos, [mano(1.6)], new Map([['Right', { vx: 80, vy: -90 }]]), OPCIONES);
 
     expect(objetos[0].agarradoPor).toBeNull();
     expect(objetos[0].cuerpo.fijo).toBe(false);

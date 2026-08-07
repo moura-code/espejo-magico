@@ -14,7 +14,7 @@ import { crearFiltroRostro, crearHisteresis, crearRastreadorDeVelocidad } from '
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearPool, fuenteDeObjetos } from './objetos.js';
-import { actualizarAgarres } from './agarre.js';
+import { actualizarAgarres, estadoDeMano } from './agarre.js';
 import { crearCuerpo } from './fisica.js';
 import { crearNiebla, calcularNiebla } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
@@ -342,7 +342,8 @@ function cuadro(ahora) {
     aparecerObjeto(fuente[Math.floor(Math.random() * fuente.length)], ahora);
   }
 
-  // La cabeza rebota objetos y las manos los atraen hacia la palma.
+  // La cabeza rebota objetos. Las manos cambian por apertura: cerrada agarra,
+  // intermedia atrae y abierta repele.
   const colisionadores = [];
   const velocidadesManos = new Map();
   if (rostro) {
@@ -351,20 +352,31 @@ function cuadro(ahora) {
   }
   for (const mano of manos) {
     const { vx, vy } = seguirVelocidad(mano.lado, mano.palma.x, mano.palma.y, ahora);
+    const estadoMano = estadoDeMano(mano, CONFIG.manos);
     velocidadesManos.set(mano.lado, { vx, vy });
+    mano.estado = estadoMano;
+
+    if (estadoMano === 'cerrada') continue;
+
     colisionadores.push({
       x: mano.palma.x,
       y: mano.palma.y,
       radio: mano.radio,
       vx,
       vy,
-      interaccion: 'atraer',
-      alcance: mano.radio * CONFIG.manos.alcanceAtraccion,
-      fuerza: CONFIG.manos.atraccion,
+      interaccion: estadoMano === 'abierta' ? 'repeler' : 'atraer',
+      alcance:
+        mano.radio *
+        (estadoMano === 'abierta' ? CONFIG.manos.alcanceRepulsion : CONFIG.manos.alcanceAtraccion),
+      fuerza: estadoMano === 'abierta' ? CONFIG.manos.repulsion : CONFIG.manos.atraccion,
     });
   }
 
-  actualizarAgarres(pool.vivos(), manos, velocidadesManos, CONFIG.manos.agarre);
+  actualizarAgarres(pool.vivos(), manos, velocidadesManos, {
+    ...CONFIG.manos.agarre,
+    aperturaCerrada: CONFIG.manos.aperturaCerrada,
+    aperturaAbierta: CONFIG.manos.aperturaAbierta,
+  });
 
   pool.actualizar(dt, ahora, {
     ...CONFIG.fisica,
@@ -412,14 +424,12 @@ function cuadro(ahora) {
     efecto.dibujar(ctx, contextoEfecto);
   }
 
-  if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    dibujarPersona(ctx, pose, rostro, rectangulo, carrera?.color ?? '#FFD23F');
-  }
-
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el
   // mapeo esta bien; si estan corridos, el rectangulo del video y el del mapeo
   // se separaron.
   if (verMalla && modo !== 'demo') {
+    dibujarPersona(ctx, pose, rostro, rectangulo, carrera?.color ?? '#FFD23F');
+
     const puntos = detector.puntosCrudos();
     if (puntos) {
       ctx.fillStyle = 'rgba(80,200,255,0.75)';

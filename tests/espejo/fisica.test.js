@@ -4,6 +4,7 @@ import {
   integrar,
   rebotarContraCirculo,
   atraerHaciaCirculo,
+  repelerDesdeCirculo,
   limitarACaja,
   paso,
 } from '../../espejo/fisica.js';
@@ -172,6 +173,25 @@ describe('atraerHaciaCirculo', () => {
   });
 });
 
+describe('repelerDesdeCirculo', () => {
+  it('acelera el objeto alejandolo del centro del circulo', () => {
+    const cuerpo = crearCuerpo({ x: 140, y: 100, radio: 10 });
+    const mano = { x: 100, y: 100, alcance: 80, fuerza: 1000 };
+
+    expect(repelerDesdeCirculo(cuerpo, mano, 0.1)).toBe(true);
+    expect(cuerpo.vx).toBeGreaterThan(0);
+    expect(cuerpo.vy).toBeCloseTo(0);
+  });
+
+  it('no repele objetos fuera de alcance', () => {
+    const cuerpo = crearCuerpo({ x: 200, y: 100, radio: 10 });
+    const mano = { x: 100, y: 100, alcance: 50, fuerza: 1000 };
+
+    expect(repelerDesdeCirculo(cuerpo, mano, 0.1)).toBe(false);
+    expect(cuerpo.vx).toBe(0);
+  });
+});
+
 describe('paso', () => {
   it('choca contra todos los colisionadores, no solo el primero', () => {
     const mundo = {
@@ -215,6 +235,21 @@ describe('paso', () => {
       caja: CAJA,
       colisionadores: [
         { x: 100, y: 100, radio: 40, interaccion: 'atraer', alcance: 80, fuerza: 1200 },
+      ],
+    });
+
+    expect(cuerpo.vx).toBeGreaterThan(0);
+  });
+
+  it('permite que un colisionador repela objetos', () => {
+    const cuerpo = crearCuerpo({ x: 140, y: 100, radio: 10 });
+    paso([cuerpo], 1 / 60, {
+      gravedad: 0,
+      restitucion: 0.5,
+      friccion: 1,
+      caja: CAJA,
+      colisionadores: [
+        { x: 100, y: 100, radio: 40, interaccion: 'repeler', alcance: 80, fuerza: 1200 },
       ],
     });
 

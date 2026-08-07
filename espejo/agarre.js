@@ -1,12 +1,21 @@
 const distancia = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+export function estadoDeMano(mano, opciones) {
+  const aperturaCerrada = opciones.aperturaCerrada ?? opciones.aperturaParaAgarrar;
+  const aperturaAbierta = opciones.aperturaAbierta ?? opciones.aperturaParaSoltar;
+
+  if (mano.apertura <= aperturaCerrada) return 'cerrada';
+  if (mano.apertura >= aperturaAbierta) return 'abierta';
+  return 'intermedia';
+}
+
 export function actualizarAgarres(objetos, manos, velocidades, opciones) {
   const porMano = new Map(manos.map((mano) => [mano.lado, mano]));
   const ocupadas = new Set();
 
   for (const objeto of objetos) {
     const mano = porMano.get(objeto.agarradoPor);
-    if (!mano || mano.apertura >= opciones.aperturaParaSoltar) {
+    if (!mano || estadoDeMano(mano, opciones) !== 'cerrada') {
       if (objeto.agarradoPor) soltar(objeto, velocidades.get(objeto.agarradoPor));
       continue;
     }
@@ -16,7 +25,7 @@ export function actualizarAgarres(objetos, manos, velocidades, opciones) {
   }
 
   for (const mano of manos) {
-    if (ocupadas.has(mano.lado) || mano.apertura > opciones.aperturaParaAgarrar) continue;
+    if (ocupadas.has(mano.lado) || estadoDeMano(mano, opciones) !== 'cerrada') continue;
 
     const alcance = mano.radio * opciones.alcance;
     let elegido = null;
