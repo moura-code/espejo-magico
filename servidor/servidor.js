@@ -3,10 +3,11 @@ import { readFile } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
+import { interpretar, TIPOS as TIPOS_MENSAJE } from '../comun/protocolo.js';
 
 const RAIZ_POR_DEFECTO = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
-const TIPOS = {
+const TIPOS_MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -33,7 +34,7 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       const cuerpo = await readFile(absoluta);
       respuesta
         .writeHead(200, {
-          'Content-Type': TIPOS[extname(absoluta)] ?? 'application/octet-stream',
+          'Content-Type': TIPOS_MIME[extname(absoluta)] ?? 'application/octet-stream',
           'Cache-Control': 'no-cache',
         })
         .end(cuerpo);
@@ -44,13 +45,44 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
 
   const sockets = new WebSocketServer({ server: servidorHttp });
   let ultimoMensaje = null;
+  let instanciaActiva = null;
+  const identidadPorCliente = new WeakMap();
 
   sockets.on('connection', (cliente) => {
-    if (ultimoMensaje) cliente.send(ultimoMensaje);
     cliente.on('message', (crudo) => {
-      ultimoMensaje = crudo.toString();
+      const texto = crudo.toString();
+      const mensaje = interpretar(texto);
+      if (!mensaje) return;
+
+      if (mensaje.tipo === TIPOS_MENSAJE.HOLA) {
+        identidadPorCliente.set(cliente, mensaje);
+        if (mensaje.rol === 'espejo') {
+          if (mensaje.instancia !== instanciaActiva) ultimoMensaje = null;
+          instanciaActiva = mensaje.instancia;
+        } else if (ultimoMensaje) {
+          cliente.send(ultimoMensaje);
+        }
+        return;
+      }
+
+      const identidad = identidadPorCliente.get(cliente);
+      if (
+        identidad?.rol !== 'espejo' ||
+        identidad.instancia !== instanciaActiva ||
+        mensaje.instancia !== instanciaActiva
+      ) {
+        return;
+      }
+
+      ultimoMensaje = texto;
       for (const otro of sockets.clients) {
-        if (otro !== cliente && otro.readyState === otro.OPEN) otro.send(ultimoMensaje);
+        if (
+          otro !== cliente &&
+          otro.readyState === otro.OPEN &&
+          identidadPorCliente.get(otro)?.rol === 'tablet'
+        ) {
+          otro.send(ultimoMensaje);
+        }
       }
     });
   });

@@ -42,7 +42,7 @@ import {
 } from './escena.js';
 import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
-import { mensajeCarrera, mensajeReposo } from '../comun/protocolo.js';
+import { mensajeCarrera, mensajeHolaEspejo, mensajeReposo } from '../comun/protocolo.js';
 
 // ---------- lienzos ----------
 // La niebla va en su propia capa para componer todos los jirones laterales sin
@@ -186,6 +186,7 @@ let ultimoAnuncio = mensajeReposo(instancia);
 const bus = crearBus({
   url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
   reconexionMs: CONFIG.red.reconexionMs,
+  identidad: mensajeHolaEspejo(instancia),
   alEstado: (estado) => {
     console.log('bus:', estado);
     if (estado.conectado) bus.enviar(ultimoAnuncio);

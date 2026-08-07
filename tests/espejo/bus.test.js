@@ -62,6 +62,13 @@ describe('crearBus', () => {
     expect(socket().enviados).toEqual(['{"tipo":"reposo"}']);
   });
 
+  it('se identifica antes de avisar que esta conectado', () => {
+    const identidad = { tipo: 'hola', rol: 'tablet', slot: 2 };
+    const { socket } = preparar({ identidad });
+    socket().abrir();
+    expect(socket().enviados).toEqual([JSON.stringify(identidad)]);
+  });
+
   it('no manda nada y avisa que no pudo si esta cerrado', () => {
     const { bus, socket } = preparar();
     expect(bus.enviar({ tipo: 'reposo' })).toBe(false);

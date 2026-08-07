@@ -12,6 +12,7 @@ export function crearBus({
   reconexionMs,
   alMensaje = () => {},
   alEstado = () => {},
+  identidad = null,
   CrearSocket = WebSocket,
   programar = setTimeout,
   cancelar = clearTimeout,
@@ -24,7 +25,10 @@ export function crearBus({
     pendiente = null;
     socket = new CrearSocket(url);
 
-    socket.onopen = () => alEstado({ conectado: true });
+    socket.onopen = () => {
+      if (identidad) socket.send(JSON.stringify(identidad));
+      alEstado({ conectado: true });
+    };
 
     socket.onmessage = (evento) => {
       const mensaje = interpretar(

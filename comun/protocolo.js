@@ -1,7 +1,15 @@
 // Los dos unicos mensajes del sistema. Lo importan el espejo Y la tablet: es lo
 // que impide que los dos lados se desincronicen sin que nadie se entere.
 
-export const TIPOS = { CARRERA: 'carrera', REPOSO: 'reposo' };
+export const TIPOS = { HOLA: 'hola', CARRERA: 'carrera', REPOSO: 'reposo' };
+
+export function mensajeHolaEspejo(instancia) {
+  return { tipo: TIPOS.HOLA, rol: 'espejo', instancia };
+}
+
+export function mensajeHolaTablet(slot) {
+  return { tipo: TIPOS.HOLA, rol: 'tablet', slot };
+}
 
 export function mensajeCarrera(id, sesion, instancia) {
   return { tipo: TIPOS.CARRERA, id, sesion, ...(instancia ? { instancia } : {}) };
@@ -13,6 +21,12 @@ export function mensajeReposo(instancia) {
 
 export function esValido(mensaje) {
   if (!mensaje || typeof mensaje !== 'object') return false;
+  if (mensaje.tipo === TIPOS.HOLA) {
+    if (mensaje.rol === 'espejo') {
+      return typeof mensaje.instancia === 'string' && mensaje.instancia.length > 0;
+    }
+    return mensaje.rol === 'tablet' && Number.isInteger(mensaje.slot) && mensaje.slot >= 0;
+  }
   const instanciaValida =
     mensaje.instancia === undefined ||
     (typeof mensaje.instancia === 'string' && mensaje.instancia.length > 0);
