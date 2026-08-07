@@ -124,8 +124,8 @@ export const CONFIG = {
   },
 
   objetos: {
-    maximo: 40,
-    intervaloAparicion: 350,
+    maximo: 24,
+    intervaloAparicion: 450,
     vidaMs: 12000,
   },
 
