@@ -17,18 +17,18 @@ export const CONFIG = {
     enganche: 1400,
     sorteo: 500,
     revelacion: 1200,
-    cierre: 1800,
-    enfriamiento: 800,
-    ausenciaParaCortar: 1200,
+    cierre: 900,
+    enfriamiento: 400,
+    ausenciaParaCortar: 350,
     sesionMaxima: 75000,
   },
 
   // Cuando se considera que hay alguien sentado.
-  // Entrar es rapido; salir es lento, para que la experiencia no parpadee
-  // cada vez que alguien gira la cabeza.
+  // Entrar es rapido; al salir hay una tolerancia breve para absorber cuadros
+  // perdidos sin demorar el regreso al reposo.
   presencia: {
     cuadrosParaEntrar: 6,
-    msParaSalir: 400,
+    msParaSalir: 250,
   },
 
   // Filtro exponencial. Mas bajo = mas suave y mas lento.

@@ -146,4 +146,14 @@ describe('crearNiebla', () => {
       expect(jiron.x).toBeLessThanOrEqual(1.35);
     }
   });
+
+  it('cada jiron conserva su lado aunque se mueva durante mucho tiempo', () => {
+    const niebla = crearNiebla({ cantidad: 20, azar: azarFijo() });
+    for (let i = 0; i < 5000; i++) niebla.actualizar(1 / 60);
+
+    for (const jiron of niebla.jirones()) {
+      if (jiron.lado < 0) expect(jiron.x).toBeLessThanOrEqual(0.5);
+      else expect(jiron.x).toBeGreaterThanOrEqual(0.5);
+    }
+  });
 });

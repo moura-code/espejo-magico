@@ -41,10 +41,15 @@ export function calcularNiebla({ estado, transcurrido, tiempos }) {
   }
 }
 
-export function posicionLateralNube(xNormalizada, radio, ancho, desplazamiento) {
+export function posicionLateralNube(
+  xNormalizada,
+  radio,
+  ancho,
+  desplazamiento,
+  lado = xNormalizada < 0.5 ? -1 : 1,
+) {
   const base = xNormalizada * ancho;
-  const direccion = xNormalizada < 0.5 ? -1 : 1;
-  return base + direccion * acotar(desplazamiento) * (ancho * 0.65 + radio);
+  return base + lado * acotar(desplazamiento) * (ancho * 0.65 + radio);
 }
 
 /** Coordina la entrada y salida del efecto, el accesorio y los textos. */
@@ -76,13 +81,17 @@ export function calcularTransicionEscena({ estado, transcurrido, tiempos }) {
 }
 
 export function crearNiebla({ cantidad, azar = Math.random }) {
-  const jirones = Array.from({ length: cantidad }, () => ({
-    x: azar(),
-    y: azar(),
-    radio: 0.18 + azar() * 0.28,
-    velocidad: (azar() - 0.5) * 0.06,
-    fase: azar() * Math.PI * 2,
-  }));
+  const jirones = Array.from({ length: cantidad }, () => {
+    const x = azar();
+    return {
+      x,
+      lado: x < 0.5 ? -1 : 1,
+      y: azar(),
+      radio: 0.18 + azar() * 0.28,
+      velocidad: (azar() - 0.5) * 0.06,
+      fase: azar() * Math.PI * 2,
+    };
+  });
 
   let tiempo = 0;
 
@@ -93,10 +102,13 @@ export function crearNiebla({ cantidad, azar = Math.random }) {
       tiempo += dt;
       for (const jiron of jirones) {
         jiron.x += jiron.velocidad * dt;
-        // Se envuelven a los costados. Los limites son mas anchos que la
-        // pantalla para que un jiron no aparezca de la nada en el borde.
-        if (jiron.x < -0.3) jiron.x = 1.3;
-        else if (jiron.x > 1.3) jiron.x = -0.3;
+        // Cada jiron permanece en su mitad para que nunca cambie de direccion
+        // en medio de una entrada o salida lateral.
+        if (jiron.lado < 0) {
+          if (jiron.x < -0.3) jiron.x = 0.5;
+          else if (jiron.x > 0.5) jiron.x = -0.3;
+        } else if (jiron.x < 0.5) jiron.x = 1.3;
+        else if (jiron.x > 1.3) jiron.x = 0.5;
       }
     },
 
@@ -109,7 +121,7 @@ export function crearNiebla({ cantidad, azar = Math.random }) {
 
       for (const jiron of jirones) {
         const radio = jiron.radio * Math.max(ancho, alto) * 0.6;
-        const x = posicionLateralNube(jiron.x, radio, ancho, desplazamiento);
+        const x = posicionLateralNube(jiron.x, radio, ancho, desplazamiento, jiron.lado);
         const y = (jiron.y + Math.sin(tiempo * 0.4 + jiron.fase) * 0.02) * alto;
 
         const degradado = ctx.createRadialGradient(x, y, 0, x, y, radio);
