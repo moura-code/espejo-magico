@@ -167,7 +167,13 @@ const manoEn = (x, extras = {}) => ({
 // golpe usa la palma cruda a proposito — el filtro mete retardo y el manotazo
 // necesita reflejos.
 describe('crearFiltroDeManos', () => {
-  const nuevo = () => crearFiltroDeManos({ posicion: 0.5, radio: 0.5 });
+  const nuevo = () =>
+    crearFiltroDeManos({
+      posicion: 0.5,
+      radio: 0.5,
+      retencionMs: 250,
+      distanciaMaximaEnRadios: 3,
+    });
 
   it('suaviza el desplazamiento de la palma en vez de copiarlo', () => {
     const filtro = nuevo();
@@ -217,6 +223,35 @@ describe('crearFiltroDeManos', () => {
 
     expect(derecha.palma.x).toBe(910);
     expect(izquierda.palma.x).toBe(110);
+  });
+
+  it('asocia por cercania aunque cambie la etiqueta de lado', () => {
+    const filtro = nuevo();
+    const [primera] = filtro.filtrar([manoEn(100, { lado: 'Left' })], 0);
+    const [segunda] = filtro.filtrar([manoEn(120, { lado: 'Right' })], 30);
+
+    expect(segunda.idSeguimiento).toBe(primera.idSeguimiento);
+    expect(segunda.palma.x).toBe(110);
+  });
+
+  it('conserva la historia durante una perdida breve', () => {
+    const filtro = nuevo();
+    const [primera] = filtro.filtrar([manoEn(100)], 0);
+    filtro.filtrar([], 100);
+    const [segunda] = filtro.filtrar([manoEn(140)], 200);
+
+    expect(segunda.idSeguimiento).toBe(primera.idSeguimiento);
+    expect(segunda.palma.x).toBe(120);
+  });
+
+  it('descarta la historia despues de la retencion', () => {
+    const filtro = nuevo();
+    const [primera] = filtro.filtrar([manoEn(100)], 0);
+    filtro.filtrar([], 300);
+    const [segunda] = filtro.filtrar([manoEn(140)], 310);
+
+    expect(segunda.idSeguimiento).not.toBe(primera.idSeguimiento);
+    expect(segunda.palma.x).toBe(140);
   });
 
   // Al reaparecer arranca en la posicion real: retomar la historia vieja haria

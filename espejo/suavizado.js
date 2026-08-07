@@ -71,58 +71,83 @@ export function crearFiltroRostro({ posicion, radio, angulo }) {
  * entero a los objetos; el filtro lo corta. El modo golpe usa la palma cruda a
  * proposito: el filtro mete retardo y el manotazo necesita reflejos.
  *
- * Cada mano lleva su propio filtro. Las manos del mismo lado se ordenan por la
- * posicion horizontal de la palma antes de asignarles clave, porque el orden
- * del arreglo de MediaPipe puede cambiar entre cuadros. El resultado conserva
- * el orden de entrada para no sorprender a los consumidores. Una mano que
- * desaparece pierde su historia: al reaparecer arranca donde esta.
+ * Cada mano lleva su propio filtro y se asocia por cercania con el cuadro
+ * anterior. No se confia en el orden ni en la etiqueta izquierda/derecha de
+ * MediaPipe, que pueden cambiar al cruzar las manos. Una pista ausente se
+ * conserva brevemente para absorber detecciones perdidas.
  */
-export function crearFiltroDeManos({ posicion, radio }) {
-  const porClave = new Map();
+export function crearFiltroDeManos({
+  posicion,
+  radio,
+  retencionMs = 250,
+  distanciaMaximaEnRadios = 3,
+}) {
+  const pistas = new Map();
+  let siguienteId = 1;
+  let relojImplicito = 0;
 
-  const nuevoJuego = () => ({
+  const nuevaPista = (mano, ahora) => ({
+    id: siguienteId++,
     x: crearFiltroExponencial(posicion),
     y: crearFiltroExponencial(posicion),
-    radio: crearFiltroExponencial(radio),
+    filtroRadio: crearFiltroExponencial(radio),
+    palma: { ...mano.palma },
+    radio: mano.radio,
+    ultimaVez: ahora,
   });
 
   return {
-    filtrar(manos) {
-      const vecesPorLado = new Map();
-      const vistas = new Set();
-      const ordenadas = manos
-        .map((mano, indice) => ({ mano, indice }))
-        .sort((a, b) => a.mano.palma.x - b.mano.palma.x);
+    filtrar(manos, ahora = (relojImplicito += 16)) {
+      for (const [id, pista] of pistas) {
+        if (ahora - pista.ultimaVez > retencionMs) pistas.delete(id);
+      }
+
+      const candidatas = [];
+      manos.forEach((mano, indice) => {
+        for (const pista of pistas.values()) {
+          const distancia = Math.hypot(mano.palma.x - pista.palma.x, mano.palma.y - pista.palma.y);
+          const maxima = Math.max(mano.radio, pista.radio) * distanciaMaximaEnRadios;
+          if (distancia <= maxima) candidatas.push({ indice, pista, distancia });
+        }
+      });
+      candidatas.sort((a, b) => a.distancia - b.distancia);
+
+      const pistaPorIndice = new Map();
+      const pistasUsadas = new Set();
+      for (const candidata of candidatas) {
+        if (pistaPorIndice.has(candidata.indice) || pistasUsadas.has(candidata.pista.id)) continue;
+        pistaPorIndice.set(candidata.indice, candidata.pista);
+        pistasUsadas.add(candidata.pista.id);
+      }
+
       const filtradas = new Array(manos.length);
 
-      for (const { mano, indice } of ordenadas) {
-        const veces = vecesPorLado.get(mano.lado) ?? 0;
-        vecesPorLado.set(mano.lado, veces + 1);
-        const clave = `${mano.lado}#${veces}`;
-        vistas.add(clave);
-
-        if (!porClave.has(clave)) porClave.set(clave, nuevoJuego());
-        const filtros = porClave.get(clave);
+      manos.forEach((mano, indice) => {
+        let pista = pistaPorIndice.get(indice);
+        if (!pista) {
+          pista = nuevaPista(mano, ahora);
+          pistas.set(pista.id, pista);
+        }
 
         filtradas[indice] = {
           ...mano,
+          idSeguimiento: pista.id,
           palma: {
-            x: filtros.x.filtrar(mano.palma.x),
-            y: filtros.y.filtrar(mano.palma.y),
+            x: pista.x.filtrar(mano.palma.x),
+            y: pista.y.filtrar(mano.palma.y),
           },
-          radio: filtros.radio.filtrar(mano.radio),
+          radio: pista.filtroRadio.filtrar(mano.radio),
         };
-      }
-
-      for (const clave of porClave.keys()) {
-        if (!vistas.has(clave)) porClave.delete(clave);
-      }
+        pista.palma = { ...mano.palma };
+        pista.radio = mano.radio;
+        pista.ultimaVez = ahora;
+      });
 
       return filtradas;
     },
 
     reiniciar() {
-      porClave.clear();
+      pistas.clear();
     },
   };
 }

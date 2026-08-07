@@ -112,6 +112,8 @@ export const CONFIG = {
     suavizadoDelIman: {
       posicion: 0.35,
       radio: 0.25,
+      retencionMs: 250,
+      distanciaMaximaEnRadios: 3,
     },
 
   },

@@ -329,7 +329,11 @@ function cuadro(ahora) {
     manos = detectorDeManos.detectar(video, ahora, rectangulo);
     // La copia filtrada es solo para el iman: corta el temblor de la deteccion
     // sin meterle retardo al manotazo, que sigue usando la palma cruda.
-    manosSuaves = filtroDeManos.filtrar(manos);
+    manosSuaves = filtroDeManos.filtrar(manos, ahora);
+    manos = manos.map((mano, indice) => ({
+      ...mano,
+      idSeguimiento: manosSuaves[indice]?.idSeguimiento,
+    }));
   } else if (!manosSirven) {
     manos = [];
     manosSuaves = [];
@@ -380,13 +384,15 @@ function cuadro(ahora) {
     colisionadores.push({ x: rostro.centro.x, y: rostro.centro.y, radio: rostro.radio, vx, vy });
   }
   for (const mano of manos) {
-    const velocidad = seguirVelocidad(mano.lado, mano.palma.x, mano.palma.y, ahora);
-    velocidadesManos.set(mano.lado, velocidad);
+    const clave = mano.idSeguimiento ?? mano.lado;
+    const velocidad = seguirVelocidad(clave, mano.palma.x, mano.palma.y, ahora);
+    velocidadesManos.set(clave, velocidad);
   }
 
   if (interaccionDeManos === 'atraer') {
     for (const mano of manosSuaves) {
       atractores.push({
+        id: mano.idSeguimiento,
         x: mano.palma.x,
         y: mano.palma.y,
         alcance: mano.radio * CONFIG.manos.atraccion.alcanceFactor,
@@ -395,7 +401,7 @@ function cuadro(ahora) {
     }
   } else {
     for (const mano of manos) {
-      const { vx, vy } = velocidadesManos.get(mano.lado);
+      const { vx, vy } = velocidadesManos.get(mano.idSeguimiento ?? mano.lado);
       colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
     }
   }
