@@ -113,6 +113,12 @@ export const CONFIG = {
       posicion: 0.35,
       radio: 0.25,
     },
+
+  },
+
+  pose: {
+    fps: 15,
+    segmentacion: true,
   },
 
   objetos: {

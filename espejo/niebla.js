@@ -5,6 +5,11 @@
 import { ESTADOS } from './maquina-estados.js';
 
 const acotar = (valor) => Math.min(1, Math.max(0, valor));
+const suavizar = (valor) => {
+  const t = acotar(valor);
+  return t * t * (3 - 2 * t);
+};
+const progreso = (transcurrido, duracion) => suavizar(transcurrido / Math.max(1, duracion));
 
 export function objetivoDeNiebla(estado) {
   return estado === ESTADOS.ATRACCION || estado === ESTADOS.CIERRE
@@ -34,6 +39,28 @@ export function posicionLateralNube(xNormalizada, radio, ancho, apertura, lado) 
   const destino = lado < 0 ? -radio : ancho + radio;
   const t = acotar(apertura);
   return origen + (destino - origen) * t;
+}
+
+/** Coordina efecto, accesorio y textos sin cambiar la apertura lateral. */
+export function calcularTransicionEscena({ estado, transcurrido, tiempos }) {
+  switch (estado) {
+    case ESTADOS.ATRACCION:
+      return { efecto: 0, contenido: 0 };
+    case ESTADOS.ENGANCHE:
+      return { efecto: progreso(transcurrido, tiempos.enganche) * 0.4, contenido: 0 };
+    case ESTADOS.SORTEO:
+      return { efecto: 0.4 + progreso(transcurrido, tiempos.sorteo) * 0.6, contenido: 0 };
+    case ESTADOS.REVELACION:
+      return { efecto: 1, contenido: progreso(transcurrido, tiempos.revelacion) };
+    case ESTADOS.ESCENA:
+      return { efecto: 1, contenido: 1 };
+    case ESTADOS.CIERRE: {
+      const salida = 1 - progreso(transcurrido, tiempos.cierre);
+      return { efecto: salida, contenido: salida };
+    }
+    default:
+      return { efecto: 0, contenido: 0 };
+  }
 }
 
 export function crearNiebla({ cantidad, azar = Math.random }) {

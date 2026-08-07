@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   objetivoDeNiebla,
   acercarNiebla,
+  calcularTransicionEscena,
   posicionLateralNube,
   crearNiebla,
 } from '../../espejo/niebla.js';
@@ -78,6 +79,24 @@ describe('posicionLateralNube', () => {
   it('acota la apertura entre cerrado y abierto', () => {
     expect(posicionLateralNube(0.25, 100, 1000, -1, -1)).toBe(250);
     expect(posicionLateralNube(0.75, 100, 1000, 2, 1)).toBe(1100);
+  });
+});
+
+describe('calcularTransicionEscena', () => {
+  const tiempos = { enganche: 2000, sorteo: 3000, revelacion: 2000, cierre: 4000 };
+  const en = (estado, transcurrido) =>
+    calcularTransicionEscena({ estado, transcurrido, tiempos });
+
+  it('hace aparecer el contenido durante la revelacion', () => {
+    expect(en(ESTADOS.REVELACION, 0).contenido).toBe(0);
+    expect(en(ESTADOS.REVELACION, 1000).contenido).toBeCloseTo(0.5);
+    expect(en(ESTADOS.REVELACION, 2000).contenido).toBe(1);
+  });
+
+  it('desvanece efecto y contenido juntos durante el cierre', () => {
+    expect(en(ESTADOS.CIERRE, 0)).toEqual({ efecto: 1, contenido: 1 });
+    expect(en(ESTADOS.CIERRE, 2000)).toEqual({ efecto: 0.5, contenido: 0.5 });
+    expect(en(ESTADOS.CIERRE, 4000)).toEqual({ efecto: 0, contenido: 0 });
   });
 });
 
