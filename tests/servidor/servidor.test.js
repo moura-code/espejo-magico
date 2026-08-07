@@ -26,6 +26,9 @@ describe('servidor', () => {
     expect(interpretarRango('bytes=90-', 100)).toEqual({ inicio: 90, fin: 99 });
     expect(interpretarRango('bytes=-10', 100)).toEqual({ inicio: 90, fin: 99 });
     expect(interpretarRango('bytes=100-120', 100)).toBeNull();
+    expect(interpretarRango('bytes=0-a', 100)).toBeNull();
+    expect(interpretarRango(`bytes=0-${'9'.repeat(400)}`, 100)).toBeNull();
+    expect(interpretarRango(`bytes=-${'9'.repeat(400)}`, 100)).toBeNull();
   });
   it('repite a los demas clientes el mensaje que recibe de uno', async () => {
     servidor = crearServidor();
@@ -176,7 +179,7 @@ describe('servidor', () => {
     expect(await respuesta.text()).toBe('2345');
   });
 
-  it('responde HEAD y usa cache inmutable para recursos pesados', async () => {
+  it('revalida el contenido aunque sea una imagen o un video', async () => {
     const raiz = await mkdtemp(join(tmpdir(), 'espejo-servidor-'));
     await mkdir(join(raiz, 'contenido'));
     await writeFile(join(raiz, 'contenido', 'imagen.png'), Buffer.from('imagen'));
@@ -189,7 +192,20 @@ describe('servidor', () => {
 
     expect(respuesta.status).toBe(200);
     expect(respuesta.headers.get('content-length')).toBe('6');
-    expect(respuesta.headers.get('cache-control')).toContain('immutable');
+    expect(respuesta.headers.get('cache-control')).toBe('no-cache');
     expect(await respuesta.text()).toBe('');
+  });
+
+  it('usa cache inmutable solamente para dependencias versionadas de vendor', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-servidor-'));
+    await mkdir(join(raiz, 'vendor'));
+    await writeFile(join(raiz, 'vendor', 'modelo.task'), Buffer.from('modelo'));
+    servidor = crearServidor({ raiz });
+    const puerto = await servidor.escuchar(0);
+
+    const respuesta = await fetch(`http://localhost:${puerto}/vendor/modelo.task`);
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.headers.get('cache-control')).toContain('immutable');
   });
 });

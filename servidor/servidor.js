@@ -22,8 +22,6 @@ const TIPOS_MIME = {
   '.task': 'application/octet-stream',
 };
 
-const EXTENSIONES_INMUTABLES = new Set(['.png', '.jpg', '.webp', '.mp4', '.wasm', '.task']);
-
 export function interpretarRango(encabezado, tamano) {
   const coincidencia = /^bytes=(\d*)-(\d*)$/.exec(encabezado ?? '');
   if (!coincidencia || (!coincidencia[1] && !coincidencia[2])) return null;
@@ -32,12 +30,19 @@ export function interpretarRango(encabezado, tamano) {
   let fin;
   if (!coincidencia[1]) {
     const cantidad = Number(coincidencia[2]);
-    if (!Number.isInteger(cantidad) || cantidad <= 0) return null;
+    if (!Number.isSafeInteger(cantidad) || cantidad <= 0) return null;
     inicio = Math.max(0, tamano - cantidad);
     fin = tamano - 1;
   } else {
     inicio = Number(coincidencia[1]);
-    fin = coincidencia[2] ? Number(coincidencia[2]) : tamano - 1;
+    if (!Number.isSafeInteger(inicio) || inicio < 0) return null;
+
+    if (coincidencia[2]) {
+      fin = Number(coincidencia[2]);
+      if (!Number.isSafeInteger(fin)) return null;
+    } else {
+      fin = tamano - 1;
+    }
   }
 
   if (inicio < 0 || inicio >= tamano || fin < inicio) return null;
@@ -66,7 +71,7 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       const etag = `W/"${datos.size}-${Math.trunc(datos.mtimeMs)}"`;
       const encabezados = {
         'Content-Type': TIPOS_MIME[extension] ?? 'application/octet-stream',
-        'Cache-Control': EXTENSIONES_INMUTABLES.has(extension)
+        'Cache-Control': ruta.startsWith('/vendor/')
           ? 'public, max-age=31536000, immutable'
           : 'no-cache',
         ETag: etag,
