@@ -20,7 +20,7 @@ Hace falta Node.js y Chrome.
 ```bash
 npm install
 npm run vendorizar   # copia MediaPipe y baja los modelos — única vez que necesita red
-npm test             # 444 pruebas
+npm test             # suite automática
 ```
 
 Para levantarlo:
@@ -40,7 +40,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 
 | Comando | Para qué |
 |---|---|
-| `npm test` | ¿Funciona el código? 444 pruebas. Tiene que estar en verde siempre. |
+| `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
 | `npm run listo` | ¿Se puede montar el stand? Verifica que el contenido real esté completo. Está en rojo hasta que lleguen los PNG y los videos, y eso es lo esperado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro y manos. |
 | `npm start` | Levanta el servidor local. |
