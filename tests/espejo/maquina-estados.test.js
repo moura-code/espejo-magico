@@ -48,6 +48,12 @@ describe('crearMaquina', () => {
     expect(tipos(salida.eventos, 'entra')).toHaveLength(1);
   });
 
+  it('una pose sin rostro no inicia la experiencia', () => {
+    const maquina = nueva();
+    const salida = maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 0 });
+    expect(salida.estado).toBe(ESTADOS.ATRACCION);
+  });
+
   it('recorre el ciclo completo: la persona entra, vive su escena y se va', () => {
     const maquina = nueva();
 
@@ -142,6 +148,32 @@ describe('crearMaquina', () => {
     expect(salida.estado).toBe(ESTADOS.ATRACCION);
     expect(tipos(salida.eventos, 'reposo')).toHaveLength(0);
     expect(tipos(salida.eventos, 'carrera')).toHaveLength(0);
+  });
+
+  it('exige dos segundos continuos de rostro durante el enganche', () => {
+    const maquina = nueva();
+    maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 0 });
+    maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 200 });
+    maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 4000 });
+
+    expect(
+      maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 4100 }).estado,
+    ).toBe(ESTADOS.ENGANCHE);
+    expect(
+      maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 5999 }).estado,
+    ).toBe(ESTADOS.ENGANCHE);
+    expect(
+      maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 6000 }).estado,
+    ).toBe(ESTADOS.SORTEO);
+  });
+
+  it('una pose permite continuar una escena cuando se gira la cara', () => {
+    const maquina = nueva();
+    avanzar(maquina, 0, 8000, true);
+    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+
+    const salida = maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 20000 });
+    expect(salida.estado).toBe(ESTADOS.ESCENA);
   });
 
   it('no arranca el sorteo si la persona se fue durante el enganche', () => {

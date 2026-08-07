@@ -347,7 +347,11 @@ function cuadro(ahora) {
   }
 
   // --- estado ---
-  const salida = maquina.actualizar({ hayRostro: hayPersona, ahora });
+  const salida = maquina.actualizar({
+    puedeIniciar: Boolean(crudoRostro),
+    hayPersona,
+    ahora,
+  });
   atender(salida.eventos, ahora);
 
   if (ahora - ultimoLatido >= CONFIG.red.latidoMs) {

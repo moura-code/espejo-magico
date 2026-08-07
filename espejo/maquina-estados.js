@@ -30,6 +30,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let estado = ESTADOS.ATRACCION;
   let desde = 0;
   let ausenteDesde = null;
+  let rostroAusenteDesde = null;
   let inicioDeSesion = null;
   let finDeCierre = null;
   let carrera = null;
@@ -84,22 +85,29 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       if (proximo === ESTADOS.ATRACCION) finDeCierre = null;
 
       ausenteDesde = null;
+      rostroAusenteDesde = null;
       ir(proximo, ahora, eventos);
       return salida(eventos);
     },
 
-    actualizar({ hayRostro, ahora }) {
+    actualizar({ hayRostro, puedeIniciar = hayRostro, hayPersona = hayRostro, ahora }) {
       const eventos = [];
 
-      if (hayRostro) ausenteDesde = null;
+      if (hayPersona) ausenteDesde = null;
       else if (ausenteDesde === null) ausenteDesde = ahora;
+      if (puedeIniciar) rostroAusenteDesde = null;
+      else if (rostroAusenteDesde === null) rostroAusenteDesde = ahora;
 
       // En manual el reloj no decide nada: ni los tiempos de cada estado ni los
       // cortes por ausencia. Solo avanzar() mueve la maquina.
       if (enManual) return salida(eventos);
 
       const seFue =
-        !hayRostro && ausenteDesde !== null && ahora - ausenteDesde >= tiempos.ausenciaParaCortar;
+        !hayPersona && ausenteDesde !== null && ahora - ausenteDesde >= tiempos.ausenciaParaCortar;
+      const sePerdioElRostro =
+        !puedeIniciar &&
+        rostroAusenteDesde !== null &&
+        ahora - rostroAusenteDesde >= tiempos.ausenciaParaCortar;
       const pasoElTope =
         inicioDeSesion !== null && ahora - inicioDeSesion >= tiempos.sesionMaxima;
       const transcurrido = ahora - desde;
@@ -107,7 +115,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       switch (estado) {
         case ESTADOS.ATRACCION:
           if (finDeCierre !== null && ahora - finDeCierre < tiempos.enfriamiento) break;
-          if (hayRostro) {
+          if (puedeIniciar) {
             inicioDeSesion = ahora;
             ir(ESTADOS.ENGANCHE, ahora, eventos);
           }
@@ -118,9 +126,12 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
         // cuando la ausencia es real y sostenida; mientras tanto no se inicia
         // el sorteo frente a un lugar vacio.
         case ESTADOS.ENGANCHE:
-          if (seFue) {
-            ir(ESTADOS.ATRACCION, ahora, eventos);
-          } else if (hayRostro && transcurrido >= tiempos.enganche) {
+          if (!puedeIniciar) {
+            // El enganche exige rostro continuo. Una pose mantiene viva una
+            // sesion ya iniciada, pero no acumula tiempo para comenzar otra.
+            desde = ahora;
+            if (sePerdioElRostro) ir(ESTADOS.ATRACCION, ahora, eventos);
+          } else if (transcurrido >= tiempos.enganche) {
             // La carrera se elige aca, tres segundos antes de anunciarla: ese
             // margen le sirve al espejo para tener listos los PNG cuando se
             // despeje la niebla. El mensaje a las tablets sale en REVELACION,
@@ -166,6 +177,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       inicioDeSesion = ahora;
       finDeCierre = null;
       ausenteDesde = null;
+      rostroAusenteDesde = null;
       ir(ESTADOS.REVELACION, ahora, eventos);
       return salida(eventos);
     },
@@ -174,6 +186,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       const eventos = [{ tipo: 'reposo' }];
       finDeCierre = null;
       ausenteDesde = null;
+      rostroAusenteDesde = null;
       ir(ESTADOS.ATRACCION, ahora, eventos);
       return salida(eventos);
     },
