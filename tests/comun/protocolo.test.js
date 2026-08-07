@@ -16,6 +16,16 @@ describe('protocolo', () => {
     expect(mensajeReposo()).toEqual({ tipo: TIPOS.REPOSO });
   });
 
+  it('incluye la instancia del arranque cuando se proporciona', () => {
+    expect(mensajeCarrera('civil', 1, 'espejo-a')).toEqual({
+      tipo: TIPOS.CARRERA,
+      id: 'civil',
+      sesion: 1,
+      instancia: 'espejo-a',
+    });
+    expect(mensajeReposo('espejo-a')).toEqual({ tipo: TIPOS.REPOSO, instancia: 'espejo-a' });
+  });
+
   it('acepta los dos mensajes del sistema', () => {
     expect(esValido(mensajeCarrera('civil', 1))).toBe(true);
     expect(esValido(mensajeReposo())).toBe(true);
@@ -29,6 +39,7 @@ describe('protocolo', () => {
     expect(esValido({ tipo: TIPOS.CARRERA, id: 'civil' })).toBe(false);
     expect(esValido({ tipo: TIPOS.CARRERA, id: 'civil', sesion: 0 })).toBe(false);
     expect(esValido({ tipo: TIPOS.CARRERA, id: 'civil', sesion: 1.5 })).toBe(false);
+    expect(esValido({ tipo: TIPOS.REPOSO, instancia: '' })).toBe(false);
   });
 
   it('interpreta texto JSON y descarta lo que no sirve', () => {

@@ -87,10 +87,10 @@ describe('crearMaquina', () => {
     ]);
   });
 
-  it('emite reposo al entrar en cierre', () => {
+  it('emite reposo al terminar el cierre', () => {
     const maquina = nueva();
     avanzar(maquina, 0, 8000, true);
-    const salida = avanzar(maquina, 8100, 16000, false);
+    const salida = avanzar(maquina, 8100, 17500, false);
     expect(tipos(salida.eventos, 'reposo')).toHaveLength(1);
   });
 
@@ -117,7 +117,7 @@ describe('crearMaquina', () => {
 
     const salida = avanzar(maquina, 8100, 13500, false);
     expect(salida.estado).toBe(ESTADOS.CIERRE);
-    expect(tipos(salida.eventos, 'reposo')).toHaveLength(1);
+    expect(tipos(salida.eventos, 'reposo')).toHaveLength(0);
   });
 
   it('aguanta una perdida breve de rostro sin cortar', () => {
@@ -238,7 +238,8 @@ describe('crearMaquina', () => {
     ]);
 
     maquina.avanzar(300);
-    expect(tipos(maquina.avanzar(400).eventos, 'reposo')).toHaveLength(1);
+    expect(tipos(maquina.avanzar(400).eventos, 'reposo')).toHaveLength(0);
+    expect(tipos(maquina.avanzar(500).eventos, 'reposo')).toHaveLength(1);
   });
 
   it('avanzar no respeta el enfriamiento: si aprieto el boton, arranca', () => {

@@ -65,6 +65,17 @@ describe('crearTablet', () => {
     expect(pantalla.mostrar).toHaveBeenCalledTimes(2);
   });
 
+  it('acepta la misma sesion de una nueva instancia del espejo', () => {
+    const pantalla = pantallaFalsa();
+    const tablet = crearTablet({ slot: 0, contenido, pantalla });
+
+    tablet.recibir({ tipo: 'carrera', id: 'civil', sesion: 1, instancia: 'arranque-a' });
+    tablet.recibir({ tipo: 'reposo', instancia: 'arranque-b' });
+    tablet.recibir({ tipo: 'carrera', id: 'civil', sesion: 1, instancia: 'arranque-b' });
+
+    expect(pantalla.mostrar).toHaveBeenCalledTimes(2);
+  });
+
   it('se apaga con reposo', () => {
     const pantalla = pantallaFalsa();
     const tablet = crearTablet({ slot: 0, contenido, pantalla });

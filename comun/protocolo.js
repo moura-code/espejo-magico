@@ -3,16 +3,20 @@
 
 export const TIPOS = { CARRERA: 'carrera', REPOSO: 'reposo' };
 
-export function mensajeCarrera(id, sesion) {
-  return { tipo: TIPOS.CARRERA, id, sesion };
+export function mensajeCarrera(id, sesion, instancia) {
+  return { tipo: TIPOS.CARRERA, id, sesion, ...(instancia ? { instancia } : {}) };
 }
 
-export function mensajeReposo() {
-  return { tipo: TIPOS.REPOSO };
+export function mensajeReposo(instancia) {
+  return { tipo: TIPOS.REPOSO, ...(instancia ? { instancia } : {}) };
 }
 
 export function esValido(mensaje) {
   if (!mensaje || typeof mensaje !== 'object') return false;
+  const instanciaValida =
+    mensaje.instancia === undefined ||
+    (typeof mensaje.instancia === 'string' && mensaje.instancia.length > 0);
+  if (!instanciaValida) return false;
   if (mensaje.tipo === TIPOS.REPOSO) return true;
   return (
     mensaje.tipo === TIPOS.CARRERA &&

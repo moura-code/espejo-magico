@@ -9,7 +9,7 @@ export function elegirReferente(carrera, slot) {
 }
 
 export function crearTablet({ slot, contenido, pantalla }) {
-  let ultimaSesion = null;
+  let ultimaEmision = null;
 
   return {
     recibir(mensaje) {
@@ -21,13 +21,14 @@ export function crearTablet({ slot, contenido, pantalla }) {
       // El espejo reenvia su ultimo mensaje cada dos segundos para que una
       // tablet que se reconecta se ponga al dia. Sin este corte, el video
       // volveria a empezar en cada latido.
-      if (mensaje.sesion === ultimaSesion) return;
+      const emision = `${mensaje.instancia ?? 'legado'}:${mensaje.sesion}`;
+      if (emision === ultimaEmision) return;
 
       const carrera = contenido.obtener(mensaje.id);
       const referente = elegirReferente(carrera, slot);
       if (!referente) return;
 
-      ultimaSesion = mensaje.sesion;
+      ultimaEmision = emision;
       pantalla.mostrar(referente, carrera);
     },
   };

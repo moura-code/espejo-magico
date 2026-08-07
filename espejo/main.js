@@ -174,28 +174,32 @@ const maquina = crearMaquina({
 });
 const pool = crearPool(CONFIG.objetos);
 const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
+const instancia = crypto.randomUUID();
 
 // La niebla arranca cerrada. Su apertura cambia de forma continua aunque la
 // maquina salte de estado, y solo desplaza nubes hacia los lados.
 let nieblaActual = { apertura: 0 };
 
+let ultimoLatido = 0;
+let ultimoAnuncio = mensajeReposo(instancia);
+
 const bus = crearBus({
   url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
   reconexionMs: CONFIG.red.reconexionMs,
-  alEstado: (estado) => console.log('bus:', estado),
+  alEstado: (estado) => {
+    console.log('bus:', estado);
+    if (estado.conectado) bus.enviar(ultimoAnuncio);
+  },
 });
-
-let ultimoLatido = 0;
-let ultimoAnuncio = null;
 
 function atender(eventos, ahora) {
   for (const evento of eventos) {
     if (evento.tipo === 'carrera') {
-      ultimoAnuncio = mensajeCarrera(evento.id, evento.sesion);
+      ultimoAnuncio = mensajeCarrera(evento.id, evento.sesion, instancia);
       bus.enviar(ultimoAnuncio);
     }
     if (evento.tipo === 'reposo') {
-      ultimoAnuncio = mensajeReposo();
+      ultimoAnuncio = mensajeReposo(instancia);
       bus.enviar(ultimoAnuncio);
     }
     if (evento.tipo !== 'entra') continue;

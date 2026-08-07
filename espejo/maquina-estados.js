@@ -37,6 +37,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let enManual = manual;
 
   function ir(nuevo, ahora, eventos) {
+    const anterior = estado;
     estado = nuevo;
     desde = ahora;
     eventos.push({ tipo: 'entra', estado: nuevo });
@@ -45,10 +46,10 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       sesion += 1;
       eventos.push({ tipo: 'carrera', id: carrera, sesion });
     }
-    if (nuevo === ESTADOS.CIERRE) {
-      eventos.push({ tipo: 'reposo' });
-    }
     if (nuevo === ESTADOS.ATRACCION) {
+      // Las tablets acompañan el cierre visual y se apagan cuando las nubes ya
+      // terminaron de cubrir el espejo, no cuatro segundos antes.
+      if (anterior === ESTADOS.CIERRE) eventos.push({ tipo: 'reposo' });
       carrera = null;
       inicioDeSesion = null;
     }
