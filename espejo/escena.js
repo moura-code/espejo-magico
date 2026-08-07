@@ -129,8 +129,8 @@ export function dibujarFueraDeCara(ctx, rostro, disposicion, dibujar) {
   ctx.restore();
 }
 
-export function dibujarAccesorio(ctx, rostro, carrera, banco) {
-  if (!rostro || !carrera) return;
+export function dibujarAccesorio(ctx, rostro, carrera, banco, alfa = 1) {
+  if (!rostro || !carrera || alfa <= 0) return;
   const imagen = banco.obtener(carrera.accesorio.img);
   if (!imagen) return;
 
@@ -141,6 +141,7 @@ export function dibujarAccesorio(ctx, rostro, carrera, banco) {
   if (!anclaje) return;
 
   ctx.save();
+  ctx.globalAlpha = alfa;
   ctx.translate(anclaje.x, anclaje.y);
   ctx.rotate(anclaje.angulo);
   ctx.scale(anclaje.escala, anclaje.escala);
@@ -300,11 +301,12 @@ export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
   ctx.restore();
 }
 
-export function dibujarInvitacion(ctx, disposicion, pulso) {
+export function dibujarInvitacion(ctx, disposicion, pulso, alfa = 1) {
+  if (alfa <= 0) return;
   const { ancho, alto, texto } = disposicion;
 
   ctx.save();
-  ctx.globalAlpha = 0.65 + 0.35 * pulso;
+  ctx.globalAlpha = alfa * (0.65 + 0.35 * pulso);
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';

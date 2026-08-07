@@ -34,10 +34,10 @@ function engranajes({ azar, presupuesto }) {
     actualizar(dt) {
       for (const pieza of piezas) pieza.giro += pieza.velocidad * dt;
     },
-    dibujar(ctx, { ancho, alto, color }) {
+    dibujar(ctx, { ancho, alto, color, alfa = 1 }) {
       const corto = Math.min(ancho, alto);
       ctx.save();
-      ctx.globalAlpha = 0.22;
+      ctx.globalAlpha = 0.22 * alfa;
       for (const pieza of piezas) {
         ctx.save();
         ctx.translate(pieza.x * ancho, pieza.y * alto);
@@ -92,17 +92,17 @@ function chispas({ azar, presupuesto }) {
       }
     },
 
-    dibujar(ctx, { ancho, alto, color }) {
+    dibujar(ctx, { ancho, alto, color, alfa = 1 }) {
       ctx.save();
       ctx.fillStyle = color;
       for (const p of particulas) {
-        ctx.globalAlpha = 0.85 * (1 - p.edad / p.vida);
+        ctx.globalAlpha = 0.85 * (1 - p.edad / p.vida) * alfa;
         const lado = Math.min(ancho, alto) * 0.008;
         ctx.fillRect(p.x * ancho, p.y * alto, lado, lado * 3);
       }
 
       if (arco) {
-        ctx.globalAlpha = 0.8;
+        ctx.globalAlpha = 0.8 * alfa;
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = Math.max(2, Math.min(ancho, alto) * 0.004);
         ctx.beginPath();
@@ -153,7 +153,7 @@ function codigo({ azar, presupuesto }) {
       }
     },
 
-    dibujar(ctx, { ancho, alto, color }) {
+    dibujar(ctx, { ancho, alto, color, alfa = 1 }) {
       const tamano = Math.min(ancho, alto) * 0.028;
       ctx.save();
       ctx.font = `700 ${tamano}px "Consolas", monospace`;
@@ -164,7 +164,7 @@ function codigo({ azar, presupuesto }) {
         for (let i = 0; i < columna.largo; i++) {
           const y = (columna.y * alto) - i * tamano * 1.15;
           if (y < -tamano || y > alto + tamano) continue;
-          ctx.globalAlpha = 0.75 * (1 - i / columna.largo);
+          ctx.globalAlpha = 0.75 * (1 - i / columna.largo) * alfa;
           ctx.fillText(columna.letras[i % columna.letras.length], columna.x * ancho, y);
         }
       }
@@ -190,7 +190,7 @@ function formulas({ azar, presupuesto }) {
       for (const simbolo of simbolos) simbolo.angulo += simbolo.velocidad * dt;
     },
 
-    dibujar(ctx, { ancho, alto, color, rostro }) {
+    dibujar(ctx, { ancho, alto, color, rostro, alfa = 1 }) {
       // Orbitan la cabeza. Si no hay nadie, orbitan el centro de la pantalla.
       const centro = rostro?.centro ?? { x: ancho / 2, y: alto * 0.4 };
       const base = rostro?.radio ?? Math.min(ancho, alto) * 0.16;
@@ -213,7 +213,7 @@ function formulas({ azar, presupuesto }) {
         const py = Math.sin(simbolo.angulo) * ry;
 
         // Los que pasan por detras se ven mas tenues: da sensacion de orbita.
-        ctx.globalAlpha = 0.35 + 0.5 * ((Math.sin(simbolo.angulo) + 1) / 2);
+        ctx.globalAlpha = (0.35 + 0.5 * ((Math.sin(simbolo.angulo) + 1) / 2)) * alfa;
         ctx.fillText(simbolo.texto, centro.x + px * cos - py * sen, centro.y + px * sen + py * cos);
       }
       ctx.restore();
@@ -247,13 +247,13 @@ function planos({ azar, presupuesto }) {
       }
     },
 
-    dibujar(ctx, { ancho, alto, color }) {
+    dibujar(ctx, { ancho, alto, color, alfa = 1 }) {
       const corto = Math.min(ancho, alto);
       ctx.save();
 
       // Grilla de plano que se traza sola de izquierda a derecha.
       ctx.strokeStyle = color;
-      ctx.globalAlpha = 0.18;
+      ctx.globalAlpha = 0.18 * alfa;
       ctx.lineWidth = Math.max(1, corto * 0.0025);
       const paso = corto * 0.09;
 
@@ -270,7 +270,7 @@ function planos({ azar, presupuesto }) {
         ctx.stroke();
       }
 
-      ctx.globalAlpha = 0.45;
+      ctx.globalAlpha = 0.45 * alfa;
       ctx.fillStyle = '#e8dcc8';
       for (const mota of polvo) {
         ctx.fillRect(mota.x * ancho, mota.y * alto, mota.tamano * corto, mota.tamano * corto);
@@ -309,7 +309,7 @@ function burbujas({ azar, presupuesto }) {
       }
     },
 
-    dibujar(ctx, { ancho, alto, color }) {
+    dibujar(ctx, { ancho, alto, color, alfa = 1 }) {
       const corto = Math.min(ancho, alto);
       ctx.save();
       ctx.lineWidth = Math.max(1.5, corto * 0.003);
@@ -319,17 +319,17 @@ function burbujas({ azar, presupuesto }) {
         const y = b.y * alto;
         const r = b.radio * corto;
 
-        ctx.globalAlpha = 0.3;
+        ctx.globalAlpha = 0.3 * alfa;
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, TAU);
         ctx.fill();
 
-        ctx.globalAlpha = 0.6;
+        ctx.globalAlpha = 0.6 * alfa;
         ctx.strokeStyle = color;
         ctx.stroke();
 
-        ctx.globalAlpha = 0.7;
+        ctx.globalAlpha = 0.7 * alfa;
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
         ctx.beginPath();
         ctx.arc(x - r * 0.35, y - r * 0.35, r * 0.22, 0, TAU);

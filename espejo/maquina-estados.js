@@ -77,8 +77,10 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       const eventos = [];
       const proximo = SIGUIENTE[estado];
 
-      if (proximo === ESTADOS.ENGANCHE) inicioDeSesion = ahora;
-      if (proximo === ESTADOS.SORTEO) carrera = sortear();
+      if (proximo === ESTADOS.ENGANCHE) {
+        inicioDeSesion = ahora;
+        carrera = sortear();
+      }
       // En manual no hay enfriamiento: si apreto el boton, quiero que arranque.
       if (proximo === ESTADOS.ATRACCION) finDeCierre = null;
 
@@ -108,6 +110,9 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
           if (finDeCierre !== null && ahora - finDeCierre < tiempos.enfriamiento) break;
           if (hayRostro) {
             inicioDeSesion = ahora;
+            // Se elige al detectar presencia para preparar el efecto mientras
+            // las nubes se abren. El anuncio sigue esperando a REVELACION.
+            carrera = sortear();
             ir(ESTADOS.ENGANCHE, ahora, eventos);
           }
           break;
@@ -121,11 +126,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
           if (!hayRostro) {
             ir(ESTADOS.ATRACCION, ahora, eventos);
           } else if (transcurrido >= tiempos.enganche) {
-            // La carrera se elige aca, tres segundos antes de anunciarla: ese
-            // margen le sirve al espejo para tener listos los PNG cuando se
-            // despeje la niebla. El mensaje a las tablets sale en REVELACION,
-            // porque mandarlo antes seria contar el final.
-            carrera = sortear();
             ir(ESTADOS.SORTEO, ahora, eventos);
           }
           break;

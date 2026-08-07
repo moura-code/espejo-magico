@@ -14,12 +14,12 @@ export const CONFIG = {
 
   // Duraciones de cada estado, en milisegundos.
   tiempos: {
-    enganche: 2000,
-    sorteo: 3000,
-    revelacion: 2000,
-    cierre: 4000,
-    enfriamiento: 3000,
-    ausenciaParaCortar: 3000,
+    enganche: 1400,
+    sorteo: 500,
+    revelacion: 1200,
+    cierre: 1800,
+    enfriamiento: 800,
+    ausenciaParaCortar: 1200,
     sesionMaxima: 75000,
   },
 
@@ -103,9 +103,9 @@ export const CONFIG = {
   },
 
   objetos: {
-    maximo: 40,
-    intervaloAparicion: 350,
-    vidaMs: 12000,
+    maximo: 24,
+    intervaloAparicion: 500,
+    vidaMs: 10000,
   },
 
   efectos: {

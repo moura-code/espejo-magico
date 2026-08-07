@@ -16,7 +16,7 @@ import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearPool, fuenteDeObjetos } from './objetos.js';
 import { actualizarAgarres, estadoDeMano } from './agarre.js';
 import { crearCuerpo } from './fisica.js';
-import { crearNiebla, calcularNiebla } from './niebla.js';
+import { crearNiebla, calcularNiebla, calcularTransicionEscena } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
 import { figurasDisponibles } from './figuras.js';
 import {
@@ -188,14 +188,10 @@ function atender(eventos, ahora) {
     }
     if (evento.tipo !== 'entra') continue;
 
-    // Al sentarse alguien, los objetos de la atraccion se desvanecen: el espejo
-    // despierta limpio en vez de con una pila de la sesion anterior.
-    if (evento.estado === ESTADOS.ENGANCHE) pool.retirar(ahora, 600);
-
-    // Al entrar en la revelacion se vacia de golpe, pero eso pasa con la niebla
-    // todavia cerrada, asi que nadie lo ve. Cuando la niebla se abre, en pantalla
-    // hay exactamente los objetos de la carrera sorteada y nada mas.
+    // La revelacion siempre arranca limpia y el cierre desvanece los objetos al
+    // mismo ritmo que vuelven las nubes.
     if (evento.estado === ESTADOS.REVELACION) pool.vaciar();
+    if (evento.estado === ESTADOS.CIERRE) pool.retirar(ahora, CONFIG.tiempos.cierre);
 
     if (evento.estado === ESTADOS.ATRACCION) pool.vaciar();
   }
@@ -331,15 +327,21 @@ function cuadro(ahora) {
   estadoAnterior = estado;
   const carrera = salida.carrera ? contenido.obtener(salida.carrera) : null;
   const enEstadoDesde = ahora - maquina.desdeCuando();
+  const capa = calcularNiebla({
+    estado,
+    transcurrido: enEstadoDesde,
+    tiempos: CONFIG.tiempos,
+  });
+  const transicion = calcularTransicionEscena({
+    estado,
+    transcurrido: enEstadoDesde,
+    tiempos: CONFIG.tiempos,
+  });
 
   // --- fisica ---
   const fuente = fuenteDeObjetos(estado, carrera, contenido.carreras);
   if (fuente && fuente.length > 0 && ahora >= proximaAparicion) {
-    const intervalo =
-      estado === ESTADOS.ATRACCION
-        ? CONFIG.objetos.intervaloAparicion * 3
-        : CONFIG.objetos.intervaloAparicion;
-    proximaAparicion = ahora + intervalo;
+    proximaAparicion = ahora + CONFIG.objetos.intervaloAparicion;
     aparecerObjeto(fuente[Math.floor(Math.random() * fuente.length)], ahora);
   }
 
@@ -402,17 +404,17 @@ function cuadro(ahora) {
     color: carrera?.color ?? '#ffffff',
     rostro,
     ahora,
+    alfa: transicion.efecto,
   };
   if (efecto) efecto.actualizar(dt, contextoEfecto);
 
   // --- dibujo ---
   ctx.clearRect(0, 0, disposicion.ancho, disposicion.alto);
 
-  const dormido = estado === ESTADOS.ATRACCION;
   if (video) {
     dibujarVideoEspejado(ctx, video, rectangulo, disposicion, {
-      desenfoque: dormido ? 10 : 0,
-      brillo: dormido ? 0.45 : 1,
+      desenfoque: capa.cobertura * 10,
+      brillo: 1 - capa.cobertura * 0.55,
     });
   } else {
     ctx.fillStyle = '#101418';
@@ -421,7 +423,7 @@ function cuadro(ahora) {
 
   // El efecto va encima del video y debajo de los objetos, para que el
   // participante quede dentro de la escena y no tapado por ella.
-  if (efecto && (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA)) {
+  if (efecto && transicion.efecto > 0) {
     dibujarFueraDeCara(ctx, rostro, disposicion, () => efecto.dibujar(ctx, contextoEfecto));
   }
 
@@ -462,11 +464,8 @@ function cuadro(ahora) {
 
   dibujarObjetos(ctx, pool.vivos(), banco, carrera?.color ?? '#8899aa');
 
-  if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    dibujarAccesorio(ctx, rostro, carrera, banco);
-  }
+  dibujarAccesorio(ctx, rostro, carrera, banco, transicion.contenido);
 
-  const capa = calcularNiebla({ estado, transcurrido: enEstadoDesde, tiempos: CONFIG.tiempos });
   if (capa.cobertura > 0) {
     ctxNiebla.clearRect(0, 0, disposicion.ancho, disposicion.alto);
     niebla.dibujar(ctxNiebla, disposicion, { ...capa, centro: rostro?.centro });
@@ -489,19 +488,17 @@ function cuadro(ahora) {
     ctx.restore();
   }
 
+  const pulsoInvitacion = (Math.sin(ahora / 700) + 1) / 2;
   if (estado === ESTADOS.ATRACCION) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
-    dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
-  } else if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
-    dibujarTextos(ctx, carrera, disposicion, 1);
+    dibujarInvitacion(ctx, disposicion, pulsoInvitacion);
+  } else if (estado === ESTADOS.ENGANCHE) {
+    dibujarInvitacion(ctx, disposicion, pulsoInvitacion, capa.cobertura);
   } else if (estado === ESTADOS.CIERRE) {
-    dibujarTextos(
-      ctx,
-      carrera,
-      disposicion,
-      Math.max(0, 1 - enEstadoDesde / CONFIG.tiempos.cierre),
-    );
+    dibujarInvitacion(ctx, disposicion, pulsoInvitacion, 1 - transicion.contenido);
   }
+
+  dibujarTextos(ctx, carrera, disposicion, transicion.contenido);
 }
 
 window.espejo = {

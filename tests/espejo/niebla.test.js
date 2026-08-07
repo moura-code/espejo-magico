@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { calcularNiebla, crearNiebla } from '../../espejo/niebla.js';
+import {
+  calcularNiebla,
+  calcularTransicionEscena,
+  crearNiebla,
+} from '../../espejo/niebla.js';
 import { ESTADOS } from '../../espejo/maquina-estados.js';
 
 const TIEMPOS = { enganche: 2000, sorteo: 3000, revelacion: 2000, cierre: 4000 };
@@ -30,7 +34,7 @@ describe('calcularNiebla', () => {
   });
 
   it('en cierre las nubes vuelven gradualmente', () => {
-    expect(en(ESTADOS.CIERRE, 0)).toEqual({ cobertura: 0, revelado: 0 });
+    expect(en(ESTADOS.CIERRE, 0)).toEqual({ cobertura: 0, revelado: 1 });
     expect(en(ESTADOS.CIERRE, 2000).cobertura).toBeCloseTo(0.5);
     expect(en(ESTADOS.CIERRE, 4000)).toEqual({ cobertura: 1, revelado: 0 });
   });
@@ -67,6 +71,36 @@ describe('calcularNiebla', () => {
       expect(cobertura).toBeGreaterThanOrEqual(anterior);
       anterior = cobertura;
     }
+  });
+});
+
+describe('calcularTransicionEscena', () => {
+  const transicion = (estado, transcurrido) =>
+    calcularTransicionEscena({ estado, transcurrido, tiempos: TIEMPOS });
+
+  it('prepara el efecto mientras se despejan las nubes', () => {
+    expect(transicion(ESTADOS.ENGANCHE, 0)).toEqual({ efecto: 0, contenido: 0 });
+    const mitad = transicion(ESTADOS.ENGANCHE, 1000);
+    expect(mitad.efecto).toBeGreaterThan(0);
+    expect(mitad.efecto).toBeLessThan(0.4);
+    expect(mitad.contenido).toBe(0);
+  });
+
+  it('termina de cargar el efecto durante el sorteo corto', () => {
+    expect(transicion(ESTADOS.SORTEO, 0).efecto).toBeCloseTo(0.4);
+    expect(transicion(ESTADOS.SORTEO, 3000).efecto).toBe(1);
+  });
+
+  it('hace aparecer el contenido durante la revelacion', () => {
+    expect(transicion(ESTADOS.REVELACION, 0).contenido).toBe(0);
+    expect(transicion(ESTADOS.REVELACION, 1000).contenido).toBeCloseTo(0.5);
+    expect(transicion(ESTADOS.REVELACION, 2000).contenido).toBe(1);
+  });
+
+  it('desvanece efecto y contenido juntos durante el cierre', () => {
+    expect(transicion(ESTADOS.CIERRE, 0)).toEqual({ efecto: 1, contenido: 1 });
+    expect(transicion(ESTADOS.CIERRE, 2000)).toEqual({ efecto: 0.5, contenido: 0.5 });
+    expect(transicion(ESTADOS.CIERRE, 4000)).toEqual({ efecto: 0, contenido: 0 });
   });
 });
 

@@ -68,11 +68,13 @@ describe('crearMaquina', () => {
     expect(maquina.estado()).toBe(ESTADOS.ESCENA);
   });
 
-  it('elige la carrera al entrar en sorteo, antes de anunciarla', () => {
+  it('elige la carrera apenas detecta presencia, antes de anunciarla', () => {
     const maquina = nueva(['civil']);
-    avanzar(maquina, 0, 2100, true);
-    expect(maquina.estado()).toBe(ESTADOS.SORTEO);
-    expect(maquina.carrera()).toBe('civil');
+    const salida = maquina.actualizar({ hayRostro: true, ahora: 0 });
+
+    expect(salida.estado).toBe(ESTADOS.ENGANCHE);
+    expect(salida.carrera).toBe('civil');
+    expect(tipos(salida.eventos, 'carrera')).toHaveLength(0);
   });
 
   it('recien emite el mensaje de carrera al entrar en revelacion', () => {

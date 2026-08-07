@@ -12,8 +12,8 @@ const MS_DE_DESVANECIDO = 500;
 /**
  * Que objetos caen en cada estado.
  *
- * En atraccion caen los de todas las carreras, como anzuelo. Desde la revelacion
- * caen SOLO los de la carrera sorteada, y en el medio no cae nada.
+ * En reposo no cae nada: las nubes son la invitacion. Desde la revelacion caen
+ * SOLO los objetos de la carrera sorteada.
  *
  * El "en el medio no cae nada" es deliberado y costo una prueba con publico: los
  * objetos de las seis carreras que caian durante el enganche y el sorteo seguian
@@ -24,9 +24,6 @@ export function fuenteDeObjetos(estado, carrera, carreras) {
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
     return carrera ? carrera.objetos : null;
   }
-  if (estado === ESTADOS.ATRACCION) {
-    return carreras.flatMap((c) => c.objetos);
-  }
   return null;
 }
 
@@ -36,7 +33,7 @@ export function crearPool({ maximo, vidaMs }) {
   return {
     aparecer(definicion, cuerpo, ahora) {
       while (vivos.length >= maximo) vivos.shift();
-      const objeto = { definicion, cuerpo, nacido: ahora, alfa: 1 };
+      const objeto = { definicion, cuerpo, nacido: ahora, alfa: 1, retiro: null };
       vivos.push(objeto);
       return objeto;
     },
@@ -50,12 +47,26 @@ export function crearPool({ maximo, vidaMs }) {
 
       for (const objeto of vivos) {
         const restante = vidaMs - (ahora - objeto.nacido);
-        objeto.alfa =
+        const alfaNatural =
           restante >= MS_DE_DESVANECIDO ? 1 : Math.max(0, restante / MS_DE_DESVANECIDO);
+        const alfaRetiro = objeto.retiro
+          ? Math.max(
+              0,
+              (objeto.retiro.hasta - ahora) /
+                Math.max(1, objeto.retiro.hasta - objeto.retiro.desde),
+            )
+          : 1;
+        objeto.alfa = Math.min(alfaNatural, alfaRetiro);
       }
 
       for (let i = vivos.length - 1; i >= 0; i--) {
-        if (ahora - vivos[i].nacido >= vidaMs) vivos.splice(i, 1);
+        const objeto = vivos[i];
+        if (
+          ahora - objeto.nacido >= vidaMs ||
+          (objeto.retiro && ahora >= objeto.retiro.hasta)
+        ) {
+          vivos.splice(i, 1);
+        }
       }
     },
 
@@ -65,9 +76,12 @@ export function crearPool({ maximo, vidaMs }) {
      * golpe: eso se lee como un error del sistema, no como una transicion.
      */
     retirar(ahora, enMs = MS_DE_DESVANECIDO) {
-      const nacimientoLimite = ahora + enMs - vidaMs;
       for (const objeto of vivos) {
-        objeto.nacido = Math.min(objeto.nacido, nacimientoLimite);
+        const muerteNatural = objeto.nacido + vidaMs;
+        const hasta = Math.min(muerteNatural, ahora + enMs);
+        if (!objeto.retiro || hasta < objeto.retiro.hasta) {
+          objeto.retiro = { desde: ahora, hasta };
+        }
       }
     },
 

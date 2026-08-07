@@ -7,28 +7,65 @@
 import { ESTADOS } from './maquina-estados.js';
 
 const acotar = (valor) => Math.min(1, Math.max(0, valor));
+const suavizar = (valor) => {
+  const t = acotar(valor);
+  return t * t * (3 - 2 * t);
+};
+
+const progreso = (transcurrido, duracion) => suavizar(transcurrido / Math.max(1, duracion));
 
 export function calcularNiebla({ estado, transcurrido, tiempos }) {
   switch (estado) {
     case ESTADOS.ATRACCION:
       return { cobertura: 1, revelado: 0 };
     case ESTADOS.ENGANCHE:
-      return {
-        cobertura: 1 - acotar(transcurrido / tiempos.enganche),
-        revelado: acotar(transcurrido / tiempos.enganche),
-      };
+      {
+        const apertura = progreso(transcurrido, tiempos.enganche);
+        return {
+          cobertura: 1 - apertura,
+          revelado: apertura,
+        };
+      }
     case ESTADOS.SORTEO:
       return { cobertura: 0, revelado: 1 };
     case ESTADOS.REVELACION:
     case ESTADOS.ESCENA:
       return { cobertura: 0, revelado: 1 };
     case ESTADOS.CIERRE:
-      return {
-        cobertura: acotar(transcurrido / tiempos.cierre),
-        revelado: 0,
-      };
+      {
+        const cierre = progreso(transcurrido, tiempos.cierre);
+        return { cobertura: cierre, revelado: 1 - cierre };
+      }
     default:
       return { cobertura: 0, revelado: 0 };
+  }
+}
+
+/** Coordina la entrada y salida del efecto, el accesorio y los textos. */
+export function calcularTransicionEscena({ estado, transcurrido, tiempos }) {
+  switch (estado) {
+    case ESTADOS.ATRACCION:
+      return { efecto: 0, contenido: 0 };
+    case ESTADOS.ENGANCHE:
+      return {
+        efecto: progreso(transcurrido, tiempos.enganche) * 0.4,
+        contenido: 0,
+      };
+    case ESTADOS.SORTEO:
+      return {
+        efecto: 0.4 + progreso(transcurrido, tiempos.sorteo) * 0.6,
+        contenido: 0,
+      };
+    case ESTADOS.REVELACION:
+      return { efecto: 1, contenido: progreso(transcurrido, tiempos.revelacion) };
+    case ESTADOS.ESCENA:
+      return { efecto: 1, contenido: 1 };
+    case ESTADOS.CIERRE: {
+      const salida = 1 - progreso(transcurrido, tiempos.cierre);
+      return { efecto: salida, contenido: salida };
+    }
+    default:
+      return { efecto: 0, contenido: 0 };
   }
 }
 
