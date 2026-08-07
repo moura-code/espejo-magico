@@ -110,6 +110,7 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
   let ultimoMensaje = null;
   let instanciaActiva = null;
   const identidadPorCliente = new WeakMap();
+  let espejoActivo = null;
 
   sockets.on('connection', (cliente) => {
     cliente.on('message', (crudo) => {
@@ -118,11 +119,22 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       if (!mensaje) return;
 
       if (mensaje.tipo === TIPOS_MENSAJE.HOLA) {
-        identidadPorCliente.set(cliente, mensaje);
+        // La identidad se declara una sola vez. Una tablet no puede ascenderse
+        // a espejo reutilizando el mismo socket.
+        if (identidadPorCliente.has(cliente)) return;
+
         if (mensaje.rol === 'espejo') {
+          if (espejoActivo && espejoActivo !== cliente) {
+            cliente.close(1008, 'Ya existe un espejo activo');
+            return;
+          }
+          espejoActivo = cliente;
           if (mensaje.instancia !== instanciaActiva) ultimoMensaje = null;
           instanciaActiva = mensaje.instancia;
-        } else if (ultimoMensaje) {
+        }
+
+        identidadPorCliente.set(cliente, mensaje);
+        if (mensaje.rol === 'tablet' && ultimoMensaje) {
           cliente.send(ultimoMensaje);
         }
         return;
@@ -147,6 +159,10 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
           otro.send(ultimoMensaje);
         }
       }
+    });
+
+    cliente.on('close', () => {
+      if (espejoActivo === cliente) espejoActivo = null;
     });
   });
 

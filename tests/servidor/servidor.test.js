@@ -104,6 +104,46 @@ describe('servidor', () => {
     tardia.close();
   });
 
+  it('rechaza un segundo espejo mientras el primero siga conectado', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const primero = new WebSocket(`ws://localhost:${puerto}`);
+    const segundo = new WebSocket(`ws://localhost:${puerto}`);
+    await Promise.all([abierto(primero), abierto(segundo)]);
+    await identificar(primero, { tipo: 'hola', rol: 'espejo', instancia: 'espejo-a' });
+
+    const cierre = new Promise((ok) => segundo.once('close', (codigo) => ok(codigo)));
+    segundo.send(JSON.stringify({ tipo: 'hola', rol: 'espejo', instancia: 'espejo-b' }));
+
+    expect(await cierre).toBe(1008);
+    primero.close();
+  });
+
+  it('no permite que una tablet cambie de rol en el mismo socket', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0);
+    const cliente = new WebSocket(`ws://localhost:${puerto}`);
+    await abierto(cliente);
+    await identificar(cliente, { tipo: 'hola', rol: 'tablet', slot: 0 });
+
+    cliente.send(JSON.stringify({ tipo: 'hola', rol: 'espejo', instancia: 'intrusa' }));
+    cliente.send(
+      JSON.stringify({ tipo: 'carrera', id: 'civil', sesion: 1, instancia: 'intrusa' }),
+    );
+    await new Promise((ok) => setTimeout(ok, 20));
+
+    const tardia = new WebSocket(`ws://localhost:${puerto}`);
+    await abierto(tardia);
+    let recibio = false;
+    tardia.once('message', () => (recibio = true));
+    tardia.send(JSON.stringify({ tipo: 'hola', rol: 'tablet', slot: 1 }));
+    await new Promise((ok) => setTimeout(ok, 30));
+
+    expect(recibio).toBe(false);
+    cliente.close();
+    tardia.close();
+  });
+
   it('no sirve archivos fuera de la raiz', async () => {
     servidor = crearServidor();
     const puerto = await servidor.escuchar(0);
