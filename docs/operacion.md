@@ -30,7 +30,7 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 
 | Tecla | Qué hace |
 |---|---|
-| `1` a `6` | Fuerza una carrera y salta directo a la revelación |
+| `1` a `9`, `0` y `-` | Fuerza una carrera y salta directo a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `I` | Cambia qué hacen las manos: imán (junta los objetos) o manotazo |
 | `D` | Modo demo: funciona sin cámara, con un rostro simulado |
@@ -38,7 +38,7 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 | `P` | Muestra u oculta el panel de estado |
 | `Ctrl` + `R` | Recarga todo |
 
-El orden de las teclas `1` a `6` es el mismo que el de las carreras en
+El orden de las teclas `1` a `9`, `0` y `-` es el mismo que el de las carreras en
 `contenido/carreras.json`.
 
 ---
@@ -71,8 +71,8 @@ de la PC. Si sigue lento, avisar al equipo técnico: hay que bajar `objetos.maxi
 en `espejo/config.js`.
 
 **Siempre sale la misma carrera.**
-No puede pasar: el sistema recorre las seis antes de repetir ninguna. Si pasa,
-alguien está apretando las teclas `1` a `6` sin querer.
+No puede pasar: el sistema recorre las once antes de repetir ninguna. Si pasa,
+alguien está apretando las teclas `1` a `9`, `0` o `-` sin querer.
 
 **Aparecen círculos de colores en vez de dibujos.**
 Falta ese PNG. Apretar `P` y mirar `png faltan`. No rompe nada: es el

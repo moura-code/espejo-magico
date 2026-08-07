@@ -4,14 +4,28 @@ Instalación interactiva para el stand de una Facultad de Ingeniería.
 
 Un visitante se sienta frente a una pantalla enmarcada como espejo, que descansa
 cubierta de nubes. Una cámara detecta su rostro, las nubes se apartan hacia los
-lados, y le sortea una de seis ingenierías: el participante aparece rodeado de objetos
-característicos de esa carrera que caen, rebotan contra su cabeza y se juntan
+lados, y le sortea una de once ingenierías: el participante aparece rodeado de
+objetos característicos de esa carrera que caen, rebotan contra su cabeza y se juntan
 como un imán alrededor de sus manos (o se manotean, con la tecla `I`). La escena
 dura mientras la persona siga sentada; tras cinco segundos sin detectarla, las
 nubes vuelven a cubrir el espejo. En simultáneo, unas tablets alrededor
 reproducen videos de mujeres vinculadas a esa disciplina.
 
 Todo corre en el navegador, en una sola PC, **sin conexión a internet**.
+
+## Carreras
+
+- Ingeniería Civil
+- Ingeniería de Alimentos
+- Ingeniería de Producción
+- Ingeniería Eléctrica
+- Ingeniería en Agrimensura
+- Ingeniería en Computación
+- Ingeniería en Sistemas de Comunicación
+- Ingeniería Físico-Matemática
+- Ingeniería Industrial Mecánica
+- Ingeniería Naval
+- Ingeniería Química
 
 ## Empezar
 
@@ -51,7 +65,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 |---|---|
 | `ESPACIO` | Avanza al estado siguiente (modo manual) |
 | `A` | Alterna avance manual / automático |
-| `1`–`6` | Fuerza una carrera y salta a la revelación |
+| `1`–`9`, `0`, `-` | Fuerza una carrera y salta a la revelación |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `I` | Cambia qué hacen las manos: imán (junta los objetos) o manotazo |
 | `D` | Modo demo: funciona sin cámara |
@@ -92,8 +106,8 @@ Sin bundler: módulos ES nativos servidos tal cual. Dos dependencias en total,
 ## Privacidad
 
 La imagen de la cámara nunca sale de la PC. No se graba, no se guarda, no se
-transmite y no se pide ningún dato al visitante. El procesamiento de rostro y
-manos ocurre íntegramente en el navegador local.
+transmite y no se pide ningún dato al visitante. El procesamiento de rostro,
+manos y puntos de pose ocurre íntegramente en el navegador local.
 
 ## Documentación
 

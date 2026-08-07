@@ -12,10 +12,11 @@ const ACCIONES_SUELTAS = {
 };
 
 const POR_NOMBRE = { Enter: 'avanzar', ArrowRight: 'avanzar' };
+const TECLAS_CARRERA = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'];
 
 export function interpretarTecla(tecla, ids) {
-  if (/^[1-9]$/.test(tecla)) {
-    const indice = Number(tecla) - 1;
+  const indice = TECLAS_CARRERA.indexOf(tecla);
+  if (indice >= 0) {
     return indice < ids.length ? { accion: 'forzar', id: ids[indice] } : null;
   }
 
@@ -117,7 +118,7 @@ export function instalarOperacion({
         `avance      ${espejo.maquina.esManual() ? 'MANUAL' : 'automatico'}`,
         ``,
         `ESPACIO avanzar   A auto/manual`,
-        `1-6 carrera       R reiniciar`,
+        `1-9,0,- carrera   R reiniciar`,
         `I iman/golpe      D demo`,
         `M malla           P cerrar`,
       ].join('\n');

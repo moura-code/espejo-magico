@@ -5,18 +5,30 @@ import {
   interpretarTecla,
 } from '../../espejo/operacion.js';
 
-const IDS = ['mecanica', 'electrica', 'computacion', 'fisico-matematico', 'civil', 'quimica'];
+const IDS = [
+  'mecanica',
+  'alimentos',
+  'produccion',
+  'electrica',
+  'computacion',
+  'agrimensura',
+  'sistemas-comunicacion',
+  'fisico-matematico',
+  'civil',
+  'quimica',
+  'naval',
+];
 
 describe('interpretarTecla', () => {
-  it('las teclas 1 a 6 fuerzan la carrera de esa posicion', () => {
+  it('las once teclas fuerzan la carrera de esa posicion', () => {
     expect(interpretarTecla('1', IDS)).toEqual({ accion: 'forzar', id: 'mecanica' });
-    expect(interpretarTecla('6', IDS)).toEqual({ accion: 'forzar', id: 'quimica' });
+    expect(interpretarTecla('0', IDS)).toEqual({ accion: 'forzar', id: 'quimica' });
+    expect(interpretarTecla('-', IDS)).toEqual({ accion: 'forzar', id: 'naval' });
   });
 
-  it('ignora numeros sin carrera detras', () => {
-    expect(interpretarTecla('7', IDS)).toBeNull();
-    expect(interpretarTecla('0', IDS)).toBeNull();
+  it('ignora teclas sin carrera detras', () => {
     expect(interpretarTecla('3', ['a', 'b'])).toBeNull();
+    expect(interpretarTecla('-', IDS.slice(0, 10))).toBeNull();
   });
 
   it('reconoce las acciones sueltas sin importar mayusculas', () => {
