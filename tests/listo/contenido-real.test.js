@@ -20,11 +20,16 @@ const existe = (ruta) => access(resolve(CONTENIDO, ruta)).then(() => true, () =>
 
 const IDS_ESPERADOS = [
   'mecanica',
+  'alimentos',
+  'produccion',
   'electrica',
   'computacion',
+  'agrimensura',
+  'sistemas-comunicacion',
   'fisico-matematico',
   'civil',
   'quimica',
+  'naval',
 ];
 
 describe('contenido real', () => {
@@ -32,7 +37,7 @@ describe('contenido real', () => {
     expect(validarContenido(await leer())).toEqual([]);
   });
 
-  it('tiene las seis carreras acordadas', async () => {
+  it('tiene las once carreras acordadas', async () => {
     const datos = await leer();
     expect(datos.carreras.map((c) => c.id).sort()).toEqual([...IDS_ESPERADOS].sort());
   });

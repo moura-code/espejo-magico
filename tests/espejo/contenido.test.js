@@ -1,5 +1,20 @@
 import { describe, it, expect } from 'vitest';
+import { readFile } from 'node:fs/promises';
 import { validarContenido, cargarContenido } from '../../espejo/contenido.js';
+
+const NOMBRES_ESPERADOS = [
+  'Ingeniería Civil',
+  'Ingeniería de Alimentos',
+  'Ingeniería de Producción',
+  'Ingeniería Eléctrica',
+  'Ingeniería en Agrimensura',
+  'Ingeniería en Computación',
+  'Ingeniería en Sistemas de Comunicación',
+  'Ingeniería Físico-Matemática',
+  'Ingeniería Industrial Mecánica',
+  'Ingeniería Naval',
+  'Ingeniería Química',
+];
 
 const carreraValida = () => ({
   id: 'civil',
@@ -114,5 +129,13 @@ describe('cargarContenido', () => {
 
   it('falla si el archivo no esta', async () => {
     await expect(cargarContenido({ traer: traerCon(null, false) })).rejects.toThrow(/404/);
+  });
+});
+
+describe('catalogo real', () => {
+  it('contiene las once ingenierias acordadas', async () => {
+    const ruta = new URL('../../contenido/carreras.json', import.meta.url);
+    const datos = JSON.parse(await readFile(ruta, 'utf8'));
+    expect(datos.carreras.map((c) => c.nombre).sort()).toEqual([...NOMBRES_ESPERADOS].sort());
   });
 });

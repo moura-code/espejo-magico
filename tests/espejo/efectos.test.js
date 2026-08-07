@@ -160,9 +160,9 @@ describe('carreras.json contra el registro de efectos', () => {
     expect(problemas).toEqual([]);
   });
 
-  it('las seis carreras tienen efectos distintos', async () => {
+  it('el catalogo usa todos los efectos disponibles', async () => {
     const datos = JSON.parse(await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'));
     const efectos = datos.carreras.map((c) => c.efecto);
-    expect(new Set(efectos).size).toBe(efectos.length);
+    expect([...new Set(efectos)].sort()).toEqual([...TIPOS].sort());
   });
 });

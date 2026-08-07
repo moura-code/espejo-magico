@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Qué es
 
-Instalación interactiva para el stand de una Facultad de Ingeniería: un espejo (pantalla + cámara) que descansa cubierto de nubes detecta el rostro del visitante, se despeja, le sortea una de seis ingenierías y lo rodea de objetos que caen y se juntan como un imán alrededor de sus manos (o se manotean: tecla `I`), mientras unas tablets reproducen videos de referentes de esa carrera. Todo corre en el navegador de una sola PC, **sin conexión a internet**.
+Instalación interactiva para el stand de una Facultad de Ingeniería: un espejo (pantalla + cámara) que descansa cubierto de nubes detecta el rostro del visitante, se despeja, le sortea una de once ingenierías y lo rodea de objetos que caen y se juntan como un imán alrededor de sus manos (o se manotean: tecla `I`), mientras unas tablets reproducen videos de referentes de esa carrera. Todo corre en el navegador de una sola PC, **sin conexión a internet**.
 
 ## Comandos
 

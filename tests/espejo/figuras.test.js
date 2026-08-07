@@ -79,7 +79,7 @@ const NOMBRES = figurasDisponibles();
 const GLIFOS = ['pi', 'sumatoria', 'integral', 'llaves'];
 
 describe('figuras', () => {
-  it('hay una figura por cada objeto que necesitan las seis carreras', () => {
+  it('hay suficientes figuras para los objetos del catalogo', () => {
     expect(NOMBRES.length).toBeGreaterThanOrEqual(36);
   });
 

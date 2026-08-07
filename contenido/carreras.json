@@ -3,9 +3,9 @@
   "carreras": [
     {
       "id": "mecanica",
-      "nombre": "Ingeniería Mecánica",
+      "nombre": "Ingeniería Industrial Mecánica",
       "color": "#4FC3F7",
-      "frase": "Diseño y análisis de máquinas y sistemas térmicos",
+      "frase": "Diseño y mejora de sistemas productivos, máquinas y procesos",
       "efecto": "engranajes",
       "accesorio": {
         "img": "assets/mecanica/antiparras.png",
@@ -22,7 +22,55 @@
         { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/mecanica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Mecánica" }
+        { "video": "videos/mecanica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Industrial Mecánica" }
+      ]
+    },
+    {
+      "id": "alimentos",
+      "nombre": "Ingeniería de Alimentos",
+      "color": "#7BC96F",
+      "frase": "Ciencia y tecnología para producir alimentos seguros y de calidad",
+      "efecto": "burbujas",
+      "accesorio": {
+        "img": "assets/alimentos/cofia.png",
+        "anclaOjoIzq": [0.3, 0.68],
+        "anclaOjoDer": [0.7, 0.68],
+        "offsetY": -0.4
+      },
+      "objetos": [
+        { "img": "assets/alimentos/matraz.png", "figura": "matraz", "escala": 0.18, "peso": 1 },
+        { "img": "assets/alimentos/gota.png", "figura": "gota", "escala": 0.15, "peso": 1 },
+        { "img": "assets/alimentos/molecula.png", "figura": "molecula", "escala": 0.2, "peso": 1 },
+        { "img": "assets/alimentos/tubo.png", "figura": "tubo", "escala": 0.16, "peso": 1 },
+        { "img": "assets/alimentos/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
+        { "img": "assets/alimentos/lampara.png", "figura": "lampara", "escala": 0.17, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/alimentos/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería de Alimentos" }
+      ]
+    },
+    {
+      "id": "produccion",
+      "nombre": "Ingeniería de Producción",
+      "color": "#F4A261",
+      "frase": "Optimización de procesos, recursos y sistemas de producción",
+      "efecto": "engranajes",
+      "accesorio": {
+        "img": "assets/produccion/casco.png",
+        "anclaOjoIzq": [0.3, 0.72],
+        "anclaOjoDer": [0.7, 0.72],
+        "offsetY": -0.45
+      },
+      "objetos": [
+        { "img": "assets/produccion/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
+        { "img": "assets/produccion/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
+        { "img": "assets/produccion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
+        { "img": "assets/produccion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
+        { "img": "assets/produccion/grua.png", "figura": "grua", "escala": 0.22, "peso": 1 },
+        { "img": "assets/produccion/llave.png", "figura": "llave", "escala": 0.19, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/produccion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería de Producción" }
       ]
     },
     {
@@ -71,6 +119,54 @@
       ],
       "referentes": [
         { "video": "videos/computacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería en Computación" }
+      ]
+    },
+    {
+      "id": "agrimensura",
+      "nombre": "Ingeniería en Agrimensura",
+      "color": "#2A9D8F",
+      "frase": "Medición y representación precisa del territorio",
+      "efecto": "planos",
+      "accesorio": {
+        "img": "assets/agrimensura/casco.png",
+        "anclaOjoIzq": [0.3, 0.72],
+        "anclaOjoDer": [0.7, 0.72],
+        "offsetY": -0.45
+      },
+      "objetos": [
+        { "img": "assets/agrimensura/teodolito.png", "figura": "teodolito", "escala": 0.2, "peso": 1 },
+        { "img": "assets/agrimensura/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
+        { "img": "assets/agrimensura/prisma.png", "figura": "prisma", "escala": 0.19, "peso": 1 },
+        { "img": "assets/agrimensura/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 },
+        { "img": "assets/agrimensura/onda.png", "figura": "onda", "escala": 0.19, "peso": 1 },
+        { "img": "assets/agrimensura/sumatoria.png", "figura": "sumatoria", "escala": 0.16, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/agrimensura/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería en Agrimensura" }
+      ]
+    },
+    {
+      "id": "sistemas-comunicacion",
+      "nombre": "Ingeniería en Sistemas de Comunicación",
+      "color": "#3A86FF",
+      "frase": "Conectividad, señales y redes para comunicar al mundo",
+      "efecto": "chispas",
+      "accesorio": {
+        "img": "assets/sistemas-comunicacion/visor.png",
+        "anclaOjoIzq": [0.3, 0.58],
+        "anclaOjoDer": [0.7, 0.58],
+        "offsetY": -0.15
+      },
+      "objetos": [
+        { "img": "assets/sistemas-comunicacion/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 },
+        { "img": "assets/sistemas-comunicacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
+        { "img": "assets/sistemas-comunicacion/rayo.png", "figura": "rayo", "escala": 0.18, "peso": 1 },
+        { "img": "assets/sistemas-comunicacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
+        { "img": "assets/sistemas-comunicacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 },
+        { "img": "assets/sistemas-comunicacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/sistemas-comunicacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería en Sistemas de Comunicación" }
       ]
     },
     {
@@ -143,6 +239,30 @@
       ],
       "referentes": [
         { "video": "videos/quimica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Química" }
+      ]
+    },
+    {
+      "id": "naval",
+      "nombre": "Ingeniería Naval",
+      "color": "#277DA1",
+      "frase": "Diseño, construcción y operación de embarcaciones y sistemas navales",
+      "efecto": "planos",
+      "accesorio": {
+        "img": "assets/naval/gorra.png",
+        "anclaOjoIzq": [0.3, 0.7],
+        "anclaOjoDer": [0.7, 0.7],
+        "offsetY": -0.42
+      },
+      "objetos": [
+        { "img": "assets/naval/plano.png", "figura": "plano", "escala": 0.19, "peso": 1 },
+        { "img": "assets/naval/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 },
+        { "img": "assets/naval/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
+        { "img": "assets/naval/viga.png", "figura": "viga", "escala": 0.22, "peso": 1 },
+        { "img": "assets/naval/llave.png", "figura": "llave", "escala": 0.19, "peso": 1 },
+        { "img": "assets/naval/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/naval/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería Naval" }
       ]
     }
   ]

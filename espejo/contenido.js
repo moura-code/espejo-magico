@@ -1,8 +1,8 @@
 // Carga y validacion de carreras.json.
 //
 // Todo lo que distingue una carrera de otra es dato, no codigo: agregar una
-// carrera es soltar PNG y pegar un bloque. Eso es lo que hace que seis carreras
-// entren en un mes.
+// carrera es soltar PNG y pegar un bloque. Eso permite ampliar el catalogo sin
+// tocar la logica de la experiencia.
 //
 // El validador junta TODOS los problemas y nombra la carrera en cada mensaje.
 // A las ocho de la mañana del dia del evento, "carreras[3] (quimica): objetos[5]
