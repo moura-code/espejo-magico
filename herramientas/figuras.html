@@ -57,7 +57,7 @@
   <div id="salida"></div>
 
   <script type="module">
-    import { FIGURAS, hayFigura } from '../espejo/figuras.js';
+    import { FIGURAS, FIGURAS_ACCESORIO, hayFigura, hayFiguraAccesorio } from '../espejo/figuras.js';
     import { cargarContenido } from '../espejo/contenido.js';
 
     const contenido = await cargarContenido();
@@ -66,9 +66,91 @@
     let fondo = '#14181d';
     let tam = 80;
 
+    // Cara de referencia a escala de la distancia entre ojos, para mirar si el
+    // accesorio se apoya donde va. Las medidas son las del contrato de
+    // figuras.js: media cara 1.15, craneo 1.5 arriba de los ojos.
+    function dibujarCara(ctx, d) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillStyle = 'rgba(255,255,255,0.10)';
+      ctx.lineWidth = Math.max(1, d * 0.02);
+
+      ctx.beginPath();
+      ctx.ellipse(0, -d * 0.15, d * 1.15, d * 1.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      for (const lado of [-1, 1]) {
+        ctx.beginPath();
+        ctx.ellipse(lado * d * 0.5, 0, d * 0.16, d * 0.09, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(-d * 0.28, d * 1.0);
+      ctx.quadraticCurveTo(0, d * 1.2, d * 0.28, d * 1.0);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function dibujarAccesorios() {
+      const seccion = document.createElement('section');
+      const titulo = document.createElement('h2');
+      titulo.textContent = 'Accesorios (respaldo mientras no haya PNG)';
+      seccion.appendChild(titulo);
+
+      const grilla = document.createElement('div');
+      grilla.className = 'grilla';
+      grilla.style.gridTemplateColumns = `repeat(auto-fill, minmax(${tam * 3 + 24}px, 1fr))`;
+
+      for (const carrera of contenido.carreras) {
+        const nombreFigura = carrera.accesorio.figura;
+        const existe = hayFiguraAccesorio(nombreFigura);
+
+        const celda = document.createElement('div');
+        celda.className = existe ? 'celda' : 'celda falta';
+
+        const lienzo = document.createElement('canvas');
+        const lado = tam * 3;
+        lienzo.width = lado;
+        lienzo.height = lado;
+        const ctx = lienzo.getContext('2d');
+
+        ctx.fillStyle = fondo;
+        ctx.fillRect(0, 0, lado, lado);
+        ctx.translate(lado / 2, lado * 0.62);
+
+        const d = tam * 0.7;
+        dibujarCara(ctx, d);
+        if (existe) {
+          ctx.save();
+          FIGURAS_ACCESORIO[nombreFigura](ctx, d, carrera.color);
+          ctx.restore();
+        } else {
+          ctx.fillStyle = '#FF5D8F';
+          ctx.font = '13px system-ui';
+          ctx.textAlign = 'center';
+          ctx.fillText('sin figura', 0, 0);
+        }
+
+        const nombre = document.createElement('div');
+        nombre.className = 'nombre';
+        nombre.textContent = `${carrera.id} · ${nombreFigura ?? '(sin declarar)'}`;
+
+        celda.append(lienzo, nombre);
+        grilla.appendChild(celda);
+      }
+
+      seccion.appendChild(grilla);
+      salida.appendChild(seccion);
+    }
+
     function dibujarTodo() {
       salida.innerHTML = '';
       const usadas = new Set();
+
+      dibujarAccesorios();
 
       for (const carrera of contenido.carreras) {
         const seccion = document.createElement('section');

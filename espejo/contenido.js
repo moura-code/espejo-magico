@@ -16,7 +16,10 @@ const esPunto = (p) =>
  * verifica que cada nombre declarado exista de verdad: asi un error de tipeo
  * aparece al arrancar y no como un objeto que no se dibuja nunca.
  */
-export function validarContenido(datos, { figurasValidas = null, efectosValidos = null } = {}) {
+export function validarContenido(
+  datos,
+  { figurasValidas = null, figurasAccesorioValidas = null, efectosValidos = null } = {},
+) {
   if (!datos || !Array.isArray(datos.carreras) || datos.carreras.length === 0) {
     return ['carreras.json necesita un arreglo "carreras" con al menos una entrada'];
   }
@@ -42,6 +45,13 @@ export function validarContenido(datos, { figurasValidas = null, efectosValidos 
       if (!esPunto(accesorio?.[clave])) {
         errores.push(`${donde}: "accesorio.${clave}" tiene que ser [x, y] con valores entre 0 y 1`);
       }
+    }
+    if (
+      figurasAccesorioValidas &&
+      accesorio?.figura &&
+      !figurasAccesorioValidas.includes(accesorio.figura)
+    ) {
+      errores.push(`${donde}: el accesorio usa la figura "${accesorio.figura}", que no existe`);
     }
     if (
       esPunto(accesorio?.anclaOjoIzq) &&

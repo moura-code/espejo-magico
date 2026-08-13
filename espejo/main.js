@@ -27,7 +27,7 @@ import {
   calcularTransicionEscena,
 } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
-import { figurasDisponibles } from './figuras.js';
+import { figurasAccesorioDisponibles, figurasDisponibles } from './figuras.js';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
@@ -76,6 +76,7 @@ aviso('cargando…');
 // ---------- contenido ----------
 const contenido = await cargarContenido({
   figurasValidas: figurasDisponibles(),
+  figurasAccesorioValidas: figurasAccesorioDisponibles(),
   efectosValidos: efectosDisponibles(),
 });
 const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });

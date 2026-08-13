@@ -49,7 +49,7 @@ La regla de corte: cada archivo se tiene que poder entender y probar solo.
 
 - **Sin internet en el evento.** Nada puede referenciar un CDN ni una URL externa en tiempo de ejecución; `herramientas/vendorizar.mjs` es el único código que toca la red.
 - **Todo número ajustable vive en `espejo/config.js`.** Ningún otro archivo debería tener constantes mágicas: lo que se calibra el día del evento, se calibra ahí.
-- **Todo lo que distingue una carrera vive en `contenido/carreras.json`** (nombre, color, frase, objetos, efecto, referentes). Agregar o cambiar una carrera no toca una línea de código. Orden de dibujo de un objeto: PNG → figura vectorial (`espejo/figuras.js`) → círculo del color.
+- **Todo lo que distingue una carrera vive en `contenido/carreras.json`** (nombre, color, frase, objetos, efecto, referentes). Agregar o cambiar una carrera no toca una línea de código. Orden de dibujo de un objeto: PNG → figura vectorial (`espejo/figuras.js`) → círculo del color. El accesorio sigue la misma cadena con su propio registro (`FIGURAS_ACCESORIO`): esas figuras se miden en distancias entre ojos, no en radio, y se plantan solas en la cara sin mirar `anclaOjo*` ni `offsetY`, que describen el PNG.
 - `CONFIG.avance.manual` está en `false` (modo evento, automático). Para desarrollar sin pelear con el reloj: tecla `A` en vivo, o ponerlo en `true` — mientras esté puesto, el espejo lo avisa en pantalla.
 - Privacidad: la imagen de la cámara nunca sale de la PC — no se graba, no se guarda, no se transmite.
 

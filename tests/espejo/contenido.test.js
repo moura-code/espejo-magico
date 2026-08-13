@@ -51,6 +51,22 @@ describe('validarContenido', () => {
     conError({ carreras: [faltante] }, 'anclaOjoIzq');
   });
 
+  // El accesorio se dibuja con esta figura mientras el PNG no exista, asi que un
+  // nombre mal escrito deja a esa carrera con la cara pelada. Que se vea al
+  // arrancar y no con publico delante.
+  it('avisa si el accesorio usa una figura que no existe', () => {
+    const roto = carreraValida();
+    roto.accesorio.figura = 'sombrero';
+    const errores = validarContenido({ carreras: [roto] }, { figurasAccesorioValidas: ['casco'] });
+    expect(errores.join(' | ')).toContain('"sombrero"');
+  });
+
+  it('acepta el accesorio cuando su figura existe', () => {
+    const carrera = carreraValida();
+    carrera.accesorio.figura = 'casco';
+    expect(validarContenido({ carreras: [carrera] }, { figurasAccesorioValidas: ['casco'] })).toEqual([]);
+  });
+
   it('rechaza dos anclajes en el mismo punto, que darian escala infinita', () => {
     const roto = carreraValida();
     roto.accesorio.anclaOjoDer = [...roto.accesorio.anclaOjoIzq];

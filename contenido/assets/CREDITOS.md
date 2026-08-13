@@ -1,10 +1,14 @@
 # Créditos de los PNG de objetos
 
-Los 36 objetos que caen en el espejo son fotografías de **Wikimedia Commons**
-con licencias libres. A cada una se le recortó el fondo y la transparencia
-sobrante y se limitó el lado mayor a 768 px; esas versiones recortadas son
-obras derivadas de las fotos que se listan abajo y conservan su licencia.
-Quedan versionadas en este repositorio: el stand no necesita red para usarlas.
+Esta tabla cubre las **40 fotografías tomadas de Wikimedia Commons** con
+licencias libres. A cada una se le recortó el fondo y la transparencia sobrante
+y se limitó el lado mayor a 768 px; esas versiones recortadas son obras
+derivadas de las fotos que se listan abajo y conservan su licencia. Quedan
+versionadas en este repositorio: el stand no necesita red para usarlas.
+
+Los demás PNG de `contenido/assets/` llegaron con el material propio del
+proyecto y no llevan atribución acá. Si alguno se reemplaza más adelante por una
+foto de terceros, su fila va en esta tabla: es lo que exige la licencia.
 
 Un PNG definitivo de diseño puede reemplazar a cualquiera de estos archivos en
 la misma ruta, sin tocar código.
@@ -38,15 +42,19 @@ la misma ruta, sin tocar código.
 | `civil/cono.png` | [Road-cones,sankaku-cones,japan.JPG](https://commons.wikimedia.org/wiki/File:Road-cones,sankaku-cones,japan.JPG) | katorisi | CC BY 2.5 |
 | `civil/ladrillo.png` | [Brick.jpg](https://commons.wikimedia.org/wiki/File:Brick.jpg) | Andrewlister | Public domain |
 | `civil/nivel.png` | [Tool-level.jpg](https://commons.wikimedia.org/wiki/File:Tool-level.jpg) | Evan-Amos | Public domain |
-| `civil/cinta-metrica.png` | [Stanley dynagrip 5 m × 19 mm 33-684 01.jpg](https://commons.wikimedia.org/wiki/File:Stanley_dynagrip_5_m_%C3%97_19_mm_33-684_01.jpg) | Coyau | CC BY-SA 3.0 |
-| `civil/teodolito.png` | [Surveying instrument, Wild Heerbrugg, Switzerland - Röntgen-Gedächtnisstätte Würzburg - Würzburg, Germany - DSC04375.jpg](https://commons.wikimedia.org/wiki/File:Surveying_instrument,_Wild_Heerbrugg,_Switzerland_-_R%C3%B6ntgen-Ged%C3%A4chtnisst%C3%A4tte_W%C3%BCrzburg_-_W%C3%BCrzburg,_Germany_-_DSC04375.jpg) | Daderot | CC0 |
+| `agrimensura/cinta-metrica.png` | [Stanley dynagrip 5 m × 19 mm 33-684 01.jpg](https://commons.wikimedia.org/wiki/File:Stanley_dynagrip_5_m_%C3%97_19_mm_33-684_01.jpg) | Coyau | CC BY-SA 3.0 |
+| `agrimensura/teodolito.png` | [Surveying instrument, Wild Heerbrugg, Switzerland - Röntgen-Gedächtnisstätte Würzburg - Würzburg, Germany - DSC04375.jpg](https://commons.wikimedia.org/wiki/File:Surveying_instrument,_Wild_Heerbrugg,_Switzerland_-_R%C3%B6ntgen-Ged%C3%A4chtnisst%C3%A4tte_W%C3%BCrzburg_-_W%C3%BCrzburg,_Germany_-_DSC04375.jpg) | Daderot | CC0 |
 | `civil/casco-obra.png` | [Hard hat 20111111.jpg](https://commons.wikimedia.org/wiki/File:Hard_hat_20111111.jpg) | Batholith (talk) | Public domain |
 | `quimica/frasco-reactivo.png` | [DURAN® laboratory bottle amber 100ml.jpg](https://commons.wikimedia.org/wiki/File:DURAN%C2%AE_laboratory_bottle_amber_100ml.jpg) | Lucasbosch | CC BY-SA 3.0 |
 | `quimica/probeta.png` | [Glass graduated cylinder-250ml 1.jpg](https://commons.wikimedia.org/wiki/File:Glass_graduated_cylinder-250ml_1.jpg) | Lilly_M | CC BY-SA 3.0 |
 | `quimica/pipeta.png` | [VIAFLO-electronic-pipettes.jpg](https://commons.wikimedia.org/wiki/File:VIAFLO-electronic-pipettes.jpg) | Labrat879 | CC BY-SA 4.0 |
 | `quimica/mortero.png` | [2023070211 Moerser weisser Hintergrund Draufsicht 2023.jpg](https://commons.wikimedia.org/wiki/File:2023070211_Moerser_weisser_Hintergrund_Draufsicht_2023.jpg) | VSchagow | CC BY 4.0 |
 | `quimica/microscopio.png` | [Microscope toy.jpg](https://commons.wikimedia.org/wiki/File:Microscope_toy.jpg) | Talita Oliveira | CC BY-SA 4.0 |
-| `quimica/vaso-precipitados.png` | [Liquid paraffin in beaker.jpg](https://commons.wikimedia.org/wiki/File:Liquid_paraffin_in_beaker.jpg) | Original uploader was Chemik10 at pl.wikipedia | CC BY-SA 2.5 |
+| `quimica/vaso-precipitados.png` | [Becherglas mit farbiger Lösung.png](https://commons.wikimedia.org/wiki/File:Becherglas_mit_farbiger_L%C3%B6sung.png) | MediaLab TH Köln | CC BY-SA 4.0 |
+| `forestal/serrucho.png` | [Hand saw - small.jpg](https://commons.wikimedia.org/wiki/File:Hand_saw_-_small.jpg) | Mnemosine; obra derivada de Bigforrap | Public domain |
+| `produccion/calibre.png` | [TESA CCMA-P 150 mm 0.02 mm dial caliper.jpg](https://commons.wikimedia.org/wiki/File:TESA_CCMA-P_150_mm_0.02_mm_dial_caliper.jpg) | Lucasbosch | CC BY-SA 4.0 |
+| `produccion/escaner-codigo.png` | [HDWR HD2000 Wireless Barcode Reader.png](https://commons.wikimedia.org/wiki/File:HDWR_HD2000_Wireless_Barcode_Reader.png) | Andrzej Lenkowski | CC BY-SA 4.0 |
+| `naval/sextante.png` | [Sextant.jpg](https://commons.wikimedia.org/wiki/File:Sextant.jpg) | autoría no declarada en Commons | Public domain |
 
 Licencias: PD = dominio público; CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
 CC BY / CC BY-SA <https://creativecommons.org/licenses/>. Las derivadas de
