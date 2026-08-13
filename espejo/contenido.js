@@ -8,9 +8,6 @@
 // A las ocho de la mañana del dia del evento, "carreras[3] (quimica): objetos[5]
 // sin img" se arregla en veinte segundos; "contenido invalido" no se arregla.
 
-const esPunto = (p) =>
-  Array.isArray(p) && p.length === 2 && p.every((v) => typeof v === 'number' && v >= 0 && v <= 1);
-
 /**
  * `figurasValidas` y `efectosValidos` son opcionales. Cuando se pasan, se
  * verifica que cada nombre declarado exista de verdad: asi un error de tipeo
