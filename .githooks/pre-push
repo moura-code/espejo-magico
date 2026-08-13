@@ -1,0 +1,13 @@
+#!/bin/sh
+# Bloquea cualquier push que apunte a main, incluso "git push origin rama:main".
+bloqueado=0
+while read local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main) bloqueado=1 ;;
+  esac
+done
+if [ "$bloqueado" = "1" ]; then
+  echo "pre-push: main solo recibe cambios via Pull Request." >&2
+  exit 1
+fi
+exit 0
