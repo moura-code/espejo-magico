@@ -59,9 +59,8 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | `M` | Muestra los puntos que el sistema detecta en cara y manos |
 | `P` | Panel de estado y FPS |
 
-`herramientas/figuras.html` muestra las treinta y seis figuras de los objetos y
-los doce accesorios —estos últimos sobre una cara de referencia— en una grilla,
-sobre fondo oscuro, claro o tono de piel.
+`herramientas/figuras.html` muestra las treinta y seis figuras de los objetos en
+una grilla, sobre fondo oscuro, claro o tono de piel.
 
 ## Cómo está armado
 
@@ -91,12 +90,6 @@ figura → círculo del color**: si un PNG falta, `npm run generar-pngs` rasteri
 la figura vectorial de respaldo (`espejo/figuras.js`) sin pisar los existentes,
 y los definitivos de diseño reemplazan a cualquiera en la misma ruta, sin tocar
 código.
-
-El accesorio de cada carrera sigue la misma cadena: mientras no exista su PNG se
-dibuja `accesorio.figura`, una figura vectorial que se mide en distancias entre
-ojos y se apoya sola en la cara (arriba de la frente una gorra, sobre los ojos
-unos anteojos). Todo lo que se apoya sobre los ojos va con vidrio y no con
-relleno opaco: el visitante se tiene que seguir viendo.
 
 Sin bundler: módulos ES nativos servidos tal cual. Dos dependencias en total,
 `ws` en el servidor y `@mediapipe/tasks-vision` copiado a `vendor/`.

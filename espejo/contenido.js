@@ -18,7 +18,7 @@ const esPunto = (p) =>
  */
 export function validarContenido(
   datos,
-  { figurasValidas = null, figurasAccesorioValidas = null, efectosValidos = null } = {},
+  { figurasValidas = null, efectosValidos = null } = {},
 ) {
   if (!datos || !Array.isArray(datos.carreras) || datos.carreras.length === 0) {
     return ['carreras.json necesita un arreglo "carreras" con al menos una entrada'];
@@ -37,29 +37,6 @@ export function validarContenido(
     if (!carrera.nombre) errores.push(`${donde}: falta "nombre"`);
     if (!/^#[0-9a-fA-F]{6}$/.test(carrera.color ?? '')) {
       errores.push(`${donde}: "color" tiene que ser #rrggbb`);
-    }
-
-    const accesorio = carrera.accesorio;
-    if (!accesorio?.img) errores.push(`${donde}: falta "accesorio.img"`);
-    for (const clave of ['anclaOjoIzq', 'anclaOjoDer']) {
-      if (!esPunto(accesorio?.[clave])) {
-        errores.push(`${donde}: "accesorio.${clave}" tiene que ser [x, y] con valores entre 0 y 1`);
-      }
-    }
-    if (
-      figurasAccesorioValidas &&
-      accesorio?.figura &&
-      !figurasAccesorioValidas.includes(accesorio.figura)
-    ) {
-      errores.push(`${donde}: el accesorio usa la figura "${accesorio.figura}", que no existe`);
-    }
-    if (
-      esPunto(accesorio?.anclaOjoIzq) &&
-      esPunto(accesorio?.anclaOjoDer) &&
-      accesorio.anclaOjoIzq[0] === accesorio.anclaOjoDer[0] &&
-      accesorio.anclaOjoIzq[1] === accesorio.anclaOjoDer[1]
-    ) {
-      errores.push(`${donde}: los dos anclajes del accesorio caen en el mismo punto`);
     }
 
     if (!Array.isArray(carrera.objetos) || carrera.objetos.length === 0) {
@@ -114,9 +91,6 @@ export async function cargarContenido({
     ids: datos.carreras.map((carrera) => carrera.id),
     obtener: (id) => porId.get(id) ?? null,
     todasLasImagenes: () =>
-      datos.carreras.flatMap((carrera) => [
-        carrera.accesorio.img,
-        ...carrera.objetos.map((objeto) => objeto.img),
-      ]),
+      datos.carreras.flatMap((carrera) => carrera.objetos.map((objeto) => objeto.img)),
   };
 }

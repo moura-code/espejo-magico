@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
-  dibujarAccesorio,
   dibujarManos,
   recortarFueraDeCara,
   tamanoQueEntra,
@@ -214,108 +213,5 @@ describe('calcularRectanguloVideo', () => {
       ancho: 1080,
       alto: 1920,
     });
-  });
-});
-
-describe('dibujarAccesorio', () => {
-  // Lienzo que registra cualquier llamada de dibujo, para poder distinguir un
-  // PNG (drawImage) de una figura (trazos).
-  function crearCtx() {
-    const llamadas = [];
-    const ctx = { llamadas, globalAlpha: 1 };
-    for (const nombre of [
-      'save', 'restore', 'beginPath', 'closePath', 'moveTo', 'lineTo',
-      'quadraticCurveTo', 'bezierCurveTo', 'arc', 'ellipse', 'rect', 'fill',
-      'stroke', 'fillRect', 'translate', 'rotate', 'scale', 'drawImage',
-      'fillText', 'strokeText',
-    ]) {
-      ctx[nombre] = (...args) => llamadas.push([nombre, ...args]);
-    }
-    return ctx;
-  }
-
-  const rostro = { ojoIzq: { x: 400, y: 300 }, ojoDer: { x: 500, y: 300 } };
-  const carrera = {
-    color: '#FF8A3D',
-    accesorio: {
-      img: 'assets/civil/casco.png',
-      figura: 'casco',
-      anclaOjoIzq: [0.3, 0.72],
-      anclaOjoDer: [0.7, 0.72],
-      offsetY: -0.45,
-    },
-  };
-  const bancoVacio = { obtener: () => null };
-  const bancoConPng = { obtener: () => ({ width: 400, height: 300 }) };
-  const pinto = (ctx) => ctx.llamadas.some(([nombre]) => ['fill', 'stroke'].includes(nombre));
-
-  it('dibuja la figura de la carrera cuando el PNG todavia no esta', () => {
-    const ctx = crearCtx();
-    dibujarAccesorio(ctx, rostro, carrera, bancoVacio);
-
-    expect(pinto(ctx), 'no dibujo ningun trazo').toBe(true);
-    expect(ctx.llamadas.some(([nombre]) => nombre === 'drawImage')).toBe(false);
-  });
-
-  it('planta la figura entre los ojos y la gira con la cabeza', () => {
-    const ctx = crearCtx();
-    const inclinado = { ojoIzq: { x: 400, y: 300 }, ojoDer: { x: 500, y: 400 } };
-    dibujarAccesorio(ctx, inclinado, carrera, bancoVacio);
-
-    expect(ctx.llamadas).toContainEqual(['translate', 450, 350]);
-    expect(ctx.llamadas).toContainEqual(['rotate', Math.atan2(100, 100)]);
-  });
-
-  it('el PNG le gana a la figura', () => {
-    const ctx = crearCtx();
-    dibujarAccesorio(ctx, rostro, carrera, bancoConPng);
-
-    expect(ctx.llamadas.some(([nombre]) => nombre === 'drawImage')).toBe(true);
-    expect(pinto(ctx), 'dibujo la figura teniendo el PNG').toBe(false);
-  });
-
-  it('no toca el lienzo si la carrera no declara figura ni tiene PNG', () => {
-    const ctx = crearCtx();
-    const sinFigura = { ...carrera, accesorio: { ...carrera.accesorio, figura: undefined } };
-    dibujarAccesorio(ctx, rostro, sinFigura, bancoVacio);
-
-    expect(ctx.llamadas).toEqual([]);
-  });
-
-  it('la figura se desvanece con la transicion, como el PNG', () => {
-    const ctx = crearCtx();
-    dibujarAccesorio(ctx, rostro, carrera, bancoVacio, 0.4);
-    expect(ctx.globalAlpha).toBe(0.4);
-
-    const apagado = crearCtx();
-    dibujarAccesorio(apagado, rostro, carrera, bancoVacio, 0);
-    expect(apagado.llamadas).toEqual([]);
-  });
-
-  it('deja el lienzo como estaba', () => {
-    const ctx = crearCtx();
-    dibujarAccesorio(ctx, rostro, carrera, bancoVacio);
-
-    expect(ctx.llamadas[0]).toEqual(['save']);
-    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
-    expect(ctx.llamadas.filter(([n]) => n === 'save').length).toBe(
-      ctx.llamadas.filter(([n]) => n === 'restore').length,
-    );
-  });
-
-  it('la figura crece con la cara: el doble de lejos los ojos, el doble de dibujo', () => {
-    const medir = (r) => {
-      const ctx = crearCtx();
-      dibujarAccesorio(ctx, r, carrera, bancoVacio);
-      const coordenadas = ctx.llamadas
-        .filter(([nombre]) => !['translate', 'rotate', 'save', 'restore'].includes(nombre))
-        .flatMap(([, ...args]) => args.filter((v) => typeof v === 'number'));
-      expect(coordenadas.length, 'la figura no dibujo ninguna coordenada').toBeGreaterThan(0);
-      return Math.max(...coordenadas.map(Math.abs));
-    };
-
-    const chica = medir(rostro);
-    const grande = medir({ ojoIzq: { x: 400, y: 300 }, ojoDer: { x: 600, y: 300 } });
-    expect(grande).toBeCloseTo(chica * 2, 5);
   });
 });

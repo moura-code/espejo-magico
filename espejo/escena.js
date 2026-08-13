@@ -1,8 +1,7 @@
 // El dibujo de la escena. No sabe que existe MediaPipe ni la maquina de estados:
 // recibe que dibujar y lo dibuja.
 
-import { calcularAnclaje } from './anclaje.js';
-import { dibujarFigura, dibujarFiguraAccesorio, hayFiguraAccesorio } from './figuras.js';
+import { dibujarFigura } from './figuras.js';
 
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
@@ -126,54 +125,6 @@ export function dibujarFueraDeCara(ctx, rostro, disposicion, dibujar) {
   ctx.save();
   recortarFueraDeCara(ctx, rostro, disposicion);
   dibujar();
-  ctx.restore();
-}
-
-/**
- * El accesorio de la carrera, anclado a la cara. Mismo orden de preferencia que
- * los objetos: manda el PNG y, mientras no este, se dibuja la figura vectorial.
- * Sin las dos cosas no se dibuja nada, que es mejor que una pantalla en negro.
- */
-export function dibujarAccesorio(ctx, rostro, carrera, banco, alfa = 1) {
-  if (!rostro || !carrera || alfa <= 0) return;
-  const imagen = banco.obtener(carrera.accesorio.img);
-  if (!imagen) {
-    dibujarAccesorioVectorial(ctx, rostro, carrera, alfa);
-    return;
-  }
-
-  const anclaje = calcularAnclaje(rostro, carrera.accesorio, {
-    ancho: imagen.width,
-    alto: imagen.height,
-  });
-  if (!anclaje) return;
-
-  ctx.save();
-  ctx.globalAlpha = alfa;
-  ctx.translate(anclaje.x, anclaje.y);
-  ctx.rotate(anclaje.angulo);
-  ctx.scale(anclaje.escala, anclaje.escala);
-  ctx.drawImage(imagen, -anclaje.anclaX, -anclaje.anclaY);
-  ctx.restore();
-}
-
-// La figura no pasa por calcularAnclaje: anclaOjoIzq/anclaOjoDer y offsetY
-// describen donde caen los ojos DENTRO de un PNG, y aca no hay PNG. La figura
-// se planta entre los ojos, girada con la cabeza, y ella sabe donde va.
-function dibujarAccesorioVectorial(ctx, rostro, carrera, alfa) {
-  const nombre = carrera.accesorio.figura;
-  if (!nombre || !hayFiguraAccesorio(nombre)) return;
-
-  const dx = rostro.ojoDer.x - rostro.ojoIzq.x;
-  const dy = rostro.ojoDer.y - rostro.ojoIzq.y;
-  const distanciaOjos = Math.hypot(dx, dy);
-  if (distanciaOjos === 0) return;
-
-  ctx.save();
-  ctx.globalAlpha = alfa;
-  ctx.translate((rostro.ojoIzq.x + rostro.ojoDer.x) / 2, (rostro.ojoIzq.y + rostro.ojoDer.y) / 2);
-  ctx.rotate(Math.atan2(dy, dx));
-  dibujarFiguraAccesorio(ctx, nombre, distanciaOjos, carrera.color);
   ctx.restore();
 }
 

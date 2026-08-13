@@ -27,14 +27,13 @@ import {
   calcularTransicionEscena,
 } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
-import { figurasAccesorioDisponibles, figurasDisponibles } from './figuras.js';
+import { figurasDisponibles } from './figuras.js';
 import {
   calcularDisposicion,
   calcularRectanguloVideo,
   dibujarVideoEspejado,
   dibujarObjetos,
   dibujarFueraDeCara,
-  dibujarAccesorio,
   dibujarManos,
   dibujarPersona,
   dibujarTextos,
@@ -76,7 +75,6 @@ aviso('cargando…');
 // ---------- contenido ----------
 const contenido = await cargarContenido({
   figurasValidas: figurasDisponibles(),
-  figurasAccesorioValidas: figurasAccesorioDisponibles(),
   efectosValidos: efectosDisponibles(),
 });
 const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
@@ -517,8 +515,6 @@ function cuadro(ahora) {
     interaccionDeManos === 'atraer' ? manosSuaves : manos,
     carrera?.color ?? '#ffffff',
   );
-
-  dibujarAccesorio(ctx, rostro, carrera, banco, transicion.contenido);
 
   nieblaActual = acercarNiebla(
     nieblaActual,

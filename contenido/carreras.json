@@ -1,5 +1,5 @@
 {
-  "_nota": "Los 72 objetos que caen son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. Los accesorios todavia no tienen PNG: hasta que diseño los entregue se dibuja 'accesorio.figura', que se apoya sola en la cara. Los videos no existen y las referentes son provisorias: npm run listo falla hasta que se reemplacen.",
+  "_nota": "Los 72 objetos que caen son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. Los videos no existen y las referentes son provisorias: npm run listo falla hasta que se reemplacen.",
   "carreras": [
     {
       "id": "mecanica",
@@ -7,13 +7,6 @@
       "color": "#4FC3F7",
       "frase": "Diseño y análisis de máquinas y sistemas térmicos",
       "efecto": "engranajes",
-      "accesorio": {
-        "img": "assets/mecanica/antiparras.png",
-        "figura": "antiparras",
-        "anclaOjoIzq": [0.3, 0.5],
-        "anclaOjoDer": [0.7, 0.5],
-        "offsetY": 0
-      },
       "objetos": [
         { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
         { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.18, "peso": 1 },
@@ -32,13 +25,6 @@
       "color": "#FFD23F",
       "frase": "Generación, transmisión y control de la energía",
       "efecto": "chispas",
-      "accesorio": {
-        "img": "assets/electrica/casco-visor.png",
-        "figura": "casco-visor",
-        "anclaOjoIzq": [0.3, 0.6],
-        "anclaOjoDer": [0.7, 0.6],
-        "offsetY": -0.3
-      },
       "objetos": [
         { "img": "assets/electrica/lampara.png", "figura": "lampara", "escala": 0.17, "peso": 1 },
         { "img": "assets/electrica/bateria.png", "figura": "bateria", "escala": 0.16, "peso": 1 },
@@ -57,13 +43,6 @@
       "color": "#00E5A0",
       "frase": "Diseño de sistemas de cómputo, del hardware al software",
       "efecto": "codigo",
-      "accesorio": {
-        "img": "assets/computacion/gafas-vr.png",
-        "figura": "gafas-vr",
-        "anclaOjoIzq": [0.28, 0.52],
-        "anclaOjoDer": [0.72, 0.52],
-        "offsetY": 0
-      },
       "objetos": [
         { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
         { "img": "assets/computacion/teclado.png", "figura": "laptop", "escala": 0.22, "peso": 1 },
@@ -82,13 +61,6 @@
       "color": "#A78BFA",
       "frase": "Modelado matemático y físico de sistemas complejos",
       "efecto": "formulas",
-      "accesorio": {
-        "img": "assets/fisico-matematico/orbitas.png",
-        "figura": "orbitas",
-        "anclaOjoIzq": [0.32, 0.62],
-        "anclaOjoDer": [0.68, 0.62],
-        "offsetY": -0.2
-      },
       "objetos": [
         { "img": "assets/fisico-matematico/calculadora.png", "figura": "sumatoria", "escala": 0.18, "peso": 1 },
         { "img": "assets/fisico-matematico/regla.png", "figura": "viga", "escala": 0.2, "peso": 1 },
@@ -107,13 +79,6 @@
       "color": "#FF8A3D",
       "frase": "Diseño y construcción de estructuras e infraestructura",
       "efecto": "planos",
-      "accesorio": {
-        "img": "assets/civil/casco.png",
-        "figura": "casco",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
       "objetos": [
         { "img": "assets/civil/cono.png", "figura": "teodolito", "escala": 0.18, "peso": 1 },
         { "img": "assets/civil/ladrillo.png", "figura": "ladrillo", "escala": 0.16, "peso": 1 },
@@ -132,13 +97,6 @@
       "color": "#FF5D8F",
       "frase": "Procesos de transformación de la materia y la energía",
       "efecto": "burbujas",
-      "accesorio": {
-        "img": "assets/quimica/antiparras-lab.png",
-        "figura": "antiparras-lab",
-        "anclaOjoIzq": [0.3, 0.5],
-        "anclaOjoDer": [0.7, 0.5],
-        "offsetY": 0
-      },
       "objetos": [
         { "img": "assets/quimica/frasco-reactivo.png", "figura": "matraz", "escala": 0.16, "peso": 1 },
         { "img": "assets/quimica/probeta.png", "figura": "tubo", "escala": 0.17, "peso": 1 },
@@ -157,13 +115,6 @@
       "color": "#EF5350",
       "frase": "Procesos y tecnología para alimentos seguros y de calidad",
       "efecto": "burbujas",
-      "accesorio": {
-        "img": "assets/alimentos/cofia.png",
-        "figura": "cofia",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
       "objetos": [
         { "img": "assets/alimentos/manzana.png", "figura": "gota", "escala": 0.15, "peso": 1 },
         { "img": "assets/alimentos/pan.png", "figura": "ladrillo", "escala": 0.18, "peso": 1 },
@@ -182,13 +133,6 @@
       "color": "#26C6DA",
       "frase": "Organización y mejora de los sistemas productivos",
       "efecto": "engranajes",
-      "accesorio": {
-        "img": "assets/produccion/casco-industrial.png",
-        "figura": "casco-industrial",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
       "objetos": [
         { "img": "assets/produccion/cronometro.png", "figura": "rodamiento", "escala": 0.16, "peso": 1 },
         { "img": "assets/produccion/calibre.png", "figura": "llave", "escala": 0.2, "peso": 1 },
@@ -207,13 +151,6 @@
       "color": "#8D6E63",
       "frase": "Medición del territorio y ordenamiento espacial",
       "efecto": "planos",
-      "accesorio": {
-        "img": "assets/agrimensura/gorra.png",
-        "figura": "gorra",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
       "objetos": [
         { "img": "assets/agrimensura/teodolito.png", "figura": "teodolito", "escala": 0.2, "peso": 1 },
         { "img": "assets/agrimensura/cinta-metrica.png", "figura": "rodamiento", "escala": 0.16, "peso": 1 },
@@ -232,13 +169,6 @@
       "color": "#E040FB",
       "frase": "Redes y sistemas que transmiten la información",
       "efecto": "codigo",
-      "accesorio": {
-        "img": "assets/comunicacion/auriculares.png",
-        "figura": "auriculares",
-        "anclaOjoIzq": [0.25, 0.55],
-        "anclaOjoDer": [0.75, 0.55],
-        "offsetY": -0.1
-      },
       "objetos": [
         { "img": "assets/comunicacion/microfono.png", "figura": "lampara", "escala": 0.17, "peso": 1 },
         { "img": "assets/comunicacion/router.png", "figura": "servidor", "escala": 0.18, "peso": 1 },
@@ -257,13 +187,6 @@
       "color": "#66BB6A",
       "frase": "Producción y manejo sostenible de los bosques",
       "efecto": "burbujas",
-      "accesorio": {
-        "img": "assets/forestal/casco-forestal.png",
-        "figura": "casco-forestal",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
       "objetos": [
         { "img": "assets/forestal/hacha.png", "figura": "llave", "escala": 0.18, "peso": 1 },
         { "img": "assets/forestal/motosierra.png", "figura": "motor", "escala": 0.2, "peso": 1 },
@@ -282,13 +205,6 @@
       "color": "#5C6BC0",
       "frase": "Diseño, construcción y reparación de embarcaciones",
       "efecto": "burbujas",
-      "accesorio": {
-        "img": "assets/naval/gorra-capitan.png",
-        "figura": "gorra-capitan",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
       "objetos": [
         { "img": "assets/naval/sextante.png", "figura": "teodolito", "escala": 0.18, "peso": 1 },
         { "img": "assets/naval/timon.png", "figura": "rodamiento", "escala": 0.2, "peso": 1 },

@@ -72,7 +72,7 @@ describe('contenido real', () => {
     const datos = await leer();
     const faltantes = [];
     for (const carrera of datos.carreras) {
-      for (const ruta of [carrera.accesorio.img, ...carrera.objetos.map((o) => o.img)]) {
+      for (const ruta of carrera.objetos.map((o) => o.img)) {
         if (!(await existe(ruta))) faltantes.push(ruta);
       }
     }

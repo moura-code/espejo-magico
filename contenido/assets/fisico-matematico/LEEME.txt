@@ -1,2 +1,2 @@
-PNG de fisico-matematico: 6 a 10 objetos + 1 accesorio. Transparencia, lado mayor 512 px.
+PNG de fisico-matematico: 6 a 10 objetos. Transparencia, lado mayor 512 px.
 Las rutas exactas estan declaradas en contenido/carreras.json.
