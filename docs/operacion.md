@@ -71,7 +71,7 @@ de la PC. Si sigue lento, avisar al equipo técnico: hay que bajar `objetos.maxi
 en `espejo/config.js`.
 
 **Siempre sale la misma carrera.**
-No puede pasar: el sistema recorre las seis antes de repetir ninguna. Si pasa,
+No puede pasar: el sistema recorre las doce antes de repetir ninguna. Si pasa,
 alguien está apretando las teclas `1` a `6` sin querer.
 
 **Aparecen círculos de colores en vez de dibujos.**

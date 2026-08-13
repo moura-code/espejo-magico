@@ -160,9 +160,12 @@ describe('carreras.json contra el registro de efectos', () => {
     expect(problemas).toEqual([]);
   });
 
-  it('las seis carreras tienen efectos distintos', async () => {
+  // Con doce carreras y seis efectos la unicidad ya no es posible: lo que se
+  // sostiene es que el registro entero se use, para que ningun efecto quede
+  // muerto y las carreras repartan textura.
+  it('todos los efectos del registro los usa alguna carrera', async () => {
     const datos = JSON.parse(await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'));
-    const efectos = datos.carreras.map((c) => c.efecto);
-    expect(new Set(efectos).size).toBe(efectos.length);
+    const usados = new Set(datos.carreras.map((c) => c.efecto));
+    expect([...usados].sort()).toEqual([...TIPOS].sort());
   });
 });

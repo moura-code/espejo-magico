@@ -25,6 +25,12 @@ const IDS_ESPERADOS = [
   'fisico-matematico',
   'civil',
   'quimica',
+  'alimentos',
+  'produccion',
+  'agrimensura',
+  'comunicacion',
+  'forestal',
+  'naval',
 ];
 
 describe('contenido real', () => {
@@ -32,7 +38,7 @@ describe('contenido real', () => {
     expect(validarContenido(await leer())).toEqual([]);
   });
 
-  it('tiene las seis carreras acordadas', async () => {
+  it('tiene las doce carreras acordadas', async () => {
     const datos = await leer();
     expect(datos.carreras.map((c) => c.id).sort()).toEqual([...IDS_ESPERADOS].sort());
   });

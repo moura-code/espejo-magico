@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Qué es
 
-Instalación interactiva para el stand de una Facultad de Ingeniería: un espejo (pantalla + cámara) que descansa cubierto de nubes detecta el rostro del visitante, se despeja, le sortea una de seis ingenierías y lo rodea de objetos que caen y se juntan como un imán alrededor de sus manos (o se manotean: tecla `I`), mientras unas tablets reproducen videos de referentes de esa carrera. Todo corre en el navegador de una sola PC, **sin conexión a internet**.
+Instalación interactiva para el stand de una Facultad de Ingeniería: un espejo (pantalla + cámara) que descansa cubierto de nubes detecta el rostro del visitante, se despeja, le sortea una de doce ingenierías y lo rodea de objetos que caen y se juntan como un imán alrededor de sus manos (o se manotean: tecla `I`), mientras unas tablets reproducen videos de referentes de esa carrera. Todo corre en el navegador de una sola PC, **sin conexión a internet**.
 
 ## Comandos
 
@@ -15,6 +15,7 @@ Instalación interactiva para el stand de una Facultad de Ingeniería: un espejo
 | `npm run listo` | Semáforo de contenido: verifica que los PNG y videos reales estén completos. **Está en rojo hasta que diseño entregue, y eso es lo esperado** — no es algo a arreglar. Corre `tests/listo/`, excluido de `npm test` a propósito (una suite permanentemente roja deja de mirarse). |
 | `npm start` | Servidor en :8080. El espejo se abre por `http://localhost:8080/espejo/espejo.html` — **nunca por IP**: Chrome solo entrega la cámara en contextos seguros. Las tablets sí van por IP. |
 | `npm run vendorizar` | Copia MediaPipe a `vendor/` y baja los modelos. Único paso que necesita red; se corre una sola vez. |
+| `npm run generar-pngs` | Genera con el Chrome local (sin red) un PNG de respaldo desde la figura vectorial para cada objeto sin imagen; nunca pisa un PNG existente. Los objetos reales son fotos de Wikimedia Commons con el fondo recortado: autor y licencia por archivo en `contenido/assets/CREDITOS.md`. |
 
 No hay build ni lint: módulos ES nativos servidos tal cual, sin bundler. Mantenerlo así. En la PC del evento (Windows) se arranca con `herramientas/arrancar.bat`.
 
