@@ -171,6 +171,9 @@ export async function crearDetectorMediaPipe({ base, ...resto }) {
     baseOptions: { modelAssetPath: `${base}/face_landmarker.task`, delegate: 'GPU' },
     runningMode: 'VIDEO',
     numFaces: 1,
+    minFaceDetectionConfidence: 0.25,
+    minFacePresenceConfidence: 0.25,
+    minTrackingConfidence: 0.25,
   });
 
   return crearDetector({ detectorCrudo, ...resto });

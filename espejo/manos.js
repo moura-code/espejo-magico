@@ -120,9 +120,9 @@ export async function crearDetectorDeManosMediaPipe({ base, maximo = 2, ...ajust
     // Umbrales bajos a proposito: en un stand la mano suele estar de costado,
     // parcialmente fuera de cuadro o mal iluminada. Preferimos una deteccion
     // imperfecta a ninguna.
-    minHandDetectionConfidence: 0.3,
-    minHandPresenceConfidence: 0.3,
-    minTrackingConfidence: 0.3,
+    minHandDetectionConfidence: 0.25,
+    minHandPresenceConfidence: 0.25,
+    minTrackingConfidence: 0.25,
   });
 
   return crearDetectorDeManos({ detectorCrudo, maximo, ...ajustes });

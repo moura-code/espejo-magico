@@ -29,7 +29,7 @@ export const CONFIG = {
   // cada vez que alguien gira la cabeza.
   presencia: {
     msParaEntrar: 270, // seis detecciones seguidas a 22 cuadros por segundo
-    msParaSalir: 400,
+    msParaSalir: 800, // mayor margen para absorber contraluz, giros de cabeza o personas pasando
   },
 
   // Filtro exponencial. Mas bajo = mas suave y mas lento.
@@ -113,7 +113,7 @@ export const CONFIG = {
     suavizadoDelIman: {
       posicion: 0.35,
       radio: 0.25,
-      retencionMs: 250,
+      retencionMs: 400,
       distanciaMaximaEnRadios: 3,
     },
   },

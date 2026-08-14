@@ -80,9 +80,9 @@ export async function crearDetectorDePoseMediaPipe({ base, segmentacion = true }
     runningMode: 'VIDEO',
     numPoses: 1,
     outputSegmentationMasks: segmentacion,
-    minPoseDetectionConfidence: 0.35,
-    minPosePresenceConfidence: 0.35,
-    minTrackingConfidence: 0.35,
+    minPoseDetectionConfidence: 0.25,
+    minPosePresenceConfidence: 0.25,
+    minTrackingConfidence: 0.25,
   });
 
   return crearDetectorDePose({ detectorCrudo, segmentacion });
