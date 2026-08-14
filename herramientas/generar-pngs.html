@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Generador de PNG de los objetos</title>
+</head>
+<body>
+  <!-- Pagina sin interfaz: la consume herramientas/generar-pngs.mjs con Chrome
+       sin cabeza, leyendo el JSON que queda en el <pre> del final. Tambien se
+       puede abrir a mano desde el servidor del proyecto para inspeccionarla. -->
+  <script type="module">
+    import { dibujarFigura, figurasDisponibles } from '../espejo/figuras.js';
+    import { cargarContenido } from '../espejo/contenido.js';
+    import { limitesOpacos, recorteSimetrico, tocaElBorde } from './recorte.js';
+
+    // Radio de dibujo generoso: en pantalla los objetos no pasan de ~260 px de
+    // diametro, asi que un radio de 256 deja los PNG con el doble de detalle.
+    // El lienzo de 768 da margen para contornos y glifos que sobresalen del
+    // radio nominal; el recorte despues se come la transparencia sobrante.
+    const RADIO = 256;
+    const LADO = 768;
+
+    const salida = { pngs: {}, avisos: [] };
+    const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
+
+    for (const carrera of contenido.carreras) {
+      for (const objeto of carrera.objetos) {
+        const lienzo = document.createElement('canvas');
+        lienzo.width = lienzo.height = LADO;
+        const ctx = lienzo.getContext('2d');
+        ctx.translate(LADO / 2, LADO / 2);
+
+        if (!objeto.figura || !dibujarFigura(ctx, objeto.figura, RADIO, carrera.color)) {
+          salida.avisos.push(`${carrera.id}/${objeto.img}: sin figura de la cual generar`);
+          continue;
+        }
+
+        const { data } = ctx.getImageData(0, 0, LADO, LADO);
+        const limites = limitesOpacos({ ancho: LADO, alto: LADO, datos: data });
+        if (!limites) {
+          salida.avisos.push(`${carrera.id}/${objeto.figura}: la figura no dibujo nada`);
+          continue;
+        }
+        if (tocaElBorde(limites, LADO, LADO)) {
+          salida.avisos.push(`${carrera.id}/${objeto.figura}: el dibujo toca el borde del lienzo`);
+        }
+
+        const recorte = recorteSimetrico(limites, LADO, LADO);
+        const corte = document.createElement('canvas');
+        corte.width = recorte.ancho;
+        corte.height = recorte.alto;
+        corte
+          .getContext('2d')
+          .drawImage(
+            lienzo,
+            recorte.x, recorte.y, recorte.ancho, recorte.alto,
+            0, 0, recorte.ancho, recorte.alto,
+          );
+
+        salida.pngs[objeto.img] = corte.toDataURL('image/png');
+      }
+    }
+
+    // Las marcas se arman por partes: si aparecieran enteras en este fuente,
+    // el volcado del DOM (que incluye el <script>) tendria dos apariciones y
+    // la herramienta leeria la del codigo en vez de la salida.
+    const pre = document.createElement('pre');
+    pre.id = 'salida';
+    pre.textContent = '@@' + 'SALIDA@@' + JSON.stringify(salida) + '@@' + 'FIN@@';
+    document.body.appendChild(pre);
+  </script>
+</body>
+</html>

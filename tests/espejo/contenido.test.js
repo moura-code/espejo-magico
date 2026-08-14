@@ -1,32 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { readFile } from 'node:fs/promises';
 import { validarContenido, cargarContenido } from '../../espejo/contenido.js';
-
-const NOMBRES_ESPERADOS = [
-  'Ingeniería Civil',
-  'Ingeniería de Alimentos',
-  'Ingeniería de Producción',
-  'Ingeniería Eléctrica',
-  'Ingeniería en Agrimensura',
-  'Ingeniería en Computación',
-  'Ingeniería en Sistemas de Comunicación',
-  'Ingeniería Físico-Matemática',
-  'Ingeniería Industrial Mecánica',
-  'Ingeniería Naval',
-  'Ingeniería Química',
-];
 
 const carreraValida = () => ({
   id: 'civil',
   nombre: 'Ingeniería Civil',
   color: '#FF8A3D',
   frase: 'Construís lo que queda de pie',
-  accesorio: {
-    img: 'assets/civil/casco.png',
-    anclaOjoIzq: [0.3, 0.7],
-    anclaOjoDer: [0.7, 0.7],
-    offsetY: -0.4,
-  },
   objetos: [{ img: 'assets/civil/grua.png', escala: 0.2, peso: 1 }],
   referentes: [{ video: 'videos/civil/ana.mp4', nombre: 'Ana Pérez', detalle: 'Egresada' }],
 });
@@ -54,22 +33,6 @@ describe('validarContenido', () => {
 
   it('rechaza ids repetidos', () => {
     conError({ carreras: [carreraValida(), carreraValida()] }, 'repetido');
-  });
-
-  it('exige los dos anclajes del accesorio dentro de 0 a 1', () => {
-    const roto = carreraValida();
-    roto.accesorio.anclaOjoDer = [1.4, 0.7];
-    conError({ carreras: [roto] }, 'entre 0 y 1');
-
-    const faltante = carreraValida();
-    delete faltante.accesorio.anclaOjoIzq;
-    conError({ carreras: [faltante] }, 'anclaOjoIzq');
-  });
-
-  it('rechaza dos anclajes en el mismo punto, que darian escala infinita', () => {
-    const roto = carreraValida();
-    roto.accesorio.anclaOjoDer = [...roto.accesorio.anclaOjoIzq];
-    conError({ carreras: [roto] }, 'mismo punto');
   });
 
   it('exige al menos un objeto con escala positiva', () => {
@@ -115,10 +78,7 @@ describe('cargarContenido', () => {
 
   it('junta todas las rutas de imagen para precargarlas', async () => {
     const contenido = await cargarContenido({ traer: traerCon({ carreras: [carreraValida()] }) });
-    expect(contenido.todasLasImagenes()).toEqual([
-      'assets/civil/casco.png',
-      'assets/civil/grua.png',
-    ]);
+    expect(contenido.todasLasImagenes()).toEqual(['assets/civil/grua.png']);
   });
 
   it('falla con un mensaje que enumera todos los problemas', async () => {
@@ -129,13 +89,5 @@ describe('cargarContenido', () => {
 
   it('falla si el archivo no esta', async () => {
     await expect(cargarContenido({ traer: traerCon(null, false) })).rejects.toThrow(/404/);
-  });
-});
-
-describe('catalogo real', () => {
-  it('contiene las once ingenierias acordadas', async () => {
-    const ruta = new URL('../../contenido/carreras.json', import.meta.url);
-    const datos = JSON.parse(await readFile(ruta, 'utf8'));
-    expect(datos.carreras.map((c) => c.nombre).sort()).toEqual([...NOMBRES_ESPERADOS].sort());
   });
 });

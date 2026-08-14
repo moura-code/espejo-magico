@@ -8,15 +8,15 @@
 // A las ocho de la mañana del dia del evento, "carreras[3] (quimica): objetos[5]
 // sin img" se arregla en veinte segundos; "contenido invalido" no se arregla.
 
-const esPunto = (p) =>
-  Array.isArray(p) && p.length === 2 && p.every((v) => typeof v === 'number' && v >= 0 && v <= 1);
-
 /**
  * `figurasValidas` y `efectosValidos` son opcionales. Cuando se pasan, se
  * verifica que cada nombre declarado exista de verdad: asi un error de tipeo
  * aparece al arrancar y no como un objeto que no se dibuja nunca.
  */
-export function validarContenido(datos, { figurasValidas = null, efectosValidos = null } = {}) {
+export function validarContenido(
+  datos,
+  { figurasValidas = null, efectosValidos = null } = {},
+) {
   if (!datos || !Array.isArray(datos.carreras) || datos.carreras.length === 0) {
     return ['carreras.json necesita un arreglo "carreras" con al menos una entrada'];
   }
@@ -34,22 +34,6 @@ export function validarContenido(datos, { figurasValidas = null, efectosValidos 
     if (!carrera.nombre) errores.push(`${donde}: falta "nombre"`);
     if (!/^#[0-9a-fA-F]{6}$/.test(carrera.color ?? '')) {
       errores.push(`${donde}: "color" tiene que ser #rrggbb`);
-    }
-
-    const accesorio = carrera.accesorio;
-    if (!accesorio?.img) errores.push(`${donde}: falta "accesorio.img"`);
-    for (const clave of ['anclaOjoIzq', 'anclaOjoDer']) {
-      if (!esPunto(accesorio?.[clave])) {
-        errores.push(`${donde}: "accesorio.${clave}" tiene que ser [x, y] con valores entre 0 y 1`);
-      }
-    }
-    if (
-      esPunto(accesorio?.anclaOjoIzq) &&
-      esPunto(accesorio?.anclaOjoDer) &&
-      accesorio.anclaOjoIzq[0] === accesorio.anclaOjoDer[0] &&
-      accesorio.anclaOjoIzq[1] === accesorio.anclaOjoDer[1]
-    ) {
-      errores.push(`${donde}: los dos anclajes del accesorio caen en el mismo punto`);
     }
 
     if (!Array.isArray(carrera.objetos) || carrera.objetos.length === 0) {
@@ -104,9 +88,6 @@ export async function cargarContenido({
     ids: datos.carreras.map((carrera) => carrera.id),
     obtener: (id) => porId.get(id) ?? null,
     todasLasImagenes: () =>
-      datos.carreras.flatMap((carrera) => [
-        carrera.accesorio.img,
-        ...carrera.objetos.map((objeto) => objeto.img),
-      ]),
+      datos.carreras.flatMap((carrera) => carrera.objetos.map((objeto) => objeto.img)),
   };
 }

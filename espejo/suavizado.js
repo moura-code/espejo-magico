@@ -1,8 +1,9 @@
 // Suavizado del rostro e histeresis de presencia.
 //
-// Los puntos de MediaPipe tiemblan cuadro a cuadro. Sin filtrar, el accesorio
-// vibra sobre la cabeza y la instalacion se ve barata. Y sin histeresis, la
-// experiencia parpadea cada vez que alguien gira la cara un instante.
+// Los puntos de MediaPipe tiemblan cuadro a cuadro. Sin filtrar, el recorte y
+// los trazos que siguen a la cara vibran y la instalacion se ve barata. Y sin
+// histeresis, la experiencia parpadea cada vez que alguien gira la cara un
+// instante.
 
 export function crearFiltroExponencial(alfa) {
   let valor = null;
@@ -57,8 +58,9 @@ export function crearFiltroRostro({ posicion, radio, angulo }) {
       };
     },
 
-    // Se llama al perder la presencia. Sin esto, el accesorio se desliza por la
-    // pantalla desde donde estaba la persona anterior hasta la cara nueva.
+    // Se llama al perder la presencia. Sin esto, el recorte de la cara se
+    // desliza por la pantalla desde donde estaba la persona anterior hasta la
+    // cara nueva.
     reiniciar() {
       for (const filtro of Object.values(filtros)) filtro.reiniciar();
     },

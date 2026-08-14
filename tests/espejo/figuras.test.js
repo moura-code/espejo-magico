@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { FIGURAS, figurasDisponibles, hayFigura, dibujarFigura } from '../../espejo/figuras.js';
+import { FIGURAS, dibujarFigura, figurasDisponibles, hayFigura } from '../../espejo/figuras.js';
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 

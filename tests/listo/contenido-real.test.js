@@ -20,15 +20,16 @@ const existe = (ruta) => access(resolve(CONTENIDO, ruta)).then(() => true, () =>
 
 const IDS_ESPERADOS = [
   'mecanica',
-  'alimentos',
-  'produccion',
   'electrica',
   'computacion',
-  'agrimensura',
-  'sistemas-comunicacion',
   'fisico-matematico',
   'civil',
   'quimica',
+  'alimentos',
+  'produccion',
+  'agrimensura',
+  'comunicacion',
+  'forestal',
   'naval',
 ];
 
@@ -37,7 +38,7 @@ describe('contenido real', () => {
     expect(validarContenido(await leer())).toEqual([]);
   });
 
-  it('tiene las once carreras acordadas', async () => {
+  it('tiene las doce carreras acordadas', async () => {
     const datos = await leer();
     expect(datos.carreras.map((c) => c.id).sort()).toEqual([...IDS_ESPERADOS].sort());
   });
@@ -71,7 +72,7 @@ describe('contenido real', () => {
     const datos = await leer();
     const faltantes = [];
     for (const carrera of datos.carreras) {
-      for (const ruta of [carrera.accesorio.img, ...carrera.objetos.map((o) => o.img)]) {
+      for (const ruta of carrera.objetos.map((o) => o.img)) {
         if (!(await existe(ruta))) faltantes.push(ruta);
       }
     }

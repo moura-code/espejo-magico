@@ -34,7 +34,6 @@ import {
   dibujarVideoEspejado,
   dibujarObjetos,
   dibujarFueraDeCara,
-  dibujarAccesorio,
   dibujarManos,
   dibujarPersona,
   dibujarTextos,
@@ -519,8 +518,6 @@ function cuadro(ahora) {
     interaccionDeManos === 'atraer' ? manosSuaves : manos,
     carrera?.color ?? '#ffffff',
   );
-
-  dibujarAccesorio(ctx, rostro, carrera, banco, transicion.contenido);
 
   nieblaActual = acercarNiebla(
     nieblaActual,

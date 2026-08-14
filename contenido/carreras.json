@@ -1,76 +1,22 @@
 {
-  "_nota": "Los PNG y los videos todavia no existen. Mientras tanto cada objeto se dibuja con la figura vectorial declarada en 'figura' (ver espejo/figuras.js). Cuando lleguen los PNG, reemplazan a las figuras sin tocar codigo. Las referentes son provisorias y npm run listo falla hasta que se reemplacen.",
+  "_nota": "Los 72 objetos que caen son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. Los videos no existen y las referentes son provisorias: npm run listo falla hasta que se reemplacen.",
   "carreras": [
     {
       "id": "mecanica",
       "nombre": "Ingeniería Industrial Mecánica",
       "color": "#4FC3F7",
-      "frase": "Diseño y mejora de sistemas productivos, máquinas y procesos",
+      "frase": "Diseño y análisis de máquinas y sistemas térmicos",
       "efecto": "engranajes",
-      "accesorio": {
-        "img": "assets/mecanica/antiparras.png",
-        "anclaOjoIzq": [0.3, 0.5],
-        "anclaOjoDer": [0.7, 0.5],
-        "offsetY": 0
-      },
       "objetos": [
         { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
-        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.2, "peso": 1 },
-        { "img": "assets/mecanica/piston.png", "figura": "piston", "escala": 0.17, "peso": 1 },
-        { "img": "assets/mecanica/resorte.png", "figura": "resorte", "escala": 0.15, "peso": 1 },
-        { "img": "assets/mecanica/rodamiento.png", "figura": "rodamiento", "escala": 0.14, "peso": 1 },
-        { "img": "assets/mecanica/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 }
+        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.18, "peso": 1 },
+        { "img": "assets/mecanica/martillo.png", "figura": "llave", "escala": 0.18, "peso": 1 },
+        { "img": "assets/mecanica/tuerca.png", "figura": "rodamiento", "escala": 0.15, "peso": 1 },
+        { "img": "assets/mecanica/rodamiento.png", "figura": "rodamiento", "escala": 0.16, "peso": 1 },
+        { "img": "assets/mecanica/resorte.png", "figura": "resorte", "escala": 0.17, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/mecanica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Industrial Mecánica" }
-      ]
-    },
-    {
-      "id": "alimentos",
-      "nombre": "Ingeniería de Alimentos",
-      "color": "#7BC96F",
-      "frase": "Ciencia y tecnología para producir alimentos seguros y de calidad",
-      "efecto": "burbujas",
-      "accesorio": {
-        "img": "assets/alimentos/cofia.png",
-        "anclaOjoIzq": [0.3, 0.68],
-        "anclaOjoDer": [0.7, 0.68],
-        "offsetY": -0.4
-      },
-      "objetos": [
-        { "img": "assets/alimentos/matraz.png", "figura": "matraz", "escala": 0.18, "peso": 1 },
-        { "img": "assets/alimentos/gota.png", "figura": "gota", "escala": 0.15, "peso": 1 },
-        { "img": "assets/alimentos/molecula.png", "figura": "molecula", "escala": 0.2, "peso": 1 },
-        { "img": "assets/alimentos/tubo.png", "figura": "tubo", "escala": 0.16, "peso": 1 },
-        { "img": "assets/alimentos/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
-        { "img": "assets/alimentos/lampara.png", "figura": "lampara", "escala": 0.17, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/alimentos/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería de Alimentos" }
-      ]
-    },
-    {
-      "id": "produccion",
-      "nombre": "Ingeniería de Producción",
-      "color": "#F4A261",
-      "frase": "Optimización de procesos, recursos y sistemas de producción",
-      "efecto": "engranajes",
-      "accesorio": {
-        "img": "assets/produccion/casco.png",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
-      "objetos": [
-        { "img": "assets/produccion/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
-        { "img": "assets/produccion/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
-        { "img": "assets/produccion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
-        { "img": "assets/produccion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
-        { "img": "assets/produccion/grua.png", "figura": "grua", "escala": 0.22, "peso": 1 },
-        { "img": "assets/produccion/llave.png", "figura": "llave", "escala": 0.19, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/produccion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería de Producción" }
+        { "video": "videos/mecanica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Mecánica" }
       ]
     },
     {
@@ -79,19 +25,13 @@
       "color": "#FFD23F",
       "frase": "Generación, transmisión y control de la energía",
       "efecto": "chispas",
-      "accesorio": {
-        "img": "assets/electrica/casco-visor.png",
-        "anclaOjoIzq": [0.3, 0.6],
-        "anclaOjoDer": [0.7, 0.6],
-        "offsetY": -0.3
-      },
       "objetos": [
-        { "img": "assets/electrica/rayo.png", "figura": "rayo", "escala": 0.18, "peso": 1 },
-        { "img": "assets/electrica/resistencia.png", "figura": "resistencia", "escala": 0.16, "peso": 1 },
         { "img": "assets/electrica/lampara.png", "figura": "lampara", "escala": 0.17, "peso": 1 },
         { "img": "assets/electrica/bateria.png", "figura": "bateria", "escala": 0.16, "peso": 1 },
-        { "img": "assets/electrica/panel-solar.png", "figura": "panel-solar", "escala": 0.22, "peso": 1 },
-        { "img": "assets/electrica/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 }
+        { "img": "assets/electrica/enchufe.png", "figura": "resistencia", "escala": 0.16, "peso": 1 },
+        { "img": "assets/electrica/multimetro.png", "figura": "resistencia", "escala": 0.18, "peso": 1 },
+        { "img": "assets/electrica/resistencia.png", "figura": "resistencia", "escala": 0.17, "peso": 1 },
+        { "img": "assets/electrica/led.png", "figura": "lampara", "escala": 0.15, "peso": 1 }
       ],
       "referentes": [
         { "video": "videos/electrica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Eléctrica" }
@@ -103,70 +43,16 @@
       "color": "#00E5A0",
       "frase": "Diseño de sistemas de cómputo, del hardware al software",
       "efecto": "codigo",
-      "accesorio": {
-        "img": "assets/computacion/gafas-vr.png",
-        "anclaOjoIzq": [0.28, 0.52],
-        "anclaOjoDer": [0.72, 0.52],
-        "offsetY": 0
-      },
       "objetos": [
         { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
-        { "img": "assets/computacion/robot.png", "figura": "robot", "escala": 0.22, "peso": 1 },
-        { "img": "assets/computacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
-        { "img": "assets/computacion/llaves.png", "figura": "llaves", "escala": 0.15, "peso": 1 },
-        { "img": "assets/computacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
-        { "img": "assets/computacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 }
+        { "img": "assets/computacion/teclado.png", "figura": "laptop", "escala": 0.22, "peso": 1 },
+        { "img": "assets/computacion/mouse.png", "figura": "chip", "escala": 0.14, "peso": 1 },
+        { "img": "assets/computacion/procesador.png", "figura": "chip", "escala": 0.16, "peso": 1 },
+        { "img": "assets/computacion/memoria.png", "figura": "chip", "escala": 0.18, "peso": 1 },
+        { "img": "assets/computacion/placa.png", "figura": "servidor", "escala": 0.2, "peso": 1 }
       ],
       "referentes": [
         { "video": "videos/computacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería en Computación" }
-      ]
-    },
-    {
-      "id": "agrimensura",
-      "nombre": "Ingeniería en Agrimensura",
-      "color": "#2A9D8F",
-      "frase": "Medición y representación precisa del territorio",
-      "efecto": "planos",
-      "accesorio": {
-        "img": "assets/agrimensura/casco.png",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
-      "objetos": [
-        { "img": "assets/agrimensura/teodolito.png", "figura": "teodolito", "escala": 0.2, "peso": 1 },
-        { "img": "assets/agrimensura/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
-        { "img": "assets/agrimensura/prisma.png", "figura": "prisma", "escala": 0.19, "peso": 1 },
-        { "img": "assets/agrimensura/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 },
-        { "img": "assets/agrimensura/onda.png", "figura": "onda", "escala": 0.19, "peso": 1 },
-        { "img": "assets/agrimensura/sumatoria.png", "figura": "sumatoria", "escala": 0.16, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/agrimensura/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería en Agrimensura" }
-      ]
-    },
-    {
-      "id": "sistemas-comunicacion",
-      "nombre": "Ingeniería en Sistemas de Comunicación",
-      "color": "#3A86FF",
-      "frase": "Conectividad, señales y redes para comunicar al mundo",
-      "efecto": "chispas",
-      "accesorio": {
-        "img": "assets/sistemas-comunicacion/visor.png",
-        "anclaOjoIzq": [0.3, 0.58],
-        "anclaOjoDer": [0.7, 0.58],
-        "offsetY": -0.15
-      },
-      "objetos": [
-        { "img": "assets/sistemas-comunicacion/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 },
-        { "img": "assets/sistemas-comunicacion/servidor.png", "figura": "servidor", "escala": 0.19, "peso": 1 },
-        { "img": "assets/sistemas-comunicacion/rayo.png", "figura": "rayo", "escala": 0.18, "peso": 1 },
-        { "img": "assets/sistemas-comunicacion/chip.png", "figura": "chip", "escala": 0.17, "peso": 1 },
-        { "img": "assets/sistemas-comunicacion/dron.png", "figura": "dron", "escala": 0.21, "peso": 1 },
-        { "img": "assets/sistemas-comunicacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/sistemas-comunicacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería en Sistemas de Comunicación" }
       ]
     },
     {
@@ -175,19 +61,13 @@
       "color": "#A78BFA",
       "frase": "Modelado matemático y físico de sistemas complejos",
       "efecto": "formulas",
-      "accesorio": {
-        "img": "assets/fisico-matematico/orbitas.png",
-        "anclaOjoIzq": [0.32, 0.62],
-        "anclaOjoDer": [0.68, 0.62],
-        "offsetY": -0.2
-      },
       "objetos": [
-        { "img": "assets/fisico-matematico/pi.png", "figura": "pi", "escala": 0.16, "peso": 1 },
-        { "img": "assets/fisico-matematico/sumatoria.png", "figura": "sumatoria", "escala": 0.16, "peso": 1 },
-        { "img": "assets/fisico-matematico/integral.png", "figura": "integral", "escala": 0.16, "peso": 1 },
-        { "img": "assets/fisico-matematico/atomo.png", "figura": "atomo", "escala": 0.19, "peso": 1 },
-        { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.2, "peso": 1 },
-        { "img": "assets/fisico-matematico/curva.png", "figura": "curva", "escala": 0.18, "peso": 1 }
+        { "img": "assets/fisico-matematico/calculadora.png", "figura": "sumatoria", "escala": 0.18, "peso": 1 },
+        { "img": "assets/fisico-matematico/regla.png", "figura": "viga", "escala": 0.2, "peso": 1 },
+        { "img": "assets/fisico-matematico/compas.png", "figura": "integral", "escala": 0.18, "peso": 1 },
+        { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.17, "peso": 1 },
+        { "img": "assets/fisico-matematico/iman.png", "figura": "pi", "escala": 0.17, "peso": 1 },
+        { "img": "assets/fisico-matematico/osciloscopio.png", "figura": "onda", "escala": 0.2, "peso": 1 }
       ],
       "referentes": [
         { "video": "videos/fisico-matematico/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Investigadora" }
@@ -199,19 +79,13 @@
       "color": "#FF8A3D",
       "frase": "Diseño y construcción de estructuras e infraestructura",
       "efecto": "planos",
-      "accesorio": {
-        "img": "assets/civil/casco.png",
-        "anclaOjoIzq": [0.3, 0.72],
-        "anclaOjoDer": [0.7, 0.72],
-        "offsetY": -0.45
-      },
       "objetos": [
-        { "img": "assets/civil/grua.png", "figura": "grua", "escala": 0.24, "peso": 1 },
-        { "img": "assets/civil/puente.png", "figura": "puente", "escala": 0.24, "peso": 1 },
-        { "img": "assets/civil/plano.png", "figura": "plano", "escala": 0.18, "peso": 1 },
-        { "img": "assets/civil/teodolito.png", "figura": "teodolito", "escala": 0.19, "peso": 1 },
-        { "img": "assets/civil/ladrillo.png", "figura": "ladrillo", "escala": 0.14, "peso": 1 },
-        { "img": "assets/civil/viga.png", "figura": "viga", "escala": 0.22, "peso": 1 }
+        { "img": "assets/civil/cono.png", "figura": "teodolito", "escala": 0.18, "peso": 1 },
+        { "img": "assets/civil/ladrillo.png", "figura": "ladrillo", "escala": 0.16, "peso": 1 },
+        { "img": "assets/civil/nivel.png", "figura": "viga", "escala": 0.18, "peso": 1 },
+        { "img": "assets/civil/taladro.png", "figura": "motor", "escala": 0.18, "peso": 1 },
+        { "img": "assets/civil/escalera.png", "figura": "viga", "escala": 0.2, "peso": 1 },
+        { "img": "assets/civil/casco-obra.png", "figura": "plano", "escala": 0.18, "peso": 1 }
       ],
       "referentes": [
         { "video": "videos/civil/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Civil" }
@@ -223,46 +97,124 @@
       "color": "#FF5D8F",
       "frase": "Procesos de transformación de la materia y la energía",
       "efecto": "burbujas",
-      "accesorio": {
-        "img": "assets/quimica/antiparras-lab.png",
-        "anclaOjoIzq": [0.3, 0.5],
-        "anclaOjoDer": [0.7, 0.5],
-        "offsetY": 0
-      },
       "objetos": [
-        { "img": "assets/quimica/matraz.png", "figura": "matraz", "escala": 0.19, "peso": 1 },
-        { "img": "assets/quimica/tubo.png", "figura": "tubo", "escala": 0.16, "peso": 1 },
-        { "img": "assets/quimica/molecula.png", "figura": "molecula", "escala": 0.2, "peso": 1 },
-        { "img": "assets/quimica/mechero.png", "figura": "mechero", "escala": 0.18, "peso": 1 },
-        { "img": "assets/quimica/pipeta.png", "figura": "pipeta", "escala": 0.16, "peso": 1 },
-        { "img": "assets/quimica/gota.png", "figura": "gota", "escala": 0.14, "peso": 1 }
+        { "img": "assets/quimica/frasco-reactivo.png", "figura": "matraz", "escala": 0.16, "peso": 1 },
+        { "img": "assets/quimica/probeta.png", "figura": "tubo", "escala": 0.17, "peso": 1 },
+        { "img": "assets/quimica/pipeta.png", "figura": "pipeta", "escala": 0.18, "peso": 1 },
+        { "img": "assets/quimica/mortero.png", "figura": "matraz", "escala": 0.17, "peso": 1 },
+        { "img": "assets/quimica/microscopio.png", "figura": "teodolito", "escala": 0.19, "peso": 1 },
+        { "img": "assets/quimica/vaso-precipitados.png", "figura": "tubo", "escala": 0.16, "peso": 1 }
       ],
       "referentes": [
         { "video": "videos/quimica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Química" }
       ]
     },
     {
-      "id": "naval",
-      "nombre": "Ingeniería Naval",
-      "color": "#277DA1",
-      "frase": "Diseño, construcción y operación de embarcaciones y sistemas navales",
-      "efecto": "planos",
-      "accesorio": {
-        "img": "assets/naval/gorra.png",
-        "anclaOjoIzq": [0.3, 0.7],
-        "anclaOjoDer": [0.7, 0.7],
-        "offsetY": -0.42
-      },
+      "id": "alimentos",
+      "nombre": "Ingeniería de Alimentos",
+      "color": "#EF5350",
+      "frase": "Procesos y tecnología para alimentos seguros y de calidad",
+      "efecto": "burbujas",
       "objetos": [
-        { "img": "assets/naval/plano.png", "figura": "plano", "escala": 0.19, "peso": 1 },
-        { "img": "assets/naval/motor.png", "figura": "motor", "escala": 0.22, "peso": 1 },
-        { "img": "assets/naval/engranaje.png", "figura": "engranaje", "escala": 0.18, "peso": 1 },
-        { "img": "assets/naval/viga.png", "figura": "viga", "escala": 0.22, "peso": 1 },
-        { "img": "assets/naval/llave.png", "figura": "llave", "escala": 0.19, "peso": 1 },
-        { "img": "assets/naval/onda.png", "figura": "onda", "escala": 0.2, "peso": 1 }
+        { "img": "assets/alimentos/manzana.png", "figura": "gota", "escala": 0.15, "peso": 1 },
+        { "img": "assets/alimentos/pan.png", "figura": "ladrillo", "escala": 0.18, "peso": 1 },
+        { "img": "assets/alimentos/queso.png", "figura": "prisma", "escala": 0.17, "peso": 1 },
+        { "img": "assets/alimentos/huevo.png", "figura": "gota", "escala": 0.13, "peso": 1 },
+        { "img": "assets/alimentos/lata-conserva.png", "figura": "bateria", "escala": 0.15, "peso": 1 },
+        { "img": "assets/alimentos/batidora.png", "figura": "motor", "escala": 0.18, "peso": 1 }
       ],
       "referentes": [
-        { "video": "videos/naval/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Referente de Ingeniería Naval" }
+        { "video": "videos/alimentos/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería de Alimentos" }
+      ]
+    },
+    {
+      "id": "produccion",
+      "nombre": "Ingeniería de Producción",
+      "color": "#26C6DA",
+      "frase": "Organización y mejora de los sistemas productivos",
+      "efecto": "engranajes",
+      "objetos": [
+        { "img": "assets/produccion/cronometro.png", "figura": "rodamiento", "escala": 0.16, "peso": 1 },
+        { "img": "assets/produccion/calibre.png", "figura": "llave", "escala": 0.2, "peso": 1 },
+        { "img": "assets/produccion/caja-carton.png", "figura": "ladrillo", "escala": 0.18, "peso": 1 },
+        { "img": "assets/produccion/pallet.png", "figura": "viga", "escala": 0.2, "peso": 1 },
+        { "img": "assets/produccion/escaner-codigo.png", "figura": "resistencia", "escala": 0.16, "peso": 1 },
+        { "img": "assets/produccion/balanza.png", "figura": "sumatoria", "escala": 0.18, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/produccion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería de Producción" }
+      ]
+    },
+    {
+      "id": "agrimensura",
+      "nombre": "Ingeniería en Agrimensura",
+      "color": "#8D6E63",
+      "frase": "Medición del territorio y ordenamiento espacial",
+      "efecto": "planos",
+      "objetos": [
+        { "img": "assets/agrimensura/teodolito.png", "figura": "teodolito", "escala": 0.2, "peso": 1 },
+        { "img": "assets/agrimensura/cinta-metrica.png", "figura": "rodamiento", "escala": 0.16, "peso": 1 },
+        { "img": "assets/agrimensura/brujula.png", "figura": "rodamiento", "escala": 0.16, "peso": 1 },
+        { "img": "assets/agrimensura/gps.png", "figura": "chip", "escala": 0.15, "peso": 1 },
+        { "img": "assets/agrimensura/tripode.png", "figura": "teodolito", "escala": 0.2, "peso": 1 },
+        { "img": "assets/agrimensura/mapa.png", "figura": "plano", "escala": 0.18, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/agrimensura/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería en Agrimensura" }
+      ]
+    },
+    {
+      "id": "comunicacion",
+      "nombre": "Ingeniería en Sistemas de Comunicación",
+      "color": "#E040FB",
+      "frase": "Redes y sistemas que transmiten la información",
+      "efecto": "codigo",
+      "objetos": [
+        { "img": "assets/comunicacion/microfono.png", "figura": "lampara", "escala": 0.17, "peso": 1 },
+        { "img": "assets/comunicacion/router.png", "figura": "servidor", "escala": 0.18, "peso": 1 },
+        { "img": "assets/comunicacion/telefono.png", "figura": "chip", "escala": 0.15, "peso": 1 },
+        { "img": "assets/comunicacion/radio.png", "figura": "servidor", "escala": 0.18, "peso": 1 },
+        { "img": "assets/comunicacion/walkie-talkie.png", "figura": "bateria", "escala": 0.16, "peso": 1 },
+        { "img": "assets/comunicacion/antena-satelital.png", "figura": "onda", "escala": 0.2, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/comunicacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería en Sistemas de Comunicación" }
+      ]
+    },
+    {
+      "id": "forestal",
+      "nombre": "Ingeniería Forestal",
+      "color": "#66BB6A",
+      "frase": "Producción y manejo sostenible de los bosques",
+      "efecto": "burbujas",
+      "objetos": [
+        { "img": "assets/forestal/hacha.png", "figura": "llave", "escala": 0.18, "peso": 1 },
+        { "img": "assets/forestal/motosierra.png", "figura": "motor", "escala": 0.2, "peso": 1 },
+        { "img": "assets/forestal/metro-plegable.png", "figura": "viga", "escala": 0.18, "peso": 1 },
+        { "img": "assets/forestal/pina.png", "figura": "gota", "escala": 0.14, "peso": 1 },
+        { "img": "assets/forestal/hoja.png", "figura": "gota", "escala": 0.15, "peso": 1 },
+        { "img": "assets/forestal/serrucho.png", "figura": "llave", "escala": 0.18, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/forestal/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Forestal" }
+      ]
+    },
+    {
+      "id": "naval",
+      "nombre": "Ingeniería Naval",
+      "color": "#5C6BC0",
+      "frase": "Diseño, construcción y reparación de embarcaciones",
+      "efecto": "burbujas",
+      "objetos": [
+        { "img": "assets/naval/sextante.png", "figura": "teodolito", "escala": 0.18, "peso": 1 },
+        { "img": "assets/naval/timon.png", "figura": "rodamiento", "escala": 0.2, "peso": 1 },
+        { "img": "assets/naval/salvavidas.png", "figura": "rodamiento", "escala": 0.18, "peso": 1 },
+        { "img": "assets/naval/helice.png", "figura": "engranaje", "escala": 0.17, "peso": 1 },
+        { "img": "assets/naval/soga.png", "figura": "resorte", "escala": 0.16, "peso": 1 },
+        { "img": "assets/naval/campana.png", "figura": "lampara", "escala": 0.15, "peso": 1 }
+      ],
+      "referentes": [
+        { "video": "videos/naval/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería Naval" }
       ]
     }
   ]

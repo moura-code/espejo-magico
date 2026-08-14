@@ -4,8 +4,8 @@ Instalación interactiva para el stand de una Facultad de Ingeniería.
 
 Un visitante se sienta frente a una pantalla enmarcada como espejo, que descansa
 cubierta de nubes. Una cámara detecta su rostro, las nubes se apartan hacia los
-lados, y le sortea una de once ingenierías: el participante aparece rodeado de
-objetos característicos de esa carrera que caen, rebotan contra su cabeza y se juntan
+lados, y le sortea una de doce ingenierías: el participante aparece rodeado de objetos
+característicos de esa carrera que caen, rebotan contra su cabeza y se juntan
 como un imán alrededor de sus manos (o se manotean, con la tecla `I`). La escena
 dura mientras la persona siga sentada; tras cinco segundos sin detectarla, las
 nubes vuelven a cubrir el espejo. En simultáneo, unas tablets alrededor
@@ -57,6 +57,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
 | `npm run listo` | ¿Se puede montar el stand? Verifica que el contenido real esté completo. Está en rojo hasta que lleguen los PNG y los videos, y eso es lo esperado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro y manos. |
+| `npm run generar-pngs` | Genera el PNG de respaldo de los objetos que no tengan imagen (no pisa existentes). Necesita Chrome; no usa red. |
 | `npm start` | Levanta el servidor local. |
 
 ## Atajos, en la PC del espejo
@@ -96,9 +97,13 @@ ni pantalla.
 nombre, color, frase, objetos, efecto de partículas y referentes. Agregar o
 cambiar una carrera no toca una línea de código.
 
-Los objetos se dibujan con figuras vectoriales (`espejo/figuras.js`) mientras no
-haya PNG. El orden de preferencia es **PNG → figura → círculo del color**, así
-que cuando diseño entrega, los archivos reemplazan a las figuras solos.
+Los objetos que caen son fotografías reales con el fondo recortado; las que
+salieron de Wikimedia Commons llevan autor, origen y licencia en
+`contenido/assets/CREDITOS.md`. El orden de preferencia al dibujar es **PNG →
+figura → círculo del color**: si un PNG falta, `npm run generar-pngs` rasteriza
+la figura vectorial de respaldo (`espejo/figuras.js`) sin pisar los existentes,
+y los definitivos de diseño reemplazan a cualquiera en la misma ruta, sin tocar
+código.
 
 Sin bundler: módulos ES nativos servidos tal cual. Dos dependencias en total,
 `ws` en el servidor y `@mediapipe/tasks-vision` copiado a `vendor/`.

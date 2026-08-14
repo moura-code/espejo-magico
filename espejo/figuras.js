@@ -1,6 +1,6 @@
 // Los objetos de cada carrera, dibujados con formas vectoriales.
 //
-// Esto saca los 42 PNG del camino critico del proyecto: hay engranajes, matraces
+// Esto saca los 72 PNG del camino critico del proyecto: hay engranajes, matraces
 // y gruas desde el primer dia. Cuando diseño entregue, los PNG reemplazan a estas
 // figuras sin tocar una linea (ver el orden de preferencia en escena.js).
 //
@@ -751,8 +751,6 @@ function gota(ctx, r, color) {
   ctx.ellipse(-r * 0.2, r * 0.3, r * 0.12, r * 0.2, -0.4, 0, TAU);
   ctx.fill();
 }
-
-// ───────────────────────────────── registro ─────────────────────────────────
 
 export const FIGURAS = {
   engranaje,

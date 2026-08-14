@@ -1,7 +1,6 @@
 // El dibujo de la escena. No sabe que existe MediaPipe ni la maquina de estados:
 // recibe que dibujar y lo dibuja.
 
-import { calcularAnclaje } from './anclaje.js';
 import { dibujarFigura } from './figuras.js';
 
 export function calcularDisposicion(ancho, alto) {
@@ -126,26 +125,6 @@ export function dibujarFueraDeCara(ctx, rostro, disposicion, dibujar) {
   ctx.save();
   recortarFueraDeCara(ctx, rostro, disposicion);
   dibujar();
-  ctx.restore();
-}
-
-export function dibujarAccesorio(ctx, rostro, carrera, banco, alfa = 1) {
-  if (!rostro || !carrera || alfa <= 0) return;
-  const imagen = banco.obtener(carrera.accesorio.img);
-  if (!imagen) return;
-
-  const anclaje = calcularAnclaje(rostro, carrera.accesorio, {
-    ancho: imagen.width,
-    alto: imagen.height,
-  });
-  if (!anclaje) return;
-
-  ctx.save();
-  ctx.globalAlpha = alfa;
-  ctx.translate(anclaje.x, anclaje.y);
-  ctx.rotate(anclaje.angulo);
-  ctx.scale(anclaje.escala, anclaje.escala);
-  ctx.drawImage(imagen, -anclaje.anclaX, -anclaje.anclaY);
   ctx.restore();
 }
 
