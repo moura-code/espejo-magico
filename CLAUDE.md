@@ -54,7 +54,11 @@ La regla de corte: cada archivo se tiene que poder entender y probar solo.
 
 ## Documentación
 
-- `docs/superpowers/specs/2026-07-28-espejo-magico-design.md` — la especificación: decisiones de diseño y sus porqués.
-- `docs/superpowers/plans/2026-07-28-espejo-magico.md` — el plan de implementación, tarea por tarea.
-- `docs/operacion.md` — guía del stand sin tecnicismos.
-- Atajos de teclado del espejo (avance manual, forzar carrera, modo demo `D` sin cámara, malla `M`, panel `P`): listados en el README.
+- `docs/arquitectura.md` — especificación técnica detallada: arquitectura, módulos, física, MediaPipe y red.
+- `docs/contenido.md` — guía de creación/edición de contenido: `carreras.json`, accesorios, objetos, referentes y fallback.
+- `docs/despliegue.md` — guía de despliegue, banderas de arranque de Chrome, red local y resolución de problemas.
+- `docs/operacion.md` — guía del equipo del stand sin tecnicismos.
+- `docs/superpowers/specs/2026-07-28-espejo-magico-design.md` — especificación de diseño original.
+- `docs/superpowers/plans/2026-07-28-espejo-magico.md` — plan de implementación original tarea por tarea.
+- Atajos de teclado del espejo (avance manual `A`, forzar carrera `1-9,0,-`, imán/golpe `I`, demo `D`, malla `M`, panel `P`): listados en el README.
+

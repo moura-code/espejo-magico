@@ -31,15 +31,18 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 | Tecla | Qué hace |
 |---|---|
 | `1` a `9`, `0` y `-` | Fuerza una carrera y salta directo a la revelación |
-| `R` | Corta la sesión y vuelve a la invitación |
+| `ESPACIO` / `Enter` / `➔` | Avanza manualmente al siguiente estado |
+| `A` | Alterna entre avance automático (reloj) y avance manual |
 | `I` | Cambia qué hacen las manos: imán (junta los objetos) o manotazo |
 | `D` | Modo demo: funciona sin cámara, con un rostro simulado |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
+| `R` | Corta la sesión y vuelve a la invitación |
 | `Ctrl` + `R` | Recarga todo |
 
-El orden de las teclas `1` a `9`, `0` y `-` es el mismo que el de las carreras en
+El orden de las teclas `1` a `9`, `0` y `-` es el mismo que el de las 11 carreras en
 `contenido/carreras.json`.
+
 
 ---
 
@@ -121,3 +124,12 @@ repositorio por su tamaño.
 **Verificar que no depende de internet.** Desenchufar el cable, apagar el wifi de
 la PC y correr `arrancar.bat`. Tiene que funcionar el ciclo entero. En la pestaña
 *Red* de las herramientas de desarrollo (F12) sólo puede aparecer `localhost`.
+
+---
+
+## Documentación complementaria
+
+- `docs/arquitectura.md` — especificación técnica de la arquitectura, módulos, física y protocolos.
+- `docs/contenido.md` — guía para creadores de contenido, PNGs, videos y figuras vectoriales.
+- `docs/despliegue.md` — guía completa de puesta en marcha del stand, red local y contingencias.
+

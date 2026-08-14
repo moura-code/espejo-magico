@@ -111,6 +111,9 @@ manos y puntos de pose ocurre íntegramente en el navegador local.
 
 ## Documentación
 
-- `docs/operacion.md` — guía para el equipo del stand, sin tecnicismos
-- `docs/superpowers/specs/` — la especificación de diseño
-- `docs/superpowers/plans/` — el plan de implementación, tarea por tarea
+- `docs/operacion.md` — guía para el equipo que opera el stand durante el evento.
+- `docs/arquitectura.md` — arquitectura del sistema, módulos, física, MediaPipe y protocolo WebSocket.
+- `docs/contenido.md` — guía para agregar o modificar carreras, accesorios, objetos PNG y referentes.
+- `docs/despliegue.md` — guía completa de puesta en marcha del stand, red local y solución de problemas.
+- `docs/superpowers/specs/` — especificación original de diseño y decisiones arquitectónicas.
+- `docs/superpowers/plans/` — plan detallado de implementación tarea por tarea.
