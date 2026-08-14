@@ -178,6 +178,18 @@ describe('atraerHaciaCirculo', () => {
     expect(() => atraerHaciaCirculo(cuerpo, atractor, 0.1, CAMPO)).not.toThrow();
     expect(Number.isFinite(cuerpo.vx) && Number.isFinite(cuerpo.vy)).toBe(true);
   });
+
+  it('usa un alcance extendido para objetos que estan por encima del atractor', () => {
+    const atractorArriba = { x: 400, y: 500, alcance: 100, alcanceArriba: 250, reposo: 20 };
+    // A 200px por encima de y=500 (y=300): esta fuera de alcance (100) pero dentro de alcanceArriba (250)
+    const arriba = crearCuerpo({ x: 400, y: 300, radio: 10 });
+    expect(atraerHaciaCirculo(arriba, atractorArriba, 0.1, CAMPO)).toBe(true);
+    expect(arriba.vy).toBeGreaterThan(0);
+
+    // A 200px por debajo de y=500 (y=700): esta fuera del alcance normal (100)
+    const abajo = crearCuerpo({ x: 400, y: 700, radio: 10 });
+    expect(atraerHaciaCirculo(abajo, atractorArriba, 0.1, CAMPO)).toBe(false);
+  });
 });
 
 describe('elegirAtractor', () => {

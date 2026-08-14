@@ -70,13 +70,18 @@ export function atraerHaciaCirculo(cuerpo, atractor, dt, campo) {
   const dx = atractor.x - cuerpo.x;
   const dy = atractor.y - cuerpo.y;
   const distancia = Math.hypot(dx, dy);
-  if (distancia >= atractor.alcance) return false;
+  const alcance =
+    cuerpo.y < atractor.y && atractor.alcanceArriba
+      ? atractor.alcanceArriba
+      : atractor.alcance;
+
+  if (distancia >= alcance) return false;
 
   // Justo en el centro no hay direccion de resorte: solo se frena.
   if (distancia > 0) {
     const reposo = atractor.reposo + cuerpo.radio;
     const error = distancia - reposo;
-    const factor = Math.max(-1, Math.min(1, error / Math.max(1, atractor.alcance - reposo)));
+    const factor = Math.max(-1, Math.min(1, error / Math.max(1, alcance - reposo)));
     const aceleracion = campo.fuerza * factor;
     cuerpo.vx += (dx / distancia) * aceleracion * dt;
     cuerpo.vy += (dy / distancia) * aceleracion * dt;
@@ -94,8 +99,12 @@ export function elegirAtractor(cuerpo, atractores) {
   let mejorDistancia = Infinity;
 
   for (const atractor of atractores) {
+    const alcance =
+      cuerpo.y < atractor.y && atractor.alcanceArriba
+        ? atractor.alcanceArriba
+        : atractor.alcance;
     const distancia = Math.hypot(atractor.x - cuerpo.x, atractor.y - cuerpo.y);
-    if (distancia >= atractor.alcance || distancia >= mejorDistancia) continue;
+    if (distancia >= alcance || distancia >= mejorDistancia) continue;
     elegido = atractor;
     mejorDistancia = distancia;
   }

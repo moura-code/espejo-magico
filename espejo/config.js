@@ -16,11 +16,11 @@ export const CONFIG = {
   // es sesionMaxima, que hace de red de seguridad y de rotacion de la fila.
   tiempos: {
     enganche: 2000,
-    sorteo: 3000,
-    revelacion: 2000,
-    cierre: 4000,
-    enfriamiento: 3000,
-    ausenciaParaCortar: 5000,
+    sorteo: 4000,
+    revelacion: 4000,
+    cierre: 3000,
+    enfriamiento: 2000,
+    ausenciaParaCortar: 4500,
     sesionMaxima: 75000,
   },
 
@@ -98,7 +98,8 @@ export const CONFIG = {
     // escurren por debajo del campo; con 8000 el iman captura desde cualquier
     // angulo y el racimo queda quieto (fisica.test.js lo vigila).
     atraccion: {
-      alcanceFactor: 2.6, // alcance del campo, en radios de mano
+      alcanceFactor: 3.0, // alcance del campo, en radios de mano
+      alcanceArribaFactor: 4.2, // alcance extendido hacia arriba para capturar objetos que caen
       reposoFactor: 0.3, // anillo de reposo, en radios de mano: bien chico para que el racimo se abrace a la palma y no flote lejos
       fuerza: 8000, // aceleracion maxima del resorte, en px/s2
       amortiguacion: 3.5, // 1/s: cuanto se frenan los objetos dentro del campo
@@ -138,13 +139,13 @@ export const CONFIG = {
 
   // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
   // hay nadie, salen hacia los lados al detectar a alguien y vuelven por el
-  // mismo camino cuando la persona lleva cinco segundos ausente.
+  // mismo camino cuando la persona lleva dos segundos ausente.
   niebla: {
     cantidad: 26, // jirones en pantalla
     agitacionSorteo: 3, // cuanto se aceleran los jirones durante el sorteo
     velocidades: {
       abrir: 1.7, // fraccion por segundo: el espejo se despeja en ~0.6 s
-      cerrar: 0.25, // acompaña los cuatro segundos del estado de cierre
+      cerrar: 0.34, // acompaña los tres segundos del estado de cierre
     },
   },
 

@@ -410,6 +410,9 @@ function cuadro(ahora) {
         x: mano.palma.x,
         y: mano.palma.y,
         alcance: mano.radio * CONFIG.manos.atraccion.alcanceFactor,
+        alcanceArriba:
+          mano.radio *
+          (CONFIG.manos.atraccion.alcanceArribaFactor ?? CONFIG.manos.atraccion.alcanceFactor),
         reposo: mano.radio * CONFIG.manos.atraccion.reposoFactor,
       });
     }
