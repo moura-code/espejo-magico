@@ -54,11 +54,14 @@ export function mapearMano(
 
   const puntas = PUNTAS.map((i) => aPantalla(puntos[i]));
   const alcance = puntas.reduce((suma, p) => suma + distancia(palma, p), 0) / puntas.length;
+  const puntosPantalla = puntos.map(aPantalla);
 
   return {
     palma,
+    palmaOriginal: { ...palma },
     largoPalma,
     puntas,
+    puntosPantalla,
     radio: Math.max(alcance * factorRadio, largoPalma * radioMinimoEnPalmas),
     // Cerca de 1 con el puño cerrado, 2 o mas con la mano bien abierta.
     apertura: alcance / largoPalma,

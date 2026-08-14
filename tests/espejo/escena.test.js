@@ -13,29 +13,43 @@ function crearCtxFalso() {
   return {
     llamadas,
     strokeStyle: '',
+    fillStyle: '',
     lineWidth: 0,
     globalAlpha: 1,
+    shadowColor: '',
+    shadowBlur: 0,
     save: () => llamadas.push(['save']),
     restore: () => llamadas.push(['restore']),
     beginPath: () => llamadas.push(['beginPath']),
+    closePath: () => llamadas.push(['closePath']),
+    moveTo: (x, y) => llamadas.push(['moveTo', x, y]),
+    lineTo: (x, y) => llamadas.push(['lineTo', x, y]),
     arc: (x, y, radio) => llamadas.push(['arc', x, y, radio]),
     stroke: () => llamadas.push(['stroke']),
+    fill: () => llamadas.push(['fill']),
+    createRadialGradient: () => ({ addColorStop: () => {} }),
   };
 }
 
 describe('dibujarManos', () => {
   const mano = { palma: { x: 300, y: 400 }, radio: 100 };
 
-  it('dibuja dos aros por mano: el circulo de colision y uno chico adentro', () => {
+  it('dibuja la mano con aura de energía en fallback si no hay puntos', () => {
     const ctx = crearCtxFalso();
     dibujarManos(ctx, [mano], '#ffffff');
 
     const arcos = ctx.llamadas.filter(([nombre]) => nombre === 'arc');
-    expect(arcos).toEqual([
-      ['arc', 300, 400, 100],
-      ['arc', 300, 400, 35],
-    ]);
-    expect(ctx.strokeStyle).toBe('#ffffff');
+    expect(arcos.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('dibuja la palma y los nodos de los 21 puntos cuando hay puntosPantalla', () => {
+    const ctx = crearCtxFalso();
+    const puntosPantalla = Array.from({ length: 21 }, (_, i) => ({ x: 100 + i * 5, y: 200 + i * 5 }));
+    const manoConPuntos = { ...mano, puntosPantalla };
+    dibujarManos(ctx, [manoConPuntos], '#00E5A0');
+
+    const trazos = ctx.llamadas.filter(([nombre]) => nombre === 'stroke');
+    expect(trazos.length).toBeGreaterThan(0);
   });
 
   it('no toca el lienzo sin manos', () => {

@@ -143,31 +143,113 @@ export function tamanoQueEntra(texto, tamanoDeseado, anchoMaximo, medir) {
 const MARGEN_TEXTO = 0.9;
 
 /**
- * Un aro en cada palma, del tamaño real del circulo de colision.
- *
- * Se dibuja siempre que hay manos detectadas: es lo que le avisa al visitante
- * que puede interactuar con las suyas. La malla (tecla M) agrega ademas la
- * version cruda en amarillo, para comparar el circulo que golpea con la mano
- * de verdad.
+ * Colorea las manos detectadas con un resplandor de energía, relleno de palma,
+ * líneas de dedos y nodos brillantes en las articulaciones.
  */
 export function dibujarManos(ctx, manos, color) {
   if (!manos || manos.length === 0) return;
 
   ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, manos[0].radio * 0.06);
 
   for (const mano of manos) {
-    ctx.globalAlpha = 0.5;
-    ctx.beginPath();
-    ctx.arc(mano.palma.x, mano.palma.y, mano.radio, 0, Math.PI * 2);
-    ctx.stroke();
+    const { x, y } = mano.palma;
+    const radio = mano.radio;
 
-    ctx.globalAlpha = 0.28;
+    // 1. Aura de energía radial alrededor de la mano
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const grad = ctx.createRadialGradient(x, y, radio * 0.1, x, y, radio * 1.15);
+    grad.addColorStop(0, color);
+    grad.addColorStop(0.4, color);
+    grad.addColorStop(1, 'transparent');
+
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(mano.palma.x, mano.palma.y, mano.radio * 0.35, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.arc(x, y, radio * 1.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 2. Si se dispone de los 21 puntos clave de la mano, se colorea la palma, dedos y articulaciones
+    if (mano.puntosPantalla && mano.puntosPantalla.length >= 21) {
+      const dx = mano.palmaOriginal ? x - mano.palmaOriginal.x : 0;
+      const dy = mano.palmaOriginal ? y - mano.palmaOriginal.y : 0;
+      const pts = mano.puntosPantalla.map((p) => ({ x: p.x + dx, y: p.y + dy }));
+
+      ctx.save();
+      ctx.shadowColor = color;
+      ctx.shadowBlur = radio * 0.3;
+
+      // Relleno suave de la palma
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.lineTo(pts[5].x, pts[5].y);
+      ctx.lineTo(pts[9].x, pts[9].y);
+      ctx.lineTo(pts[13].x, pts[13].y);
+      ctx.lineTo(pts[17].x, pts[17].y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Líneas de los dedos
+      const DEDOS = [
+        [0, 1, 2, 3, 4],
+        [0, 5, 6, 7, 8],
+        [5, 9, 10, 11, 12],
+        [9, 13, 14, 15, 16],
+        [13, 17, 18, 19, 20],
+      ];
+
+      ctx.globalAlpha = 0.55;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(3, mano.largoPalma ? mano.largoPalma * 0.1 : radio * 0.08);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      for (const dedo of DEDOS) {
+        ctx.beginPath();
+        for (let i = 0; i < dedo.length; i++) {
+          const pt = pts[dedo[i]];
+          if (i === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+      }
+
+      // Nodos brillantes en las yemas y muñeca
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = '#ffffff';
+      const NUDOS = [0, 4, 8, 12, 16, 20];
+      const rNodo = Math.max(3, radio * 0.04);
+
+      for (const idx of NUDOS) {
+        const pt = pts[idx];
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, rNodo, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    } else {
+      // Fallback: relleno translúcido de la palma y círculo atractor
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, radio * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(2, radio * 0.06);
+      ctx.beginPath();
+      ctx.arc(x, y, radio, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
+
   ctx.restore();
 }
 
