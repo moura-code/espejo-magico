@@ -74,10 +74,9 @@ export const CONFIG = {
     // va siempre atras de la mano de verdad: manoteas y no le pegas a nada.
     fps: 34,
 
-    // Generosos: es mas facil disfrutar un circulo que perdona que uno exacto
-    // que te hace errar. Subilos si sigue costando pegarle a los objetos.
-    factorRadio: 1.4,
-    radioMinimoEnPalmas: 1.0,
+    // Generosos: facil de interactuar a 1.5m - 2m de la camara sin exigir estirar el brazo.
+    factorRadio: 1.5,
+    radioMinimoEnPalmas: 1.2,
 
     // Suavizado y tope de la velocidad con la que la cabeza y las manos golpean
     // los objetos. Sin tope, un parpadeo de la deteccion dispara un objeto a
@@ -98,8 +97,8 @@ export const CONFIG = {
     // escurren por debajo del campo; con 8000 el iman captura desde cualquier
     // angulo y el racimo queda quieto (fisica.test.js lo vigila).
     atraccion: {
-      alcanceFactor: 3.0, // alcance del campo, en radios de mano
-      alcanceArribaFactor: 4.2, // alcance extendido hacia arriba para capturar objetos que caen
+      alcanceFactor: 3.2, // alcance del campo, en radios de mano
+      alcanceArribaFactor: 4.5, // alcance extendido hacia arriba para capturar objetos que caen a distancia
       reposoFactor: 0.3, // anillo de reposo, en radios de mano: bien chico para que el racimo se abrace a la palma y no flote lejos
       fuerza: 8000, // aceleracion maxima del resorte, en px/s2
       amortiguacion: 3.5, // 1/s: cuanto se frenan los objetos dentro del campo
