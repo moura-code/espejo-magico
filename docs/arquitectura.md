@@ -2,7 +2,7 @@
 
 ## 1. Visión General
 
-El **Espejo Mágico** es una instalación interactiva para eventos y stands institucionales. Un visitante se ubica frente a un televisor montado verticalmente (enmarcado como espejo) con una cámara web superior. El sistema detecta la presencia del visitante, cubre la pantalla con niebla, sortea una ingeniería, despeja la niebla y despliega objetos característicos de esa carrera que caen y interactúan con la cabeza y manos de la persona. En simultáneo, un conjunto de tablets conectadas en red reproducen videos de mujeres referentes de la disciplina sorteada.
+El **Espejo Mágico** es una instalación interactiva para eventos y stands institucionales. Un visitante se ubica frente a un televisor montado verticalmente (enmarcado como espejo) con una cámara web superior. El sistema detecta la presencia del visitante, cubre la pantalla con niebla, sortea una de doce ingenierías, despeja la niebla y despliega objetos característicos de esa carrera que caen e interactúan con la cabeza y manos de la persona. En simultáneo, un conjunto de tablets conectadas en red reproducen videos de mujeres referentes de la disciplina sorteada.
 
 ### Principios Fundamentales
 1. **100% Offline (Sin Internet):** No existe dependencia de CDNs, APIs externas o servicios en la nube en tiempo de ejecución.
@@ -75,7 +75,6 @@ Define la estructura estandarizada de mensajes que viajan a través del WebSocke
 | `manos.js` | Extrae palmas, grado de apertura de la mano y radio de atracción magnética a partir de los puntos de la mano. |
 | `pose.js` | Extrae puntos clave del cuerpo (hombros) como respaldo de posición. |
 | `suavizado.js` | Filtros exponenciales (`AlphaFilter`) para eliminar el parpadeo/temblor de los landmarks y control de histéresis de presencia (`PresenciaHisteresis`). |
-| `anclaje.js` | Calcula la posición, escala y rotación 2D del accesorio (casco/gafas/antiparras) acoplándolo a la línea de los ojos. |
 | `fisica.js` | Motor de física 2D custom: gravedad, rebote elástico con la cabeza, colisión con suelo/paredes y atracción magnética hacia las manos. |
 | `objetos.js` | Pool de objetos reciclables con límite máximo dinámico (`CONFIG.objetos.maximo`) y gestión de tiempo de vida con desvanecido (*fade-out*). |
 | `sorteo.js` | Gestor de sorteo aleatorio con algoritmo de **bolsa barajada sin repetición contigua**. |
@@ -84,7 +83,7 @@ Define la estructura estandarizada de mensajes que viajan a través del WebSocke
 | `efectos.js` | Sistema de partículas por carrera (engranajes, chispas, código binario, fórmulas matemáticas, planos técnicos, burbujas). |
 | `imagenes.js` | Gestor y precargador de imágenes PNG con fallback elegante. |
 | `contenido.js` | Carga y valida el archivo `contenido/carreras.json` al inicio del sistema. |
-| `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Efecto partículas → Niebla → Accesorio → Objetos → Textos responsivos). |
+| `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Efecto partículas → Niebla → Objetos → Textos responsivos). |
 | `bus.js` | Cliente WebSocket con reconexión automática y emisión de latidos (*heartbeat*). |
 | `operacion.js` | Atajos de teclado, panel HUD de métricas/FPS y recarga periódica de mantenimiento. |
 
@@ -114,22 +113,14 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
 2. **`ENGANCHE`**: Detección de rostro estable. La niebla empieza a agitarse.
 3. **`SORTEO`**: Niebla densa con animación de aceleración. Se extrae una carrera de la bolsa barajada.
 4. **`REVELACION`**: La niebla se abre desde la cara del usuario. Se envía el mensaje `{ tipo: 'carrera', id, sesion }` a las tablets.
-5. **`ESCENA`**: Caen los objetos de la carrera. Se acopla el accesorio. Las palmas de las manos atraen los objetos (modo imán). Dura mientras la persona permanezca sentada (con un tiempo máximo de seguridad `sesionMaxima`).
+5. **`ESCENA`**: Caen los objetos de la carrera. Las palmas de las manos atraen los objetos (modo imán). Dura mientras la persona permanezca sentada (con un tiempo máximo de seguridad `sesionMaxima`).
 6. **`CIERRE`**: Desvanecido general, mensaje de agradecimiento. Las nubes vuelven a cubrir el espejo.
 
 ---
 
 ## 5. Algoritmos Clave
 
-### 5.1. Anclaje de Accesorios (`espejo/anclaje.js`)
-Dado un accesorio PNG con dos puntos de referencia de ojos normalizados (`anclaOjoIzq` y `anclaOjoDer` en rango 0..1 dentro del propio PNG):
-1. Se calcula la distancia y el ángulo del vector entre los ojos detectados en pantalla:
-   $$\Delta x = x_{der} - x_{izq}, \quad \Delta y = y_{der} - y_{izq}$$
-   $$\text{distancia} = \sqrt{\Delta x^2 + \Delta y^2}, \quad \text{ángulo} = \operatorname{atan2}(\Delta y, \Delta x)$$
-2. La escala del accesorio se obtiene relacionando la distancia entre los ojos detectados y la distancia entre los anclajes del gráfico.
-3. El centro de masa del accesorio se posiciona de modo que coincida con el punto medio de los ojos en pantalla, aplicando el desplazamiento `offsetY`.
-
-### 5.2. Física e Interacción con Manos (`espejo/fisica.js` y `espejo/manos.js`)
+### 5.1. Física e Interacción con Manos (`espejo/fisica.js` y `espejo/manos.js`)
 El motor de física implementa dos comportamientos de interacción con las manos:
 
 - **Modo Imán (Predeterminado):**
@@ -141,10 +132,10 @@ El motor de física implementa dos comportamientos de interacción con las manos
 - **Modo Manotazo (Tecla `I`):**
   - La palma actúa como una esfera sólida de colisión elástica utilizando las coordenadas de detección crudas (sin filtro) para mantener la máxima capacidad de respuesta ante impulsos veloces del usuario.
 
-### 5.3. Cadena de Fallback de Objetos
+### 5.2. Cadena de Fallback de Objetos
 Para garantizar la solidez de la instalación, el dibujo de un objeto sigue una estrategia defensiva de tres niveles:
-1. **Archivo PNG:** Se dibuja la ilustración PNG si el recurso existe y cargó correctamente.
-2. **Figura Vectorial (`espejo/figuras.js`):** Si el PNG no existe o falla, se dibuja un ícono vectorial generado por código Canvas 2D utilizando el color de la carrera.
+1. **Archivo PNG:** Se dibuja la ilustración PNG recortada si el recurso existe en `contenido/assets/` y cargó correctamente.
+2. **Figura Vectorial (`espejo/figuras.js`):** Si el PNG no existe o falla, se dibuja un ícono vectorial generado por código Canvas 2D utilizando el color de la carrera. `npm run generar-pngs` puede generar rasterizaciones de respaldo sin sobrescribir las fotos reales.
 3. **Círculo Genérico:** Si no existe ni el PNG ni la figura vectorial, se dibuja un círculo coloreado.
 *Resultado:* El sistema nunca muestra errores en pantalla ni rompe la escena por falta de assets de diseño.
 
