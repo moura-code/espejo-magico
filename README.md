@@ -23,6 +23,7 @@ Todo corre en el navegador, en una sola PC, **sin conexión a internet**.
 - Ingeniería en Computación
 - Ingeniería en Sistemas de Comunicación
 - Ingeniería Físico-Matemática
+- Ingeniería Forestal
 - Ingeniería Industrial Mecánica
 - Ingeniería Naval
 - Ingeniería Química
@@ -66,7 +67,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 |---|---|
 | `ESPACIO` | Avanza al estado siguiente (modo manual) |
 | `A` | Alterna avance manual / automático |
-| `1`–`9`, `0`, `-` | Fuerza una carrera y salta a la revelación |
+| `1`–`9`, `0`, `-`, `=` | Fuerza una carrera y salta a la revelación (la fila de números entera: doce teclas, doce carreras) |
 | `R` | Corta la sesión y vuelve a la invitación |
 | `I` | Cambia qué hacen las manos: imán (junta los objetos) o manotazo |
 | `D` | Modo demo: funciona sin cámara |
@@ -118,7 +119,7 @@ manos y puntos de pose ocurre íntegramente en el navegador local.
 
 - `docs/operacion.md` — guía para el equipo que opera el stand durante el evento.
 - `docs/arquitectura.md` — arquitectura del sistema, módulos, física, MediaPipe y protocolo WebSocket.
-- `docs/contenido.md` — guía para agregar o modificar carreras, accesorios, objetos PNG y referentes.
+- `docs/contenido.md` — guía para agregar o modificar carreras, objetos PNG, figuras vectoriales y referentes.
 - `docs/despliegue.md` — guía completa de puesta en marcha del stand, red local y solución de problemas.
 - `docs/superpowers/specs/` — especificación original de diseño y decisiones arquitectónicas.
 - `docs/superpowers/plans/` — plan detallado de implementación tarea por tarea.

@@ -213,16 +213,12 @@ function atender(eventos, ahora) {
     }
     if (evento.tipo !== 'entra') continue;
 
-    // Al sentarse alguien, los objetos de la atraccion se desvanecen: el espejo
-    // despierta limpio en vez de con una pila de la sesion anterior.
-    if (evento.estado === ESTADOS.ENGANCHE) pool.retirar(ahora, 600);
-
-    // Al entrar en la revelacion se vacia de golpe, pero eso pasa con la niebla
-    // todavia cerrada, asi que nadie lo ve. Cuando la niebla se abre, en pantalla
-    // hay exactamente los objetos de la carrera sorteada y nada mas.
-    if (evento.estado === ESTADOS.REVELACION) pool.vaciar();
-
+    // Los dos vaciados que importan. En ATRACCION se limpia lo que quedo de la
+    // escena que termino. En REVELACION se limpia lo de la escena anterior
+    // cuando el operador fuerza una carrera con las teclas y salta ahi desde
+    // una sesion en curso: la carrera nueva tiene que aparecer sola.
     if (evento.estado === ESTADOS.ATRACCION) pool.vaciar();
+    if (evento.estado === ESTADOS.REVELACION) pool.vaciar();
   }
 }
 
@@ -380,13 +376,9 @@ function cuadro(ahora) {
   });
 
   // --- fisica ---
-  const fuente = fuenteDeObjetos(estado, carrera, contenido.carreras);
+  const fuente = fuenteDeObjetos(estado, carrera);
   if (fuente && fuente.length > 0 && ahora >= proximaAparicion) {
-    const intervalo =
-      estado === ESTADOS.ATRACCION
-        ? CONFIG.objetos.intervaloAparicion * 3
-        : CONFIG.objetos.intervaloAparicion;
-    proximaAparicion = ahora + intervalo;
+    proximaAparicion = ahora + CONFIG.objetos.intervaloAparicion;
     aparecerObjeto(fuente[Math.floor(Math.random() * fuente.length)], ahora);
   }
 

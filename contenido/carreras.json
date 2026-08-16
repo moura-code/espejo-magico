@@ -1,5 +1,5 @@
 {
-  "_nota": "Los 72 objetos que caen son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. Los videos no existen y las referentes son provisorias: npm run listo falla hasta que se reemplacen.",
+  "_nota": "Los 73 objetos que caen son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. Los videos no existen y las referentes son provisorias: npm run listo falla hasta que se reemplacen.",
   "carreras": [
     {
       "id": "mecanica",
@@ -85,7 +85,8 @@
         { "img": "assets/civil/nivel.png", "figura": "viga", "escala": 0.18, "peso": 1 },
         { "img": "assets/civil/taladro.png", "figura": "motor", "escala": 0.18, "peso": 1 },
         { "img": "assets/civil/escalera.png", "figura": "viga", "escala": 0.2, "peso": 1 },
-        { "img": "assets/civil/casco-obra.png", "figura": "plano", "escala": 0.18, "peso": 1 }
+        { "img": "assets/civil/casco-obra.png", "figura": "plano", "escala": 0.18, "peso": 1 },
+        { "img": "assets/civil/chaleco.png", "figura": "plano", "escala": 0.18, "peso": 1 }
       ],
       "referentes": [
         { "video": "videos/civil/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Civil" }

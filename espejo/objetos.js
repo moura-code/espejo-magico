@@ -20,7 +20,7 @@ const MS_DE_DESVANECIDO = 500;
  * en pantalla cuando se abria la niebla, asi que la revelacion mostraba una pila
  * mezclada en vez de la carrera que le habia tocado al visitante.
  */
-export function fuenteDeObjetos(estado, carrera, carreras) {
+export function fuenteDeObjetos(estado, carrera) {
   if (estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA) {
     return carrera ? carrera.objetos : null;
   }

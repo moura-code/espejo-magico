@@ -117,7 +117,7 @@ Los efectos de partículas asignados a cada carrera se dibujan detrás del parti
 
 ## 7. Verificación de Contenido Reales (`npm run listo`)
 
-Para comprobar si todos los archivos multimedia reales (72 PNGs de objetos y los videos MP4 de referentes) están presentes en las carpetas de `contenido/`, ejecute:
+Para comprobar si todos los archivos multimedia reales (73 PNGs de objetos y los videos MP4 de referentes) están presentes en las carpetas de `contenido/`, ejecute:
 
 ```bash
 npm run listo

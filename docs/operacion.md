@@ -30,7 +30,7 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 
 | Tecla | Qué hace |
 |---|---|
-| `1` a `9`, `0` y `-` | Fuerza una carrera y salta directo a la revelación |
+| `1` a `9`, `0`, `-` y `=` | Fuerza una carrera y salta directo a la revelación |
 | `ESPACIO` / `Enter` / `➔` | Avanza manualmente al siguiente estado |
 | `A` | Alterna entre avance automático (reloj) y avance manual |
 | `I` | Cambia qué hacen las manos: imán (junta los objetos) o manotazo |
@@ -40,8 +40,8 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 | `R` | Corta la sesión y vuelve a la invitación |
 | `Ctrl` + `R` | Recarga todo |
 
-El orden de las teclas `1` a `9`, `0` y `-` es el mismo que el de las 11 carreras en
-`contenido/carreras.json`.
+Es la fila de números entera, de izquierda a derecha: doce teclas para las doce
+carreras, en el mismo orden en que están escritas en `contenido/carreras.json`.
 
 
 ---
@@ -75,7 +75,7 @@ en `espejo/config.js`.
 
 **Siempre sale la misma carrera.**
 No puede pasar: el sistema recorre las doce antes de repetir ninguna. Si pasa,
-alguien está apretando las teclas `1` a `9`, `0` o `-` sin querer.
+alguien está apretando la fila de números (`1` a `9`, `0`, `-`, `=`) sin querer.
 
 **Aparecen círculos de colores en vez de dibujos.**
 Falta ese PNG. Apretar `P` y mirar `png faltan`. No rompe nada: es el

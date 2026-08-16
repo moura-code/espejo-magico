@@ -113,7 +113,7 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 | Tecla | Acción | Descripción |
 |---|---|---|
 | `P` | **Panel HUD de Estado** | Muestra u oculta métricas en vivo: FPS, estado, cámara, objetos, bus WebSocket. |
-| `1`–`9`, `0`, `-` | **Forzar Carrera** | Salta directamente a la revelación de la ingeniería correspondiente. |
+| `1`–`9`, `0`, `-`, `=` | **Forzar Carrera** | Salta directamente a la revelación de la ingeniería correspondiente. Es la fila de números entera: una tecla por carrera, en el orden de `carreras.json`. |
 | `I` | **Modo Imán / Manotazo** | Alterna la interacción de las manos entre atracción magnética y golpe físico. |
 | `A` | **Modo Auto / Manual** | Alterna entre avance automático por reloj y avance manual por teclado. |
 | `ESPACIO` / `Enter` | **Avanzar Estado** | Avanza manualmente al siguiente estado (útil en pruebas o demostraciones). |

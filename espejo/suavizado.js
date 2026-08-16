@@ -158,13 +158,6 @@ export function crearFiltroDeManos({
 }
 
 /**
- * Entrar es rapido, salir es lento. La asimetria es deliberada: unos pocos
- * cuadros bastan para reconocer que alguien se sento, pero hace falta casi
- * medio segundo sin rostro para dar por hecho que se fue.
- *
- * El reloj de salida arranca en el PRIMER cuadro sin rostro, no en el ultimo.
- */
-/**
  * Velocidad de un punto que se mueve, en pixeles por segundo.
  *
  * La usan la cabeza y las manos para poder golpear los objetos en vez de solo
@@ -200,11 +193,19 @@ export function crearRastreadorDeVelocidad({ alfa = 0.4, maxima = 4000 } = {}) {
   };
 }
 
-// Entrar y salir se miden los dos en tiempo, nunca en cuadros: quien pregunta
-// lo hace una vez por cuadro de dibujo, pero los detectores corren mas lento y
-// entre uno y otro devuelven la misma lectura repetida. Si esto contara cuadros,
-// consultar mas seguido adelantaria la presencia y una deteccion suelta valdria
-// por varias — justo lo que la histeresis existe para evitar.
+/**
+ * Entrar es rapido, salir es lento. La asimetria es deliberada: unos pocos
+ * cuadros bastan para reconocer que alguien se sento, pero hace falta bastante
+ * mas rato sin rostro para dar por hecho que se fue (los dos plazos salen de
+ * CONFIG.presencia). El reloj de salida arranca en el PRIMER cuadro sin rostro,
+ * no en el ultimo.
+ *
+ * Entrar y salir se miden los dos en tiempo, nunca en cuadros: quien pregunta lo
+ * hace una vez por cuadro de dibujo, pero los detectores corren mas lento y
+ * entre uno y otro devuelven la misma lectura repetida. Si esto contara cuadros,
+ * consultar mas seguido adelantaria la presencia y una deteccion suelta valdria
+ * por varias — justo lo que la histeresis existe para evitar.
+ */
 export function crearHisteresis({ msParaEntrar, msParaSalir }) {
   let presente = false;
   let desdeQueLlega = null;

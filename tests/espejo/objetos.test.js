@@ -129,29 +129,27 @@ describe('retirar', () => {
 
 describe('fuenteDeObjetos', () => {
   const CIVIL = { id: 'civil', objetos: [{ img: 'grua.png' }] };
-  const QUIMICA = { id: 'quimica', objetos: [{ img: 'matraz.png' }] };
-  const TODAS = [CIVIL, QUIMICA];
 
   it('en reposo no caen objetos', () => {
-    expect(fuenteDeObjetos(ESTADOS.ATRACCION, null, TODAS)).toBeNull();
+    expect(fuenteDeObjetos(ESTADOS.ATRACCION, null)).toBeNull();
   });
 
   it('desde la revelacion caen solo los de la carrera sorteada', () => {
-    expect(fuenteDeObjetos(ESTADOS.REVELACION, CIVIL, TODAS)).toEqual(CIVIL.objetos);
-    expect(fuenteDeObjetos(ESTADOS.ESCENA, CIVIL, TODAS)).toEqual(CIVIL.objetos);
+    expect(fuenteDeObjetos(ESTADOS.REVELACION, CIVIL)).toEqual(CIVIL.objetos);
+    expect(fuenteDeObjetos(ESTADOS.ESCENA, CIVIL)).toEqual(CIVIL.objetos);
   });
 
   // La preparacion queda limpia para que la revelacion muestre una sola carrera.
   it('no aparece nada durante el enganche ni el sorteo', () => {
-    expect(fuenteDeObjetos(ESTADOS.ENGANCHE, null, TODAS)).toBeNull();
-    expect(fuenteDeObjetos(ESTADOS.SORTEO, CIVIL, TODAS)).toBeNull();
+    expect(fuenteDeObjetos(ESTADOS.ENGANCHE, null)).toBeNull();
+    expect(fuenteDeObjetos(ESTADOS.SORTEO, CIVIL)).toBeNull();
   });
 
   it('no aparece nada durante el cierre', () => {
-    expect(fuenteDeObjetos(ESTADOS.CIERRE, CIVIL, TODAS)).toBeNull();
+    expect(fuenteDeObjetos(ESTADOS.CIERRE, CIVIL)).toBeNull();
   });
 
   it('sin carrera no inventa objetos', () => {
-    expect(fuenteDeObjetos(ESTADOS.ESCENA, null, TODAS)).toBeNull();
+    expect(fuenteDeObjetos(ESTADOS.ESCENA, null)).toBeNull();
   });
 });
