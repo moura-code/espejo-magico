@@ -184,6 +184,12 @@ describe('crearDetectorDeManos', () => {
     expect(detector.detectar({ videoWidth: 0 }, 0, RECT)).toEqual([]);
   });
 
+  // main.js le pasa el lienzo del recorte visible, no el <video>.
+  it('acepta un lienzo, no solo un elemento de video', () => {
+    const detector = crearDetectorDeManos({ detectorCrudo: crudoCon([manoSintetica({})]) });
+    expect(detector.detectar({ width: 405, height: 720 }, 0, RECT)).toHaveLength(1);
+  });
+
   it('le pone un nombre a la mano aunque MediaPipe no diga cual es', () => {
     const detector = crearDetectorDeManos({ detectorCrudo: crudoCon([manoSintetica({})]) });
     const [mano] = detector.detectar(video, 0, RECT);

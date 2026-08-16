@@ -65,4 +65,14 @@ describe('crearDetectorDePose', () => {
     expect(detector.detectar({ videoWidth: 0 }, 0, RECT)).toBeNull();
     expect(detector.crudasDetectadas()).toBe(0);
   });
+
+  // main.js le pasa el lienzo del recorte visible, no el <video>.
+  it('acepta un lienzo, no solo un elemento de video', () => {
+    const detector = crearDetectorDePose({
+      detectorCrudo: { detectForVideo: () => ({ landmarks: [poseSintetica()] }), close: () => {} },
+      segmentacion: false,
+    });
+
+    expect(detector.detectar({ width: 405, height: 720 }, 0, RECT)).not.toBeNull();
+  });
 });

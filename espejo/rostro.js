@@ -137,10 +137,13 @@ export function crearDetector({
      * pantalla y al girarla. Un tamano viejo comprime todos los puntos hacia el
      * angulo superior izquierdo.
      */
-    detectar(video, ahora, rectangulo) {
-      if (!video.videoWidth) return null;
+    detectar(fuente, ahora, rectangulo) {
+      // `fuente` es un lienzo con el recorte de lo que se ve en pantalla, no el
+      // <video> entero (ver calcularRecorteVisible). Un lienzo no tiene
+      // videoWidth, y de ahi que se miren las dos medidas.
+      if (!(fuente.videoWidth || fuente.width)) return null;
 
-      const salida = detector.detectForVideo(video, ahora);
+      const salida = detector.detectForVideo(fuente, ahora);
       const puntos = salida?.faceLandmarks?.[0];
       medidor.registrar(Boolean(puntos));
       ultimosPuntos = puntos ?? null;

@@ -10,7 +10,7 @@ Instalación interactiva para el stand de una Facultad de Ingeniería: un espejo
 
 | Comando | Qué hace |
 |---|---|
-| `npm test` | Toda la suite (vitest, entorno node). Tiene que estar en verde siempre. |
+| `npm test` | Toda la suite (vitest, entorno node). Tiene que estar en verde siempre. Incluye `tests/integracion/sintaxis.test.js`, que parsea todos los módulos con `node --check`: es la única red de `main.js`, que ninguna prueba importa porque es cableado del DOM. |
 | `npx vitest run tests/espejo/fisica.test.js` | Una sola suite. `npm run test:mirar` para modo watch. |
 | `npm run listo` | Semáforo de contenido: verifica que estén los 73 PNG de objetos, las doce carreras acordadas y MediaPipe vendorizado. Hoy está en verde. Corre `tests/listo/`, excluido de `npm test` a propósito: depende de archivos que pueden faltar en una máquina de desarrollo. |
 | `npm start` | Servidor en :8080. El espejo se abre por `http://localhost:8080/espejo/espejo.html` — **nunca por IP ni por `file://`**: Chrome solo entrega la cámara en contextos seguros, y esa es la única razón por la que hay un servidor. |
@@ -45,6 +45,8 @@ La regla de corte: cada archivo se tiene que poder entender y probar solo.
 - `rostro.js` no sabe qué es una carrera. `maquina-estados.js` no dibuja. `escena.js` no sabe que existe MediaPipe. `fisica.js` solo conoce círculos y rectángulos.
 - Todo lo externo se inyecta: el reloj entra como parámetro `ahora` (nunca `Date.now()` dentro de la lógica), y `sortear`, `obtenerMedia`, `cargar`, `azar` se pasan como funciones. Por eso las pruebas corren en Node sin cámara, sin pantalla y sin fake timers.
 - `vision.js` carga el WASM de MediaPipe una sola vez para los tres detectores (rostro, manos, pose). Manos y pose son agregados opcionales: si su modelo falta o no carga, el espejo sigue andando con la cabeza sola. Por eso `npm run listo` verifica que los tres `.task` estén: si no, la falla es un `console.warn` que nadie mira.
+- **Los detectores no reciben el `<video>`: reciben un lienzo con el recorte de lo que se ve en pantalla.** Cámara apaisada en espejo vertical significa que dos tercios del ancho de la cámara no se ven nunca; analizarlos gastaba la resolución del modelo en píxeles invisibles y era el techo real de la distancia de reconocimiento. `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué se analiza) tienen que salir siempre del mismo rectángulo — si alguno se calcula por su cuenta, los marcadores se van de la cara.
+- **La estabilidad de la sesión vive entre dos módulos, no en uno.** `CONFIG.presencia.msParaSalir` es el colchón que absorbe los huecos de la detección antes de que lleguen a la máquina; `CONFIG.tiempos.ausenciaParaCortar` es lo que la máquina aguanta después. Bajar cualquiera de los dos hace que el espejo se reinicie con la persona sentada delante. `tests/integracion/presencia.test.js` los prueba juntos con la CONFIG de verdad.
 
 ## Reglas del proyecto
 

@@ -74,13 +74,15 @@ export function crearDetectorDeManos({ detectorCrudo, maximo = 2, ...ajustes }) 
   let crudasDetectadas = 0;
 
   return {
-    detectar(video, ahora, rectangulo) {
-      if (!video.videoWidth) {
+    detectar(fuente, ahora, rectangulo) {
+      // `fuente` es el lienzo con el recorte visible, no el <video>: un lienzo
+      // no tiene videoWidth.
+      if (!(fuente.videoWidth || fuente.width)) {
         crudasDetectadas = 0;
         return (ultimas = []);
       }
 
-      const salida = detectorCrudo.detectForVideo(video, ahora);
+      const salida = detectorCrudo.detectForVideo(fuente, ahora);
       const crudas = salida?.landmarks ?? [];
       crudasDetectadas = crudas.length;
 

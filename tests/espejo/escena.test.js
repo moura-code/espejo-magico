@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   calcularDisposicion,
+  calcularRecorteVisible,
   calcularRectanguloVideo,
   dibujarManos,
   faseDeAnillo,
@@ -299,5 +300,84 @@ describe('calcularRectanguloVideo', () => {
       ancho: 1080,
       alto: 1920,
     });
+  });
+});
+
+describe('calcularRecorteVisible', () => {
+  const casos = [
+    ['camara apaisada en pantalla vertical', 1280, 720, 1080, 1920],
+    ['camara apaisada en pantalla apaisada', 1280, 720, 1920, 1080],
+    ['misma relacion exacta', 1280, 720, 2560, 1440],
+    ['pantalla cuadrada', 1280, 720, 1000, 1000],
+    ['camara vertical en pantalla apaisada', 720, 1280, 1920, 1080],
+    ['camara 1080p en pantalla vertical', 1920, 1080, 1080, 1920],
+  ];
+
+  const recorteDe = (vAncho, vAlto, ancho, alto) =>
+    calcularRecorteVisible(
+      vAncho,
+      vAlto,
+      calcularRectanguloVideo(vAncho, vAlto, ancho, alto),
+      ancho,
+      alto,
+    );
+
+  // ESTA es la prueba que importa. Analizar un recorte y mapear los puntos sobre
+  // la pantalla entera tiene que dar exactamente el mismo pixel que analizar el
+  // cuadro completo y mapearlo sobre el rectangulo dibujado. Si los dos caminos
+  // se separan, los puntos se van de la cara — ya nos paso una vez.
+  it.each(casos)('el recorte es el inverso exacto del rectangulo dibujado: %s', (_, vA, vB, ancho, alto) => {
+    const rectangulo = calcularRectanguloVideo(vA, vB, ancho, alto);
+    const r = recorteDe(vA, vB, ancho, alto);
+
+    for (const u of [0, 0.25, 0.5, 0.75, 1]) {
+      for (const v of [0, 0.5, 1]) {
+        // Un punto (u, v) normalizado DENTRO del recorte, pasado a normalizado
+        // del cuadro completo.
+        const uCompleto = (r.sx + u * r.sAncho) / vA;
+        const vCompleto = (r.sy + v * r.sAlto) / vB;
+
+        // Camino viejo: analizar el cuadro entero y mapear sobre el rectangulo
+        // dibujado. Camino nuevo: analizar el recorte y mapear sobre la pantalla
+        // entera, o sea (u * ancho, v * alto). Tienen que dar el mismo pixel.
+        expect(rectangulo.x + uCompleto * rectangulo.ancho).toBeCloseTo(u * ancho, 6);
+        expect(rectangulo.y + vCompleto * rectangulo.alto).toBeCloseTo(v * alto, 6);
+      }
+    }
+  });
+
+  it.each(casos)('nunca se sale del cuadro de la camara: %s', (_, vA, vB, ancho, alto) => {
+    const r = recorteDe(vA, vB, ancho, alto);
+
+    expect(r.sx).toBeGreaterThanOrEqual(0);
+    expect(r.sy).toBeGreaterThanOrEqual(0);
+    expect(r.sAncho).toBeGreaterThan(0);
+    expect(r.sAlto).toBeGreaterThan(0);
+    expect(r.sx + r.sAncho).toBeLessThanOrEqual(vA + 0.001);
+    expect(r.sy + r.sAlto).toBeLessThanOrEqual(vB + 0.001);
+  });
+
+  // El motivo de existir de todo esto: con una camara apaisada en una pantalla
+  // vertical, dos tercios del ancho de la camara no se ven nunca. Analizarlos
+  // gasta la resolucion del modelo en pixeles que nadie mira, y es lo que decide
+  // si una cara lejana se encuentra.
+  it('descarta lo que la pantalla vertical nunca muestra', () => {
+    const r = recorteDe(1280, 720, 1080, 1920);
+
+    expect(r.sAlto).toBeCloseTo(720);
+    expect(r.sAncho).toBeCloseTo(405, 0);
+    expect(r.sx).toBeCloseTo(437.5, 0);
+    // La cara pasa de ocupar un tercio del ancho analizado a ocuparlo entero.
+    expect(1280 / r.sAncho).toBeGreaterThan(3);
+  });
+
+  it('con la misma relacion no recorta nada', () => {
+    const r = recorteDe(1280, 720, 2560, 1440);
+    expect(r).toEqual({ sx: 0, sy: 0, sAncho: 1280, sAlto: 720 });
+  });
+
+  it('sobrevive a un video que todavia no reporta tamaño', () => {
+    const r = calcularRecorteVisible(0, 0, { x: 0, y: 0, ancho: 1080, alto: 1920 }, 1080, 1920);
+    expect(r).toBeNull();
   });
 });

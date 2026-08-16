@@ -72,7 +72,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `efectos.js` | Sistema de partículas por carrera (engranajes, chispas, código binario, fórmulas matemáticas, planos técnicos, burbujas). |
 | `imagenes.js` | Gestor y precargador de imágenes PNG con fallback elegante. |
 | `contenido.js` | Carga y valida el archivo `contenido/carreras.json` al inicio del sistema. |
-| `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Efecto partículas → Niebla → Objetos → Textos responsivos). |
+| `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Efecto partículas → Objetos → Señal de manos → Niebla → Textos responsivos). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza). |
 | `operacion.js` | Atajos de teclado (incluida `TECLAS_CARRERA`, la fila de números completa: una tecla por carrera), panel HUD de métricas/FPS y recarga periódica de mantenimiento. |
 
 ---
@@ -82,7 +82,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la experiencia:
 
 ```
-      ┌──────────── sin rostro 4,5 s, o tope de sesión ────────────┐
+      ┌───────────── sin rostro 8 s, o tope de sesión ─────────────┐
       │                                                            │
       ▼          rostro continuo                    4 s            │
 ┌───────────┐        2 s        ┌───────────┐                ┌───────────┐
@@ -90,11 +90,21 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
 └─────▲─────┘                   └───────────┘  se elige la   └─────┬─────┘
       │                                          carrera           │
       │ 3 s                                                        ▼ 4 s
-┌─────┴─────┐  ausencia 4,5 s   ┌───────────┐                ┌───────────┐
+┌─────┴─────┐   ausencia 8 s    ┌───────────┐                ┌───────────┐
 │  CIERRE   │◄──────────────────┤  ESCENA   │◄───────────────┤REVELACION │
-└───────────┘  o tope 75 s      └───────────┘  se abre la    └───────────┘
+└───────────┘  o tope 180 s     └───────────┘  se abre la    └───────────┘
                                                  niebla
 ```
+
+Los tiempos de ausencia se suman a `presencia.msParaSalir` (2 s), que es el
+colchón que absorbe los huecos de la detección **antes** de que lleguen a la
+máquina: la tolerancia real ronda los diez segundos. Está calibrado así a
+propósito — cortarle la escena a alguien que no se movió es el peor error
+posible, y con márgenes cortos un rostro intermitente reiniciaba una y otra vez
+los dos segundos continuos del enganche, abriendo y cerrando las nubes sin llegar
+nunca al sorteo. `tests/integracion/presencia.test.js` vigila las dos puntas: que
+no corte con alguien sentado, y que quien se va de verdad libere el espejo en
+menos de veinte segundos.
 
 El único evento que sale de la máquina es `{ tipo: 'entra', estado }`. La carrera
 sorteada y el número de sesión viajan en la salida (`salida.carrera`,
@@ -135,6 +145,21 @@ Para garantizar la solidez de la instalación, el dibujo de un objeto sigue una 
 ---
 
 ## 6. Garantías de Rendimiento y Presupuesto
+
+### Los detectores miran el recorte, no la cámara
+
+La cámara es apaisada (16:9) y el espejo es vertical (9:16), así que el video se dibuja *cubriendo*: entra entero de alto y le sobra muchísimo de ancho. Con 1280×720 en 1080×1920, **sólo se ve un tercio del ancho de la cámara**; los otros dos tercios no los mira nadie, nunca.
+
+MediaPipe achica lo que le entra a un cuadro chico y fijo antes de correr el modelo. Darle el cuadro completo gastaba dos tercios de esa resolución en píxeles invisibles, y eso —no la resolución de la cámara— es lo que ponía el techo a la distancia de reconocimiento. Subir la cámara a 1080p no habría cambiado nada: el modelo achica igual.
+
+Por eso `main.js` mantiene un lienzo de análisis con exactamente el recorte visible (`CONFIG.deteccion.altoAnalisis`) y se lo pasa a los tres detectores. Una cara lejana pasa a ocupar el triple del ancho analizado. Dos consecuencias más:
+
+- El mapeo se simplifica: los puntos vienen normalizados sobre el recorte, que es la pantalla, así que el rectángulo de mapeo es la pantalla entera.
+- Una mano fuera de cuadro deja de generar un atractor invisible: si no se ve, no interactúa.
+
+El recorte se prepara **una vez por cuadro** y sólo si algún detector va a correr.
+
+### Presupuestos
 - Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**. Las manos además sólo se buscan durante `REVELACION` y `ESCENA`, que es cuando hay algo con qué interactuar: es el detector más caro del cuadro.
 - Renderizado con tope de **60 FPS** (`CONFIG.render.fpsMaximo`). En una pantalla de 144 o 240 Hz, dibujar todos los cuadros es calor y consumo sin beneficio visible.
 - Presupuesto máximo de objetos en pantalla: `CONFIG.objetos.maximo` (**24** por defecto). Los más antiguos se descartan y todos se desvanecen al cumplir `vidaMs`. El rendimiento no depende de cuánto tiempo lleve alguien sentado.

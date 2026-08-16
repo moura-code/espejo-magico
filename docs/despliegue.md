@@ -77,7 +77,9 @@ Antes de abrir el stand al público:
 2. Sentarse en el sillón del visitante frente al espejo.
 3. Verificar que la niebla se agite durante el sorteo y se aparte hacia los costados al revelar la carrera.
 4. Confirmar que los objetos caigan y respondan al movimiento de la cabeza y las manos.
-5. Levantarse del sillón y verificar que a los pocos segundos (`ausenciaParaCortar`, 4,5 s) la escena se cierre y las nubes vuelvan a cubrir el espejo.
+5. **Sentarse quieto un par de minutos.** La escena tiene que seguir siendo suya: si se corta sola, hay que revisar `CONFIG.tiempos.sesionMaxima` y `CONFIG.presencia.msParaSalir`.
+6. Probar desde el fondo del stand, no sólo de cerca: así se calibra a qué distancia poner el sillón.
+7. Levantarse del sillón y verificar que a los pocos segundos (`ausenciaParaCortar` más `msParaSalir`, unos diez) la escena se cierre y las nubes vuelvan a cubrir el espejo.
 
 ---
 

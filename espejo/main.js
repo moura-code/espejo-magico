@@ -30,6 +30,7 @@ import { crearEfecto, efectosDisponibles } from './efectos.js';
 import { figurasDisponibles } from './figuras.js';
 import {
   calcularDisposicion,
+  calcularRecorteVisible,
   calcularRectanguloVideo,
   dibujarVideoEspejado,
   dibujarObjetos,
@@ -58,6 +59,15 @@ function ajustar() {
 }
 ajustar();
 window.addEventListener('resize', ajustar);
+
+// Lienzo de analisis. Los detectores NO miran el cuadro completo de la camara:
+// miran exactamente el pedazo que se ve en pantalla, redibujado aca. Con una
+// camara apaisada en un espejo vertical eso es un tercio del ancho, y ese tercio
+// es lo unico que el visitante ve: analizar el resto gastaba dos tercios de la
+// resolucion del modelo en pixeles invisibles, y es lo que ponia el limite de a
+// que distancia se reconoce una cara.
+const lienzoAnalisis = document.createElement('canvas');
+const ctxAnalisis = lienzoAnalisis.getContext('2d');
 
 function aviso(texto) {
   ctx.fillStyle = '#101418';
@@ -218,6 +228,41 @@ function aparecerObjeto(definicion, ahora) {
   );
 }
 
+/**
+ * Copia al lienzo de analisis lo que se ve en pantalla. Devuelve el lienzo, o
+ * null si el video todavia no reporta tamaño.
+ */
+function prepararAnalisis(video, rectangulo) {
+  const recorte = calcularRecorteVisible(
+    video.videoWidth,
+    video.videoHeight,
+    rectangulo,
+    disposicion.ancho,
+    disposicion.alto,
+  );
+  if (!recorte) return null;
+
+  const alto = CONFIG.deteccion.altoAnalisis;
+  const ancho = Math.max(1, Math.round((alto * recorte.sAncho) / recorte.sAlto));
+  if (lienzoAnalisis.width !== ancho || lienzoAnalisis.height !== alto) {
+    lienzoAnalisis.width = ancho;
+    lienzoAnalisis.height = alto;
+  }
+
+  ctxAnalisis.drawImage(
+    video,
+    recorte.sx,
+    recorte.sy,
+    recorte.sAncho,
+    recorte.sAlto,
+    0,
+    0,
+    ancho,
+    alto,
+  );
+  return lienzoAnalisis;
+}
+
 // ---------- bucle ----------
 let anterior = performance.now();
 let ultimaDeteccion = 0;
@@ -257,7 +302,10 @@ function cuadro(ahora) {
   const camaraLista = camara.obtener();
   const video = camaraLista?.video ?? null;
 
-  // El MISMO rectangulo para dibujar el video y para mapear el rostro.
+  // Donde se dibuja el video. De aca sale tambien el recorte que se analiza, y
+  // por eso los puntos caen sobre la cara: los dos caminos —lo que se ve y lo
+  // que se analiza— salen del mismo rectangulo. Si alguno se calcula por su
+  // cuenta, los marcadores se van de la cara. Ya nos paso una vez.
   const rectangulo = video
     ? calcularRectanguloVideo(
         video.videoWidth,
@@ -268,23 +316,47 @@ function cuadro(ahora) {
     : { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
 
   // --- deteccion ---
-  if (ahora - ultimaDeteccion >= intervaloDeteccion) {
+  // Las manos corren en su propio reloj, mas rapido que la cara: se mueven diez
+  // veces mas rapido y a 22 cuadros por segundo el circulo va siempre atras de la
+  // mano de verdad. Solo se buscan cuando hay algo con que interactuar, porque es
+  // el detector mas caro del cuadro.
+  const poseSirve = detectorDePose && video && modo !== 'demo';
+  const manosSirven =
+    detectorDeManos &&
+    video &&
+    modo !== 'demo' &&
+    (estadoAnterior === ESTADOS.REVELACION || estadoAnterior === ESTADOS.ESCENA);
+
+  const tocaRostro = ahora - ultimaDeteccion >= intervaloDeteccion;
+  const tocaPose = poseSirve && ahora - ultimaDeteccionPose >= intervaloPose;
+  const tocaManos = manosSirven && ahora - ultimaDeteccionManos >= intervaloManos;
+
+  // El recorte se prepara UNA vez por cuadro y solo si alguno de los tres va a
+  // correr: el drawImage no es gratis. Como contiene exactamente lo que se ve en
+  // pantalla, los puntos que devuelven los detectores ya estan en coordenadas de
+  // pantalla y el rectangulo de mapeo es la pantalla entera.
+  const rectDeteccion = { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
+  const analisis =
+    video && modo !== 'demo' && (tocaRostro || tocaPose || tocaManos)
+      ? prepararAnalisis(video, rectangulo)
+      : null;
+
+  if (tocaRostro) {
     ultimaDeteccion = ahora;
 
     crudoRostro =
       modo === 'demo'
         ? sintetica.detectar(ahora, disposicion)
-        : video
-          ? detector.detectar(video, ahora, rectangulo)
+        : analisis
+          ? detector.detectar(analisis, ahora, rectDeteccion)
           : null;
 
     rostro = crudoRostro ? filtro.filtrar(crudoRostro) : null;
   }
 
-  const poseSirve = detectorDePose && video && modo !== 'demo';
-  if (poseSirve && ahora - ultimaDeteccionPose >= intervaloPose) {
+  if (tocaPose && analisis) {
     ultimaDeteccionPose = ahora;
-    pose = detectorDePose.detectar(video, ahora, rectangulo);
+    pose = detectorDePose.detectar(analisis, ahora, rectDeteccion);
   } else if (!poseSirve) {
     pose = null;
   }
@@ -301,19 +373,9 @@ function cuadro(ahora) {
     pose = null;
   }
 
-  // Las manos corren en su propio reloj, mas rapido que la cara: se mueven mucho
-  // mas rapido y a 22 cuadros por segundo el circulo va siempre atras de la mano
-  // de verdad. Solo se buscan cuando hay algo con que interactuar, porque es el
-  // detector mas caro del cuadro.
-  const manosSirven =
-    detectorDeManos &&
-    video &&
-    modo !== 'demo' &&
-    (estadoAnterior === ESTADOS.REVELACION || estadoAnterior === ESTADOS.ESCENA);
-
-  if (manosSirven && ahora - ultimaDeteccionManos >= intervaloManos) {
+  if (tocaManos && analisis) {
     ultimaDeteccionManos = ahora;
-    manos = detectorDeManos.detectar(video, ahora, rectangulo);
+    manos = detectorDeManos.detectar(analisis, ahora, rectDeteccion);
     // La copia filtrada es solo para el iman: corta el temblor de la deteccion
     // sin meterle retardo al manotazo, que sigue usando la palma cruda.
     manosSuaves = filtroDeManos.filtrar(manos, ahora);
@@ -441,14 +503,16 @@ function cuadro(ahora) {
   // mapeo esta bien; si estan corridos, el rectangulo del video y el del mapeo
   // se separaron.
   if (verMalla && modo !== 'demo') {
-    dibujarPersona(ctx, pose, rostro, rectangulo, carrera?.color ?? '#FFD23F');
+    // Los puntos crudos vienen normalizados sobre el RECORTE, no sobre el cuadro
+    // de la camara, asi que se mapean sobre la pantalla entera.
+    dibujarPersona(ctx, pose, rostro, rectDeteccion, carrera?.color ?? '#FFD23F');
     const puntos = detector.puntosCrudos();
     if (puntos) {
       ctx.fillStyle = 'rgba(80,200,255,0.75)';
       for (const punto of puntos) {
         ctx.fillRect(
-          rectangulo.x + (1 - punto.x) * rectangulo.ancho - 1,
-          rectangulo.y + punto.y * rectangulo.alto - 1,
+          rectDeteccion.x + (1 - punto.x) * rectDeteccion.ancho - 1,
+          rectDeteccion.y + punto.y * rectDeteccion.alto - 1,
           2.5,
           2.5,
         );
@@ -464,8 +528,8 @@ function cuadro(ahora) {
     for (const mano of manos) {
       for (const punto of mano.puntos ?? []) {
         ctx.fillRect(
-          rectangulo.x + (1 - punto.x) * rectangulo.ancho - 2,
-          rectangulo.y + punto.y * rectangulo.alto - 2,
+          rectDeteccion.x + (1 - punto.x) * rectDeteccion.ancho - 2,
+          rectDeteccion.y + punto.y * rectDeteccion.alto - 2,
           4,
           4,
         );

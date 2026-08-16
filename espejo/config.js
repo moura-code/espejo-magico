@@ -20,8 +20,20 @@ export const CONFIG = {
     revelacion: 4000,
     cierre: 3000,
     enfriamiento: 2000,
-    ausenciaParaCortar: 4500,
-    sesionMaxima: 75000,
+
+    // Cuanto tiene que faltar la presencia para dar la sesion por terminada.
+    // Generoso a proposito: la deteccion de alguien sentado lejos entra y sale,
+    // y cortarle la escena a quien no se movio es el peor error posible. Sumado
+    // a presencia.msParaSalir da unos diez segundos de tolerancia real. Quien se
+    // va de verdad libera el espejo igual en menos de veinte segundos, contando
+    // el cierre (tests/integracion/presencia.test.js vigila las dos puntas).
+    ausenciaParaCortar: 8000,
+
+    // Red de seguridad, no temporizador de la experiencia: existe por si la
+    // deteccion se traba en verdadero (un poster, el respaldo de una silla) y el
+    // espejo se queda en escena para siempre. Con 75 s le cortaba la escena a
+    // quien la estaba disfrutando, que es justo lo que no tiene que hacer.
+    sesionMaxima: 180000,
   },
 
   // Cuando se considera que hay alguien sentado.
@@ -29,7 +41,13 @@ export const CONFIG = {
   // cada vez que alguien gira la cabeza.
   presencia: {
     msParaEntrar: 270, // seis detecciones seguidas a 22 cuadros por segundo
-    msParaSalir: 800, // mayor margen para absorber contraluz, giros de cabeza o personas pasando
+
+    // Este numero es el que decide si el espejo se siente estable o nervioso.
+    // Es el colchon que absorbe los huecos de la deteccion ANTES de que lleguen
+    // a la maquina de estados. Con 800 ms un rostro intermitente reiniciaba una
+    // y otra vez los dos segundos continuos que pide el enganche: las nubes se
+    // abrian y se cerraban sin llegar nunca al sorteo.
+    msParaSalir: 2000,
   },
 
   // Filtro exponencial. Mas bajo = mas suave y mas lento.
@@ -45,6 +63,15 @@ export const CONFIG = {
     altoCamara: 720,
     factorRadio: 1.6,
     ventanaConfianza: 30,
+
+    // Alto, en pixeles, del lienzo que se le da a MediaPipe. No es el cuadro de
+    // la camara: es solo el pedazo que se ve en pantalla (ver
+    // calcularRecorteVisible en escena.js). Con una camara apaisada en una
+    // pantalla vertical, dos tercios del ancho no se ven nunca, y analizarlos
+    // gastaba la resolucion del modelo en pixeles que nadie mira. Subirlo no
+    // agranda la cara dentro del recorte: lo que da alcance es el recorte, no
+    // este numero.
+    altoAnalisis: 720,
 
     // Centros de iris. Salen de FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS y
     // FACE_LANDMARKS_RIGHT_IRIS del propio paquete de MediaPipe, no de memoria.

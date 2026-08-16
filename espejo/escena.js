@@ -29,9 +29,10 @@ export function calcularDisposicion(ancho, alto) {
  * Rectangulo donde entra el video cubriendo toda la pantalla sin deformarse.
  * Puede sobresalir: lo que queda afuera se recorta.
  *
- * IMPORTANTE: este mismo rectangulo tiene que usarse para mapear los puntos del
- * rostro. Si el video se dibuja en un rectangulo y los puntos se calculan sobre
- * otro, los marcadores se van de la cara. Ya nos paso una vez.
+ * IMPORTANTE: este rectangulo es el origen de TODO lo demas. Con el se dibuja el
+ * video y de el sale el recorte que se analiza (calcularRecorteVisible), que es
+ * lo que define donde caen los puntos del rostro. Si alguno de los dos caminos
+ * se calcula por su cuenta, los marcadores se van de la cara. Ya nos paso una vez.
  */
 export function calcularRectanguloVideo(videoAncho, videoAlto, ancho, alto) {
   if (!videoAncho || !videoAlto) return { x: 0, y: 0, ancho, alto };
@@ -47,6 +48,43 @@ export function calcularRectanguloVideo(videoAncho, videoAlto, ancho, alto) {
     y: (alto - altoDibujo) / 2,
     ancho: anchoDibujo,
     alto: altoDibujo,
+  };
+}
+
+/**
+ * Que parte del cuadro de la camara se ve realmente en pantalla, en pixeles del
+ * video. Es el inverso exacto de calcularRectanguloVideo.
+ *
+ * El espejo es vertical y la camara apaisada, asi que el video se dibuja
+ * "cubriendo": entra entero de alto y le sobra muchisimo de ancho, que se va
+ * fuera de la pantalla. Con 1280x720 en 1080x1920 se ve apenas un tercio del
+ * ancho de la camara.
+ *
+ * Eso importa para detectar, no solo para dibujar: MediaPipe achica lo que le
+ * entra a un cuadro chico y fijo, asi que analizar el cuadro completo gasta dos
+ * tercios de esa resolucion en pixeles que nadie mira. Analizando solo el
+ * recorte, una cara lejana ocupa el triple y el modelo la encuentra desde mucho
+ * mas lejos.
+ *
+ * Devuelve null si el video todavia no reporta tamaño.
+ */
+export function calcularRecorteVisible(videoAncho, videoAlto, rectangulo, ancho, alto) {
+  if (!videoAncho || !videoAlto) return null;
+
+  const pixelesPorX = videoAncho / rectangulo.ancho;
+  const pixelesPorY = videoAlto / rectangulo.alto;
+
+  // El rectangulo dibujado siempre cubre la pantalla, asi que el recorte cae
+  // dentro del cuadro. Se acota igual: un redondeo no puede terminar pidiendole
+  // al lienzo pixeles que no existen.
+  const sx = Math.min(Math.max(0, -rectangulo.x * pixelesPorX), videoAncho);
+  const sy = Math.min(Math.max(0, -rectangulo.y * pixelesPorY), videoAlto);
+
+  return {
+    sx,
+    sy,
+    sAncho: Math.min(ancho * pixelesPorX, videoAncho - sx),
+    sAlto: Math.min(alto * pixelesPorY, videoAlto - sy),
   };
 }
 

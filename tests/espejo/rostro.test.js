@@ -216,6 +216,14 @@ describe('crearDetector', () => {
     expect(detector.detectar({ videoWidth: 0 }, 0, { ancho: 1000, alto: 500 })).toBeNull();
   });
 
+  // main.js ya no le pasa el <video>: le pasa un lienzo con el recorte de lo que
+  // se ve en pantalla, que es lo que da alcance. Un lienzo no tiene videoWidth.
+  it('acepta un lienzo, no solo un elemento de video', () => {
+    const detector = crearDetector({ detectorCrudo: crudoCon([unaCara()]), ...INDICES });
+    const rostro = detector.detectar({ width: 405, height: 720 }, 0, { ancho: 1000, alto: 500 });
+    expect(rostro).not.toBeNull();
+  });
+
   it('expone los puntos crudos para diagnostico', () => {
     const detector = crearDetector({ detectorCrudo: crudoCon([unaCara()]), ...INDICES });
     expect(detector.cantidadDePuntos()).toBe(0);
