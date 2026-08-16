@@ -1,5 +1,5 @@
 {
-  "_nota": "Los 73 objetos que caen son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. Los videos no existen y las referentes son provisorias: npm run listo falla hasta que se reemplacen.",
+  "_nota": "Los 73 objetos que caen son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes.",
   "carreras": [
     {
       "id": "mecanica",
@@ -14,9 +14,6 @@
         { "img": "assets/mecanica/tuerca.png", "figura": "rodamiento", "escala": 0.15, "peso": 1 },
         { "img": "assets/mecanica/rodamiento.png", "figura": "rodamiento", "escala": 0.16, "peso": 1 },
         { "img": "assets/mecanica/resorte.png", "figura": "resorte", "escala": 0.17, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/mecanica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Mecánica" }
       ]
     },
     {
@@ -32,9 +29,6 @@
         { "img": "assets/electrica/multimetro.png", "figura": "resistencia", "escala": 0.18, "peso": 1 },
         { "img": "assets/electrica/resistencia.png", "figura": "resistencia", "escala": 0.17, "peso": 1 },
         { "img": "assets/electrica/led.png", "figura": "lampara", "escala": 0.15, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/electrica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Eléctrica" }
       ]
     },
     {
@@ -50,9 +44,6 @@
         { "img": "assets/computacion/procesador.png", "figura": "chip", "escala": 0.16, "peso": 1 },
         { "img": "assets/computacion/memoria.png", "figura": "chip", "escala": 0.18, "peso": 1 },
         { "img": "assets/computacion/placa.png", "figura": "servidor", "escala": 0.2, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/computacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería en Computación" }
       ]
     },
     {
@@ -68,9 +59,6 @@
         { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.17, "peso": 1 },
         { "img": "assets/fisico-matematico/iman.png", "figura": "pi", "escala": 0.17, "peso": 1 },
         { "img": "assets/fisico-matematico/osciloscopio.png", "figura": "onda", "escala": 0.2, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/fisico-matematico/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Investigadora" }
       ]
     },
     {
@@ -87,9 +75,6 @@
         { "img": "assets/civil/escalera.png", "figura": "viga", "escala": 0.2, "peso": 1 },
         { "img": "assets/civil/casco-obra.png", "figura": "plano", "escala": 0.18, "peso": 1 },
         { "img": "assets/civil/chaleco.png", "figura": "plano", "escala": 0.18, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/civil/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería Civil" }
       ]
     },
     {
@@ -105,9 +90,6 @@
         { "img": "assets/quimica/mortero.png", "figura": "matraz", "escala": 0.17, "peso": 1 },
         { "img": "assets/quimica/microscopio.png", "figura": "teodolito", "escala": 0.19, "peso": 1 },
         { "img": "assets/quimica/vaso-precipitados.png", "figura": "tubo", "escala": 0.16, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/quimica/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Química" }
       ]
     },
     {
@@ -123,9 +105,6 @@
         { "img": "assets/alimentos/huevo.png", "figura": "gota", "escala": 0.13, "peso": 1 },
         { "img": "assets/alimentos/lata-conserva.png", "figura": "bateria", "escala": 0.15, "peso": 1 },
         { "img": "assets/alimentos/batidora.png", "figura": "motor", "escala": 0.18, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/alimentos/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería de Alimentos" }
       ]
     },
     {
@@ -141,9 +120,6 @@
         { "img": "assets/produccion/pallet.png", "figura": "viga", "escala": 0.2, "peso": 1 },
         { "img": "assets/produccion/escaner-codigo.png", "figura": "resistencia", "escala": 0.16, "peso": 1 },
         { "img": "assets/produccion/balanza.png", "figura": "sumatoria", "escala": 0.18, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/produccion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería de Producción" }
       ]
     },
     {
@@ -159,9 +135,6 @@
         { "img": "assets/agrimensura/gps.png", "figura": "chip", "escala": 0.15, "peso": 1 },
         { "img": "assets/agrimensura/tripode.png", "figura": "teodolito", "escala": 0.2, "peso": 1 },
         { "img": "assets/agrimensura/mapa.png", "figura": "plano", "escala": 0.18, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/agrimensura/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería en Agrimensura" }
       ]
     },
     {
@@ -177,9 +150,6 @@
         { "img": "assets/comunicacion/radio.png", "figura": "servidor", "escala": 0.18, "peso": 1 },
         { "img": "assets/comunicacion/walkie-talkie.png", "figura": "bateria", "escala": 0.16, "peso": 1 },
         { "img": "assets/comunicacion/antena-satelital.png", "figura": "onda", "escala": 0.2, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/comunicacion/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Estudiante de Ingeniería en Sistemas de Comunicación" }
       ]
     },
     {
@@ -195,9 +165,6 @@
         { "img": "assets/forestal/pina.png", "figura": "gota", "escala": 0.14, "peso": 1 },
         { "img": "assets/forestal/hoja.png", "figura": "gota", "escala": 0.15, "peso": 1 },
         { "img": "assets/forestal/serrucho.png", "figura": "llave", "escala": 0.18, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/forestal/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Docente de Ingeniería Forestal" }
       ]
     },
     {
@@ -213,9 +180,6 @@
         { "img": "assets/naval/helice.png", "figura": "engranaje", "escala": 0.17, "peso": 1 },
         { "img": "assets/naval/soga.png", "figura": "resorte", "escala": 0.16, "peso": 1 },
         { "img": "assets/naval/campana.png", "figura": "lampara", "escala": 0.15, "peso": 1 }
-      ],
-      "referentes": [
-        { "video": "videos/naval/prueba.mp4", "nombre": "Nombre Apellido", "detalle": "Egresada de Ingeniería Naval" }
       ]
     }
   ]

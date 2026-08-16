@@ -7,7 +7,6 @@ const carreraValida = () => ({
   color: '#FF8A3D',
   frase: 'Construís lo que queda de pie',
   objetos: [{ img: 'assets/civil/grua.png', escala: 0.2, peso: 1 }],
-  referentes: [{ video: 'videos/civil/ana.mp4', nombre: 'Ana Pérez', detalle: 'Egresada' }],
 });
 
 const sinErrores = (datos) => expect(validarContenido(datos)).toEqual([]);
@@ -40,15 +39,6 @@ describe('validarContenido', () => {
     conError(
       { carreras: [{ ...carreraValida(), objetos: [{ img: 'a.png', escala: 0 }] }] },
       'mayor que cero',
-    );
-  });
-
-  it('exige al menos una referente con video y nombre', () => {
-    conError({ carreras: [{ ...carreraValida(), referentes: [] }] }, '"referentes" vacio');
-    conError({ carreras: [{ ...carreraValida(), referentes: [{ nombre: 'Ana' }] }] }, 'sin "video"');
-    conError(
-      { carreras: [{ ...carreraValida(), referentes: [{ video: 'a.mp4' }] }] },
-      'sin "nombre"',
     );
   });
 

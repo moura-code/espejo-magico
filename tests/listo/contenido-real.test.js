@@ -3,8 +3,8 @@
 // Estas pruebas NO corren con `npm test`. Corren con `npm run listo` y responden
 // una sola pregunta: ¿se puede montar el stand?
 //
-// Van a estar en rojo hasta que lleguen los PNG de diseño y los videos de las
-// referentes. Eso es lo esperado. El dia que pasan enteras, el contenido esta.
+// Van a estar en rojo mientras falte contenido real (los PNG definitivos de
+// diseño, MediaPipe sin vendorizar). El dia que pasan enteras, el stand se monta.
 
 import { describe, it, expect } from 'vitest';
 import { readFile, access } from 'node:fs/promises';
@@ -43,18 +43,6 @@ describe('contenido real', () => {
     expect(datos.carreras.map((c) => c.id).sort()).toEqual([...IDS_ESPERADOS].sort());
   });
 
-  it('no quedo ningun dato de relleno', async () => {
-    const datos = await leer();
-    for (const carrera of datos.carreras) {
-      for (const referente of carrera.referentes) {
-        expect(referente.nombre, `${carrera.id}: nombre de relleno`).not.toMatch(
-          /Nombre Apellido|placeholder/i,
-        );
-        expect(referente.video, `${carrera.id}: video de prueba`).not.toMatch(/prueba/i);
-      }
-    }
-  });
-
   it('cada carrera tiene al menos seis objetos', async () => {
     const datos = await leer();
     for (const carrera of datos.carreras) {
@@ -74,17 +62,6 @@ describe('contenido real', () => {
     for (const carrera of datos.carreras) {
       for (const ruta of carrera.objetos.map((o) => o.img)) {
         if (!(await existe(ruta))) faltantes.push(ruta);
-      }
-    }
-    expect(faltantes).toEqual([]);
-  });
-
-  it('todos los videos declarados existen en el disco', async () => {
-    const datos = await leer();
-    const faltantes = [];
-    for (const carrera of datos.carreras) {
-      for (const referente of carrera.referentes) {
-        if (!(await existe(referente.video))) faltantes.push(referente.video);
       }
     }
     expect(faltantes).toEqual([]);

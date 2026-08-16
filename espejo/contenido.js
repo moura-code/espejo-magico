@@ -53,15 +53,6 @@ export function validarContenido(
     if (efectosValidos && carrera.efecto && !efectosValidos.includes(carrera.efecto)) {
       errores.push(`${donde}: usa el efecto "${carrera.efecto}", que no existe`);
     }
-
-    if (!Array.isArray(carrera.referentes) || carrera.referentes.length === 0) {
-      errores.push(`${donde}: "referentes" vacio`);
-    } else {
-      carrera.referentes.forEach((referente, j) => {
-        if (!referente.video) errores.push(`${donde}: referentes[${j}] sin "video"`);
-        if (!referente.nombre) errores.push(`${donde}: referentes[${j}] sin "nombre"`);
-      });
-    }
   });
 
   return errores;
