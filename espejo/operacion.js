@@ -117,7 +117,6 @@ export function instalarOperacion({
         `apertura    ${espejo.manos().map((m) => m.apertura.toFixed(1)).join('  ') || '-'}`,
         `radio mano  ${espejo.manos().map((m) => m.radio.toFixed(0)).join('  ') || '-'}`,
         `interaccion ${espejo.interaccionDeManos()}`,
-        `bus         ${espejo.bus.conectado() ? 'conectado' : 'CORTADO'}`,
         `objetos     ${espejo.pool.vivos().length}`,
         `png faltan  ${espejo.banco.faltantes().length}`,
         ``,

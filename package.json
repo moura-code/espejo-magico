@@ -12,9 +12,6 @@
     "generar-pngs": "node herramientas/generar-pngs.mjs",
     "prepare": "sh scripts/setup-git-hooks.sh || echo hooks no activados"
   },
-  "dependencies": {
-    "ws": "^8.21.1"
-  },
   "devDependencies": {
     "@mediapipe/tasks-vision": "^1.0.0",
     "vitest": "^4.1.10"

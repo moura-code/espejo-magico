@@ -6,7 +6,7 @@ const carreraValida = () => ({
   nombre: 'Ingeniería Civil',
   color: '#FF8A3D',
   frase: 'Construís lo que queda de pie',
-  objetos: [{ img: 'assets/civil/grua.png', escala: 0.2, peso: 1 }],
+  objetos: [{ img: 'assets/civil/grua.png', escala: 0.2 }],
 });
 
 const sinErrores = (datos) => expect(validarContenido(datos)).toEqual([]);

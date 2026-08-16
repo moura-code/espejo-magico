@@ -1,6 +1,6 @@
 # Espejo Mágico — Guía de Contenido y Diseño
 
-Esta guía explica cómo agregar, editar o reemplazar carreras, objetos, referentes en tablets y efectos visuales en el **Espejo Mágico**.
+Esta guía explica cómo agregar, editar o reemplazar carreras, objetos, figuras vectoriales y efectos visuales en el **Espejo Mágico**.
 
 Toda la definición de contenido se gestiona desde **`contenido/carreras.json`**. Agregar o cambiar una carrera no requiere modificar código en JavaScript.
 
@@ -18,12 +18,8 @@ El catálogo contiene doce carreras. Cada carrera dentro de la lista `"carreras"
   "frase": "Diseño de sistemas de cómputo, del hardware al software",
   "efecto": "codigo",
   "objetos": [
-    { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2, "peso": 1 },
-    { "img": "assets/computacion/procesador.png", "figura": "chip", "escala": 0.18, "peso": 1 }
-  ],
-  "referentes": [
-    { "video": "videos/computacion/ana.mp4", "nombre": "Ana Rodríguez", "detalle": "Egresada de Ingeniería en Computación" },
-    { "video": "videos/computacion/lucia.mp4", "nombre": "Lucía Fernández", "detalle": "Docente e Investigadora" }
+    { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2 },
+    { "img": "assets/computacion/procesador.png", "figura": "chip", "escala": 0.18 }
   ]
 }
 ```
@@ -40,43 +36,21 @@ El catálogo contiene doce carreras. Cada carrera dentro de la lista `"carreras"
 | `frase` | `string` | Frase descriptiva institucional que acompaña al nombre de la carrera en pantalla. |
 | `efecto` | `string` | Nombre del efecto visual de fondo (`engranajes`, `burbujas`, `chispas`, `codigo`, `planos`, `formulas`). |
 | `objetos` | `array` | Lista de 6 o más elementos flotantes/caóticos característicos de la carrera. |
-| `referentes` | `array` | Lista de videos e información para proyectar en las tablets periféricas. |
 
 ---
 
 ## 3. Objetos Caen y Flotan
 
-Cada carrera declara 6 objetos que caen desde la parte superior, rebotan físicamente contra la cabeza y se atraen magnéticamente a las manos.
+Cada carrera declara 6 objetos o más (Civil tiene 7) que caen desde la parte superior, rebotan físicamente contra la cabeza y se atraen magnéticamente a las manos.
 
 ### Campos de cada objeto:
 - **`img`**: Ruta al PNG transparente recortado (ej: `assets/mecanica/engranaje.png`).
 - **`figura`**: Nombre de la figura vectorial de reserva en `espejo/figuras.js` (ej: `engranaje`).
-- **`escala`**: Factor de tamaño relativo respecto al ancho de la pantalla (típicamente entre `0.14` y `0.24`).
-- **`peso`**: Peso físico relativo para el cálculo de gravedad y rebotes (por defecto `1`).
+- **`escala`**: Factor de tamaño relativo respecto al lado corto de la pantalla (típicamente entre `0.13` y `0.22`). Es lo único que distingue el tamaño de un objeto de otro: la física los trata a todos con la misma masa.
 
 ---
 
-## 4. Videos de Referentes para Tablets
-
-Las tablets distribuidas alrededor del espejo muestran a mujeres referentes (estudiantes, docentes, investigadoras, egresadas) de la ingeniería sorteada.
-
-### Formato de Video Requerido
-- **Contenedor/Codec:** MP4 (H.264 / AAC).
-- **Audio:** No requerido (el sistema fuerza la reproducción en modo `muted` para garantizar el inicio sin restricciones de navegador).
-- **Formato:** Video vertical u horizontal optimizado para pantalla completa en la tablet.
-
-### Asignación de Slots
-Las tablets abren la URL con el parámetro de slot: `http://<IP-PC>:8080/tablet/tablet.html?slot=0`, `slot=1`, etc.
-- La `slot 0` mostrará la primera referente del arreglo `referentes` de la carrera.
-- La `slot 1` mostrará la segunda referente, y así sucesivamente.
-- Si hay más tablets conectadas que referentes definidas, los slots vuelven a rotar cíclicamente.
-
-> **Edición de Nombres sin Re-renderizado:**
-> El nombre y detalle de la referente se dibujan dinámicamente como texto HTML/CSS sobre el video. Para corregir un error ortográfico o cambiar el nombre de una docente **no es necesario volver a editar el video MP4**: basta con actualizar `contenido/carreras.json`.
-
----
-
-## 5. Sistema de Fallback Vectorial (`espejo/figuras.js`)
+## 4. Sistema de Fallback Vectorial (`espejo/figuras.js`)
 
 Si un archivo PNG de objeto no existe aún en el disco, el espejo utiliza **figuras vectoriales dibujadas por código Canvas 2D**.
 Además, se dispone del comando:
@@ -100,7 +74,7 @@ http://localhost:8080/herramientas/figuras.html
 
 ---
 
-## 6. Efectos Visuales de Fondo (`espejo/efectos.js`)
+## 5. Efectos Visuales de Fondo (`espejo/efectos.js`)
 
 Los efectos de partículas asignados a cada carrera se dibujan detrás del participante para sumergirlo en la ambientación sin oscurecer su rostro:
 
@@ -115,13 +89,15 @@ Los efectos de partículas asignados a cada carrera se dibujan detrás del parti
 
 ---
 
-## 7. Verificación de Contenido Reales (`npm run listo`)
+## 6. Verificación de Contenido Real (`npm run listo`)
 
-Para comprobar si todos los archivos multimedia reales (73 PNGs de objetos y los videos MP4 de referentes) están presentes en las carpetas de `contenido/`, ejecute:
+Para comprobar si el contenido que necesita el stand está completo en el disco, ejecute:
 
 ```bash
 npm run listo
 ```
 
-- **En Rojo (Faltan archivos):** Es el comportamiento esperado durante la etapa de desarrollo antes de recibir las entregas de video. El espejo funcionará perfectamente usando los objetos recortados y figuras de reserva.
-- **En Verde (Completo):** Confirma que todo el contenido multimedia final está listo para el stand del evento.
+Verifica que estén los 73 PNG de objetos declarados, que las doce carreras acordadas sigan ahí con sus colores distintos y al menos seis objetos cada una, y que MediaPipe esté vendorizado (`npm run vendorizar`).
+
+- **En Rojo:** falta algo que el stand necesita. El espejo igual funciona —los objetos sin PNG caen a la figura vectorial y de ahí al círculo del color— pero no está listo para montarse.
+- **En Verde:** el contenido está completo.

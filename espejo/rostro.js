@@ -1,5 +1,5 @@
-// Deteccion de rostro. Este archivo no sabe que es una carrera, ni que hay
-// tablets, ni como se dibuja nada. Entra un cuadro de video, sale esto:
+// Deteccion de rostro. Este archivo no sabe que es una carrera ni como se
+// dibuja nada. Entra un cuadro de video, sale esto:
 //
 //   { presente, centro:{x,y}, ojoIzq:{x,y}, ojoDer:{x,y}, radio, angulo, confianza }
 //

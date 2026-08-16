@@ -1,10 +1,12 @@
+// Servidor de archivos estaticos, y nada mas. El espejo corre entero en el
+// navegador de una sola PC: no hay estado que compartir con nadie, asi que aca
+// no vive ni una linea de logica de la experiencia.
+
 import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { WebSocketServer } from 'ws';
-import { interpretar, TIPOS as TIPOS_MENSAJE } from '../comun/protocolo.js';
 
 const RAIZ_POR_DEFECTO = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -121,76 +123,14 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
     }
   });
 
-  const sockets = new WebSocketServer({ server: servidorHttp });
-  let ultimoMensaje = null;
-  let instanciaActiva = null;
-  const identidadPorCliente = new WeakMap();
-  let espejoActivo = null;
-
-  sockets.on('connection', (cliente) => {
-    cliente.on('message', (crudo) => {
-      const texto = crudo.toString();
-      const mensaje = interpretar(texto);
-      if (!mensaje) return;
-
-      if (mensaje.tipo === TIPOS_MENSAJE.HOLA) {
-        // La identidad se declara una sola vez. Una tablet no puede ascenderse
-        // a espejo reutilizando el mismo socket.
-        if (identidadPorCliente.has(cliente)) return;
-
-        if (mensaje.rol === 'espejo') {
-          if (espejoActivo && espejoActivo !== cliente) {
-            cliente.close(1008, 'Ya existe un espejo activo');
-            return;
-          }
-          espejoActivo = cliente;
-          if (mensaje.instancia !== instanciaActiva) ultimoMensaje = null;
-          instanciaActiva = mensaje.instancia;
-        }
-
-        identidadPorCliente.set(cliente, mensaje);
-        if (mensaje.rol === 'tablet' && ultimoMensaje) {
-          cliente.send(ultimoMensaje);
-        }
-        return;
-      }
-
-      const identidad = identidadPorCliente.get(cliente);
-      if (
-        identidad?.rol !== 'espejo' ||
-        identidad.instancia !== instanciaActiva ||
-        mensaje.instancia !== instanciaActiva
-      ) {
-        return;
-      }
-
-      ultimoMensaje = texto;
-      for (const otro of sockets.clients) {
-        if (
-          otro !== cliente &&
-          otro.readyState === otro.OPEN &&
-          identidadPorCliente.get(otro)?.rol === 'tablet'
-        ) {
-          otro.send(ultimoMensaje);
-        }
-      }
-    });
-
-    cliente.on('close', () => {
-      if (espejoActivo === cliente) espejoActivo = null;
-    });
-  });
-
   return {
-    // Expuesto para que las pruebas puedan simular una caida de wifi.
-    clientes: () => sockets.clients,
-
     escuchar: (puerto) =>
       new Promise((ok) => servidorHttp.listen(puerto, () => ok(servidorHttp.address().port))),
     cerrar: () =>
       new Promise((ok) => {
-        for (const cliente of sockets.clients) cliente.terminate();
-        sockets.close();
+        // Sin esto una conexion keep-alive de un pedido anterior deja el cierre
+        // colgado: close() espera a que se vacien las que sigan abiertas.
+        servidorHttp.closeAllConnections();
         servidorHttp.close(ok);
       }),
   };

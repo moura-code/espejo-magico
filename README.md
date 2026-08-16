@@ -7,11 +7,11 @@ cubierta de nubes. Una cámara detecta su rostro, las nubes se apartan hacia los
 lados, y le sortea una de doce ingenierías: el participante aparece rodeado de objetos
 característicos de esa carrera que caen, rebotan contra su cabeza y se juntan
 como un imán alrededor de sus manos (o se manotean, con la tecla `I`). La escena
-dura mientras la persona siga sentada; tras cinco segundos sin detectarla, las
-nubes vuelven a cubrir el espejo. En simultáneo, unas tablets alrededor
-reproducen videos de mujeres vinculadas a esa disciplina.
+dura mientras la persona siga sentada; tras unos segundos sin detectarla, las
+nubes vuelven a cubrir el espejo.
 
-Todo corre en el navegador, en una sola PC, **sin conexión a internet**.
+Todo corre en una sola pestaña de Chrome, en una sola PC, **sin conexión a
+internet y sin red de ningún tipo**.
 
 ## Carreras
 
@@ -47,17 +47,17 @@ npm start            # después, abrir http://localhost:8080/espejo/espejo.html
 o directamente `herramientas\arrancar.bat` en Windows, que levanta el servidor y
 abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 
-> El espejo tiene que abrirse por **`localhost`**, nunca por la IP de la máquina:
-> Chrome sólo entrega la cámara en contextos seguros. Las tablets sí van por IP,
-> porque no usan cámara.
+> El espejo tiene que abrirse por **`localhost`**, nunca por la IP de la máquina
+> ni por `file://`: Chrome sólo entrega la cámara en contextos seguros. Esa es la
+> única razón por la que hay un servidor.
 
 ## Comandos
 
 | Comando | Para qué |
 |---|---|
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
-| `npm run listo` | ¿Se puede montar el stand? Verifica que el contenido real esté completo. Está en rojo hasta que lleguen los PNG y los videos, y eso es lo esperado. |
-| `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro y manos. |
+| `npm run listo` | ¿Se puede montar el stand? Verifica que estén los 73 PNG de objetos, las doce carreras y MediaPipe vendorizado. |
+| `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose. |
 | `npm run generar-pngs` | Genera el PNG de respaldo de los objetos que no tengan imagen (no pisa existentes). Necesita Chrome; no usa red. |
 | `npm start` | Levanta el servidor local. |
 
@@ -80,23 +80,22 @@ una grilla, sobre fondo oscuro, claro o tono de piel.
 ## Cómo está armado
 
 ```
-servidor/    archivos estáticos + relé WebSocket. Sin lógica de negocio.
-comun/       el protocolo, compartido por el espejo y las tablets
-espejo/      la aplicación principal
-tablet/      la página de cada tablet
-contenido/   carreras.json, PNG y videos
-docs/        especificación, plan y guía de operación del stand
+servidor/    archivos estáticos, y nada más. Sin lógica de negocio.
+espejo/      la aplicación entera
+contenido/   carreras.json y los PNG de los objetos
+docs/        arquitectura, contenido, despliegue y guía de operación del stand
 ```
 
 Dentro de `espejo/`, la regla de corte es que cada archivo se pueda entender y
 probar solo: `rostro.js` no sabe qué es una carrera, `maquina-estados.js` no
 dibuja, `escena.js` no sabe que existe MediaPipe, y `fisica.js` sólo conoce
 círculos y rectángulos. Por eso la máquina de estados se prueba entera sin cámara
-ni pantalla.
+ni pantalla. `main.js` es sólo cableado: decide qué módulo habla con cuál y en
+qué orden se dibuja.
 
 **Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:**
-nombre, color, frase, objetos, efecto de partículas y referentes. Agregar o
-cambiar una carrera no toca una línea de código.
+nombre, color, frase, objetos y efecto de partículas. Agregar o cambiar una
+carrera no toca una línea de código.
 
 Los objetos que caen son fotografías reales con el fondo recortado; las que
 salieron de Wikimedia Commons llevan autor, origen y licencia en
@@ -106,8 +105,10 @@ la figura vectorial de respaldo (`espejo/figuras.js`) sin pisar los existentes,
 y los definitivos de diseño reemplazan a cualquiera en la misma ruta, sin tocar
 código.
 
-Sin bundler: módulos ES nativos servidos tal cual. Dos dependencias en total,
-`ws` en el servidor y `@mediapipe/tasks-vision` copiado a `vendor/`.
+Sin bundler: módulos ES nativos servidos tal cual. **Cero dependencias de
+producción** — el servidor sólo usa módulos de Node, y `@mediapipe/tasks-vision`
+se copia a `vendor/` con `npm run vendorizar`. `npm install` hace falta para
+correr las pruebas, no para que el stand funcione.
 
 ## Privacidad
 
@@ -118,8 +119,8 @@ manos y puntos de pose ocurre íntegramente en el navegador local.
 ## Documentación
 
 - `docs/operacion.md` — guía para el equipo que opera el stand durante el evento.
-- `docs/arquitectura.md` — arquitectura del sistema, módulos, física, MediaPipe y protocolo WebSocket.
-- `docs/contenido.md` — guía para agregar o modificar carreras, objetos PNG, figuras vectoriales y referentes.
-- `docs/despliegue.md` — guía completa de puesta en marcha del stand, red local y solución de problemas.
+- `docs/arquitectura.md` — arquitectura del sistema, módulos, máquina de estados, física y MediaPipe.
+- `docs/contenido.md` — guía para agregar o modificar carreras, objetos PNG, figuras vectoriales y efectos.
+- `docs/despliegue.md` — guía completa de puesta en marcha del stand y solución de problemas.
 - `docs/superpowers/specs/` — especificación original de diseño y decisiones arquitectónicas.
 - `docs/superpowers/plans/` — plan detallado de implementación tarea por tarea.

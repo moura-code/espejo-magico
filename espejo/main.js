@@ -1,4 +1,4 @@
-// Cableado de la experiencia. Aca se juntan los once modulos anteriores.
+// Cableado de la experiencia. Aca se juntan todos los modulos anteriores.
 //
 // Este archivo no tiene logica propia: decide QUE modulo habla con cual y en
 // que orden se dibuja. Todo lo que se puede probar vive en otro lado.
@@ -39,9 +39,7 @@ import {
   dibujarTextos,
   dibujarInvitacion,
 } from './escena.js';
-import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
-import { mensajeCarrera, mensajeHolaEspejo, mensajeReposo } from '../comun/protocolo.js';
 
 // ---------- lienzos ----------
 // La niebla va en su propia capa para componer todos los jirones laterales sin
@@ -182,35 +180,13 @@ const maquina = crearMaquina({
 });
 const pool = crearPool(CONFIG.objetos);
 const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
-const instancia = crypto.randomUUID();
 
 // La niebla arranca cerrada. Su apertura cambia de forma continua aunque la
 // maquina salte de estado, y solo desplaza nubes hacia los lados.
 let nieblaActual = { apertura: 0 };
 
-let ultimoLatido = 0;
-let ultimoAnuncio = mensajeReposo(instancia);
-
-const bus = crearBus({
-  url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
-  reconexionMs: CONFIG.red.reconexionMs,
-  identidad: mensajeHolaEspejo(instancia),
-  alEstado: (estado) => {
-    console.log('bus:', estado);
-    if (estado.conectado) bus.enviar(ultimoAnuncio);
-  },
-});
-
-function atender(eventos, ahora) {
+function atender(eventos) {
   for (const evento of eventos) {
-    if (evento.tipo === 'carrera') {
-      ultimoAnuncio = mensajeCarrera(evento.id, evento.sesion, instancia);
-      bus.enviar(ultimoAnuncio);
-    }
-    if (evento.tipo === 'reposo') {
-      ultimoAnuncio = mensajeReposo(instancia);
-      bus.enviar(ultimoAnuncio);
-    }
     if (evento.tipo !== 'entra') continue;
 
     // Los dos vaciados que importan. En ATRACCION se limpia lo que quedo de la
@@ -358,12 +334,7 @@ function cuadro(ahora) {
     hayPersona,
     ahora,
   });
-  atender(salida.eventos, ahora);
-
-  if (ahora - ultimoLatido >= CONFIG.red.latidoMs) {
-    ultimoLatido = ahora;
-    if (ultimoAnuncio) bus.enviar(ultimoAnuncio);
-  }
+  atender(salida.eventos);
 
   const estado = salida.estado;
   estadoAnterior = estado;
@@ -551,7 +522,6 @@ window.espejo = {
   contenido,
   banco,
   pool,
-  bus,
   detector,
   estadoDeCamara: () => estadoDeCamara,
   manos: () => manos,
@@ -574,10 +544,10 @@ window.espejo = {
     return interaccionDeManos;
   },
   // Los atajos tienen que pasar por atender(): si no, forzar una carrera con las
-  // teclas no le avisa a las tablets ni limpia los objetos de la sesion anterior.
-  avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos, ahora),
-  forzarCarrera: (id, ahora) => atender(maquina.forzarCarrera(id, ahora).eventos, ahora),
-  reiniciar: (ahora) => atender(maquina.reiniciar(ahora).eventos, ahora),
+  // teclas deja en pantalla los objetos de la sesion anterior.
+  avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos),
+  forzarCarrera: (id, ahora) => atender(maquina.forzarCarrera(id, ahora).eventos),
+  reiniciar: (ahora) => atender(maquina.reiniciar(ahora).eventos),
 };
 
 const operacion = instalarOperacion({ espejo: window.espejo, tiempos: CONFIG.operacion });

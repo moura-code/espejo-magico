@@ -169,14 +169,4 @@ export const CONFIG = {
   operacion: {
     recargaCadaMs: 4 * 60 * 60 * 1000,
   },
-
-  red: {
-    puerto: 8080,
-    reconexionMs: 2000,
-    latidoMs: 2000,
-  },
-
-  tablet: {
-    precargaIntervaloMs: 250,
-  },
 };

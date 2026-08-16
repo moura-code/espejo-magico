@@ -128,7 +128,6 @@ describe('instalarOperacion', () => {
       detector: { cantidadDePuntos: () => 478 },
       manosCrudas: () => 1,
       manos: () => [],
-      bus: { conectado: () => true },
       pool: { vivos: () => [] },
       banco: { faltantes: () => [] },
     };

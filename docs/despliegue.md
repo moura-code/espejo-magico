@@ -1,6 +1,8 @@
 # Espejo Mágico — Guía de Despliegue y Montaje de Stand
 
-Esta guía describe los requisitos de hardware, la configuración de red local, los pasos de puesta en marcha, la operación en vivo y la resolución de problemas para el **Espejo Mágico** durante un evento o feria.
+Esta guía describe los requisitos de hardware, los pasos de puesta en marcha, la operación en vivo y la resolución de problemas para el **Espejo Mágico** durante un evento o feria.
+
+La instalación es una sola PC con una cámara y una pantalla. No hay red, no hay segundas pantallas y no hay Internet.
 
 ---
 
@@ -12,9 +14,8 @@ Esta guía describe los requisitos de hardware, la configuración de red local, 
 - **Cámara:** Webcam HD/FHD (1080p recomendada) con cable USB estable.
 - **Pantalla:** Televisor o monitor grande montado en **posición vertical (1080 × 1920)** con marco decorativo de espejo.
 
-### 1.2. Red y Tablets
-- **Router Wi-Fi Dedicado:** Router propio para el stand. **No requiere conexión a Internet**.
-- **Tablets:** 3 a 5 tablets (Android o iPad) montadas alrededor del marco del espejo con navegadores web modernos.
+### 1.2. Red
+**Ninguna.** La instalación entera corre en esa sola PC: no hace falta router, ni Wi-Fi, ni cable de red. El servidor local sólo entrega archivos a la pestaña de Chrome de la propia máquina.
 
 ---
 
@@ -38,17 +39,8 @@ Esta guía describe los requisitos de hardware, la configuración de red local, 
 
 ## 3. Pasos para la Puesta en Marcha el Día del Evento
 
-### Paso 1: Encender el Router Wi-Fi
-Enchufar el router del stand. Esperar a que la red Wi-Fi del stand esté activa y visible.
-
-### Paso 2: Conectar la PC y obtener su Dirección IP
-Conectar la PC del espejo al router (por cable Ethernet o Wi-Fi).
-Para obtener la dirección IP de la PC:
-- **En Windows:** Abrir `cmd` y ejecutar `ipconfig`. Buscar la *Dirección IPv4* (ejemplo: `192.168.1.50`).
-- **En Linux:** Abrir terminal y ejecutar `ip a` o `hostname -I`.
-
-### Paso 3: Arrancar el Espejo Mágico
-En Windows, hacer doble clic en el ejecutable:
+### Paso único: Arrancar el Espejo Mágico
+Encender la PC y hacer doble clic en el ejecutable:
 ```
 herramientas\arrancar.bat
 ```
@@ -78,31 +70,14 @@ chrome.exe ^
 
 ---
 
-### Paso 4: Conectar y Configurar las Tablets
-
-1. Conectar cada tablet a la red Wi-Fi del router del stand.
-2. En la primera tablet, abrir en el navegador web:
-   ```
-   http://<IP-DE-LA-PC>:8080/tablet/tablet.html?slot=0
-   ```
-3. En la segunda tablet, abrir:
-   ```
-   http://<IP-DE-LA-PC>:8080/tablet/tablet.html?slot=1
-   ```
-4. Repetir incrementando el número de `slot` para cada tablet adicional.
-5. Poner los navegadores de las tablets en modo pantalla completa y añadir el enlace a la pantalla de inicio para acceso rápido.
-
----
-
 ## 4. Prueba Completa de Verificación
 
 Antes de abrir el stand al público:
-1. **Desconectar la PC de cualquier red externa / Internet.**
+1. **Desconectar la PC de cualquier red externa / Internet.** En la pestaña *Red* de las herramientas de desarrollo (F12) sólo puede aparecer `localhost`.
 2. Sentarse en el sillón del visitante frente al espejo.
-3. Verificar que la niebla se agite y se abra al detectar el rostro.
+3. Verificar que la niebla se agite durante el sorteo y se aparte hacia los costados al revelar la carrera.
 4. Confirmar que los objetos caigan y respondan al movimiento de la cabeza y las manos.
-5. Comprobar que las tablets inicien la reproducción del video de su slot asignado.
-6. Levantarse del sillón y verificar que a los 3 segundos la escena se cierre y las nubes vuelvan a cubrir el espejo.
+5. Levantarse del sillón y verificar que a los pocos segundos (`ausenciaParaCortar`, 4,5 s) la escena se cierre y las nubes vuelvan a cubrir el espejo.
 
 ---
 
@@ -112,7 +87,7 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 
 | Tecla | Acción | Descripción |
 |---|---|---|
-| `P` | **Panel HUD de Estado** | Muestra u oculta métricas en vivo: FPS, estado, cámara, objetos, bus WebSocket. |
+| `P` | **Panel HUD de Estado** | Muestra u oculta métricas en vivo: FPS, estado, carrera, cámara, manos detectadas, objetos y PNG faltantes. |
 | `1`–`9`, `0`, `-`, `=` | **Forzar Carrera** | Salta directamente a la revelación de la ingeniería correspondiente. Es la fila de números entera: una tecla por carrera, en el orden de `carreras.json`. |
 | `I` | **Modo Imán / Manotazo** | Alterna la interacción de las manos entre atracción magnética y golpe físico. |
 | `A` | **Modo Auto / Manual** | Alterna entre avance automático por reloj y avance manual por teclado. |
@@ -132,10 +107,9 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
    - Si dice algo distinto de `ok` (ej. `sin camara`), revisar la conexión del cable USB de la webcam. El sistema reintenta automáticamente la conexión cada 5 segundos.
    - Si dice `ok` pero no detecta, presionar `M` para ver la malla. Si los puntos no aparecen, el problema suele ser la iluminación (contraluz). Asegurarse de encender la luz frontal difusa del stand o evitar ventanas detrás del sillón.
 
-### Las tablets no reaccionan al sorteo
-1. En la PC del espejo, presionar `P` y verificar la línea `bus`:
-   - **`CORTADO`**: El servidor de Node.js se cerró. Cerrar Chrome, abrir `cmd` y reiniciar con `arrancar.bat`.
-   - **`conectado`**: El servidor funciona. El problema está en la red de la tablet. Verificar que la tablet continúe conectada al Wi-Fi del router y recargar la página en la tablet.
+### La pantalla queda en negro o dice "cargando…" y no arranca
+- El servidor de Node.js se cerró o nunca levantó. Cerrar Chrome y volver a correr `arrancar.bat`. **No cerrar la ventana negra del servidor mientras el stand esté abierto.**
+- Si dice "MediaPipe no cargó", falta `npm run vendorizar` (el único paso que necesita Internet). Abrir la consola con F12 para ver el detalle.
 
 ### Aparecen círculos de colores en lugar de imágenes de objetos
 - Presionar `P` y observar la línea `png faltan`. Significa que los archivos PNG aún no se han subido a `contenido/assets/`. Es un comportamiento previsto de reserva (*fallback*); el espejo funcionará normalmente utilizando figuras vectoriales de código.
@@ -151,4 +125,3 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 
 1. Presionar `Alt` + `F4` en la PC del espejo para cerrar Chrome.
 2. Cerrar la ventana del servidor de Node.js.
-3. Apagar las tablets y el router.
