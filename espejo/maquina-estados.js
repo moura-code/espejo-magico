@@ -129,6 +129,16 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
         // cuando la ausencia es real y sostenida; mientras tanto no se inicia
         // el sorteo frente a un lugar vacio.
         case ESTADOS.ENGANCHE:
+          // El tope de sesion tambien vigila el enganche. Un rostro que aparece
+          // y desaparece nunca junta los dos segundos continuos que hacen falta
+          // para sortear, y como la persona esta ahi tampoco acumula la ausencia
+          // que corta: sin esto el espejo se queda destapado y quieto, que es
+          // justo lo que la red de seguridad del stand existe para evitar.
+          if (pasoElTope) {
+            ir(ESTADOS.ATRACCION, ahora, eventos);
+            break;
+          }
+
           if (!puedeIniciar) {
             // El enganche exige rostro continuo. Una pose mantiene viva una
             // sesion ya iniciada, pero no acumula tiempo para comenzar otra.

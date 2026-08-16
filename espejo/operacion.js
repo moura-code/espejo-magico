@@ -12,7 +12,13 @@ const ACCIONES_SUELTAS = {
 };
 
 const POR_NOMBRE = { Enter: 'avanzar', ArrowRight: 'avanzar' };
-const TECLAS_CARRERA = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'];
+
+// La fila de numeros entera, en orden y sin saltos: una tecla por carrera de
+// carreras.json. Se exporta para que tests/integracion/atajos.test.js pueda
+// cotejarla contra el catalogo real — cuando el catalogo paso a doce carreras la
+// tecla de la ultima no llego con ella, y ninguna prueba de este archivo podia
+// notarlo porque todas usan su propio fixture.
+export const TECLAS_CARRERA = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='];
 
 export function interpretarTecla(tecla, ids) {
   const indice = TECLAS_CARRERA.indexOf(tecla);
@@ -117,10 +123,10 @@ export function instalarOperacion({
         ``,
         `avance      ${espejo.maquina.esManual() ? 'MANUAL' : 'automatico'}`,
         ``,
-        `ESPACIO avanzar   A auto/manual`,
-        `1-9,0,- carrera   R reiniciar`,
-        `I iman/golpe      D demo`,
-        `M malla           P cerrar`,
+        `ESPACIO avanzar    A auto/manual`,
+        `1-9,0,-,= carrera  R reiniciar`,
+        `I iman/golpe       D demo`,
+        `M malla            P cerrar`,
       ].join('\n');
     },
   };

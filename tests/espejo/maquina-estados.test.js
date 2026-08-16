@@ -236,6 +236,28 @@ describe('crearMaquina', () => {
     expect(tipos(salida.eventos, 'reposo')).toHaveLength(1);
   });
 
+  // Un rostro que aparece y desaparece nunca junta los dos segundos continuos que
+  // pide el enganche, y la presencia impide que la ausencia lo corte. Sin un tope
+  // el espejo se queda destapado y quieto, fuera de la red de seguridad del stand.
+  it('el enganche vuelve al reposo al llegar al tope de sesion', () => {
+    const tiemposCortos = { ...TIEMPOS, sesionMaxima: 20000 };
+    const maquina = crearMaquina({ tiempos: tiemposCortos, sortear: () => 'civil' });
+
+    maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 0 });
+    expect(maquina.estado()).toBe(ESTADOS.ENGANCHE);
+
+    const eventos = [];
+    for (let ahora = 100; ahora <= 25000; ahora += 100) {
+      // Un segundo con rostro y uno sin: nunca dos seguidos, nunca cinco sin.
+      const puedeIniciar = ahora % 2000 < 1000;
+      eventos.push(...maquina.actualizar({ puedeIniciar, hayPersona: true, ahora }).eventos);
+    }
+
+    const vueltas = eventos.filter((e) => e.tipo === 'entra' && e.estado === ESTADOS.ATRACCION);
+    expect(vueltas).toHaveLength(1);
+    expect(tipos(eventos, 'carrera')).toHaveLength(0);
+  });
+
   it('forzarCarrera salta a la revelacion con la carrera pedida', () => {
     const maquina = nueva();
     const salida = maquina.forzarCarrera('quimica', 500);
