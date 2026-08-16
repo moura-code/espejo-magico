@@ -455,9 +455,12 @@ function cuadro(ahora) {
       }
     }
 
-    // Los 21 puntos de cada mano y su circulo de colision. Si los puntos caen
-    // sobre tus dedos, el problema no es la deteccion.
+    // Los 21 puntos de cada mano y su circulo de radio real, que es lo que la
+    // fisica usa como colisionador en golpe y como base del alcance en iman. Si
+    // los puntos caen sobre tus dedos, el problema no es la deteccion.
     ctx.fillStyle = '#FFD23F';
+    ctx.strokeStyle = '#FFD23F';
+    ctx.lineWidth = 2;
     for (const mano of manos) {
       for (const punto of mano.puntos ?? []) {
         ctx.fillRect(
@@ -467,20 +470,25 @@ function cuadro(ahora) {
           4,
         );
       }
+      ctx.beginPath();
+      ctx.arc(mano.palma.x, mano.palma.y, mano.radio, 0, Math.PI * 2);
+      ctx.stroke();
     }
-    dibujarManos(ctx, manos, '#FFD23F');
   }
 
   dibujarObjetos(ctx, pool.vivos(), banco, carrera?.color ?? '#8899aa');
 
-  // Los aros de las manos se ven siempre: son la señal de que las manos
-  // interactuan. Se dibuja la mano que manda segun el modo — la filtrada en
-  // iman (donde esta el atractor), la cruda en golpe (donde pega el manotazo).
-  dibujarManos(
-    ctx,
-    interaccionDeManos === 'atraer' ? manosSuaves : manos,
-    carrera?.color ?? '#ffffff',
-  );
+  // La señal de las manos se ve siempre que haya manos: es lo que le enseña al
+  // publico que puede estirarlas. Se dibuja sobre la mano que manda segun el
+  // modo — la filtrada en iman (donde esta el atractor), la cruda en golpe
+  // (donde pega el manotazo).
+  const atrae = interaccionDeManos === 'atraer';
+  dibujarManos(ctx, atrae ? manosSuaves : manos, carrera?.color ?? '#ffffff', {
+    ahora,
+    alcanceFactor: CONFIG.manos.atraccion.alcanceFactor,
+    atrae,
+    senal: CONFIG.manos.senal,
+  });
 
   nieblaActual = acercarNiebla(
     nieblaActual,

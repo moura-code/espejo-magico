@@ -142,112 +142,126 @@ export function tamanoQueEntra(texto, tamanoDeseado, anchoMaximo, medir) {
 
 const MARGEN_TEXTO = 0.9;
 
+const TAU = Math.PI * 2;
+
+// Valores de respaldo, para que la funcion se pueda dibujar y probar sola. Los
+// del evento salen de CONFIG.manos.senal.
+const SENAL = {
+  resplandorFactor: 2.2,
+  nucleoFactor: 0.22,
+  anchoAnilloFactor: 0.5,
+  anillos: 2,
+  periodoMs: 1500,
+};
+
+/** Resplandor lleno: brillante en el centro y apagandose hacia el borde. */
+function resplandor(ctx, x, y, radio, color) {
+  const degradado = ctx.createRadialGradient(x, y, 0, x, y, radio);
+  degradado.addColorStop(0, color);
+  degradado.addColorStop(1, 'rgba(0,0,0,0)');
+
+  ctx.fillStyle = degradado;
+  ctx.beginPath();
+  ctx.arc(x, y, radio, 0, TAU);
+  ctx.fill();
+}
+
+/** Banda de luz difusa: transparente, color al medio, transparente. */
+function banda(ctx, x, y, radio, ancho, color) {
+  const degradado = ctx.createRadialGradient(
+    x,
+    y,
+    Math.max(0, radio - ancho),
+    x,
+    y,
+    radio + ancho,
+  );
+  degradado.addColorStop(0, 'rgba(0,0,0,0)');
+  degradado.addColorStop(0.5, color);
+  degradado.addColorStop(1, 'rgba(0,0,0,0)');
+
+  ctx.fillStyle = degradado;
+  ctx.beginPath();
+  ctx.arc(x, y, radio + ancho, 0, TAU);
+  ctx.fill();
+}
+
 /**
- * Colorea las manos detectadas con un resplandor de energía, relleno de palma,
- * líneas de dedos y nodos brillantes en las articulaciones.
+ * Donde esta el anillo `indice` en su viaje hacia la palma: 0 recien salido del
+ * borde del campo, 1 llegando al centro. Los anillos se reparten el ciclo para
+ * que la señal sea continua y no un latido con huecos.
+ *
+ * El doble modulo tolera un reloj negativo sin devolver una fase fuera de rango.
  */
-export function dibujarManos(ctx, manos, color) {
+export function faseDeAnillo(ahora, periodoMs, indice, cantidad) {
+  const desfase = cantidad > 0 ? indice / cantidad : 0;
+  return (((ahora / periodoMs + desfase) % 1) + 1) % 1;
+}
+
+/** Donde cae el anillo: nace en el borde del campo y termina sobre la palma. */
+export function radioDeAnillo(alcance, nucleo, fase) {
+  return alcance + (nucleo - alcance) * fase;
+}
+
+/**
+ * La señal de que las manos sirven para algo.
+ *
+ * NO dibuja la mano. Dibujarla —palma, dedos, nudillos— compite con la mano de
+ * verdad, que ya esta ahi en el espejo: quedan dos manos superpuestas y la
+ * atencion se va al dibujo. Lo que hay que mostrar es lo unico que no se ve, que
+ * es el campo del iman.
+ *
+ * Por eso los anillos viajan HACIA la palma y no hacia afuera: es el mismo
+ * movimiento que van a hacer los objetos. Alguien que pasa por delante entiende
+ * en un segundo que puede estirar la mano, sin ningun cartel que se lo diga.
+ *
+ * El tamaño no es decorativo: el anillo nace en el alcance real del campo
+ * (`alcanceFactor`, el mismo de la fisica), asi que ademas enseña hasta donde
+ * llega. Y como el radio de la mano crece al abrirla, la señal crece con ella.
+ */
+export function dibujarManos(ctx, manos, color, opciones = {}) {
   if (!manos || manos.length === 0) return;
+
+  const { ahora = 0, alcanceFactor = 3.2, atrae = true } = opciones;
+  const senal = { ...SENAL, ...opciones.senal };
 
   ctx.save();
 
   for (const mano of manos) {
     const { x, y } = mano.palma;
     const radio = mano.radio;
+    const nucleo = radio * senal.nucleoFactor;
 
-    // 1. Aura de energía radial alrededor de la mano
-    ctx.save();
+    // Todo va en screen: la señal ilumina el video en vez de taparlo, y dos
+    // manos que se cruzan se suman sin dejar un recorte sucio.
     ctx.globalCompositeOperation = 'screen';
-    const grad = ctx.createRadialGradient(x, y, radio * 0.1, x, y, radio * 1.15);
-    grad.addColorStop(0, color);
-    grad.addColorStop(0.4, color);
-    grad.addColorStop(1, 'transparent');
 
-    ctx.globalAlpha = 0.25;
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(x, y, radio * 1.15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    // 1. Resplandor: "esta mano existe para el sistema". Ancho y muy tenue, para
+    //    que se lea como presencia y no como un disco pegado encima.
+    ctx.globalAlpha = 0.4;
+    resplandor(ctx, x, y, radio * senal.resplandorFactor, color);
 
-    // 2. Si se dispone de los 21 puntos clave de la mano, se colorea la palma, dedos y articulaciones
-    if (mano.puntosPantalla && mano.puntosPantalla.length >= 21) {
-      const dx = mano.palmaOriginal ? x - mano.palmaOriginal.x : 0;
-      const dy = mano.palmaOriginal ? y - mano.palmaOriginal.y : 0;
-      const pts = mano.puntosPantalla.map((p) => ({ x: p.x + dx, y: p.y + dy }));
+    // 2. Bandas de luz cerrandose sobre la palma. Difusas a proposito: un aro
+    //    de linea fina se lee como un borde —"hasta aca"— y lo que hay que decir
+    //    es lo contrario. En modo golpe no se dibujan: ahi la mano es una paleta,
+    //    no un iman, y no hay campo que mostrar.
+    if (atrae) {
+      const alcance = radio * alcanceFactor;
+      const ancho = radio * senal.anchoAnilloFactor;
 
-      ctx.save();
-      ctx.shadowColor = color;
-      ctx.shadowBlur = radio * 0.3;
-
-      // Relleno suave de la palma
-      ctx.globalAlpha = 0.22;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      ctx.lineTo(pts[5].x, pts[5].y);
-      ctx.lineTo(pts[9].x, pts[9].y);
-      ctx.lineTo(pts[13].x, pts[13].y);
-      ctx.lineTo(pts[17].x, pts[17].y);
-      ctx.closePath();
-      ctx.fill();
-
-      // Líneas de los dedos
-      const DEDOS = [
-        [0, 1, 2, 3, 4],
-        [0, 5, 6, 7, 8],
-        [5, 9, 10, 11, 12],
-        [9, 13, 14, 15, 16],
-        [13, 17, 18, 19, 20],
-      ];
-
-      ctx.globalAlpha = 0.55;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = Math.max(3, mano.largoPalma ? mano.largoPalma * 0.1 : radio * 0.08);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      for (const dedo of DEDOS) {
-        ctx.beginPath();
-        for (let i = 0; i < dedo.length; i++) {
-          const pt = pts[dedo[i]];
-          if (i === 0) ctx.moveTo(pt.x, pt.y);
-          else ctx.lineTo(pt.x, pt.y);
-        }
-        ctx.stroke();
+      for (let i = 0; i < senal.anillos; i++) {
+        const fase = faseDeAnillo(ahora, senal.periodoMs, i, senal.anillos);
+        // Entra tenue desde el borde y se concentra al llegar: el pico va hacia
+        // el final del viaje, que es lo que hace leer "se junta acá".
+        ctx.globalAlpha = 0.45 * Math.sin(fase * Math.PI) * (0.55 + 0.45 * fase);
+        banda(ctx, x, y, radioDeAnillo(alcance, nucleo, fase), ancho, color);
       }
-
-      // Nodos brillantes en las yemas y muñeca
-      ctx.globalAlpha = 0.85;
-      ctx.fillStyle = '#ffffff';
-      const NUDOS = [0, 4, 8, 12, 16, 20];
-      const rNodo = Math.max(3, radio * 0.04);
-
-      for (const idx of NUDOS) {
-        const pt = pts[idx];
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, rNodo, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.restore();
-    } else {
-      // Fallback: relleno translúcido de la palma y círculo atractor
-      ctx.save();
-      ctx.globalAlpha = 0.35;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(x, y, radio * 0.45, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.globalAlpha = 0.5;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = Math.max(2, radio * 0.06);
-      ctx.beginPath();
-      ctx.arc(x, y, radio, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
     }
+
+    // 3. Nucleo: de donde cuelga el racimo. Difuso tambien — un disco de borde
+    //    duro se lee como un puntero y desvia la atencion de la mano.
+    ctx.globalAlpha = 0.8;
+    resplandor(ctx, x, y, nucleo * 2.4, '#ffffff');
   }
 
   ctx.restore();

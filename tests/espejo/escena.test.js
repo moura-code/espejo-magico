@@ -3,6 +3,8 @@ import {
   calcularDisposicion,
   calcularRectanguloVideo,
   dibujarManos,
+  faseDeAnillo,
+  radioDeAnillo,
   recortarFueraDeCara,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
@@ -31,25 +33,95 @@ function crearCtxFalso() {
   };
 }
 
-describe('dibujarManos', () => {
-  const mano = { palma: { x: 300, y: 400 }, radio: 100 };
-
-  it('dibuja la mano con aura de energía en fallback si no hay puntos', () => {
-    const ctx = crearCtxFalso();
-    dibujarManos(ctx, [mano], '#ffffff');
-
-    const arcos = ctx.llamadas.filter(([nombre]) => nombre === 'arc');
-    expect(arcos.length).toBeGreaterThanOrEqual(2);
+describe('faseDeAnillo', () => {
+  it('reparte el ciclo entre los anillos para que la señal no tenga huecos', () => {
+    expect(faseDeAnillo(0, 1000, 0, 2)).toBeCloseTo(0);
+    expect(faseDeAnillo(0, 1000, 1, 2)).toBeCloseTo(0.5);
+    expect(faseDeAnillo(500, 1000, 0, 2)).toBeCloseTo(0.5);
   });
 
-  it('dibuja la palma y los nodos de los 21 puntos cuando hay puntosPantalla', () => {
-    const ctx = crearCtxFalso();
-    const puntosPantalla = Array.from({ length: 21 }, (_, i) => ({ x: 100 + i * 5, y: 200 + i * 5 }));
-    const manoConPuntos = { ...mano, puntosPantalla };
-    dibujarManos(ctx, [manoConPuntos], '#00E5A0');
+  it('siempre cae dentro del ciclo, incluso con relojes raros', () => {
+    for (const ahora of [-3000, -1, 0, 1, 12345, 9e9]) {
+      const fase = faseDeAnillo(ahora, 1400, 1, 3);
+      expect(fase).toBeGreaterThanOrEqual(0);
+      expect(fase).toBeLessThan(1);
+    }
+  });
+});
 
-    const trazos = ctx.llamadas.filter(([nombre]) => nombre === 'stroke');
-    expect(trazos.length).toBeGreaterThan(0);
+describe('radioDeAnillo', () => {
+  const ALCANCE = 320;
+  const NUCLEO = 20;
+
+  // El corazon del efecto: el anillo va HACIA la palma, que es el camino que
+  // hacen los objetos capturados. Hacia afuera diria lo contrario — que el
+  // espejo emite algo — y es justo lo que no hay que enseñar.
+  it('se cierra sobre la palma en vez de expandirse', () => {
+    const radios = [0, 0.25, 0.5, 0.75, 1].map((f) => radioDeAnillo(ALCANCE, NUCLEO, f));
+    const ordenado = [...radios].sort((a, b) => b - a);
+    expect(radios).toEqual(ordenado);
+  });
+
+  it('nace en el alcance real del campo y termina en el nucleo', () => {
+    expect(radioDeAnillo(ALCANCE, NUCLEO, 0)).toBeCloseTo(ALCANCE);
+    expect(radioDeAnillo(ALCANCE, NUCLEO, 1)).toBeCloseTo(NUCLEO);
+  });
+
+  it('nunca se sale del campo ni se da vuelta', () => {
+    for (let f = 0; f <= 1; f += 0.01) {
+      const r = radioDeAnillo(ALCANCE, NUCLEO, f);
+      expect(r).toBeGreaterThanOrEqual(NUCLEO);
+      expect(r).toBeLessThanOrEqual(ALCANCE);
+    }
+  });
+});
+
+describe('dibujarManos', () => {
+  const mano = { palma: { x: 300, y: 400 }, radio: 100 };
+  const ALCANCE_FACTOR = 3.2;
+  const ANILLOS = 2;
+
+  const dibujarEn = (ahora, extra = {}) => {
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [mano], '#00E5A0', {
+      ahora,
+      alcanceFactor: ALCANCE_FACTOR,
+      senal: { anillos: ANILLOS },
+      ...extra,
+    });
+    return ctx;
+  };
+
+  const arcos = (ctx) => ctx.llamadas.filter(([nombre]) => nombre === 'arc');
+
+  it('en modo golpe no dibuja anillos: no hay campo que mostrar', () => {
+    const conCampo = arcos(dibujarEn(500, { atrae: true })).length;
+    const sinCampo = arcos(dibujarEn(500, { atrae: false })).length;
+    expect(conCampo - sinCampo).toBe(ANILLOS);
+  });
+
+  it('todo lo que dibuja esta centrado en la palma', () => {
+    const centrados = arcos(dibujarEn(500)).every(
+      ([, x, y]) => x === mano.palma.x && y === mano.palma.y,
+    );
+    expect(centrados).toBe(true);
+  });
+
+  it('marca la palma aunque el reloj este quieto', () => {
+    expect(arcos(dibujarEn(0)).length).toBeGreaterThan(0);
+  });
+
+  // Antes se dibujaban la palma, los dedos y los nudillos: eso pintaba un
+  // segundo par de manos encima de las que ya se ven en el espejo.
+  it('no depende de los 21 puntos de la mano', () => {
+    const puntosPantalla = Array.from({ length: 21 }, (_, i) => ({ x: 100 + i * 5, y: 200 + i * 5 }));
+    const conPuntos = dibujarEn(500, {}).llamadas;
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [{ ...mano, puntosPantalla, largoPalma: 60 }], '#00E5A0', {
+      ahora: 500,
+      alcanceFactor: ALCANCE_FACTOR,
+    });
+    expect(ctx.llamadas).toEqual(conPuntos);
   });
 
   it('no toca el lienzo sin manos', () => {

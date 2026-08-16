@@ -105,6 +105,19 @@ export const CONFIG = {
       separacion: 10, // 1/s: que tan rapido se apartan dos capturados encimados
     },
 
+    // La señal de que las manos sirven para algo. No dibuja la mano —eso compite
+    // con la mano de verdad que ya se ve en el espejo— sino el campo del iman:
+    // un resplandor en la palma y anillos que se CIERRAN hacia ella, que es el
+    // mismo camino que hacen los objetos. El anillo nace en el alcance real del
+    // campo, asi que ademas enseña hasta donde llega.
+    senal: {
+      resplandorFactor: 2.2, // radio del resplandor, en radios de mano
+      nucleoFactor: 0.22, // brillo que marca de donde cuelga el racimo
+      anchoAnilloFactor: 0.5, // que tan difusa es cada banda, en radios de mano
+      anillos: 2, // cuantos viajan a la vez: con uno solo la señal parpadea
+      periodoMs: 1500, // lo que tarda una banda en llegar a la palma
+    },
+
     // Suavizado SOLO para el iman: el racimo cuelga de la palma en forma
     // permanente, asi que el temblor de la deteccion se le traslada entero; el
     // atractor sigue una palma filtrada que lo corta. El modo golpe usa la
