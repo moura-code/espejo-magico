@@ -20,7 +20,7 @@ function correr({ hayRostroEn, hasta, paso = 50 }) {
   const histeresis = crearHisteresis(CONFIG.presencia);
   const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
   const maquina = crearMaquina({ tiempos: CONFIG.tiempos, sortear: () => 'civil' });
-  const visitados = [];
+  const entradas = [];
 
   for (let ahora = 0; ahora <= hasta; ahora += paso) {
     const crudo = Boolean(hayRostroEn(ahora));
@@ -30,11 +30,11 @@ function correr({ hayRostroEn, hasta, paso = 50 }) {
       ahora,
     });
     for (const evento of salida.eventos) {
-      if (evento.tipo === 'entra') visitados.push(evento.estado);
+      if (evento.tipo === 'entra') entradas.push({ estado: evento.estado, ahora });
     }
   }
 
-  return { maquina, visitados };
+  return { maquina, entradas, visitados: entradas.map((e) => e.estado) };
 }
 
 const cuantos = (visitados, estado) => visitados.filter((e) => e === estado).length;
@@ -44,7 +44,7 @@ describe('estabilidad de la sesion', () => {
   // la deteccion entra y sale. Mientras no se levante, la experiencia tiene que
   // seguir siendo suya.
   it('un rostro intermitente no corta la sesion de alguien que sigue sentado', () => {
-    const CICLO = 7500; // 1,5 s detectado, 6 s perdido
+    const CICLO = 6500; // 1,5 s detectado, 5 s perdido
     const { maquina, visitados } = correr({
       hayRostroEn: (ahora) => ahora % CICLO < 1500,
       hasta: 60000,
@@ -86,16 +86,30 @@ describe('estabilidad de la sesion', () => {
     expect(cuantos(visitados, ESTADOS.CIERRE)).toBeGreaterThan(0);
   });
 
-  // Y quien se va de verdad tiene que liberar el espejo en un tiempo razonable:
-  // la fila no puede esperar medio minuto a que vuelva la invitacion.
-  it('quien se va de verdad libera el espejo en menos de veinte segundos', () => {
+  // La otra punta, y es la que hace que la fila avance: cuando alguien se va, el
+  // espejo tiene que soltarlo rapido. Quien esta esperando su turno no puede
+  // quedarse mirando la escena de otro.
+  it('quien se va libera el espejo en menos de diez segundos', () => {
     const SALE = 20000;
-    const { visitados } = correr({
-      hayRostroEn: (ahora) => ahora < SALE,
-      hasta: SALE + 20000,
+    const { entradas } = correr({ hayRostroEn: (ahora) => ahora < SALE, hasta: 60000 });
+
+    const vuelta = entradas.find((e) => e.estado === ESTADOS.ATRACCION);
+    expect(vuelta).toBeDefined();
+    expect(vuelta.ahora - SALE).toBeLessThanOrEqual(10000);
+  });
+
+  // Y quien llega despues tiene que recibir SU sorteo. Sin el corte, la persona
+  // nueva hereda la carrera y el reloj de la anterior: se sienta en el medio de
+  // una escena ajena y no le toca ninguna ingenieria.
+  it('la persona que sigue recibe su propio sorteo, no el de la anterior', () => {
+    const SALE = 20000;
+    const LLEGA = 32000;
+    const { maquina, visitados } = correr({
+      hayRostroEn: (ahora) => ahora < SALE || ahora >= LLEGA,
+      hasta: 60000,
     });
 
-    expect(visitados).toContain(ESTADOS.CIERRE);
-    expect(visitados.at(-1)).toBe(ESTADOS.ATRACCION);
+    expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(1);
+    expect(maquina.sesion()).toBe(2);
   });
 });

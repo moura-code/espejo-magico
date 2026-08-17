@@ -53,6 +53,13 @@ queda a contraluz y el sistema no la encuentra. Tapar esa fuente o girar el sill
 La luz frontal difusa del stand tiene que estar encendida. Para confirmar que es
 eso: apretar `M` y ver si aparecen los puntos sobre la cara.
 
+**Al siguiente le tocó la misma carrera que al anterior, o entró en el medio de
+una escena que ya estaba.**
+Se sentó demasiado rápido. El espejo espera unos nueve segundos sin ver a nadie
+antes de cerrar la sesión. La regla para la fila es simple: **que el siguiente se
+siente recién cuando las nubes hayan vuelto a tapar la pantalla.** Si hay apuro,
+apretar `R` en la PC corta la sesión al instante.
+
 **La pantalla quedó en negro o dice "cargando…".**
 Se cerró la ventana negra del servidor. Cerrar Chrome y volver a correr
 `arrancar.bat`.

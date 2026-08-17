@@ -79,7 +79,8 @@ Antes de abrir el stand al público:
 4. Confirmar que los objetos caigan y respondan al movimiento de la cabeza y las manos.
 5. **Sentarse quieto un par de minutos.** La escena tiene que seguir siendo suya: si se corta sola, hay que revisar `CONFIG.tiempos.sesionMaxima` y `CONFIG.presencia.msParaSalir`.
 6. Probar desde el fondo del stand, no sólo de cerca: así se calibra a qué distancia poner el sillón.
-7. Levantarse del sillón y verificar que a los pocos segundos (`ausenciaParaCortar` más `msParaSalir`, unos diez) la escena se cierre y las nubes vuelvan a cubrir el espejo.
+7. Levantarse del sillón y verificar que la escena se cierre y las nubes vuelvan a cubrir el espejo. Son unos **nueve segundos** desde que uno se levanta: seis de ausencia (`ausenciaParaCortar` más `presencia.msParaSalir`) y tres de cierre.
+8. **Probar el relevo:** levantarse y que se siente otra persona. Tiene que recibir su propio sorteo, no seguir en la escena de la anterior. Si se sienta antes de esos nueve segundos, hereda la escena — es un límite conocido, no una falla de calibración.
 
 ---
 

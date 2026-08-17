@@ -19,15 +19,24 @@ export const CONFIG = {
     sorteo: 4000,
     revelacion: 4000,
     cierre: 3000,
-    enfriamiento: 2000,
 
-    // Cuanto tiene que faltar la presencia para dar la sesion por terminada.
-    // Generoso a proposito: la deteccion de alguien sentado lejos entra y sale,
-    // y cortarle la escena a quien no se movio es el peor error posible. Sumado
-    // a presencia.msParaSalir da unos diez segundos de tolerancia real. Quien se
-    // va de verdad libera el espejo igual en menos de veinte segundos, contando
-    // el cierre (tests/integracion/presencia.test.js vigila las dos puntas).
-    ausenciaParaCortar: 8000,
+    // Corto: quien llega despues de que el espejo volvio al reposo no tiene por
+    // que esperar. Existe solo para que la persona que se esta yendo no dispare
+    // una sesion nueva de espaldas.
+    enfriamiento: 1000,
+
+    // El equilibrio del que dependen las dos quejas del stand, en tension.
+    //
+    // Corto de mas: le corta la escena a alguien que sigue sentado y solo se
+    // perdio un momento. Largo de mas: la persona que se fue se lleva el espejo
+    // con ella y el que sigue en la fila mira una escena ajena.
+    //
+    // Sumado a presencia.msParaSalir da seis segundos de tolerancia real, y con
+    // el cierre el espejo queda libre a los nueve de que alguien se levanta.
+    // Debajo de esos seis segundos, si dos personas se turnan muy rapido, la
+    // segunda hereda la carrera de la primera: distinguirlas pide comparar
+    // posiciones, no acortar plazos.
+    ausenciaParaCortar: 4000,
 
     // Red de seguridad, no temporizador de la experiencia: existe por si la
     // deteccion se traba en verdadero (un poster, el respaldo de una silla) y el

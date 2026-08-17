@@ -82,7 +82,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la experiencia:
 
 ```
-      ┌───────────── sin rostro 8 s, o tope de sesión ─────────────┐
+      ┌───────────── sin rostro 4 s, o tope de sesión ─────────────┐
       │                                                            │
       ▼          rostro continuo                    4 s            │
 ┌───────────┐        2 s        ┌───────────┐                ┌───────────┐
@@ -90,21 +90,37 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
 └─────▲─────┘                   └───────────┘  se elige la   └─────┬─────┘
       │                                          carrera           │
       │ 3 s                                                        ▼ 4 s
-┌─────┴─────┐   ausencia 8 s    ┌───────────┐                ┌───────────┐
+┌─────┴─────┐   ausencia 4 s    ┌───────────┐                ┌───────────┐
 │  CIERRE   │◄──────────────────┤  ESCENA   │◄───────────────┤REVELACION │
 └───────────┘  o tope 180 s     └───────────┘  se abre la    └───────────┘
                                                  niebla
 ```
 
+### El equilibrio de la presencia
+
 Los tiempos de ausencia se suman a `presencia.msParaSalir` (2 s), que es el
 colchón que absorbe los huecos de la detección **antes** de que lleguen a la
-máquina: la tolerancia real ronda los diez segundos. Está calibrado así a
-propósito — cortarle la escena a alguien que no se movió es el peor error
-posible, y con márgenes cortos un rostro intermitente reiniciaba una y otra vez
-los dos segundos continuos del enganche, abriendo y cerrando las nubes sin llegar
-nunca al sorteo. `tests/integracion/presencia.test.js` vigila las dos puntas: que
-no corte con alguien sentado, y que quien se va de verdad libere el espejo en
-menos de veinte segundos.
+máquina. La tolerancia real es de unos **seis segundos**, y con el cierre el
+espejo queda libre a los **nueve** de que alguien se levanta.
+
+Ese número está en tensión entre dos quejas opuestas del stand, y las dos son
+reales:
+
+- **Corto de más:** le corta la escena a alguien que sigue sentado y sólo se
+  perdió un momento. Con márgenes cortos, además, un rostro intermitente
+  reiniciaba una y otra vez los dos segundos continuos del enganche, abriendo y
+  cerrando las nubes sin llegar nunca al sorteo.
+- **Largo de más:** la persona que se fue se lleva el espejo con ella, y quien
+  espera su turno mira una escena ajena.
+
+`tests/integracion/presencia.test.js` fija las dos puntas con la CONFIG de
+verdad, para que mover una no rompa la otra en silencio.
+
+> **Límite conocido:** por debajo de esos seis segundos el sistema no distingue a
+> dos personas. Si una se levanta y otra se sienta muy rápido, la segunda hereda
+> la carrera y el reloj de la primera. Separarlas de verdad pide comparar la
+> posición y el tamaño del rostro entre la desaparición y la reaparición, no
+> acortar plazos: acortarlos vuelve a cortarle la escena a quien no se movió.
 
 El único evento que sale de la máquina es `{ tipo: 'entra', estado }`. La carrera
 sorteada y el número de sesión viajan en la salida (`salida.carrera`,
