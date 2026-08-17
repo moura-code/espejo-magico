@@ -1,0 +1,8 @@
+#!/bin/sh
+# Bloquea commits directos en main: todo llega por Pull Request.
+rama=$(git symbolic-ref --short HEAD 2>/dev/null)
+if [ "$rama" = "main" ]; then
+  echo "pre-commit: no se permite commitear en main. Cree una rama (feature/, fix/, enhancement/)." >&2
+  exit 1
+fi
+exit 0

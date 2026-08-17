@@ -1,0 +1,2 @@
+PNG de produccion: 6 a 10 objetos. Transparencia, lado mayor 512 px.
+Las rutas exactas estan declaradas en contenido/carreras.json.

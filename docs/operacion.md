@@ -6,19 +6,13 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
 
 ## Prender todo
 
-1. **Encender el router.** Esperar a que la luz de wifi quede fija.
-2. **Encender la PC del espejo.**
-3. **Doble clic en `herramientas\arrancar.bat`.** Aparecen una ventana negra chica
+1. **Encender la PC del espejo.**
+2. **Doble clic en `herramientas\arrancar.bat`.** Aparecen una ventana negra chica
    (el servidor) y Chrome a pantalla completa. **No cerrar la ventana negra.**
-4. **Encender las tablets.** Cada una abre sola su página si quedó guardada en la
-   pantalla de inicio. Si no, abrir en cada una:
-   `http://IP-DE-LA-PC:8080/tablet/tablet.html?slot=N`
-   con un número distinto en cada tablet, empezando por `0`.
-5. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar el
-   sorteo, ver que las tablets arranquen y se apaguen.
+3. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar el
+   sorteo, jugar un poco con las manos, levantarse y ver que las nubes vuelvan.
 
-Para saber la IP de la PC: abrir el menú de inicio, escribir `cmd`, y ahí `ipconfig`.
-Es el número que dice *Dirección IPv4*, algo como `192.168.1.20`.
+No hace falta router ni wifi: todo pasa dentro de esa PC.
 
 ## Apagar
 
@@ -30,16 +24,19 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 
 | Tecla | Qué hace |
 |---|---|
-| `1` a `6` | Fuerza una carrera y salta directo a la revelación |
-| `R` | Corta la sesión y vuelve a la invitación |
+| `1` a `9`, `0`, `-` y `=` | Fuerza una carrera y salta directo a la revelación |
+| `ESPACIO` / `Enter` / `➔` | Avanza manualmente al siguiente estado |
+| `A` | Alterna entre avance automático (reloj) y avance manual |
 | `I` | Cambia qué hacen las manos: imán (junta los objetos) o manotazo |
 | `D` | Modo demo: funciona sin cámara, con un rostro simulado |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
+| `R` | Corta la sesión y vuelve a la invitación |
 | `Ctrl` + `R` | Recarga todo |
 
-El orden de las teclas `1` a `6` es el mismo que el de las carreras en
-`contenido/carreras.json`.
+Es la fila de números entera, de izquierda a derecha: doce teclas para las doce
+carreras, en el mismo orden en que están escritas en `contenido/carreras.json`.
+
 
 ---
 
@@ -56,14 +53,16 @@ queda a contraluz y el sistema no la encuentra. Tapar esa fuente o girar el sill
 La luz frontal difusa del stand tiene que estar encendida. Para confirmar que es
 eso: apretar `M` y ver si aparecen los puntos sobre la cara.
 
-**Las tablets no arrancan.**
-Apretar `P` y mirar la línea `bus`:
-- Dice `CORTADO` → el servidor se cayó. Cerrar todo y volver a correr `arrancar.bat`.
-- Dice `conectado` → el problema es de la tablet. Revisar que esté en el wifi del
-  router del stand y recargar su página.
+**Al siguiente le tocó la misma carrera que al anterior, o entró en el medio de
+una escena que ya estaba.**
+Se sentó demasiado rápido. El espejo espera unos nueve segundos sin ver a nadie
+antes de cerrar la sesión. La regla para la fila es simple: **que el siguiente se
+siente recién cuando las nubes hayan vuelto a tapar la pantalla.** Si hay apuro,
+apretar `R` en la PC corta la sesión al instante.
 
-**Una sola tablet quedó negra.**
-Recargar esa página. Se pone al día sola en la sesión siguiente, o antes.
+**La pantalla quedó en negro o dice "cargando…".**
+Se cerró la ventana negra del servidor. Cerrar Chrome y volver a correr
+`arrancar.bat`.
 
 **Todo va lento.**
 Apretar `P` y mirar `fps`. Por debajo de 25 se nota. Cerrar cualquier otro programa
@@ -72,7 +71,7 @@ en `espejo/config.js`.
 
 **Siempre sale la misma carrera.**
 No puede pasar: el sistema recorre las doce antes de repetir ninguna. Si pasa,
-alguien está apretando las teclas `1` a `6` sin querer.
+alguien está apretando la fila de números (`1` a `9`, `0`, `-`, `=`) sin querer.
 
 **Aparecen círculos de colores en vez de dibujos.**
 Falta ese PNG. Apretar `P` y mirar `png faltan`. No rompe nada: es el
@@ -95,13 +94,11 @@ matices.
 | Qué | Dónde |
 |---|---|
 | Dibujos de cada carrera | `contenido/assets/<carrera>/` |
-| Videos de las referentes | `contenido/videos/<carrera>/` |
 | Nombres, colores y frases | `contenido/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |
 
-Para corregir el nombre de una referente **no hay que volver a renderizar el
-video**: se edita `contenido/carreras.json` y listo. Lo mismo con los colores, las
-frases y los nombres de las carreras.
+Para corregir el nombre de una carrera, su color o su frase se edita
+`contenido/carreras.json` y listo: no hay que tocar una línea de código.
 
 ---
 
@@ -121,3 +118,15 @@ repositorio por su tamaño.
 **Verificar que no depende de internet.** Desenchufar el cable, apagar el wifi de
 la PC y correr `arrancar.bat`. Tiene que funcionar el ciclo entero. En la pestaña
 *Red* de las herramientas de desarrollo (F12) sólo puede aparecer `localhost`.
+
+El servidor no tiene dependencias: sólo usa módulos de Node. `npm install` hace
+falta para correr las pruebas, no para que el stand funcione.
+
+---
+
+## Documentación complementaria
+
+- `docs/arquitectura.md` — especificación técnica de la arquitectura, módulos, máquina de estados y física.
+- `docs/contenido.md` — guía para creadores de contenido: PNG de objetos y figuras vectoriales.
+- `docs/despliegue.md` — guía completa de puesta en marcha del stand y contingencias.
+

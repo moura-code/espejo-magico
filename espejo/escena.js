@@ -1,8 +1,7 @@
 // El dibujo de la escena. No sabe que existe MediaPipe ni la maquina de estados:
 // recibe que dibujar y lo dibuja.
 
-import { calcularAnclaje } from './anclaje.js';
-import { dibujarFigura, dibujarFiguraAccesorio, hayFiguraAccesorio } from './figuras.js';
+import { dibujarFigura } from './figuras.js';
 
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
@@ -30,9 +29,10 @@ export function calcularDisposicion(ancho, alto) {
  * Rectangulo donde entra el video cubriendo toda la pantalla sin deformarse.
  * Puede sobresalir: lo que queda afuera se recorta.
  *
- * IMPORTANTE: este mismo rectangulo tiene que usarse para mapear los puntos del
- * rostro. Si el video se dibuja en un rectangulo y los puntos se calculan sobre
- * otro, los marcadores se van de la cara. Ya nos paso una vez.
+ * IMPORTANTE: este rectangulo es el origen de TODO lo demas. Con el se dibuja el
+ * video y de el sale el recorte que se analiza (calcularRecorteVisible), que es
+ * lo que define donde caen los puntos del rostro. Si alguno de los dos caminos
+ * se calcula por su cuenta, los marcadores se van de la cara. Ya nos paso una vez.
  */
 export function calcularRectanguloVideo(videoAncho, videoAlto, ancho, alto) {
   if (!videoAncho || !videoAlto) return { x: 0, y: 0, ancho, alto };
@@ -48,6 +48,43 @@ export function calcularRectanguloVideo(videoAncho, videoAlto, ancho, alto) {
     y: (alto - altoDibujo) / 2,
     ancho: anchoDibujo,
     alto: altoDibujo,
+  };
+}
+
+/**
+ * Que parte del cuadro de la camara se ve realmente en pantalla, en pixeles del
+ * video. Es el inverso exacto de calcularRectanguloVideo.
+ *
+ * El espejo es vertical y la camara apaisada, asi que el video se dibuja
+ * "cubriendo": entra entero de alto y le sobra muchisimo de ancho, que se va
+ * fuera de la pantalla. Con 1280x720 en 1080x1920 se ve apenas un tercio del
+ * ancho de la camara.
+ *
+ * Eso importa para detectar, no solo para dibujar: MediaPipe achica lo que le
+ * entra a un cuadro chico y fijo, asi que analizar el cuadro completo gasta dos
+ * tercios de esa resolucion en pixeles que nadie mira. Analizando solo el
+ * recorte, una cara lejana ocupa el triple y el modelo la encuentra desde mucho
+ * mas lejos.
+ *
+ * Devuelve null si el video todavia no reporta tamaño.
+ */
+export function calcularRecorteVisible(videoAncho, videoAlto, rectangulo, ancho, alto) {
+  if (!videoAncho || !videoAlto) return null;
+
+  const pixelesPorX = videoAncho / rectangulo.ancho;
+  const pixelesPorY = videoAlto / rectangulo.alto;
+
+  // El rectangulo dibujado siempre cubre la pantalla, asi que el recorte cae
+  // dentro del cuadro. Se acota igual: un redondeo no puede terminar pidiendole
+  // al lienzo pixeles que no existen.
+  const sx = Math.min(Math.max(0, -rectangulo.x * pixelesPorX), videoAncho);
+  const sy = Math.min(Math.max(0, -rectangulo.y * pixelesPorY), videoAlto);
+
+  return {
+    sx,
+    sy,
+    sAncho: Math.min(ancho * pixelesPorX, videoAncho - sx),
+    sAlto: Math.min(alto * pixelesPorY, videoAlto - sy),
   };
 }
 
@@ -130,54 +167,6 @@ export function dibujarFueraDeCara(ctx, rostro, disposicion, dibujar) {
 }
 
 /**
- * El accesorio de la carrera, anclado a la cara. Mismo orden de preferencia que
- * los objetos: manda el PNG y, mientras no este, se dibuja la figura vectorial.
- * Sin las dos cosas no se dibuja nada, que es mejor que una pantalla en negro.
- */
-export function dibujarAccesorio(ctx, rostro, carrera, banco, alfa = 1) {
-  if (!rostro || !carrera || alfa <= 0) return;
-  const imagen = banco.obtener(carrera.accesorio.img);
-  if (!imagen) {
-    dibujarAccesorioVectorial(ctx, rostro, carrera, alfa);
-    return;
-  }
-
-  const anclaje = calcularAnclaje(rostro, carrera.accesorio, {
-    ancho: imagen.width,
-    alto: imagen.height,
-  });
-  if (!anclaje) return;
-
-  ctx.save();
-  ctx.globalAlpha = alfa;
-  ctx.translate(anclaje.x, anclaje.y);
-  ctx.rotate(anclaje.angulo);
-  ctx.scale(anclaje.escala, anclaje.escala);
-  ctx.drawImage(imagen, -anclaje.anclaX, -anclaje.anclaY);
-  ctx.restore();
-}
-
-// La figura no pasa por calcularAnclaje: anclaOjoIzq/anclaOjoDer y offsetY
-// describen donde caen los ojos DENTRO de un PNG, y aca no hay PNG. La figura
-// se planta entre los ojos, girada con la cabeza, y ella sabe donde va.
-function dibujarAccesorioVectorial(ctx, rostro, carrera, alfa) {
-  const nombre = carrera.accesorio.figura;
-  if (!nombre || !hayFiguraAccesorio(nombre)) return;
-
-  const dx = rostro.ojoDer.x - rostro.ojoIzq.x;
-  const dy = rostro.ojoDer.y - rostro.ojoIzq.y;
-  const distanciaOjos = Math.hypot(dx, dy);
-  if (distanciaOjos === 0) return;
-
-  ctx.save();
-  ctx.globalAlpha = alfa;
-  ctx.translate((rostro.ojoIzq.x + rostro.ojoDer.x) / 2, (rostro.ojoIzq.y + rostro.ojoDer.y) / 2);
-  ctx.rotate(Math.atan2(dy, dx));
-  dibujarFiguraAccesorio(ctx, nombre, distanciaOjos, carrera.color);
-  ctx.restore();
-}
-
-/**
  * Achica la letra lo justo para que el texto entre en el ancho disponible.
  *
  * Sin esto, una frase larga escrita en carreras.json se sale de cuadro, y eso se
@@ -191,32 +180,128 @@ export function tamanoQueEntra(texto, tamanoDeseado, anchoMaximo, medir) {
 
 const MARGEN_TEXTO = 0.9;
 
+const TAU = Math.PI * 2;
+
+// Valores de respaldo, para que la funcion se pueda dibujar y probar sola. Los
+// del evento salen de CONFIG.manos.senal.
+const SENAL = {
+  resplandorFactor: 2.2,
+  nucleoFactor: 0.22,
+  anchoAnilloFactor: 0.5,
+  anillos: 2,
+  periodoMs: 1500,
+};
+
+/** Resplandor lleno: brillante en el centro y apagandose hacia el borde. */
+function resplandor(ctx, x, y, radio, color) {
+  const degradado = ctx.createRadialGradient(x, y, 0, x, y, radio);
+  degradado.addColorStop(0, color);
+  degradado.addColorStop(1, 'rgba(0,0,0,0)');
+
+  ctx.fillStyle = degradado;
+  ctx.beginPath();
+  ctx.arc(x, y, radio, 0, TAU);
+  ctx.fill();
+}
+
+/** Banda de luz difusa: transparente, color al medio, transparente. */
+function banda(ctx, x, y, radio, ancho, color) {
+  const degradado = ctx.createRadialGradient(
+    x,
+    y,
+    Math.max(0, radio - ancho),
+    x,
+    y,
+    radio + ancho,
+  );
+  degradado.addColorStop(0, 'rgba(0,0,0,0)');
+  degradado.addColorStop(0.5, color);
+  degradado.addColorStop(1, 'rgba(0,0,0,0)');
+
+  ctx.fillStyle = degradado;
+  ctx.beginPath();
+  ctx.arc(x, y, radio + ancho, 0, TAU);
+  ctx.fill();
+}
+
 /**
- * Un aro en cada palma, del tamaño real del circulo de colision.
+ * Donde esta el anillo `indice` en su viaje hacia la palma: 0 recien salido del
+ * borde del campo, 1 llegando al centro. Los anillos se reparten el ciclo para
+ * que la señal sea continua y no un latido con huecos.
  *
- * Se dibuja siempre que hay manos detectadas: es lo que le avisa al visitante
- * que puede interactuar con las suyas. La malla (tecla M) agrega ademas la
- * version cruda en amarillo, para comparar el circulo que golpea con la mano
- * de verdad.
+ * El doble modulo tolera un reloj negativo sin devolver una fase fuera de rango.
  */
-export function dibujarManos(ctx, manos, color) {
+export function faseDeAnillo(ahora, periodoMs, indice, cantidad) {
+  const desfase = cantidad > 0 ? indice / cantidad : 0;
+  return (((ahora / periodoMs + desfase) % 1) + 1) % 1;
+}
+
+/** Donde cae el anillo: nace en el borde del campo y termina sobre la palma. */
+export function radioDeAnillo(alcance, nucleo, fase) {
+  return alcance + (nucleo - alcance) * fase;
+}
+
+/**
+ * La señal de que las manos sirven para algo.
+ *
+ * NO dibuja la mano. Dibujarla —palma, dedos, nudillos— compite con la mano de
+ * verdad, que ya esta ahi en el espejo: quedan dos manos superpuestas y la
+ * atencion se va al dibujo. Lo que hay que mostrar es lo unico que no se ve, que
+ * es el campo del iman.
+ *
+ * Por eso los anillos viajan HACIA la palma y no hacia afuera: es el mismo
+ * movimiento que van a hacer los objetos. Alguien que pasa por delante entiende
+ * en un segundo que puede estirar la mano, sin ningun cartel que se lo diga.
+ *
+ * El tamaño no es decorativo: el anillo nace en el alcance real del campo
+ * (`alcanceFactor`, el mismo de la fisica), asi que ademas enseña hasta donde
+ * llega. Y como el radio de la mano crece al abrirla, la señal crece con ella.
+ */
+export function dibujarManos(ctx, manos, color, opciones = {}) {
   if (!manos || manos.length === 0) return;
 
+  const { ahora = 0, alcanceFactor = 3.2, atrae = true } = opciones;
+  const senal = { ...SENAL, ...opciones.senal };
+
   ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, manos[0].radio * 0.06);
 
   for (const mano of manos) {
-    ctx.globalAlpha = 0.5;
-    ctx.beginPath();
-    ctx.arc(mano.palma.x, mano.palma.y, mano.radio, 0, Math.PI * 2);
-    ctx.stroke();
+    const { x, y } = mano.palma;
+    const radio = mano.radio;
+    const nucleo = radio * senal.nucleoFactor;
 
-    ctx.globalAlpha = 0.28;
-    ctx.beginPath();
-    ctx.arc(mano.palma.x, mano.palma.y, mano.radio * 0.35, 0, Math.PI * 2);
-    ctx.stroke();
+    // Todo va en screen: la señal ilumina el video en vez de taparlo, y dos
+    // manos que se cruzan se suman sin dejar un recorte sucio.
+    ctx.globalCompositeOperation = 'screen';
+
+    // 1. Resplandor: "esta mano existe para el sistema". Ancho y muy tenue, para
+    //    que se lea como presencia y no como un disco pegado encima.
+    ctx.globalAlpha = 0.4;
+    resplandor(ctx, x, y, radio * senal.resplandorFactor, color);
+
+    // 2. Bandas de luz cerrandose sobre la palma. Difusas a proposito: un aro
+    //    de linea fina se lee como un borde —"hasta aca"— y lo que hay que decir
+    //    es lo contrario. En modo golpe no se dibujan: ahi la mano es una paleta,
+    //    no un iman, y no hay campo que mostrar.
+    if (atrae) {
+      const alcance = radio * alcanceFactor;
+      const ancho = radio * senal.anchoAnilloFactor;
+
+      for (let i = 0; i < senal.anillos; i++) {
+        const fase = faseDeAnillo(ahora, senal.periodoMs, i, senal.anillos);
+        // Entra tenue desde el borde y se concentra al llegar: el pico va hacia
+        // el final del viaje, que es lo que hace leer "se junta acá".
+        ctx.globalAlpha = 0.45 * Math.sin(fase * Math.PI) * (0.55 + 0.45 * fase);
+        banda(ctx, x, y, radioDeAnillo(alcance, nucleo, fase), ancho, color);
+      }
+    }
+
+    // 3. Nucleo: de donde cuelga el racimo. Difuso tambien — un disco de borde
+    //    duro se lee como un puntero y desvia la atencion de la mano.
+    ctx.globalAlpha = 0.8;
+    resplandor(ctx, x, y, nucleo * 2.4, '#ffffff');
   }
+
   ctx.restore();
 }
 

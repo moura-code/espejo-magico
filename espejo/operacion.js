@@ -13,9 +13,16 @@ const ACCIONES_SUELTAS = {
 
 const POR_NOMBRE = { Enter: 'avanzar', ArrowRight: 'avanzar' };
 
+// La fila de numeros entera, en orden y sin saltos: una tecla por carrera de
+// carreras.json. Se exporta para que tests/integracion/atajos.test.js pueda
+// cotejarla contra el catalogo real — cuando el catalogo paso a doce carreras la
+// tecla de la ultima no llego con ella, y ninguna prueba de este archivo podia
+// notarlo porque todas usan su propio fixture.
+export const TECLAS_CARRERA = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='];
+
 export function interpretarTecla(tecla, ids) {
-  if (/^[1-9]$/.test(tecla)) {
-    const indice = Number(tecla) - 1;
+  const indice = TECLAS_CARRERA.indexOf(tecla);
+  if (indice >= 0) {
     return indice < ids.length ? { accion: 'forzar', id: ids[indice] } : null;
   }
 
@@ -110,16 +117,15 @@ export function instalarOperacion({
         `apertura    ${espejo.manos().map((m) => m.apertura.toFixed(1)).join('  ') || '-'}`,
         `radio mano  ${espejo.manos().map((m) => m.radio.toFixed(0)).join('  ') || '-'}`,
         `interaccion ${espejo.interaccionDeManos()}`,
-        `bus         ${espejo.bus.conectado() ? 'conectado' : 'CORTADO'}`,
         `objetos     ${espejo.pool.vivos().length}`,
         `png faltan  ${espejo.banco.faltantes().length}`,
         ``,
         `avance      ${espejo.maquina.esManual() ? 'MANUAL' : 'automatico'}`,
         ``,
-        `ESPACIO avanzar   A auto/manual`,
-        `1-6 carrera       R reiniciar`,
-        `I iman/golpe      D demo`,
-        `M malla           P cerrar`,
+        `ESPACIO avanzar    A auto/manual`,
+        `1-9,0,-,= carrera  R reiniciar`,
+        `I iman/golpe       D demo`,
+        `M malla            P cerrar`,
       ].join('\n');
     },
   };

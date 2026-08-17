@@ -1,8 +1,8 @@
 // Sorteo de carrera con bolsa barajada, no azar puro.
 //
-// Con azar puro sale Computacion cuatro veces seguidas y las tablets muestran a
-// las mismas mujeres toda la tarde. Con bolsa, las seis carreras salen una vez
-// antes de que se repita ninguna.
+// Con azar puro sale Computacion cuatro veces seguidas y la fila entera se
+// vuelve con la misma carrera. Con bolsa, todas salen una vez antes de que se
+// repita ninguna.
 
 export function barajar(lista, azar) {
   const mezclada = [...lista];

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Bloquea merges locales en main: main solo se mueve por Pull Request.
+rama=$(git symbolic-ref --short HEAD 2>/dev/null)
+if [ "$rama" = "main" ]; then
+  echo "pre-merge-commit: no se permite mergear en main. Use un Pull Request." >&2
+  exit 1
+fi
+exit 0

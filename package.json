@@ -9,10 +9,8 @@
     "test:mirar": "vitest",
     "listo": "vitest run --config vitest.listo.config.js",
     "vendorizar": "node herramientas/vendorizar.mjs",
-    "generar-pngs": "node herramientas/generar-pngs.mjs"
-  },
-  "dependencies": {
-    "ws": "^8.21.1"
+    "generar-pngs": "node herramientas/generar-pngs.mjs",
+    "prepare": "sh scripts/setup-git-hooks.sh || echo hooks no activados"
   },
   "devDependencies": {
     "@mediapipe/tasks-vision": "^1.0.0",

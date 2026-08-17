@@ -1,5 +1,5 @@
-// Deteccion de rostro. Este archivo no sabe que es una carrera, ni que hay
-// tablets, ni como se dibuja nada. Entra un cuadro de video, sale esto:
+// Deteccion de rostro. Este archivo no sabe que es una carrera ni como se
+// dibuja nada. Entra un cuadro de video, sale esto:
 //
 //   { presente, centro:{x,y}, ojoIzq:{x,y}, ojoDer:{x,y}, radio, angulo, confianza }
 //
@@ -84,8 +84,8 @@ export function crearMedidorConfianza(ventana) {
 }
 
 /**
- * Rostro simulado que se mueve solo. Sirve para desarrollar la escena, la fisica
- * y el anclaje sin estar sentado frente a la webcam, para que varias personas
+ * Rostro simulado que se mueve solo. Sirve para desarrollar la escena y la
+ * fisica sin estar sentado frente a la webcam, para que varias personas
  * trabajen en paralelo con una sola camara, y para el modo demo del stand.
  */
 export function crearFuenteSintetica() {
@@ -137,10 +137,13 @@ export function crearDetector({
      * pantalla y al girarla. Un tamano viejo comprime todos los puntos hacia el
      * angulo superior izquierdo.
      */
-    detectar(video, ahora, rectangulo) {
-      if (!video.videoWidth) return null;
+    detectar(fuente, ahora, rectangulo) {
+      // `fuente` es un lienzo con el recorte de lo que se ve en pantalla, no el
+      // <video> entero (ver calcularRecorteVisible). Un lienzo no tiene
+      // videoWidth, y de ahi que se miren las dos medidas.
+      if (!(fuente.videoWidth || fuente.width)) return null;
 
-      const salida = detector.detectForVideo(video, ahora);
+      const salida = detector.detectForVideo(fuente, ahora);
       const puntos = salida?.faceLandmarks?.[0];
       medidor.registrar(Boolean(puntos));
       ultimosPuntos = puntos ?? null;
@@ -171,6 +174,9 @@ export async function crearDetectorMediaPipe({ base, ...resto }) {
     baseOptions: { modelAssetPath: `${base}/face_landmarker.task`, delegate: 'GPU' },
     runningMode: 'VIDEO',
     numFaces: 1,
+    minFaceDetectionConfidence: 0.25,
+    minFacePresenceConfidence: 0.25,
+    minTrackingConfidence: 0.25,
   });
 
   return crearDetector({ detectorCrudo, ...resto });

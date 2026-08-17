@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   calcularDisposicion,
+  calcularRecorteVisible,
   calcularRectanguloVideo,
-  dibujarAccesorio,
   dibujarManos,
+  faseDeAnillo,
+  radioDeAnillo,
   recortarFueraDeCara,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
@@ -14,29 +16,113 @@ function crearCtxFalso() {
   return {
     llamadas,
     strokeStyle: '',
+    fillStyle: '',
     lineWidth: 0,
     globalAlpha: 1,
+    shadowColor: '',
+    shadowBlur: 0,
     save: () => llamadas.push(['save']),
     restore: () => llamadas.push(['restore']),
     beginPath: () => llamadas.push(['beginPath']),
+    closePath: () => llamadas.push(['closePath']),
+    moveTo: (x, y) => llamadas.push(['moveTo', x, y]),
+    lineTo: (x, y) => llamadas.push(['lineTo', x, y]),
     arc: (x, y, radio) => llamadas.push(['arc', x, y, radio]),
     stroke: () => llamadas.push(['stroke']),
+    fill: () => llamadas.push(['fill']),
+    createRadialGradient: () => ({ addColorStop: () => {} }),
   };
 }
 
+describe('faseDeAnillo', () => {
+  it('reparte el ciclo entre los anillos para que la señal no tenga huecos', () => {
+    expect(faseDeAnillo(0, 1000, 0, 2)).toBeCloseTo(0);
+    expect(faseDeAnillo(0, 1000, 1, 2)).toBeCloseTo(0.5);
+    expect(faseDeAnillo(500, 1000, 0, 2)).toBeCloseTo(0.5);
+  });
+
+  it('siempre cae dentro del ciclo, incluso con relojes raros', () => {
+    for (const ahora of [-3000, -1, 0, 1, 12345, 9e9]) {
+      const fase = faseDeAnillo(ahora, 1400, 1, 3);
+      expect(fase).toBeGreaterThanOrEqual(0);
+      expect(fase).toBeLessThan(1);
+    }
+  });
+});
+
+describe('radioDeAnillo', () => {
+  const ALCANCE = 320;
+  const NUCLEO = 20;
+
+  // El corazon del efecto: el anillo va HACIA la palma, que es el camino que
+  // hacen los objetos capturados. Hacia afuera diria lo contrario — que el
+  // espejo emite algo — y es justo lo que no hay que enseñar.
+  it('se cierra sobre la palma en vez de expandirse', () => {
+    const radios = [0, 0.25, 0.5, 0.75, 1].map((f) => radioDeAnillo(ALCANCE, NUCLEO, f));
+    const ordenado = [...radios].sort((a, b) => b - a);
+    expect(radios).toEqual(ordenado);
+  });
+
+  it('nace en el alcance real del campo y termina en el nucleo', () => {
+    expect(radioDeAnillo(ALCANCE, NUCLEO, 0)).toBeCloseTo(ALCANCE);
+    expect(radioDeAnillo(ALCANCE, NUCLEO, 1)).toBeCloseTo(NUCLEO);
+  });
+
+  it('nunca se sale del campo ni se da vuelta', () => {
+    for (let f = 0; f <= 1; f += 0.01) {
+      const r = radioDeAnillo(ALCANCE, NUCLEO, f);
+      expect(r).toBeGreaterThanOrEqual(NUCLEO);
+      expect(r).toBeLessThanOrEqual(ALCANCE);
+    }
+  });
+});
+
 describe('dibujarManos', () => {
   const mano = { palma: { x: 300, y: 400 }, radio: 100 };
+  const ALCANCE_FACTOR = 3.2;
+  const ANILLOS = 2;
 
-  it('dibuja dos aros por mano: el circulo de colision y uno chico adentro', () => {
+  const dibujarEn = (ahora, extra = {}) => {
     const ctx = crearCtxFalso();
-    dibujarManos(ctx, [mano], '#ffffff');
+    dibujarManos(ctx, [mano], '#00E5A0', {
+      ahora,
+      alcanceFactor: ALCANCE_FACTOR,
+      senal: { anillos: ANILLOS },
+      ...extra,
+    });
+    return ctx;
+  };
 
-    const arcos = ctx.llamadas.filter(([nombre]) => nombre === 'arc');
-    expect(arcos).toEqual([
-      ['arc', 300, 400, 100],
-      ['arc', 300, 400, 35],
-    ]);
-    expect(ctx.strokeStyle).toBe('#ffffff');
+  const arcos = (ctx) => ctx.llamadas.filter(([nombre]) => nombre === 'arc');
+
+  it('en modo golpe no dibuja anillos: no hay campo que mostrar', () => {
+    const conCampo = arcos(dibujarEn(500, { atrae: true })).length;
+    const sinCampo = arcos(dibujarEn(500, { atrae: false })).length;
+    expect(conCampo - sinCampo).toBe(ANILLOS);
+  });
+
+  it('todo lo que dibuja esta centrado en la palma', () => {
+    const centrados = arcos(dibujarEn(500)).every(
+      ([, x, y]) => x === mano.palma.x && y === mano.palma.y,
+    );
+    expect(centrados).toBe(true);
+  });
+
+  it('marca la palma aunque el reloj este quieto', () => {
+    expect(arcos(dibujarEn(0)).length).toBeGreaterThan(0);
+  });
+
+  // Antes se dibujaban la palma, los dedos y los nudillos: eso pintaba un
+  // segundo par de manos encima de las que ya se ven en el espejo.
+  it('no depende de los 21 puntos de la mano', () => {
+    const puntosPantalla = Array.from({ length: 21 }, (_, i) => ({ x: 100 + i * 5, y: 200 + i * 5 }));
+    const conPuntos = dibujarEn(500, {}).llamadas;
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [{ ...mano, puntosPantalla, largoPalma: 60 }], '#00E5A0', {
+      ahora: 500,
+      alcanceFactor: ALCANCE_FACTOR,
+    });
+    expect(ctx.llamadas).toEqual(conPuntos);
   });
 
   it('no toca el lienzo sin manos', () => {
@@ -217,105 +303,81 @@ describe('calcularRectanguloVideo', () => {
   });
 });
 
-describe('dibujarAccesorio', () => {
-  // Lienzo que registra cualquier llamada de dibujo, para poder distinguir un
-  // PNG (drawImage) de una figura (trazos).
-  function crearCtx() {
-    const llamadas = [];
-    const ctx = { llamadas, globalAlpha: 1 };
-    for (const nombre of [
-      'save', 'restore', 'beginPath', 'closePath', 'moveTo', 'lineTo',
-      'quadraticCurveTo', 'bezierCurveTo', 'arc', 'ellipse', 'rect', 'fill',
-      'stroke', 'fillRect', 'translate', 'rotate', 'scale', 'drawImage',
-      'fillText', 'strokeText',
-    ]) {
-      ctx[nombre] = (...args) => llamadas.push([nombre, ...args]);
-    }
-    return ctx;
-  }
+describe('calcularRecorteVisible', () => {
+  const casos = [
+    ['camara apaisada en pantalla vertical', 1280, 720, 1080, 1920],
+    ['camara apaisada en pantalla apaisada', 1280, 720, 1920, 1080],
+    ['misma relacion exacta', 1280, 720, 2560, 1440],
+    ['pantalla cuadrada', 1280, 720, 1000, 1000],
+    ['camara vertical en pantalla apaisada', 720, 1280, 1920, 1080],
+    ['camara 1080p en pantalla vertical', 1920, 1080, 1080, 1920],
+  ];
 
-  const rostro = { ojoIzq: { x: 400, y: 300 }, ojoDer: { x: 500, y: 300 } };
-  const carrera = {
-    color: '#FF8A3D',
-    accesorio: {
-      img: 'assets/civil/casco.png',
-      figura: 'casco',
-      anclaOjoIzq: [0.3, 0.72],
-      anclaOjoDer: [0.7, 0.72],
-      offsetY: -0.45,
-    },
-  };
-  const bancoVacio = { obtener: () => null };
-  const bancoConPng = { obtener: () => ({ width: 400, height: 300 }) };
-  const pinto = (ctx) => ctx.llamadas.some(([nombre]) => ['fill', 'stroke'].includes(nombre));
-
-  it('dibuja la figura de la carrera cuando el PNG todavia no esta', () => {
-    const ctx = crearCtx();
-    dibujarAccesorio(ctx, rostro, carrera, bancoVacio);
-
-    expect(pinto(ctx), 'no dibujo ningun trazo').toBe(true);
-    expect(ctx.llamadas.some(([nombre]) => nombre === 'drawImage')).toBe(false);
-  });
-
-  it('planta la figura entre los ojos y la gira con la cabeza', () => {
-    const ctx = crearCtx();
-    const inclinado = { ojoIzq: { x: 400, y: 300 }, ojoDer: { x: 500, y: 400 } };
-    dibujarAccesorio(ctx, inclinado, carrera, bancoVacio);
-
-    expect(ctx.llamadas).toContainEqual(['translate', 450, 350]);
-    expect(ctx.llamadas).toContainEqual(['rotate', Math.atan2(100, 100)]);
-  });
-
-  it('el PNG le gana a la figura', () => {
-    const ctx = crearCtx();
-    dibujarAccesorio(ctx, rostro, carrera, bancoConPng);
-
-    expect(ctx.llamadas.some(([nombre]) => nombre === 'drawImage')).toBe(true);
-    expect(pinto(ctx), 'dibujo la figura teniendo el PNG').toBe(false);
-  });
-
-  it('no toca el lienzo si la carrera no declara figura ni tiene PNG', () => {
-    const ctx = crearCtx();
-    const sinFigura = { ...carrera, accesorio: { ...carrera.accesorio, figura: undefined } };
-    dibujarAccesorio(ctx, rostro, sinFigura, bancoVacio);
-
-    expect(ctx.llamadas).toEqual([]);
-  });
-
-  it('la figura se desvanece con la transicion, como el PNG', () => {
-    const ctx = crearCtx();
-    dibujarAccesorio(ctx, rostro, carrera, bancoVacio, 0.4);
-    expect(ctx.globalAlpha).toBe(0.4);
-
-    const apagado = crearCtx();
-    dibujarAccesorio(apagado, rostro, carrera, bancoVacio, 0);
-    expect(apagado.llamadas).toEqual([]);
-  });
-
-  it('deja el lienzo como estaba', () => {
-    const ctx = crearCtx();
-    dibujarAccesorio(ctx, rostro, carrera, bancoVacio);
-
-    expect(ctx.llamadas[0]).toEqual(['save']);
-    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
-    expect(ctx.llamadas.filter(([n]) => n === 'save').length).toBe(
-      ctx.llamadas.filter(([n]) => n === 'restore').length,
+  const recorteDe = (vAncho, vAlto, ancho, alto) =>
+    calcularRecorteVisible(
+      vAncho,
+      vAlto,
+      calcularRectanguloVideo(vAncho, vAlto, ancho, alto),
+      ancho,
+      alto,
     );
+
+  // ESTA es la prueba que importa. Analizar un recorte y mapear los puntos sobre
+  // la pantalla entera tiene que dar exactamente el mismo pixel que analizar el
+  // cuadro completo y mapearlo sobre el rectangulo dibujado. Si los dos caminos
+  // se separan, los puntos se van de la cara — ya nos paso una vez.
+  it.each(casos)('el recorte es el inverso exacto del rectangulo dibujado: %s', (_, vA, vB, ancho, alto) => {
+    const rectangulo = calcularRectanguloVideo(vA, vB, ancho, alto);
+    const r = recorteDe(vA, vB, ancho, alto);
+
+    for (const u of [0, 0.25, 0.5, 0.75, 1]) {
+      for (const v of [0, 0.5, 1]) {
+        // Un punto (u, v) normalizado DENTRO del recorte, pasado a normalizado
+        // del cuadro completo.
+        const uCompleto = (r.sx + u * r.sAncho) / vA;
+        const vCompleto = (r.sy + v * r.sAlto) / vB;
+
+        // Camino viejo: analizar el cuadro entero y mapear sobre el rectangulo
+        // dibujado. Camino nuevo: analizar el recorte y mapear sobre la pantalla
+        // entera, o sea (u * ancho, v * alto). Tienen que dar el mismo pixel.
+        expect(rectangulo.x + uCompleto * rectangulo.ancho).toBeCloseTo(u * ancho, 6);
+        expect(rectangulo.y + vCompleto * rectangulo.alto).toBeCloseTo(v * alto, 6);
+      }
+    }
   });
 
-  it('la figura crece con la cara: el doble de lejos los ojos, el doble de dibujo', () => {
-    const medir = (r) => {
-      const ctx = crearCtx();
-      dibujarAccesorio(ctx, r, carrera, bancoVacio);
-      const coordenadas = ctx.llamadas
-        .filter(([nombre]) => !['translate', 'rotate', 'save', 'restore'].includes(nombre))
-        .flatMap(([, ...args]) => args.filter((v) => typeof v === 'number'));
-      expect(coordenadas.length, 'la figura no dibujo ninguna coordenada').toBeGreaterThan(0);
-      return Math.max(...coordenadas.map(Math.abs));
-    };
+  it.each(casos)('nunca se sale del cuadro de la camara: %s', (_, vA, vB, ancho, alto) => {
+    const r = recorteDe(vA, vB, ancho, alto);
 
-    const chica = medir(rostro);
-    const grande = medir({ ojoIzq: { x: 400, y: 300 }, ojoDer: { x: 600, y: 300 } });
-    expect(grande).toBeCloseTo(chica * 2, 5);
+    expect(r.sx).toBeGreaterThanOrEqual(0);
+    expect(r.sy).toBeGreaterThanOrEqual(0);
+    expect(r.sAncho).toBeGreaterThan(0);
+    expect(r.sAlto).toBeGreaterThan(0);
+    expect(r.sx + r.sAncho).toBeLessThanOrEqual(vA + 0.001);
+    expect(r.sy + r.sAlto).toBeLessThanOrEqual(vB + 0.001);
+  });
+
+  // El motivo de existir de todo esto: con una camara apaisada en una pantalla
+  // vertical, dos tercios del ancho de la camara no se ven nunca. Analizarlos
+  // gasta la resolucion del modelo en pixeles que nadie mira, y es lo que decide
+  // si una cara lejana se encuentra.
+  it('descarta lo que la pantalla vertical nunca muestra', () => {
+    const r = recorteDe(1280, 720, 1080, 1920);
+
+    expect(r.sAlto).toBeCloseTo(720);
+    expect(r.sAncho).toBeCloseTo(405, 0);
+    expect(r.sx).toBeCloseTo(437.5, 0);
+    // La cara pasa de ocupar un tercio del ancho analizado a ocuparlo entero.
+    expect(1280 / r.sAncho).toBeGreaterThan(3);
+  });
+
+  it('con la misma relacion no recorta nada', () => {
+    const r = recorteDe(1280, 720, 2560, 1440);
+    expect(r).toEqual({ sx: 0, sy: 0, sAncho: 1280, sAlto: 720 });
+  });
+
+  it('sobrevive a un video que todavia no reporta tamaño', () => {
+    const r = calcularRecorteVisible(0, 0, { x: 0, y: 0, ancho: 1080, alto: 1920 }, 1080, 1920);
+    expect(r).toBeNull();
   });
 });

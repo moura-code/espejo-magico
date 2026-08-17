@@ -1,4 +1,4 @@
-// Cableado de la experiencia. Aca se juntan los once modulos anteriores.
+// Cableado de la experiencia. Aca se juntan todos los modulos anteriores.
 //
 // Este archivo no tiene logica propia: decide QUE modulo habla con cual y en
 // que orden se dibuja. Todo lo que se puede probar vive en otro lado.
@@ -27,22 +27,20 @@ import {
   calcularTransicionEscena,
 } from './niebla.js';
 import { crearEfecto, efectosDisponibles } from './efectos.js';
-import { figurasAccesorioDisponibles, figurasDisponibles } from './figuras.js';
+import { figurasDisponibles } from './figuras.js';
 import {
   calcularDisposicion,
+  calcularRecorteVisible,
   calcularRectanguloVideo,
   dibujarVideoEspejado,
   dibujarObjetos,
   dibujarFueraDeCara,
-  dibujarAccesorio,
   dibujarManos,
   dibujarPersona,
   dibujarTextos,
   dibujarInvitacion,
 } from './escena.js';
-import { crearBus } from './bus.js';
 import { instalarOperacion } from './operacion.js';
-import { mensajeCarrera, mensajeHolaEspejo, mensajeReposo } from '../comun/protocolo.js';
 
 // ---------- lienzos ----------
 // La niebla va en su propia capa para componer todos los jirones laterales sin
@@ -62,6 +60,15 @@ function ajustar() {
 ajustar();
 window.addEventListener('resize', ajustar);
 
+// Lienzo de analisis. Los detectores NO miran el cuadro completo de la camara:
+// miran exactamente el pedazo que se ve en pantalla, redibujado aca. Con una
+// camara apaisada en un espejo vertical eso es un tercio del ancho, y ese tercio
+// es lo unico que el visitante ve: analizar el resto gastaba dos tercios de la
+// resolucion del modelo en pixeles invisibles, y es lo que ponia el limite de a
+// que distancia se reconoce una cara.
+const lienzoAnalisis = document.createElement('canvas');
+const ctxAnalisis = lienzoAnalisis.getContext('2d');
+
 function aviso(texto) {
   ctx.fillStyle = '#101418';
   ctx.fillRect(0, 0, lienzo.width, lienzo.height);
@@ -76,7 +83,6 @@ aviso('cargando…');
 // ---------- contenido ----------
 const contenido = await cargarContenido({
   figurasValidas: figurasDisponibles(),
-  figurasAccesorioValidas: figurasAccesorioDisponibles(),
   efectosValidos: efectosDisponibles(),
 });
 const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
@@ -184,47 +190,21 @@ const maquina = crearMaquina({
 });
 const pool = crearPool(CONFIG.objetos);
 const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
-const instancia = crypto.randomUUID();
 
 // La niebla arranca cerrada. Su apertura cambia de forma continua aunque la
 // maquina salte de estado, y solo desplaza nubes hacia los lados.
 let nieblaActual = { apertura: 0 };
 
-let ultimoLatido = 0;
-let ultimoAnuncio = mensajeReposo(instancia);
-
-const bus = crearBus({
-  url: `ws://${location.hostname}:${CONFIG.red.puerto}`,
-  reconexionMs: CONFIG.red.reconexionMs,
-  identidad: mensajeHolaEspejo(instancia),
-  alEstado: (estado) => {
-    console.log('bus:', estado);
-    if (estado.conectado) bus.enviar(ultimoAnuncio);
-  },
-});
-
-function atender(eventos, ahora) {
+function atender(eventos) {
   for (const evento of eventos) {
-    if (evento.tipo === 'carrera') {
-      ultimoAnuncio = mensajeCarrera(evento.id, evento.sesion, instancia);
-      bus.enviar(ultimoAnuncio);
-    }
-    if (evento.tipo === 'reposo') {
-      ultimoAnuncio = mensajeReposo(instancia);
-      bus.enviar(ultimoAnuncio);
-    }
     if (evento.tipo !== 'entra') continue;
 
-    // Al sentarse alguien, los objetos de la atraccion se desvanecen: el espejo
-    // despierta limpio en vez de con una pila de la sesion anterior.
-    if (evento.estado === ESTADOS.ENGANCHE) pool.retirar(ahora, 600);
-
-    // Al entrar en la revelacion se vacia de golpe, pero eso pasa con la niebla
-    // todavia cerrada, asi que nadie lo ve. Cuando la niebla se abre, en pantalla
-    // hay exactamente los objetos de la carrera sorteada y nada mas.
-    if (evento.estado === ESTADOS.REVELACION) pool.vaciar();
-
+    // Los dos vaciados que importan. En ATRACCION se limpia lo que quedo de la
+    // escena que termino. En REVELACION se limpia lo de la escena anterior
+    // cuando el operador fuerza una carrera con las teclas y salta ahi desde
+    // una sesion en curso: la carrera nueva tiene que aparecer sola.
     if (evento.estado === ESTADOS.ATRACCION) pool.vaciar();
+    if (evento.estado === ESTADOS.REVELACION) pool.vaciar();
   }
 }
 
@@ -246,6 +226,41 @@ function aparecerObjeto(definicion, ahora) {
     }),
     ahora,
   );
+}
+
+/**
+ * Copia al lienzo de analisis lo que se ve en pantalla. Devuelve el lienzo, o
+ * null si el video todavia no reporta tamaño.
+ */
+function prepararAnalisis(video, rectangulo) {
+  const recorte = calcularRecorteVisible(
+    video.videoWidth,
+    video.videoHeight,
+    rectangulo,
+    disposicion.ancho,
+    disposicion.alto,
+  );
+  if (!recorte) return null;
+
+  const alto = CONFIG.deteccion.altoAnalisis;
+  const ancho = Math.max(1, Math.round((alto * recorte.sAncho) / recorte.sAlto));
+  if (lienzoAnalisis.width !== ancho || lienzoAnalisis.height !== alto) {
+    lienzoAnalisis.width = ancho;
+    lienzoAnalisis.height = alto;
+  }
+
+  ctxAnalisis.drawImage(
+    video,
+    recorte.sx,
+    recorte.sy,
+    recorte.sAncho,
+    recorte.sAlto,
+    0,
+    0,
+    ancho,
+    alto,
+  );
+  return lienzoAnalisis;
 }
 
 // ---------- bucle ----------
@@ -287,7 +302,10 @@ function cuadro(ahora) {
   const camaraLista = camara.obtener();
   const video = camaraLista?.video ?? null;
 
-  // El MISMO rectangulo para dibujar el video y para mapear el rostro.
+  // Donde se dibuja el video. De aca sale tambien el recorte que se analiza, y
+  // por eso los puntos caen sobre la cara: los dos caminos —lo que se ve y lo
+  // que se analiza— salen del mismo rectangulo. Si alguno se calcula por su
+  // cuenta, los marcadores se van de la cara. Ya nos paso una vez.
   const rectangulo = video
     ? calcularRectanguloVideo(
         video.videoWidth,
@@ -298,23 +316,47 @@ function cuadro(ahora) {
     : { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
 
   // --- deteccion ---
-  if (ahora - ultimaDeteccion >= intervaloDeteccion) {
+  // Las manos corren en su propio reloj, mas rapido que la cara: se mueven diez
+  // veces mas rapido y a 22 cuadros por segundo el circulo va siempre atras de la
+  // mano de verdad. Solo se buscan cuando hay algo con que interactuar, porque es
+  // el detector mas caro del cuadro.
+  const poseSirve = detectorDePose && video && modo !== 'demo';
+  const manosSirven =
+    detectorDeManos &&
+    video &&
+    modo !== 'demo' &&
+    (estadoAnterior === ESTADOS.REVELACION || estadoAnterior === ESTADOS.ESCENA);
+
+  const tocaRostro = ahora - ultimaDeteccion >= intervaloDeteccion;
+  const tocaPose = poseSirve && ahora - ultimaDeteccionPose >= intervaloPose;
+  const tocaManos = manosSirven && ahora - ultimaDeteccionManos >= intervaloManos;
+
+  // El recorte se prepara UNA vez por cuadro y solo si alguno de los tres va a
+  // correr: el drawImage no es gratis. Como contiene exactamente lo que se ve en
+  // pantalla, los puntos que devuelven los detectores ya estan en coordenadas de
+  // pantalla y el rectangulo de mapeo es la pantalla entera.
+  const rectDeteccion = { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
+  const analisis =
+    video && modo !== 'demo' && (tocaRostro || tocaPose || tocaManos)
+      ? prepararAnalisis(video, rectangulo)
+      : null;
+
+  if (tocaRostro) {
     ultimaDeteccion = ahora;
 
     crudoRostro =
       modo === 'demo'
         ? sintetica.detectar(ahora, disposicion)
-        : video
-          ? detector.detectar(video, ahora, rectangulo)
+        : analisis
+          ? detector.detectar(analisis, ahora, rectDeteccion)
           : null;
 
     rostro = crudoRostro ? filtro.filtrar(crudoRostro) : null;
   }
 
-  const poseSirve = detectorDePose && video && modo !== 'demo';
-  if (poseSirve && ahora - ultimaDeteccionPose >= intervaloPose) {
+  if (tocaPose && analisis) {
     ultimaDeteccionPose = ahora;
-    pose = detectorDePose.detectar(video, ahora, rectangulo);
+    pose = detectorDePose.detectar(analisis, ahora, rectDeteccion);
   } else if (!poseSirve) {
     pose = null;
   }
@@ -331,19 +373,9 @@ function cuadro(ahora) {
     pose = null;
   }
 
-  // Las manos corren en su propio reloj, mas rapido que la cara: se mueven mucho
-  // mas rapido y a 22 cuadros por segundo el circulo va siempre atras de la mano
-  // de verdad. Solo se buscan cuando hay algo con que interactuar, porque es el
-  // detector mas caro del cuadro.
-  const manosSirven =
-    detectorDeManos &&
-    video &&
-    modo !== 'demo' &&
-    (estadoAnterior === ESTADOS.REVELACION || estadoAnterior === ESTADOS.ESCENA);
-
-  if (manosSirven && ahora - ultimaDeteccionManos >= intervaloManos) {
+  if (tocaManos && analisis) {
     ultimaDeteccionManos = ahora;
-    manos = detectorDeManos.detectar(video, ahora, rectangulo);
+    manos = detectorDeManos.detectar(analisis, ahora, rectDeteccion);
     // La copia filtrada es solo para el iman: corta el temblor de la deteccion
     // sin meterle retardo al manotazo, que sigue usando la palma cruda.
     manosSuaves = filtroDeManos.filtrar(manos, ahora);
@@ -364,12 +396,7 @@ function cuadro(ahora) {
     hayPersona,
     ahora,
   });
-  atender(salida.eventos, ahora);
-
-  if (ahora - ultimoLatido >= CONFIG.red.latidoMs) {
-    ultimoLatido = ahora;
-    if (ultimoAnuncio) bus.enviar(ultimoAnuncio);
-  }
+  atender(salida.eventos);
 
   const estado = salida.estado;
   estadoAnterior = estado;
@@ -382,13 +409,9 @@ function cuadro(ahora) {
   });
 
   // --- fisica ---
-  const fuente = fuenteDeObjetos(estado, carrera, contenido.carreras);
+  const fuente = fuenteDeObjetos(estado, carrera);
   if (fuente && fuente.length > 0 && ahora >= proximaAparicion) {
-    const intervalo =
-      estado === ESTADOS.ATRACCION
-        ? CONFIG.objetos.intervaloAparicion * 3
-        : CONFIG.objetos.intervaloAparicion;
-    proximaAparicion = ahora + intervalo;
+    proximaAparicion = ahora + CONFIG.objetos.intervaloAparicion;
     aparecerObjeto(fuente[Math.floor(Math.random() * fuente.length)], ahora);
   }
 
@@ -411,6 +434,9 @@ function cuadro(ahora) {
         x: mano.palma.x,
         y: mano.palma.y,
         alcance: mano.radio * CONFIG.manos.atraccion.alcanceFactor,
+        alcanceArriba:
+          mano.radio *
+          (CONFIG.manos.atraccion.alcanceArribaFactor ?? CONFIG.manos.atraccion.alcanceFactor),
         reposo: mano.radio * CONFIG.manos.atraccion.reposoFactor,
       });
     }
@@ -477,48 +503,56 @@ function cuadro(ahora) {
   // mapeo esta bien; si estan corridos, el rectangulo del video y el del mapeo
   // se separaron.
   if (verMalla && modo !== 'demo') {
-    dibujarPersona(ctx, pose, rostro, rectangulo, carrera?.color ?? '#FFD23F');
+    // Los puntos crudos vienen normalizados sobre el RECORTE, no sobre el cuadro
+    // de la camara, asi que se mapean sobre la pantalla entera.
+    dibujarPersona(ctx, pose, rostro, rectDeteccion, carrera?.color ?? '#FFD23F');
     const puntos = detector.puntosCrudos();
     if (puntos) {
       ctx.fillStyle = 'rgba(80,200,255,0.75)';
       for (const punto of puntos) {
         ctx.fillRect(
-          rectangulo.x + (1 - punto.x) * rectangulo.ancho - 1,
-          rectangulo.y + punto.y * rectangulo.alto - 1,
+          rectDeteccion.x + (1 - punto.x) * rectDeteccion.ancho - 1,
+          rectDeteccion.y + punto.y * rectDeteccion.alto - 1,
           2.5,
           2.5,
         );
       }
     }
 
-    // Los 21 puntos de cada mano y su circulo de colision. Si los puntos caen
-    // sobre tus dedos, el problema no es la deteccion.
+    // Los 21 puntos de cada mano y su circulo de radio real, que es lo que la
+    // fisica usa como colisionador en golpe y como base del alcance en iman. Si
+    // los puntos caen sobre tus dedos, el problema no es la deteccion.
     ctx.fillStyle = '#FFD23F';
+    ctx.strokeStyle = '#FFD23F';
+    ctx.lineWidth = 2;
     for (const mano of manos) {
       for (const punto of mano.puntos ?? []) {
         ctx.fillRect(
-          rectangulo.x + (1 - punto.x) * rectangulo.ancho - 2,
-          rectangulo.y + punto.y * rectangulo.alto - 2,
+          rectDeteccion.x + (1 - punto.x) * rectDeteccion.ancho - 2,
+          rectDeteccion.y + punto.y * rectDeteccion.alto - 2,
           4,
           4,
         );
       }
+      ctx.beginPath();
+      ctx.arc(mano.palma.x, mano.palma.y, mano.radio, 0, Math.PI * 2);
+      ctx.stroke();
     }
-    dibujarManos(ctx, manos, '#FFD23F');
   }
 
   dibujarObjetos(ctx, pool.vivos(), banco, carrera?.color ?? '#8899aa');
 
-  // Los aros de las manos se ven siempre: son la señal de que las manos
-  // interactuan. Se dibuja la mano que manda segun el modo — la filtrada en
-  // iman (donde esta el atractor), la cruda en golpe (donde pega el manotazo).
-  dibujarManos(
-    ctx,
-    interaccionDeManos === 'atraer' ? manosSuaves : manos,
-    carrera?.color ?? '#ffffff',
-  );
-
-  dibujarAccesorio(ctx, rostro, carrera, banco, transicion.contenido);
+  // La señal de las manos se ve siempre que haya manos: es lo que le enseña al
+  // publico que puede estirarlas. Se dibuja sobre la mano que manda segun el
+  // modo — la filtrada en iman (donde esta el atractor), la cruda en golpe
+  // (donde pega el manotazo).
+  const atrae = interaccionDeManos === 'atraer';
+  dibujarManos(ctx, atrae ? manosSuaves : manos, carrera?.color ?? '#ffffff', {
+    ahora,
+    alcanceFactor: CONFIG.manos.atraccion.alcanceFactor,
+    atrae,
+    senal: CONFIG.manos.senal,
+  });
 
   nieblaActual = acercarNiebla(
     nieblaActual,
@@ -560,7 +594,6 @@ window.espejo = {
   contenido,
   banco,
   pool,
-  bus,
   detector,
   estadoDeCamara: () => estadoDeCamara,
   manos: () => manos,
@@ -583,10 +616,10 @@ window.espejo = {
     return interaccionDeManos;
   },
   // Los atajos tienen que pasar por atender(): si no, forzar una carrera con las
-  // teclas no le avisa a las tablets ni limpia los objetos de la sesion anterior.
-  avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos, ahora),
-  forzarCarrera: (id, ahora) => atender(maquina.forzarCarrera(id, ahora).eventos, ahora),
-  reiniciar: (ahora) => atender(maquina.reiniciar(ahora).eventos, ahora),
+  // teclas deja en pantalla los objetos de la sesion anterior.
+  avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos),
+  forzarCarrera: (id, ahora) => atender(maquina.forzarCarrera(id, ahora).eventos),
+  reiniciar: (ahora) => atender(maquina.reiniciar(ahora).eventos),
 };
 
 const operacion = instalarOperacion({ espejo: window.espejo, tiempos: CONFIG.operacion });

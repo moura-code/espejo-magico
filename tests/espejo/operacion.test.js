@@ -5,18 +5,35 @@ import {
   interpretarTecla,
 } from '../../espejo/operacion.js';
 
-const IDS = ['mecanica', 'electrica', 'computacion', 'fisico-matematico', 'civil', 'quimica'];
+// El mismo orden que contenido/carreras.json. La prueba no lo lee del disco a
+// proposito — operacion.js no sabe que existe el contenido — pero si el catalogo
+// crece, tests/integracion/atajos.test.js avisa que faltan teclas.
+const IDS = [
+  'mecanica',
+  'electrica',
+  'computacion',
+  'fisico-matematico',
+  'civil',
+  'quimica',
+  'alimentos',
+  'produccion',
+  'agrimensura',
+  'comunicacion',
+  'forestal',
+  'naval',
+];
 
 describe('interpretarTecla', () => {
-  it('las teclas 1 a 6 fuerzan la carrera de esa posicion', () => {
+  it('las doce teclas fuerzan la carrera de esa posicion', () => {
     expect(interpretarTecla('1', IDS)).toEqual({ accion: 'forzar', id: 'mecanica' });
-    expect(interpretarTecla('6', IDS)).toEqual({ accion: 'forzar', id: 'quimica' });
+    expect(interpretarTecla('0', IDS)).toEqual({ accion: 'forzar', id: 'comunicacion' });
+    expect(interpretarTecla('-', IDS)).toEqual({ accion: 'forzar', id: 'forestal' });
+    expect(interpretarTecla('=', IDS)).toEqual({ accion: 'forzar', id: 'naval' });
   });
 
-  it('ignora numeros sin carrera detras', () => {
-    expect(interpretarTecla('7', IDS)).toBeNull();
-    expect(interpretarTecla('0', IDS)).toBeNull();
+  it('ignora teclas sin carrera detras', () => {
     expect(interpretarTecla('3', ['a', 'b'])).toBeNull();
+    expect(interpretarTecla('=', IDS.slice(0, 11))).toBeNull();
   });
 
   it('reconoce las acciones sueltas sin importar mayusculas', () => {
@@ -111,7 +128,6 @@ describe('instalarOperacion', () => {
       detector: { cantidadDePuntos: () => 478 },
       manosCrudas: () => 1,
       manos: () => [],
-      bus: { conectado: () => true },
       pool: { vivos: () => [] },
       banco: { faltantes: () => [] },
     };

@@ -1,11 +1,10 @@
-// La maquina de estados de la experiencia. No dibuja nada, no sabe de camaras y
-// no habla con la red: recibe "hay rostro si o no" mas un reloj, y devuelve el
-// estado y los eventos que hay que atender. Por eso se prueba entera sin nada.
+// La maquina de estados de la experiencia. No dibuja nada y no sabe de camaras:
+// recibe "hay rostro si o no" mas un reloj, y devuelve el estado, la carrera
+// sorteada y los cambios de estado que hay que atender. Por eso se prueba entera
+// sin nada.
 //
-// Eventos:
-//   { tipo: 'entra',   estado }        cambio de estado
-//   { tipo: 'carrera', id, sesion }    anunciar la carrera a las tablets
-//   { tipo: 'reposo' }                 apagar las tablets
+// Unico evento: { tipo: 'entra', estado }. El resto de lo que hace falta saber
+// (carrera, sesion) viaja en la salida, que se lee cuando se quiera.
 
 export const ESTADOS = {
   ATRACCION: 'ATRACCION',
@@ -39,21 +38,14 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let enManual = manual;
 
   function ir(nuevo, ahora, eventos) {
-    const anterior = estado;
     estado = nuevo;
     desde = ahora;
     // Solo el enganche lleva cuenta de rostro continuo, y arranca al entrar.
     rostroContinuoDesde = nuevo === ESTADOS.ENGANCHE ? ahora : null;
     eventos.push({ tipo: 'entra', estado: nuevo });
 
-    if (nuevo === ESTADOS.REVELACION) {
-      sesion += 1;
-      eventos.push({ tipo: 'carrera', id: carrera, sesion });
-    }
+    if (nuevo === ESTADOS.REVELACION) sesion += 1;
     if (nuevo === ESTADOS.ATRACCION) {
-      // Las tablets acompañan el cierre visual y se apagan cuando las nubes ya
-      // terminaron de cubrir el espejo, no cuatro segundos antes.
-      if (anterior === ESTADOS.CIERRE) eventos.push({ tipo: 'reposo' });
       carrera = null;
       inicioDeSesion = null;
     }
@@ -129,6 +121,16 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
         // cuando la ausencia es real y sostenida; mientras tanto no se inicia
         // el sorteo frente a un lugar vacio.
         case ESTADOS.ENGANCHE:
+          // El tope de sesion tambien vigila el enganche. Un rostro que aparece
+          // y desaparece nunca junta los dos segundos continuos que hacen falta
+          // para sortear, y como la persona esta ahi tampoco acumula la ausencia
+          // que corta: sin esto el espejo se queda destapado y quieto, que es
+          // justo lo que la red de seguridad del stand existe para evitar.
+          if (pasoElTope) {
+            ir(ESTADOS.ATRACCION, ahora, eventos);
+            break;
+          }
+
           if (!puedeIniciar) {
             // El enganche exige rostro continuo. Una pose mantiene viva una
             // sesion ya iniciada, pero no acumula tiempo para comenzar otra.
@@ -141,10 +143,10 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
 
           if (rostroContinuoDesde === null) rostroContinuoDesde = ahora;
           if (ahora - rostroContinuoDesde >= tiempos.enganche) {
-            // La carrera se elige aca, tres segundos antes de anunciarla: ese
+            // La carrera se elige aca, tres segundos antes de que se vea: ese
             // margen le sirve al espejo para tener listos los PNG cuando se
-            // despeje la niebla. El mensaje a las tablets sale en REVELACION,
-            // porque mandarlo antes seria contar el final.
+            // despeje la niebla, y durante el sorteo la niebla sigue cerrada,
+            // asi que mostrarla antes seria contar el final.
             carrera = sortear();
             ir(ESTADOS.SORTEO, ahora, eventos);
           }
@@ -197,12 +199,6 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       ausenteDesde = null;
       rostroAusenteDesde = null;
       ir(ESTADOS.ATRACCION, ahora, eventos);
-      // Si ya estaba cerrando, ir() ya anuncio el reposo. Desde cualquier otro
-      // estado la sesion se corta a mitad de camino y hay que anunciarlo igual,
-      // siempre despues del `entra` para no dejar dos ordenes posibles.
-      if (!eventos.some((evento) => evento.tipo === 'reposo')) {
-        eventos.push({ tipo: 'reposo' });
-      }
       return salida(eventos);
     },
   };

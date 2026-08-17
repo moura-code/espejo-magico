@@ -1,15 +1,12 @@
 // Carga y validacion de carreras.json.
 //
 // Todo lo que distingue una carrera de otra es dato, no codigo: agregar una
-// carrera es soltar PNG y pegar un bloque. Eso es lo que hace que seis carreras
-// entren en un mes.
+// carrera es soltar PNG y pegar un bloque. Eso permite ampliar el catalogo sin
+// tocar la logica de la experiencia.
 //
 // El validador junta TODOS los problemas y nombra la carrera en cada mensaje.
 // A las ocho de la mañana del dia del evento, "carreras[3] (quimica): objetos[5]
 // sin img" se arregla en veinte segundos; "contenido invalido" no se arregla.
-
-const esPunto = (p) =>
-  Array.isArray(p) && p.length === 2 && p.every((v) => typeof v === 'number' && v >= 0 && v <= 1);
 
 /**
  * `figurasValidas` y `efectosValidos` son opcionales. Cuando se pasan, se
@@ -18,7 +15,7 @@ const esPunto = (p) =>
  */
 export function validarContenido(
   datos,
-  { figurasValidas = null, figurasAccesorioValidas = null, efectosValidos = null } = {},
+  { figurasValidas = null, efectosValidos = null } = {},
 ) {
   if (!datos || !Array.isArray(datos.carreras) || datos.carreras.length === 0) {
     return ['carreras.json necesita un arreglo "carreras" con al menos una entrada'];
@@ -39,29 +36,6 @@ export function validarContenido(
       errores.push(`${donde}: "color" tiene que ser #rrggbb`);
     }
 
-    const accesorio = carrera.accesorio;
-    if (!accesorio?.img) errores.push(`${donde}: falta "accesorio.img"`);
-    for (const clave of ['anclaOjoIzq', 'anclaOjoDer']) {
-      if (!esPunto(accesorio?.[clave])) {
-        errores.push(`${donde}: "accesorio.${clave}" tiene que ser [x, y] con valores entre 0 y 1`);
-      }
-    }
-    if (
-      figurasAccesorioValidas &&
-      accesorio?.figura &&
-      !figurasAccesorioValidas.includes(accesorio.figura)
-    ) {
-      errores.push(`${donde}: el accesorio usa la figura "${accesorio.figura}", que no existe`);
-    }
-    if (
-      esPunto(accesorio?.anclaOjoIzq) &&
-      esPunto(accesorio?.anclaOjoDer) &&
-      accesorio.anclaOjoIzq[0] === accesorio.anclaOjoDer[0] &&
-      accesorio.anclaOjoIzq[1] === accesorio.anclaOjoDer[1]
-    ) {
-      errores.push(`${donde}: los dos anclajes del accesorio caen en el mismo punto`);
-    }
-
     if (!Array.isArray(carrera.objetos) || carrera.objetos.length === 0) {
       errores.push(`${donde}: "objetos" vacio`);
     } else {
@@ -78,15 +52,6 @@ export function validarContenido(
 
     if (efectosValidos && carrera.efecto && !efectosValidos.includes(carrera.efecto)) {
       errores.push(`${donde}: usa el efecto "${carrera.efecto}", que no existe`);
-    }
-
-    if (!Array.isArray(carrera.referentes) || carrera.referentes.length === 0) {
-      errores.push(`${donde}: "referentes" vacio`);
-    } else {
-      carrera.referentes.forEach((referente, j) => {
-        if (!referente.video) errores.push(`${donde}: referentes[${j}] sin "video"`);
-        if (!referente.nombre) errores.push(`${donde}: referentes[${j}] sin "nombre"`);
-      });
     }
   });
 
@@ -114,9 +79,6 @@ export async function cargarContenido({
     ids: datos.carreras.map((carrera) => carrera.id),
     obtener: (id) => porId.get(id) ?? null,
     todasLasImagenes: () =>
-      datos.carreras.flatMap((carrera) => [
-        carrera.accesorio.img,
-        ...carrera.objetos.map((objeto) => objeto.img),
-      ]),
+      datos.carreras.flatMap((carrera) => carrera.objetos.map((objeto) => objeto.img)),
   };
 }

@@ -41,7 +41,7 @@ export function posicionLateralNube(xNormalizada, radio, ancho, apertura, lado) 
   return origen + (destino - origen) * t;
 }
 
-/** Coordina efecto, accesorio y textos sin cambiar la apertura lateral. */
+/** Coordina efecto y textos sin cambiar la apertura lateral. */
 export function calcularTransicionEscena({ estado, transcurrido, tiempos }) {
   switch (estado) {
     case ESTADOS.ATRACCION:

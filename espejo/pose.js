@@ -42,8 +42,10 @@ export function crearDetectorDePose({ detectorCrudo, segmentacion = true }) {
   let crudasDetectadas = 0;
 
   return {
-    detectar(video, ahora, rectangulo) {
-      if (!video.videoWidth) {
+    detectar(fuente, ahora, rectangulo) {
+      // `fuente` es el lienzo con el recorte visible, no el <video>: un lienzo
+      // no tiene videoWidth.
+      if (!(fuente.videoWidth || fuente.width)) {
         ultimaMascara?.close?.();
         ultimaMascara = null;
         crudasDetectadas = 0;
@@ -51,7 +53,7 @@ export function crearDetectorDePose({ detectorCrudo, segmentacion = true }) {
         return null;
       }
 
-      const salida = detectorCrudo.detectForVideo(video, ahora);
+      const salida = detectorCrudo.detectForVideo(fuente, ahora);
       const puntos = salida?.landmarks?.[0];
       const mascara = segmentacion ? salida?.segmentationMasks?.[0] : null;
       const mascaraPropia = mascara?.clone ? mascara.clone() : mascara;
@@ -80,9 +82,9 @@ export async function crearDetectorDePoseMediaPipe({ base, segmentacion = true }
     runningMode: 'VIDEO',
     numPoses: 1,
     outputSegmentationMasks: segmentacion,
-    minPoseDetectionConfidence: 0.35,
-    minPosePresenceConfidence: 0.35,
-    minTrackingConfidence: 0.35,
+    minPoseDetectionConfidence: 0.25,
+    minPosePresenceConfidence: 0.25,
+    minTrackingConfidence: 0.25,
   });
 
   return crearDetectorDePose({ detectorCrudo, segmentacion });

@@ -1,7 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { barajar, crearSorteo } from '../../espejo/sorteo.js';
 
-const IDS = ['mecanica', 'electrica', 'computacion', 'fisico-matematico', 'civil', 'quimica'];
+const IDS = [
+  'mecanica',
+  'alimentos',
+  'produccion',
+  'electrica',
+  'computacion',
+  'agrimensura',
+  'sistemas-comunicacion',
+  'fisico-matematico',
+  'civil',
+  'quimica',
+  'naval',
+];
 
 describe('barajar', () => {
   it('devuelve los mismos elementos sin repetir ni perder ninguno', () => {
@@ -22,17 +34,17 @@ describe('barajar', () => {
 });
 
 describe('crearSorteo', () => {
-  it('entrega las seis carreras antes de repetir ninguna', () => {
+  it('entrega todas las carreras antes de repetir ninguna', () => {
     const sorteo = crearSorteo({ ids: IDS });
     const salidas = IDS.map(() => sorteo.siguiente());
-    expect(new Set(salidas).size).toBe(6);
+    expect(new Set(salidas).size).toBe(IDS.length);
   });
 
   it('sigue sin repetir en la segunda vuelta completa', () => {
     const sorteo = crearSorteo({ ids: IDS });
     IDS.forEach(() => sorteo.siguiente());
     const segunda = IDS.map(() => sorteo.siguiente());
-    expect(new Set(segunda).size).toBe(6);
+    expect(new Set(segunda).size).toBe(IDS.length);
   });
 
   it('evita que la primera de una bolsa repita la ultima de la anterior', () => {
@@ -63,7 +75,7 @@ describe('crearSorteo', () => {
     const sorteo = crearSorteo({ ids: IDS });
     expect(sorteo.restantes()).toBe(0);
     sorteo.siguiente();
-    expect(sorteo.restantes()).toBe(5);
+    expect(sorteo.restantes()).toBe(IDS.length - 1);
   });
 
   it('con una sola carrera la devuelve siempre', () => {

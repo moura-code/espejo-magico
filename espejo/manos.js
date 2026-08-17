@@ -4,6 +4,10 @@
 //
 //   { palma: {x,y}, radio, apertura, largoPalma, puntas: [{x,y} x5], lado }
 //
+// Los 21 puntos crudos viajan aparte en `puntos`, sin mapear: los usa solo el
+// diagnostico de la malla (tecla M). Mapearlos todos por cuadro seria trabajo
+// por cuadro sin consumidor.
+//
 // EL RADIO SALE DE LA GEOMETRIA, NO DE CONSTANTES.
 // Es el alcance promedio de las cinco puntas de los dedos desde el centro de la
 // palma. Con el puño cerrado las puntas estan cerca y el circulo es chico; con la
@@ -70,13 +74,15 @@ export function crearDetectorDeManos({ detectorCrudo, maximo = 2, ...ajustes }) 
   let crudasDetectadas = 0;
 
   return {
-    detectar(video, ahora, rectangulo) {
-      if (!video.videoWidth) {
+    detectar(fuente, ahora, rectangulo) {
+      // `fuente` es el lienzo con el recorte visible, no el <video>: un lienzo
+      // no tiene videoWidth.
+      if (!(fuente.videoWidth || fuente.width)) {
         crudasDetectadas = 0;
         return (ultimas = []);
       }
 
-      const salida = detectorCrudo.detectForVideo(video, ahora);
+      const salida = detectorCrudo.detectForVideo(fuente, ahora);
       const crudas = salida?.landmarks ?? [];
       crudasDetectadas = crudas.length;
 
@@ -117,9 +123,9 @@ export async function crearDetectorDeManosMediaPipe({ base, maximo = 2, ...ajust
     // Umbrales bajos a proposito: en un stand la mano suele estar de costado,
     // parcialmente fuera de cuadro o mal iluminada. Preferimos una deteccion
     // imperfecta a ninguna.
-    minHandDetectionConfidence: 0.3,
-    minHandPresenceConfidence: 0.3,
-    minTrackingConfidence: 0.3,
+    minHandDetectionConfidence: 0.25,
+    minHandPresenceConfidence: 0.25,
+    minTrackingConfidence: 0.25,
   });
 
   return crearDetectorDeManos({ detectorCrudo, maximo, ...ajustes });

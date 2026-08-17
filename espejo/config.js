@@ -16,12 +16,33 @@ export const CONFIG = {
   // es sesionMaxima, que hace de red de seguridad y de rotacion de la fila.
   tiempos: {
     enganche: 2000,
-    sorteo: 3000,
-    revelacion: 2000,
-    cierre: 4000,
-    enfriamiento: 3000,
-    ausenciaParaCortar: 5000,
-    sesionMaxima: 75000,
+    sorteo: 4000,
+    revelacion: 4000,
+    cierre: 3000,
+
+    // Corto: quien llega despues de que el espejo volvio al reposo no tiene por
+    // que esperar. Existe solo para que la persona que se esta yendo no dispare
+    // una sesion nueva de espaldas.
+    enfriamiento: 1000,
+
+    // El equilibrio del que dependen las dos quejas del stand, en tension.
+    //
+    // Corto de mas: le corta la escena a alguien que sigue sentado y solo se
+    // perdio un momento. Largo de mas: la persona que se fue se lleva el espejo
+    // con ella y el que sigue en la fila mira una escena ajena.
+    //
+    // Sumado a presencia.msParaSalir da seis segundos de tolerancia real, y con
+    // el cierre el espejo queda libre a los nueve de que alguien se levanta.
+    // Debajo de esos seis segundos, si dos personas se turnan muy rapido, la
+    // segunda hereda la carrera de la primera: distinguirlas pide comparar
+    // posiciones, no acortar plazos.
+    ausenciaParaCortar: 4000,
+
+    // Red de seguridad, no temporizador de la experiencia: existe por si la
+    // deteccion se traba en verdadero (un poster, el respaldo de una silla) y el
+    // espejo se queda en escena para siempre. Con 75 s le cortaba la escena a
+    // quien la estaba disfrutando, que es justo lo que no tiene que hacer.
+    sesionMaxima: 180000,
   },
 
   // Cuando se considera que hay alguien sentado.
@@ -29,7 +50,13 @@ export const CONFIG = {
   // cada vez que alguien gira la cabeza.
   presencia: {
     msParaEntrar: 270, // seis detecciones seguidas a 22 cuadros por segundo
-    msParaSalir: 400,
+
+    // Este numero es el que decide si el espejo se siente estable o nervioso.
+    // Es el colchon que absorbe los huecos de la deteccion ANTES de que lleguen
+    // a la maquina de estados. Con 800 ms un rostro intermitente reiniciaba una
+    // y otra vez los dos segundos continuos que pide el enganche: las nubes se
+    // abrian y se cerraban sin llegar nunca al sorteo.
+    msParaSalir: 2000,
   },
 
   // Filtro exponencial. Mas bajo = mas suave y mas lento.
@@ -45,6 +72,15 @@ export const CONFIG = {
     altoCamara: 720,
     factorRadio: 1.6,
     ventanaConfianza: 30,
+
+    // Alto, en pixeles, del lienzo que se le da a MediaPipe. No es el cuadro de
+    // la camara: es solo el pedazo que se ve en pantalla (ver
+    // calcularRecorteVisible en escena.js). Con una camara apaisada en una
+    // pantalla vertical, dos tercios del ancho no se ven nunca, y analizarlos
+    // gastaba la resolucion del modelo en pixeles que nadie mira. Subirlo no
+    // agranda la cara dentro del recorte: lo que da alcance es el recorte, no
+    // este numero.
+    altoAnalisis: 720,
 
     // Centros de iris. Salen de FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS y
     // FACE_LANDMARKS_RIGHT_IRIS del propio paquete de MediaPipe, no de memoria.
@@ -74,10 +110,9 @@ export const CONFIG = {
     // va siempre atras de la mano de verdad: manoteas y no le pegas a nada.
     fps: 34,
 
-    // Generosos: es mas facil disfrutar un circulo que perdona que uno exacto
-    // que te hace errar. Subilos si sigue costando pegarle a los objetos.
-    factorRadio: 1.4,
-    radioMinimoEnPalmas: 1.0,
+    // Generosos: facil de interactuar a 1.5m - 2m de la camara sin exigir estirar el brazo.
+    factorRadio: 1.5,
+    radioMinimoEnPalmas: 1.2,
 
     // Suavizado y tope de la velocidad con la que la cabeza y las manos golpean
     // los objetos. Sin tope, un parpadeo de la deteccion dispara un objeto a
@@ -98,11 +133,25 @@ export const CONFIG = {
     // escurren por debajo del campo; con 8000 el iman captura desde cualquier
     // angulo y el racimo queda quieto (fisica.test.js lo vigila).
     atraccion: {
-      alcanceFactor: 2.6, // alcance del campo, en radios de mano
+      alcanceFactor: 3.2, // alcance del campo, en radios de mano
+      alcanceArribaFactor: 4.5, // alcance extendido hacia arriba para capturar objetos que caen a distancia
       reposoFactor: 0.3, // anillo de reposo, en radios de mano: bien chico para que el racimo se abrace a la palma y no flote lejos
       fuerza: 8000, // aceleracion maxima del resorte, en px/s2
       amortiguacion: 3.5, // 1/s: cuanto se frenan los objetos dentro del campo
       separacion: 10, // 1/s: que tan rapido se apartan dos capturados encimados
+    },
+
+    // La señal de que las manos sirven para algo. No dibuja la mano —eso compite
+    // con la mano de verdad que ya se ve en el espejo— sino el campo del iman:
+    // un resplandor en la palma y anillos que se CIERRAN hacia ella, que es el
+    // mismo camino que hacen los objetos. El anillo nace en el alcance real del
+    // campo, asi que ademas enseña hasta donde llega.
+    senal: {
+      resplandorFactor: 2.2, // radio del resplandor, en radios de mano
+      nucleoFactor: 0.22, // brillo que marca de donde cuelga el racimo
+      anchoAnilloFactor: 0.5, // que tan difusa es cada banda, en radios de mano
+      anillos: 2, // cuantos viajan a la vez: con uno solo la señal parpadea
+      periodoMs: 1500, // lo que tarda una banda en llegar a la palma
     },
 
     // Suavizado SOLO para el iman: el racimo cuelga de la palma en forma
@@ -112,7 +161,7 @@ export const CONFIG = {
     suavizadoDelIman: {
       posicion: 0.35,
       radio: 0.25,
-      retencionMs: 250,
+      retencionMs: 400,
       distanciaMaximaEnRadios: 3,
     },
   },
@@ -138,13 +187,13 @@ export const CONFIG = {
 
   // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
   // hay nadie, salen hacia los lados al detectar a alguien y vuelven por el
-  // mismo camino cuando la persona lleva cinco segundos ausente.
+  // mismo camino cuando la persona lleva dos segundos ausente.
   niebla: {
     cantidad: 26, // jirones en pantalla
     agitacionSorteo: 3, // cuanto se aceleran los jirones durante el sorteo
     velocidades: {
       abrir: 1.7, // fraccion por segundo: el espejo se despeja en ~0.6 s
-      cerrar: 0.25, // acompaña los cuatro segundos del estado de cierre
+      cerrar: 0.34, // acompaña los tres segundos del estado de cierre
     },
   },
 
@@ -168,15 +217,5 @@ export const CONFIG = {
 
   operacion: {
     recargaCadaMs: 4 * 60 * 60 * 1000,
-  },
-
-  red: {
-    puerto: 8080,
-    reconexionMs: 2000,
-    latidoMs: 2000,
-  },
-
-  tablet: {
-    precargaIntervaloMs: 250,
   },
 };
