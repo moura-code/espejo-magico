@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { alfaDeHumo } from '../../espejo/humo.js';
+import { alfaDeHumo, cargarVideoDelNavegador } from '../../espejo/humo.js';
 import { ESTADOS } from '../../espejo/maquina-estados.js';
 
 const TIEMPOS = { enganche: 2000, humo: 3000, revelacion: 2500, cierre: 3000 };
@@ -63,5 +63,105 @@ describe('alfaDeHumo', () => {
         expect(valor).toBeLessThanOrEqual(1);
       }
     }
+  });
+});
+
+// --- carga del video ---------------------------------------------------------
+//
+// El humo es opcional y el modulo lo promete: si no se puede reproducir, el
+// espejo arranca igual. Eso solo se cumple si la promesa SIEMPRE termina.
+
+const crearVideoFalso = () => ({
+  play: () => Promise.resolve(),
+  load() {
+    this.pedido = true;
+  },
+});
+
+// Reloj de mentira: guarda lo agendado en vez de esperarlo de verdad.
+const crearRelojFalso = () => {
+  const agendado = [];
+  return {
+    programar: (fn, ms) => {
+      agendado.push({ fn, ms });
+      return agendado.length - 1;
+    },
+    cancelar: (id) => {
+      if (agendado[id]) agendado[id].cancelado = true;
+    },
+    vencer: () => agendado.filter((a) => !a.cancelado).forEach((a) => a.fn()),
+    pendientes: () => agendado.filter((a) => !a.cancelado).length,
+    demora: () => agendado[0]?.ms,
+  };
+};
+
+const cargar = (video, reloj, msMaximos = 8000) =>
+  cargarVideoDelNavegador('/humo.mp4', {
+    crearVideo: () => video,
+    programar: reloj.programar,
+    cancelar: reloj.cancelar,
+    msMaximos,
+  });
+
+describe('cargarVideoDelNavegador', () => {
+  it('entrega el video cuando el navegador dice que puede reproducirlo', async () => {
+    const video = crearVideoFalso();
+    const reloj = crearRelojFalso();
+    const promesa = cargar(video, reloj);
+
+    expect(video.pedido).toBe(true);
+    video.oncanplaythrough();
+
+    await expect(promesa).resolves.toBe(video);
+  });
+
+  it('falla cuando el video no se puede cargar', async () => {
+    const video = crearVideoFalso();
+    const reloj = crearRelojFalso();
+    const promesa = cargar(video, reloj);
+
+    video.onerror();
+
+    await expect(promesa).rejects.toThrow(/No se pudo cargar/);
+  });
+
+  // La falla que dejaba el espejo en "cargando..." para siempre: con la ventana
+  // tapada, Chrome posterga la descarga del video y no dispara ni
+  // `canplaythrough` ni `error`. Sin tope, el await de main.js no vuelve nunca y
+  // no se llega a crear ni la camara ni MediaPipe.
+  it('se rinde cuando el navegador no contesta ni que si ni que no', async () => {
+    const video = crearVideoFalso();
+    const reloj = crearRelojFalso();
+    const promesa = cargar(video, reloj, 8000);
+
+    expect(reloj.demora()).toBe(8000);
+    reloj.vencer();
+
+    await expect(promesa).rejects.toThrow(/tardo demasiado/i);
+  });
+
+  it('no deja el tope andando cuando el video carga a tiempo', async () => {
+    const video = crearVideoFalso();
+    const reloj = crearRelojFalso();
+    const promesa = cargar(video, reloj);
+
+    video.oncanplaythrough();
+    await promesa;
+
+    expect(reloj.pendientes()).toBe(0);
+  });
+
+  // Un canplaythrough que llega despues del tope no puede revivir la promesa ya
+  // rechazada: main.js siguio sin humo y nadie esta esperando este video.
+  it('ignora al video que aparece tarde', async () => {
+    const video = crearVideoFalso();
+    const reloj = crearRelojFalso();
+    const promesa = cargar(video, reloj, 8000);
+
+    reloj.vencer();
+    await expect(promesa).rejects.toThrow();
+
+    expect(() => video.oncanplaythrough?.()).not.toThrow();
+    await expect(promesa).rejects.toThrow(/tardo demasiado/i);
   });
 });

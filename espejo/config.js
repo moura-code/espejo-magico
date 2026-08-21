@@ -229,6 +229,12 @@ export const CONFIG = {
 
     // Cuanto tarda en disiparse ya dentro de la eleccion, dejando los objetos.
     msDeSalida: 1400,
+
+    // Cuanto se lo espera al arrancar antes de seguir sin humo. Con la ventana
+    // tapada Chrome posterga la descarga y no avisa ni que si ni que no: sin
+    // este tope el espejo no llega a arrancar. Generoso a proposito, el video
+    // pesa 12 MB y en la PC del evento se sirve desde el disco local.
+    msParaCargar: 8000,
   },
 
   // El fondo de la carrera, detras de la persona.

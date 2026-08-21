@@ -1,7 +1,7 @@
 // Deteccion de pose y silueta. El modelo entrega hombros como landmarks y, si
 // se habilita, una mascara de segmentacion de la persona completa.
 
-import { cargarVision } from './vision.js';
+import { cargarVision, crearConRespaldoEnCPU } from './vision.js';
 
 const HOMBRO_IZQ = 11;
 const HOMBRO_DER = 12;
@@ -77,15 +77,18 @@ export function crearDetectorDePose({ detectorCrudo, segmentacion = true }) {
 export async function crearDetectorDePoseMediaPipe({ base, segmentacion = true }) {
   const { modulo, recursos } = await cargarVision(base);
 
-  const detectorCrudo = await modulo.PoseLandmarker.createFromOptions(recursos, {
-    baseOptions: { modelAssetPath: `${base}/pose_landmarker_full.task`, delegate: 'GPU' },
-    runningMode: 'VIDEO',
-    numPoses: 1,
-    outputSegmentationMasks: segmentacion,
-    minPoseDetectionConfidence: 0.25,
-    minPosePresenceConfidence: 0.25,
-    minTrackingConfidence: 0.25,
-  });
+  const detectorCrudo = await crearConRespaldoEnCPU(
+    (opciones) => modulo.PoseLandmarker.createFromOptions(recursos, opciones),
+    {
+      baseOptions: { modelAssetPath: `${base}/pose_landmarker_full.task` },
+      runningMode: 'VIDEO',
+      numPoses: 1,
+      outputSegmentationMasks: segmentacion,
+      minPoseDetectionConfidence: 0.25,
+      minPosePresenceConfidence: 0.25,
+      minTrackingConfidence: 0.25,
+    },
+  );
 
   return crearDetectorDePose({ detectorCrudo, segmentacion });
 }

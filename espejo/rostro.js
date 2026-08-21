@@ -5,7 +5,7 @@
 //
 // o null. Si algun dia hay que cambiar de libreria, se cambia solo este archivo.
 
-import { cargarVision } from './vision.js';
+import { cargarVision, crearConRespaldoEnCPU } from './vision.js';
 
 function promediar(puntos, indices, rect, espejar) {
   let sumaX = 0;
@@ -170,14 +170,17 @@ export function crearDetector({
 export async function crearDetectorMediaPipe({ base, ...resto }) {
   const { modulo, recursos } = await cargarVision(base);
 
-  const detectorCrudo = await modulo.FaceLandmarker.createFromOptions(recursos, {
-    baseOptions: { modelAssetPath: `${base}/face_landmarker.task`, delegate: 'GPU' },
-    runningMode: 'VIDEO',
-    numFaces: 1,
-    minFaceDetectionConfidence: 0.25,
-    minFacePresenceConfidence: 0.25,
-    minTrackingConfidence: 0.25,
-  });
+  const detectorCrudo = await crearConRespaldoEnCPU(
+    (opciones) => modulo.FaceLandmarker.createFromOptions(recursos, opciones),
+    {
+      baseOptions: { modelAssetPath: `${base}/face_landmarker.task` },
+      runningMode: 'VIDEO',
+      numFaces: 1,
+      minFaceDetectionConfidence: 0.25,
+      minFacePresenceConfidence: 0.25,
+      minTrackingConfidence: 0.25,
+    },
+  );
 
   return crearDetector({ detectorCrudo, ...resto });
 }

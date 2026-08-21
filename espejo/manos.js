@@ -14,7 +14,7 @@
 // mano abierta se alejan y el circulo crece. No hay ningun umbral que calibrar, y
 // funciona igual con manos de adulto y de chico.
 
-import { cargarVision } from './vision.js';
+import { cargarVision, crearConRespaldoEnCPU } from './vision.js';
 
 // Muñeca y los cuatro nudillos: el centro de la palma es su promedio.
 const PALMA = [0, 5, 9, 13, 17];
@@ -118,17 +118,20 @@ export function crearDetectorDeManos({ detectorCrudo, maximo = 2, ...ajustes }) 
 export async function crearDetectorDeManosMediaPipe({ base, maximo = 2, ...ajustes }) {
   const { modulo, recursos } = await cargarVision(base);
 
-  const detectorCrudo = await modulo.HandLandmarker.createFromOptions(recursos, {
-    baseOptions: { modelAssetPath: `${base}/hand_landmarker.task`, delegate: 'GPU' },
-    runningMode: 'VIDEO',
-    numHands: maximo,
-    // Umbrales bajos a proposito: en un stand la mano suele estar de costado,
-    // parcialmente fuera de cuadro o mal iluminada. Preferimos una deteccion
-    // imperfecta a ninguna.
-    minHandDetectionConfidence: 0.25,
-    minHandPresenceConfidence: 0.25,
-    minTrackingConfidence: 0.25,
-  });
+  const detectorCrudo = await crearConRespaldoEnCPU(
+    (opciones) => modulo.HandLandmarker.createFromOptions(recursos, opciones),
+    {
+      baseOptions: { modelAssetPath: `${base}/hand_landmarker.task` },
+      runningMode: 'VIDEO',
+      numHands: maximo,
+      // Umbrales bajos a proposito: en un stand la mano suele estar de costado,
+      // parcialmente fuera de cuadro o mal iluminada. Preferimos una deteccion
+      // imperfecta a ninguna.
+      minHandDetectionConfidence: 0.25,
+      minHandPresenceConfidence: 0.25,
+      minTrackingConfidence: 0.25,
+    },
+  );
 
   return crearDetectorDeManos({ detectorCrudo, maximo, ...ajustes });
 }

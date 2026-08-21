@@ -130,7 +130,9 @@ try {
 // reproducir, el espejo arranca igual y lo unico que se pierde es la transicion.
 let videoDeHumo = null;
 try {
-  videoDeHumo = await cargarVideoDelNavegador(`/contenido/${CONFIG.humo.ruta}`);
+  videoDeHumo = await cargarVideoDelNavegador(`/contenido/${CONFIG.humo.ruta}`, {
+    msMaximos: CONFIG.humo.msParaCargar,
+  });
 } catch (error) {
   console.warn('Humo no disponible:', error?.message ?? error);
 }

@@ -41,10 +41,48 @@ export function alfaDeHumo({ estado, transcurrido, tiempos, humo }) {
  * Carga el video y lo deja andando en loop, mudo y sin sonido, listo para
  * dibujarse en cualquier momento. Un video que arranca recien cuando hace falta
  * llega tarde: el primer medio segundo de humo seria un cuadro negro.
+ *
+ * El tope no es una comodidad: es lo que hace verdadera la promesa de arriba.
+ * Con la ventana tapada por otra —o minimizada— Chrome posterga la descarga del
+ * video y no dispara ni `canplaythrough` ni `error`. El elemento se queda en
+ * readyState 0 y la promesa no termina nunca, asi que el `await` de main.js
+ * frena el arranque ANTES de la camara y de MediaPipe: la pantalla se queda en
+ * "cargando..." con publico delante. Un agregado opcional no puede decidir si
+ * el espejo arranca; si no contesta a tiempo, se sigue sin humo.
  */
-export function cargarVideoDelNavegador(ruta) {
+export function cargarVideoDelNavegador(
+  ruta,
+  {
+    msMaximos = 8000,
+    crearVideo = () => document.createElement('video'),
+    programar = (fn, ms) => setTimeout(fn, ms),
+    cancelar = (id) => clearTimeout(id),
+  } = {},
+) {
   return new Promise((ok, falla) => {
-    const video = document.createElement('video');
+    const video = crearVideo();
+    let reloj;
+    let terminado = false;
+
+    // Una sola respuesta: despues del tope, un `canplaythrough` tardio llega a
+    // un espejo que ya arranco sin humo y no tiene que revivir nada.
+    const cerrar = (responder) => (valor) => {
+      if (terminado) return;
+      terminado = true;
+      cancelar(reloj);
+      video.oncanplaythrough = null;
+      video.onerror = null;
+      responder(valor);
+    };
+
+    const listo = cerrar((v) => ok(v));
+    const fallar = cerrar((error) => falla(error));
+
+    reloj = programar(
+      () => fallar(new Error(`El video ${ruta} tardo demasiado en cargar`)),
+      msMaximos,
+    );
+
     video.src = ruta;
     video.loop = true;
     video.muted = true;
@@ -52,9 +90,9 @@ export function cargarVideoDelNavegador(ruta) {
     video.preload = 'auto';
     video.oncanplaythrough = () => {
       video.play().catch(() => {});
-      ok(video);
+      listo(video);
     };
-    video.onerror = () => falla(new Error(`No se pudo cargar ${ruta}`));
+    video.onerror = () => fallar(new Error(`No se pudo cargar ${ruta}`));
     video.load();
   });
 }
