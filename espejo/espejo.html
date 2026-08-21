@@ -4,6 +4,24 @@
   <meta charset="utf-8">
   <title>Espejo Mágico</title>
   <style>
+    /*
+      La tipografía de los títulos es la MISMA que usan las tablets de MAITE
+      (`--font-display` en su style.css). No es decoración: espejo y retratos
+      están a dos metros uno del otro en el stand y tienen que leerse como una
+      sola instalación, no como dos proyectos que se juntaron.
+
+      Germania One trae una sola variante (Regular, 400): pedirle negrita da un
+      falso-bold que le arruina las formas. El respaldo es Georgia, con serifas,
+      para que si el archivo faltara el cambio no pase de un cambio de fuente.
+    */
+    @font-face {
+      font-family: 'Germania One';
+      src: url('/contenido/assets/tipografias/GermaniaOne-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
     canvas { display: block; width: 100vw; height: 100vh; }
   </style>

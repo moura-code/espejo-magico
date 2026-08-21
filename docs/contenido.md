@@ -40,7 +40,7 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
 | `id` | `string` | Identificador único sin acentos ni espacios (`mecanica`, `forestal`, `quimica`). |
 | `nombre` | `string` | Nombre oficial completo. Se ve arriba, junto al objeto elegido. |
 | `color` | `string` | Color hexadecimal distintivo (`#rrggbb`). Se usa en el nombre, el anillo de progreso y el fondo de respaldo. |
-| `maite` | `string \| null` | El id que **esta misma carrera tiene en el proyecto MAITE**. Ver §6. |
+| `maite` | `string \| null` | El id que **esta misma carrera tiene en el proyecto MAITE**. Ver §7. |
 | `fondo` | `string` | Ruta a la imagen que aparece detrás de la persona al elegir esta carrera. |
 | `persona` | `objeto` | `{ nombre, texto }`: quién es la persona que se muestra y qué cuenta de ella. Los dos son obligatorios. |
 | `objeto` | `objeto` | **Opcional.** El objeto que representa a esta carrera en la elección. Si no está, se sortea uno de `objetos`. |
@@ -144,7 +144,28 @@ silenciosa el día del evento no la mira nadie.
 
 ---
 
-## 6. El puente con MAITE
+## 6. La tipografía (`assets/tipografias/`)
+
+Los nombres —el de la ingeniería y el de la persona— se dibujan en **Germania
+One**, la misma tipografía que usan las tablets de MAITE. El espejo y los
+retratos están a dos metros uno del otro en el stand: comparten la letra para
+que se lean como una sola instalación.
+
+El texto de cada persona y la consigna del sostenido van en la sans del sistema.
+No es una concesión: a tamaño de párrafo la display cuesta leerla, y son segundos
+los que alguien está sentado. MAITE hace la misma división.
+
+Para reemplazarla hay que tocar tres lugares: el archivo en
+`contenido/assets/tipografias/`, el `@font-face` de `espejo/espejo.html` y las
+constantes `FAMILIA_TITULO` / `FAMILIA_TEXTO` de `espejo/escena.js`. Si la nueva
+tiene negrita de verdad, ahí se puede subir `PESO_TITULO`.
+
+La licencia (SIL OFL) viaja al lado del archivo, que es lo que la licencia exige,
+y está acreditada en `contenido/assets/CREDITOS.md`.
+
+---
+
+## 7. El puente con MAITE
 
 El campo `maite` es el id que **esa misma carrera tiene del otro lado**. Los dos
 catálogos crecieron por separado, así que no coinciden:
@@ -168,7 +189,7 @@ código.
 
 ---
 
-## 7. Verificación de contenido real (`npm run listo`)
+## 8. Verificación de contenido real (`npm run listo`)
 
 ```bash
 npm run listo

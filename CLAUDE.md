@@ -66,6 +66,28 @@ Es la parte nueva y la que más fácil se rompe al calibrar. `tests/integracion/
 - **`CONFIG.eleccion.msDeGracia` no es un detalle, es lo que hace usable el gesto.** La detección de manos se pierde varios cuadros por segundo con la mano de costado o mal iluminada. Como vaciar el anillo es más rápido que llenarlo (`msDeOlvido` < `msParaElegir`, y tiene que serlo para que un roce no valga por una elección), sin gracia un 25 % de cuadros perdidos convertía 1,5 s de sostenido en **doce**. Es la misma idea que `presencia.msParaSalir` para el rostro —entrar rápido, salir lento— aplicada a la mano.
 - El sorteo entrega cinco **sin repetir entre sí**: dos objetos de la misma ingeniería en la misma pantalla se leen como un error del sistema, no como una opción.
 
+### La tipografía
+
+Los títulos van en **Germania One**, la misma que usan las tablets de MAITE
+(`--font-display` en su `style.css`). No es decoración: las dos piezas están a
+dos metros una de otra en el stand y tienen que leerse como una sola
+instalación. El archivo y su licencia OFL viven en
+`contenido/assets/tipografias/`, y `npm run listo` los exige.
+
+Dos cosas que se rompen solas si no se saben:
+
+- **El lienzo NO dispara la carga de una fuente.** `ctx.font` con una familia que
+  todavía no cargó no la pide: cae en silencio a la del sistema y sigue como si
+  nada. Por eso `main.js` espera con `document.fonts.load()` antes del primer
+  cuadro.
+- **Germania One trae una sola variante (Regular, 400).** Pedirle `700` da un
+  falso-bold que le arruina las formas. Todo lo que la use va en `PESO_TITULO`, y
+  `tests/espejo/escena.test.js` lo vigila.
+
+La división es la de MAITE: display para los nombres, sans del sistema para el
+texto de cada persona y para la consigna del sostenido, que es la única
+instrucción de la experiencia y tiene que entenderse de un vistazo.
+
 ### El fondo detrás de la persona
 
 `pose.segmentacion` está en `true` y `silueta.js` traduce la máscara de MediaPipe —un byte de confianza por píxel, **sin canal alfa**— a una imagen blanca cuyo alfa es esa confianza. Sin esa traducción el lienzo la ve opaca en todos lados y `destination-in` no recorta nada.

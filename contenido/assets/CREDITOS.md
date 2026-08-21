@@ -59,3 +59,16 @@ la misma ruta, sin tocar código.
 Licencias: PD = dominio público; CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
 CC BY / CC BY-SA <https://creativecommons.org/licenses/>. Las derivadas de
 CC BY-SA se comparten bajo la misma licencia.
+
+---
+
+## Tipografía
+
+`tipografias/GermaniaOne-Regular.ttf` es **Germania One**, de John Vargas Beltrán
+(<https://www.johnvargasbeltran.com>), bajo **SIL Open Font License 1.1**. El
+texto completo de la licencia viaja al lado del archivo, en
+`tipografias/GermaniaOne-OFL.txt`, que es lo que la OFL exige.
+
+Llegó del proyecto MAITE, que la usa para los nombres en las tablets. El espejo
+la usa para lo mismo a propósito: las dos piezas están a dos metros una de otra
+en el stand y tienen que leerse como una sola instalación.

@@ -41,6 +41,8 @@ import {
   dibujarHumo,
   dibujarInvitacion,
   dibujarConsigna,
+  TITULO_SOLO,
+  PESO_TITULO,
 } from './escena.js';
 import { instalarOperacion } from './operacion.js';
 
@@ -104,6 +106,24 @@ if (jugables.length === 0) {
   // el catalogo: el espejo anda solo y las tablets se quedan en humo, que es
   // mucho mejor que una pantalla vacia el dia del evento.
   console.warn('Ninguna carrera tiene "maite" en carreras.json: se ofrecen todas.');
+}
+
+// EL LIENZO NO DISPARA LA CARGA DE UNA FUENTE. A diferencia del DOM, `ctx.font`
+// con una familia que todavia no cargo no la pide: cae en silencio a la del
+// sistema y sigue como si nada. Sin esperarla aca, el espejo arranca con la
+// tipografia equivocada durante los primeros segundos y nadie lo nota — o peor,
+// se nota el dia del evento, cuando el nombre de la carrera cambia de forma a
+// mitad de una sesion.
+//
+// Es un archivo local de 30 kB: la espera es imperceptible. Y si faltara, el
+// respaldo de espejo.html (Georgia) se dibuja igual.
+try {
+  await document.fonts.load(`${PESO_TITULO} 64px ${TITULO_SOLO}`);
+  if (!document.fonts.check(`${PESO_TITULO} 64px ${TITULO_SOLO}`)) {
+    console.warn(`Tipografía ${TITULO_SOLO} no disponible: se dibuja con el respaldo.`);
+  }
+} catch (error) {
+  console.warn('No se pudo cargar la tipografía:', error?.message ?? error);
 }
 
 // El humo es un agregado opcional: si el video falta o el navegador no lo puede

@@ -1,13 +1,20 @@
 import { describe, it, expect } from 'vitest';
 import {
+  FAMILIA_TEXTO,
+  FAMILIA_TITULO,
+  PESO_TITULO,
+  TITULO_SOLO,
   calcularDisposicion,
   calcularRecorteVisible,
   calcularRectanguloVideo,
   dibujarAnilloDeProgreso,
+  dibujarConsigna,
   dibujarFichaDePersona,
   dibujarFondo,
   dibujarHumo,
+  dibujarInvitacion,
   dibujarManos,
+  dibujarNombreDeCarrera,
   dibujarObjeto,
   dibujarPersonaRecortada,
   partirEnLineas,
@@ -458,6 +465,22 @@ describe('calcularDisposicion', () => {
     }
   });
 
+  // El nombre se apoyaba sobre el borde de abajo del objeto elegido y las dos
+  // cosas se leian peor. Se nota mas con la tipografia de titulo, que es alta.
+  it('el nombre de la carrera no pisa al objeto elegido', () => {
+    const ctx = crearCtxFalso();
+    let fuente = '';
+    Object.defineProperty(ctx, 'font', { get: () => fuente, set: (v) => (fuente = v) });
+
+    const d = calcularDisposicion(1080, 1920);
+    dibujarNombreDeCarrera(ctx, { nombre: 'Ingeniería Civil', color: '#FF8A3D' }, d, 1);
+
+    const [, , , y] = ctx.llamadas.find(([q]) => q === 'fillText');
+    const tamano = Number(fuente.match(/(\d+)px/)[1]);
+    // La linea de arriba del texto tiene que quedar por debajo del objeto.
+    expect(y - tamano).toBeGreaterThan(d.elegido.y + d.elegido.radio);
+  });
+
   it('la ficha de la persona ocupa el pie de la pantalla', () => {
     const d = calcularDisposicion(1080, 1920);
     expect(d.ficha.nombreY).toBeLessThan(d.ficha.textoY);
@@ -622,5 +645,85 @@ describe('calcularRecorteVisible', () => {
   it('sobrevive a un video que todavia no reporta tamaño', () => {
     const r = calcularRecorteVisible(0, 0, { x: 0, y: 0, ancho: 1080, alto: 1920 }, 1080, 1920);
     expect(r).toBeNull();
+  });
+});
+
+// La division entre las dos tipografias es la MISMA que hacen las tablets de
+// MAITE: espejo y retratos estan a dos metros uno del otro en el stand. Si
+// alguien "unifica" las fuentes sin saberlo, las dos piezas dejan de leerse como
+// una sola instalacion y no lo va a ver hasta tener el stand montado.
+describe('las dos tipografias', () => {
+  const fuentesDe = (ctx) => ctx.llamadas.filter(([q]) => q === 'font').map(([, v]) => v);
+
+  /** Un ctx que ademas anota cada asignacion de `font`. */
+  function ctxQueAnotaFuentes() {
+    const ctx = crearCtxFalso();
+    let actual = '';
+    Object.defineProperty(ctx, 'font', {
+      get: () => actual,
+      set: (v) => {
+        actual = v;
+        ctx.llamadas.push(['font', v]);
+      },
+    });
+    return ctx;
+  }
+
+  const disposicion = calcularDisposicion(1080, 1920);
+  const carrera = {
+    nombre: 'Ingeniería en Computación',
+    color: '#00E5A0',
+    persona: { nombre: 'Maite Martínez', texto: 'Diseña los sistemas que hacen que el resto funcione.' },
+  };
+
+  it('el nombre de la carrera va en la tipografia de titulo', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    expect(fuentesDe(ctx).length).toBeGreaterThan(0);
+    for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(TITULO_SOLO);
+  });
+
+  it('en la ficha, el nombre va en titulo y el texto en la sans', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
+
+    const fuentes = fuentesDe(ctx);
+    expect(fuentes.some((f) => f.includes(TITULO_SOLO))).toBe(true);
+    // El texto de la persona es lo unico de la pantalla que hay que LEER: a
+    // tamaño de parrafo la display cuesta, y son segundos los que hay.
+    expect(fuentes.at(-1)).toContain(FAMILIA_TEXTO);
+    expect(fuentes.at(-1)).not.toContain(TITULO_SOLO);
+  });
+
+  // La consigna es la unica instruccion de toda la experiencia: tiene que
+  // entenderse de un vistazo, desde lejos y de costado.
+  it('la consigna del sostenido va en la sans', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarConsigna(ctx, disposicion, 1);
+    for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(FAMILIA_TEXTO);
+  });
+
+  // Germania One trae UNA sola variante. Pedirle 700 da un falso-bold que le
+  // arruina las formas — y como ya es una letra pesada, no le hace falta.
+  it('nunca se le pide negrita a la tipografia de titulo', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
+    dibujarInvitacion(ctx, disposicion, 0.5);
+
+    for (const fuente of fuentesDe(ctx)) {
+      if (!fuente.includes(TITULO_SOLO)) continue;
+      expect(fuente, fuente).toMatch(new RegExp(`^${PESO_TITULO}\\s`));
+    }
+    expect(PESO_TITULO).toBe(400);
+  });
+
+  // Si el archivo faltara, el cambio no puede pasar de un cambio de fuente: sin
+  // respaldo declarado el navegador cae en la sans por defecto y la pantalla
+  // cambia de caracter entera.
+  it('la tipografia de titulo declara un respaldo con serifas', () => {
+    expect(FAMILIA_TITULO).toContain(TITULO_SOLO);
+    expect(FAMILIA_TITULO).toMatch(/serif\s*$/);
+    expect(FAMILIA_TEXTO).not.toContain(TITULO_SOLO);
   });
 });

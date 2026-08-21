@@ -284,7 +284,29 @@ export function partirEnLineas(texto, anchoMaximo, medir) {
   return lineas;
 }
 
-const FAMILIA = 'system-ui, sans-serif';
+/**
+ * Las dos tipografias, y la division es la MISMA que hacen las tablets de MAITE
+ * (`--font-display` y `--font-body` en su style.css): espejo y retratos estan a
+ * dos metros uno del otro en el stand y tienen que leerse como una sola
+ * instalacion.
+ *
+ * `titulo` es Germania One, que trae UNA sola variante (Regular, 400). Pedirle
+ * 700 le da un falso-bold que le arruina las formas, asi que todo lo que la use
+ * va en 400 — y como ya es una letra pesada, no le hace falta.
+ *
+ * `texto` es la sans del sistema, y no es una concesion: a tamaño de parrafo la
+ * display cuesta leerla, y el texto de cada persona hay que poder leerlo en los
+ * segundos que alguien esta sentado. MAITE llego a la misma conclusion.
+ *
+ * `TITULO_SOLO` es el nombre de la familia sin respaldo, que es lo que hay que
+ * pasarle a document.fonts.load(): el canvas NO dispara la carga de una fuente.
+ */
+export const TITULO_SOLO = "'Germania One'";
+export const FAMILIA_TITULO = `${TITULO_SOLO}, Georgia, serif`;
+export const FAMILIA_TEXTO = 'system-ui, sans-serif';
+
+/** Germania One no tiene negrita: se dibuja siempre en 400. */
+export const PESO_TITULO = 400;
 
 /**
  * La ficha de la persona: su nombre y el texto que cuenta quien es.
@@ -314,8 +336,8 @@ export function dibujarFichaDePersona(ctx, carrera, disposicion, alfa = 1) {
   ctx.shadowColor = 'rgba(0,0,0,0.85)';
   ctx.shadowBlur = 16;
 
-  const medirCon = (peso) => (contenido, tamano) => {
-    ctx.font = `${peso} ${tamano}px ${FAMILIA}`;
+  const medirCon = (peso, familia) => (contenido, tamano) => {
+    ctx.font = `${peso} ${tamano}px ${familia}`;
     return ctx.measureText(contenido).width;
   };
 
@@ -323,13 +345,15 @@ export function dibujarFichaDePersona(ctx, carrera, disposicion, alfa = 1) {
     persona.nombre,
     ficha.tamanoNombre,
     disponible,
-    medirCon(700),
+    medirCon(PESO_TITULO, FAMILIA_TITULO),
   );
   ctx.fillStyle = carrera.color;
-  ctx.font = `700 ${tamanoNombre}px ${FAMILIA}`;
+  ctx.font = `${PESO_TITULO} ${tamanoNombre}px ${FAMILIA_TITULO}`;
   ctx.fillText(persona.nombre, ancho / 2, ficha.nombreY);
 
-  ctx.font = `400 ${ficha.tamanoTexto}px ${FAMILIA}`;
+  // El texto va en la sans: es lo unico de toda la pantalla que hay que LEER,
+  // no mirar.
+  ctx.font = `400 ${ficha.tamanoTexto}px ${FAMILIA_TEXTO}`;
   const lineas = partirEnLineas(persona.texto, disponible, (t) => ctx.measureText(t).width);
   ctx.fillStyle = 'rgba(255,255,255,0.88)';
   lineas.forEach((linea, i) => {
@@ -353,14 +377,17 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
   ctx.shadowBlur = 18;
 
   const medir = (contenido, tamano) => {
-    ctx.font = `700 ${tamano}px ${FAMILIA}`;
+    ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
     return ctx.measureText(contenido).width;
   };
   const tamano = tamanoQueEntra(carrera.nombre, texto.tamanoNombre * 0.72, disponible, medir);
 
   ctx.fillStyle = carrera.color;
-  ctx.font = `700 ${tamano}px ${FAMILIA}`;
-  ctx.fillText(carrera.nombre, ancho / 2, elegido.y + elegido.radio + tamano * 1.35);
+  ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
+  // El aire se mide contra el OBJETO, que es con lo que choca, no contra la
+  // letra: con un margen proporcional al texto, el nombre se apoyaba sobre el
+  // borde de abajo del objeto y las dos cosas se leian peor.
+  ctx.fillText(carrera.nombre, ancho / 2, elegido.y + elegido.radio * 1.3 + tamano);
   ctx.restore();
 }
 
@@ -483,9 +510,9 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';
   ctx.shadowBlur = 24;
-  ctx.font = `700 ${texto.tamanoNombre}px ${FAMILIA}`;
+  ctx.font = `${PESO_TITULO} ${texto.tamanoNombre}px ${FAMILIA_TITULO}`;
   ctx.fillText('Sentate frente al espejo', ancho / 2, alto * 0.5);
-  ctx.font = `400 ${texto.tamanoFrase}px ${FAMILIA}`;
+  ctx.font = `400 ${texto.tamanoFrase}px ${FAMILIA_TEXTO}`;
   ctx.fillText('y descubrí tu ingeniería', ancho / 2, alto * 0.5 + texto.tamanoNombre);
   ctx.restore();
 }
@@ -505,7 +532,9 @@ export function dibujarConsigna(ctx, disposicion, alfa = 1) {
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.85)';
   ctx.shadowBlur = 20;
-  ctx.font = `600 ${Math.round(texto.tamanoFrase * 1.15)}px ${FAMILIA}`;
+  // La consigna va en la sans a proposito: es la unica instruccion de toda la
+  // experiencia y tiene que entenderse de un vistazo, desde lejos y de costado.
+  ctx.font = `600 ${Math.round(texto.tamanoFrase * 1.15)}px ${FAMILIA_TEXTO}`;
   ctx.fillText('Sostené la mano sobre un objeto', ancho / 2, alto * 0.93);
   ctx.restore();
 }
