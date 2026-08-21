@@ -41,25 +41,50 @@ export function posicionLateralNube(xNormalizada, radio, ancho, apertura, lado) 
   return origen + (destino - origen) * t;
 }
 
-/** Coordina efecto y textos sin cambiar la apertura lateral. */
+/**
+ * Cuanto se ve de cada capa en cada momento, sin tocar la apertura lateral de
+ * las nubes. Las tres viajan juntas y en tension:
+ *
+ *   objetos   los cinco que se ofrecen. Aparecen tapados por el humo y se
+ *             apagan durante la revelacion, menos el elegido, que sigue su
+ *             propio camino hacia el borde de arriba.
+ *   fondo     la imagen de la ingenieria detras de la persona.
+ *   contenido el nombre y el texto de la persona.
+ */
 export function calcularTransicionEscena({ estado, transcurrido, tiempos }) {
   switch (estado) {
     case ESTADOS.ATRACCION:
-      return { efecto: 0, contenido: 0 };
     case ESTADOS.ENGANCHE:
-      return { efecto: progreso(transcurrido, tiempos.enganche) * 0.4, contenido: 0 };
-    case ESTADOS.SORTEO:
-      return { efecto: 0.4 + progreso(transcurrido, tiempos.sorteo) * 0.6, contenido: 0 };
-    case ESTADOS.REVELACION:
-      return { efecto: 1, contenido: progreso(transcurrido, tiempos.revelacion) };
+      return { objetos: 0, fondo: 0, contenido: 0 };
+
+    // Los objetos se encienden en la segunda mitad del humo. Estan puestos
+    // desde el principio del estado, pero encenderlos antes de que el humo
+    // este espeso los deja verse a traves y arruina la aparicion.
+    case ESTADOS.HUMO:
+      return {
+        objetos: progreso(transcurrido - tiempos.humo / 2, tiempos.humo / 2),
+        fondo: 0,
+        contenido: 0,
+      };
+
+    case ESTADOS.ELECCION:
+      return { objetos: 1, fondo: 0, contenido: 0 };
+
+    case ESTADOS.REVELACION: {
+      const t = progreso(transcurrido, tiempos.revelacion);
+      return { objetos: 1 - t, fondo: t, contenido: t };
+    }
+
     case ESTADOS.ESCENA:
-      return { efecto: 1, contenido: 1 };
+      return { objetos: 0, fondo: 1, contenido: 1 };
+
     case ESTADOS.CIERRE: {
       const salida = 1 - progreso(transcurrido, tiempos.cierre);
-      return { efecto: salida, contenido: salida };
+      return { objetos: 0, fondo: salida, contenido: salida };
     }
+
     default:
-      return { efecto: 0, contenido: 0 };
+      return { objetos: 0, fondo: 0, contenido: 0 };
   }
 }
 

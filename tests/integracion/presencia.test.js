@@ -19,7 +19,10 @@ import { crearMaquina, ESTADOS } from '../../espejo/maquina-estados.js';
 function correr({ hayRostroEn, hasta, paso = 50 }) {
   const histeresis = crearHisteresis(CONFIG.presencia);
   const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
-  const maquina = crearMaquina({ tiempos: CONFIG.tiempos, sortear: () => 'civil' });
+  const maquina = crearMaquina({
+    tiempos: CONFIG.tiempos,
+    sortearOpciones: () => ['civil', 'quimica', 'naval', 'forestal', 'mecanica'],
+  });
   const entradas = [];
 
   for (let ahora = 0; ahora <= hasta; ahora += paso) {
@@ -99,17 +102,40 @@ describe('estabilidad de la sesion', () => {
   });
 
   // Y quien llega despues tiene que recibir SU sorteo. Sin el corte, la persona
-  // nueva hereda la carrera y el reloj de la anterior: se sienta en el medio de
-  // una escena ajena y no le toca ninguna ingenieria.
+  // nueva hereda las opciones y el reloj de la anterior: se sienta en el medio
+  // de una eleccion ajena y elige entre cinco objetos que no son suyos.
   it('la persona que sigue recibe su propio sorteo, no el de la anterior', () => {
     const SALE = 20000;
     const LLEGA = 32000;
-    const { maquina, visitados } = correr({
+    const { visitados } = correr({
       hayRostroEn: (ahora) => ahora < SALE || ahora >= LLEGA,
       hasta: 60000,
     });
 
     expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(1);
-    expect(maquina.sesion()).toBe(2);
+    // Dos entradas al humo son dos sorteos: uno por persona.
+    expect(cuantos(visitados, ESTADOS.HUMO)).toBe(2);
+  });
+
+  // La otra red de seguridad de la fila, y la unica que es nueva: quien se
+  // sienta y no entiende el gesto no puede dejar el espejo tomado hasta el tope
+  // de sesion, tres minutos despues. El tope de la eleccion lo destraba, y como
+  // lo ofrecido viene barajado, la carrera que recibe igual es un sorteo.
+  it('quien no elige nada igual recibe una ingenieria', () => {
+    const { maquina, visitados } = correr({ hayRostroEn: () => true, hasta: 60000 });
+
+    expect(visitados).toContain(ESTADOS.ELECCION);
+    expect(visitados).toContain(ESTADOS.REVELACION);
+    expect(maquina.carrera()).not.toBeNull();
+    expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
+  });
+
+  // El tope de la eleccion tiene que ser comodo para leer cinco objetos y
+  // decidir, pero no tanto como para que la fila se pare. Y por debajo del humo
+  // no tendria sentido: la eleccion empezaria vencida.
+  it('el tope de la eleccion deja tiempo de decidir sin frenar la fila', () => {
+    expect(CONFIG.tiempos.eleccionMaxima).toBeGreaterThan(CONFIG.tiempos.humo);
+    expect(CONFIG.tiempos.eleccionMaxima).toBeGreaterThanOrEqual(15000);
+    expect(CONFIG.tiempos.eleccionMaxima).toBeLessThan(CONFIG.tiempos.sesionMaxima / 2);
   });
 });

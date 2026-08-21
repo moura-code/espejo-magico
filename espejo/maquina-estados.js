@@ -1,15 +1,16 @@
 // La maquina de estados de la experiencia. No dibuja nada y no sabe de camaras:
-// recibe "hay rostro si o no" mas un reloj, y devuelve el estado, la carrera
-// sorteada y los cambios de estado que hay que atender. Por eso se prueba entera
-// sin nada.
+// recibe "hay rostro si o no" mas un reloj, y devuelve el estado, las carreras
+// que se ofrecen, la que la persona eligio y los cambios de estado que hay que
+// atender. Por eso se prueba entera sin nada.
 //
 // Unico evento: { tipo: 'entra', estado }. El resto de lo que hace falta saber
-// (carrera, sesion) viaja en la salida, que se lee cuando se quiera.
+// (opciones, carrera, sesion) viaja en la salida, que se lee cuando se quiera.
 
 export const ESTADOS = {
   ATRACCION: 'ATRACCION',
   ENGANCHE: 'ENGANCHE',
-  SORTEO: 'SORTEO',
+  HUMO: 'HUMO',
+  ELECCION: 'ELECCION',
   REVELACION: 'REVELACION',
   ESCENA: 'ESCENA',
   CIERRE: 'CIERRE',
@@ -18,14 +19,21 @@ export const ESTADOS = {
 /** El ciclo, en orden. Lo usa avanzar() para saber cual sigue. */
 const SIGUIENTE = {
   [ESTADOS.ATRACCION]: ESTADOS.ENGANCHE,
-  [ESTADOS.ENGANCHE]: ESTADOS.SORTEO,
-  [ESTADOS.SORTEO]: ESTADOS.REVELACION,
+  [ESTADOS.ENGANCHE]: ESTADOS.HUMO,
+  [ESTADOS.HUMO]: ESTADOS.ELECCION,
+  [ESTADOS.ELECCION]: ESTADOS.REVELACION,
   [ESTADOS.REVELACION]: ESTADOS.ESCENA,
   [ESTADOS.ESCENA]: ESTADOS.CIERRE,
   [ESTADOS.CIERRE]: ESTADOS.ATRACCION,
 };
 
-export function crearMaquina({ tiempos, sortear, manual = false }) {
+/**
+ * `sortearOpciones` devuelve las carreras que se le van a ofrecer a la persona,
+ * una por objeto. Se llama al entrar al HUMO: mientras el humo tapa la pantalla
+ * el espejo tiene tiempo de tener listos los PNG, y como todavia no se ve nada
+ * no se cuenta el final.
+ */
+export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
   let estado = ESTADOS.ATRACCION;
   let desde = 0;
   let ausenteDesde = null;
@@ -33,6 +41,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
   let rostroContinuoDesde = null;
   let inicioDeSesion = null;
   let finDeCierre = null;
+  let opciones = [];
   let carrera = null;
   let sesion = 0;
   let enManual = manual;
@@ -46,15 +55,27 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
 
     if (nuevo === ESTADOS.REVELACION) sesion += 1;
     if (nuevo === ESTADOS.ATRACCION) {
+      opciones = [];
       carrera = null;
       inicioDeSesion = null;
     }
   }
 
-  const salida = (eventos) => ({ estado, carrera, sesion, eventos });
+  const salida = (eventos) => ({ estado, opciones, carrera, sesion, eventos });
+
+  /**
+   * Pasa a la revelacion con la carrera pedida. Si no se pide ninguna se toma la
+   * primera de las ofrecidas: como vienen barajadas del sorteo, eso ya es un
+   * sorteo. Es lo que corre cuando alguien se sienta y no elige nada.
+   */
+  function revelar(id, ahora, eventos) {
+    carrera = id ?? opciones[0] ?? null;
+    ir(ESTADOS.REVELACION, ahora, eventos);
+  }
 
   return {
     estado: () => estado,
+    opciones: () => opciones,
     carrera: () => carrera,
     sesion: () => sesion,
     desdeCuando: () => desde,
@@ -75,13 +96,32 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       const proximo = SIGUIENTE[estado];
 
       if (proximo === ESTADOS.ENGANCHE) inicioDeSesion = ahora;
-      if (proximo === ESTADOS.SORTEO) carrera = sortear();
+      if (proximo === ESTADOS.HUMO) opciones = sortearOpciones();
       // En manual no hay enfriamiento: si apreto el boton, quiero que arranque.
       if (proximo === ESTADOS.ATRACCION) finDeCierre = null;
 
       ausenteDesde = null;
       rostroAusenteDesde = null;
-      ir(proximo, ahora, eventos);
+
+      if (proximo === ESTADOS.REVELACION) revelar(null, ahora, eventos);
+      else ir(proximo, ahora, eventos);
+
+      return salida(eventos);
+    },
+
+    /**
+     * La persona eligio uno de los objetos. Solo vale durante la eleccion: en
+     * cualquier otro estado no hay nada ofrecido y un llamado tardio —la mano
+     * sigue puesta cuando ya se paso a la revelacion— no puede volver a arrancar
+     * la sesion.
+     */
+    elegir(id, ahora) {
+      const eventos = [];
+      if (estado !== ESTADOS.ELECCION) return salida(eventos);
+
+      ausenteDesde = null;
+      rostroAusenteDesde = null;
+      revelar(id, ahora, eventos);
       return salida(eventos);
     },
 
@@ -94,7 +134,7 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
       else if (rostroAusenteDesde === null) rostroAusenteDesde = ahora;
 
       // En manual el reloj no decide nada: ni los tiempos de cada estado ni los
-      // cortes por ausencia. Solo avanzar() mueve la maquina.
+      // cortes por ausencia. Solo avanzar() y elegir() mueven la maquina.
       if (enManual) return salida(eventos);
 
       const seFue =
@@ -118,12 +158,12 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
 
         // Si se pierde el rostro durante el enganche, se espera la misma
         // tolerancia que en el resto de la experiencia. Las nubes solo vuelven
-        // cuando la ausencia es real y sostenida; mientras tanto no se inicia
-        // el sorteo frente a un lugar vacio.
+        // cuando la ausencia es real y sostenida; mientras tanto no se levanta
+        // el humo frente a un lugar vacio.
         case ESTADOS.ENGANCHE:
           // El tope de sesion tambien vigila el enganche. Un rostro que aparece
           // y desaparece nunca junta los dos segundos continuos que hacen falta
-          // para sortear, y como la persona esta ahi tampoco acumula la ausencia
+          // para arrancar, y como la persona esta ahi tampoco acumula la ausencia
           // que corta: sin esto el espejo se queda destapado y quieto, que es
           // justo lo que la red de seguridad del stand existe para evitar.
           if (pasoElTope) {
@@ -143,18 +183,26 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
 
           if (rostroContinuoDesde === null) rostroContinuoDesde = ahora;
           if (ahora - rostroContinuoDesde >= tiempos.enganche) {
-            // La carrera se elige aca, tres segundos antes de que se vea: ese
-            // margen le sirve al espejo para tener listos los PNG cuando se
-            // despeje la niebla, y durante el sorteo la niebla sigue cerrada,
-            // asi que mostrarla antes seria contar el final.
-            carrera = sortear();
-            ir(ESTADOS.SORTEO, ahora, eventos);
+            // Las carreras se eligen aca, mientras el humo tapa la pantalla: ese
+            // margen le sirve al espejo para tener listos los PNG y los fondos
+            // cuando el humo se disipe.
+            opciones = sortearOpciones();
+            ir(ESTADOS.HUMO, ahora, eventos);
           }
           break;
 
-        case ESTADOS.SORTEO:
+        case ESTADOS.HUMO:
           if (seFue || pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
-          else if (transcurrido >= tiempos.sorteo) ir(ESTADOS.REVELACION, ahora, eventos);
+          else if (transcurrido >= tiempos.humo) ir(ESTADOS.ELECCION, ahora, eventos);
+          break;
+
+        // La eleccion no tiene duracion propia: termina cuando la persona elige,
+        // y elegir() es lo unico que la mueve hacia adelante. El tope es la red
+        // de seguridad de la fila — quien no entiende el gesto no puede dejar el
+        // espejo tomado hasta el tope de sesion.
+        case ESTADOS.ELECCION:
+          if (seFue || pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
+          else if (transcurrido >= tiempos.eleccionMaxima) revelar(null, ahora, eventos);
           break;
 
         case ESTADOS.REVELACION:
@@ -184,12 +232,14 @@ export function crearMaquina({ tiempos, sortear, manual = false }) {
 
     forzarCarrera(id, ahora) {
       const eventos = [];
-      carrera = id;
       inicioDeSesion = ahora;
       finDeCierre = null;
       ausenteDesde = null;
       rostroAusenteDesde = null;
-      ir(ESTADOS.REVELACION, ahora, eventos);
+      // Sin opciones detras, la carrera forzada tiene que ser la que se pidio:
+      // revelar() no puede caer en la primera de una lista de la sesion anterior.
+      opciones = [id];
+      revelar(id, ahora, eventos);
       return salida(eventos);
     },
 

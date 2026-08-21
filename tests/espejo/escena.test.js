@@ -3,126 +3,185 @@ import {
   calcularDisposicion,
   calcularRecorteVisible,
   calcularRectanguloVideo,
+  dibujarAnilloDeProgreso,
+  dibujarFichaDePersona,
+  dibujarFondo,
+  dibujarHumo,
   dibujarManos,
-  faseDeAnillo,
-  radioDeAnillo,
-  recortarFueraDeCara,
+  dibujarObjeto,
+  dibujarPersonaRecortada,
+  partirEnLineas,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
 
 // Lienzo falso: registra las llamadas para poder afirmar sobre lo dibujado.
 function crearCtxFalso() {
   const llamadas = [];
-  return {
+  const ctx = {
     llamadas,
     strokeStyle: '',
     fillStyle: '',
     lineWidth: 0,
+    lineCap: '',
+    font: '',
+    textAlign: '',
     globalAlpha: 1,
+    globalCompositeOperation: 'source-over',
     shadowColor: '',
     shadowBlur: 0,
+    filter: '',
     save: () => llamadas.push(['save']),
     restore: () => llamadas.push(['restore']),
     beginPath: () => llamadas.push(['beginPath']),
     closePath: () => llamadas.push(['closePath']),
     moveTo: (x, y) => llamadas.push(['moveTo', x, y]),
     lineTo: (x, y) => llamadas.push(['lineTo', x, y]),
-    arc: (x, y, radio) => llamadas.push(['arc', x, y, radio]),
+    arc: (x, y, radio, desde, hasta) => llamadas.push(['arc', x, y, radio, desde, hasta]),
+    ellipse: (...args) => llamadas.push(['ellipse', ...args]),
+    rect: (...args) => llamadas.push(['rect', ...args]),
+    fillRect: (...args) => llamadas.push(['fillRect', ...args]),
+    // Los usan las figuras vectoriales, que son el respaldo cuando falta el PNG.
+    strokeRect: (...args) => llamadas.push(['strokeRect', ...args]),
+    strokeText: (...args) => llamadas.push(['strokeText', ...args]),
+    quadraticCurveTo: (...args) => llamadas.push(['quadraticCurveTo', ...args]),
+    clearRect: (...args) => llamadas.push(['clearRect', ...args]),
     stroke: () => llamadas.push(['stroke']),
     fill: () => llamadas.push(['fill']),
+    clip: (...args) => llamadas.push(['clip', ...args]),
+    translate: (x, y) => llamadas.push(['translate', x, y]),
+    scale: (x, y) => llamadas.push(['scale', x, y]),
+    rotate: (a) => llamadas.push(['rotate', a]),
+    fillText: (texto, x, y) => llamadas.push(['fillText', texto, x, y]),
+    measureText: (texto) => ({ width: texto.length * 10 }),
+    drawImage: (...args) => llamadas.push(['drawImage', ...args]),
     createRadialGradient: () => ({ addColorStop: () => {} }),
+    createLinearGradient: () => ({ addColorStop: () => {} }),
   };
+  return ctx;
 }
 
-describe('faseDeAnillo', () => {
-  it('reparte el ciclo entre los anillos para que la señal no tenga huecos', () => {
-    expect(faseDeAnillo(0, 1000, 0, 2)).toBeCloseTo(0);
-    expect(faseDeAnillo(0, 1000, 1, 2)).toBeCloseTo(0.5);
-    expect(faseDeAnillo(500, 1000, 0, 2)).toBeCloseTo(0.5);
+const soloDe = (ctx, nombre) => ctx.llamadas.filter(([que]) => que === nombre);
+
+const bancoCon = (mapa = {}) => ({ obtener: (ruta) => mapa[ruta] ?? null });
+const imagen = (ancho = 100, alto = 100) => ({ width: ancho, height: alto });
+
+describe('dibujarObjeto', () => {
+  const definicion = { img: 'assets/civil/grua.png', figura: 'grua', escala: 0.2 };
+
+  it('dibuja el PNG cuando esta en el banco', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjeto(
+      ctx,
+      { definicion, x: 300, y: 400, radio: 60 },
+      bancoCon({ 'assets/civil/grua.png': imagen() }),
+      '#FF8A3D',
+    );
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(1);
+    expect(soloDe(ctx, 'translate')[0]).toEqual(['translate', 300, 400]);
   });
 
-  it('siempre cae dentro del ciclo, incluso con relojes raros', () => {
-    for (const ahora of [-3000, -1, 0, 1, 12345, 9e9]) {
-      const fase = faseDeAnillo(ahora, 1400, 1, 3);
-      expect(fase).toBeGreaterThanOrEqual(0);
-      expect(fase).toBeLessThan(1);
+  // Un objeto que no se dibuja es una opcion que no se puede elegir: la persona
+  // ve un hueco en el arco y no entiende por que ahi no pasa nada.
+  it('sin PNG cae a la figura o al circulo del color, pero dibuja algo', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjeto(ctx, { definicion, x: 300, y: 400, radio: 60 }, bancoCon(), '#FF8A3D');
+    expect(ctx.llamadas.length).toBeGreaterThan(2);
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(0);
+  });
+
+  it('no dibuja nada invisible ni sin definicion', () => {
+    for (const caso of [
+      { definicion, x: 0, y: 0, radio: 60, alfa: 0 },
+      { definicion, x: 0, y: 0, radio: 0 },
+      { definicion: null, x: 0, y: 0, radio: 60 },
+    ]) {
+      const ctx = crearCtxFalso();
+      dibujarObjeto(ctx, caso, bancoCon({ 'assets/civil/grua.png': imagen() }), '#fff');
+      expect(ctx.llamadas).toEqual([]);
     }
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjeto(ctx, { definicion, x: 1, y: 1, radio: 10 }, bancoCon(), '#fff');
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
   });
 });
 
-describe('radioDeAnillo', () => {
-  const ALCANCE = 320;
-  const NUCLEO = 20;
+describe('dibujarAnilloDeProgreso', () => {
+  const base = { x: 300, y: 400, radio: 60, color: '#00E5A0' };
 
-  // El corazon del efecto: el anillo va HACIA la palma, que es el camino que
-  // hacen los objetos capturados. Hacia afuera diria lo contrario — que el
-  // espejo emite algo — y es justo lo que no hay que enseñar.
-  it('se cierra sobre la palma en vez de expandirse', () => {
-    const radios = [0, 0.25, 0.5, 0.75, 1].map((f) => radioDeAnillo(ALCANCE, NUCLEO, f));
-    const ordenado = [...radios].sort((a, b) => b - a);
-    expect(radios).toEqual(ordenado);
+  it('sin progreso no dibuja nada', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 0 });
+    expect(ctx.llamadas).toEqual([]);
   });
 
-  it('nace en el alcance real del campo y termina en el nucleo', () => {
-    expect(radioDeAnillo(ALCANCE, NUCLEO, 0)).toBeCloseTo(ALCANCE);
-    expect(radioDeAnillo(ALCANCE, NUCLEO, 1)).toBeCloseTo(NUCLEO);
+  // Es la unica señal de que el sostenido esta pasando. Si el arco no creciera
+  // con el progreso, la persona no sabria si le falta mucho o nada.
+  it('el arco crece con el progreso', () => {
+    const barrido = (progreso) => {
+      const ctx = crearCtxFalso();
+      dibujarAnilloDeProgreso(ctx, { ...base, progreso });
+      const [, , , , desde, hasta] = soloDe(ctx, 'arc').at(-1);
+      return hasta - desde;
+    };
+
+    expect(barrido(0.25)).toBeGreaterThan(0);
+    expect(barrido(0.5)).toBeGreaterThan(barrido(0.25));
+    expect(barrido(1)).toBeCloseTo(Math.PI * 2);
   });
 
-  it('nunca se sale del campo ni se da vuelta', () => {
-    for (let f = 0; f <= 1; f += 0.01) {
-      const r = radioDeAnillo(ALCANCE, NUCLEO, f);
-      expect(r).toBeGreaterThanOrEqual(NUCLEO);
-      expect(r).toBeLessThanOrEqual(ALCANCE);
+  it('un progreso pasado de rosca no da mas de una vuelta', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 3 });
+    const [, , , , desde, hasta] = soloDe(ctx, 'arc').at(-1);
+    expect(hasta - desde).toBeCloseTo(Math.PI * 2);
+  });
+
+  // Arranca arriba y gira como un reloj: cualquiera entiende un reloj sin que
+  // nadie se lo explique.
+  it('arranca arriba del objeto', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 0.5 });
+    const [, , , , desde] = soloDe(ctx, 'arc').at(-1);
+    expect(desde).toBeCloseTo(-Math.PI / 2);
+  });
+
+  it('el anillo rodea al objeto sin taparlo', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 0.5 });
+    for (const [, x, y, radio] of soloDe(ctx, 'arc')) {
+      expect(x).toBe(base.x);
+      expect(y).toBe(base.y);
+      expect(radio).toBeGreaterThan(base.radio);
     }
   });
 });
 
 describe('dibujarManos', () => {
   const mano = { palma: { x: 300, y: 400 }, radio: 100 };
-  const ALCANCE_FACTOR = 3.2;
-  const ANILLOS = 2;
-
-  const dibujarEn = (ahora, extra = {}) => {
-    const ctx = crearCtxFalso();
-    dibujarManos(ctx, [mano], '#00E5A0', {
-      ahora,
-      alcanceFactor: ALCANCE_FACTOR,
-      senal: { anillos: ANILLOS },
-      ...extra,
-    });
-    return ctx;
-  };
-
-  const arcos = (ctx) => ctx.llamadas.filter(([nombre]) => nombre === 'arc');
-
-  it('en modo golpe no dibuja anillos: no hay campo que mostrar', () => {
-    const conCampo = arcos(dibujarEn(500, { atrae: true })).length;
-    const sinCampo = arcos(dibujarEn(500, { atrae: false })).length;
-    expect(conCampo - sinCampo).toBe(ANILLOS);
-  });
 
   it('todo lo que dibuja esta centrado en la palma', () => {
-    const centrados = arcos(dibujarEn(500)).every(
-      ([, x, y]) => x === mano.palma.x && y === mano.palma.y,
-    );
-    expect(centrados).toBe(true);
-  });
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [mano], '#ffffff', { resplandorFactor: 2.2, nucleoFactor: 0.22 });
 
-  it('marca la palma aunque el reloj este quieto', () => {
-    expect(arcos(dibujarEn(0)).length).toBeGreaterThan(0);
+    const arcos = soloDe(ctx, 'arc');
+    expect(arcos.length).toBeGreaterThan(0);
+    expect(arcos.every(([, x, y]) => x === mano.palma.x && y === mano.palma.y)).toBe(true);
   });
 
   // Antes se dibujaban la palma, los dedos y los nudillos: eso pintaba un
   // segundo par de manos encima de las que ya se ven en el espejo.
   it('no depende de los 21 puntos de la mano', () => {
-    const puntosPantalla = Array.from({ length: 21 }, (_, i) => ({ x: 100 + i * 5, y: 200 + i * 5 }));
-    const conPuntos = dibujarEn(500, {}).llamadas;
-    const ctx = crearCtxFalso();
-    dibujarManos(ctx, [{ ...mano, puntosPantalla, largoPalma: 60 }], '#00E5A0', {
-      ahora: 500,
-      alcanceFactor: ALCANCE_FACTOR,
-    });
-    expect(ctx.llamadas).toEqual(conPuntos);
+    const puntos = Array.from({ length: 21 }, (_, i) => ({ x: 100 + i * 5, y: 200 + i * 5 }));
+    const simple = crearCtxFalso();
+    const conPuntos = crearCtxFalso();
+
+    dibujarManos(simple, [mano], '#ffffff');
+    dibujarManos(conPuntos, [{ ...mano, puntos, largoPalma: 60 }], '#ffffff');
+    expect(conPuntos.llamadas).toEqual(simple.llamadas);
   });
 
   it('no toca el lienzo sin manos', () => {
@@ -140,27 +199,211 @@ describe('dibujarManos', () => {
   });
 });
 
-describe('recortarFueraDeCara', () => {
-  it('no aplica recorte si no hay rostro', () => {
-    const llamadas = [];
-    const ctx = { clip: () => llamadas.push('clip') };
-    expect(recortarFueraDeCara(ctx, null, { ancho: 1000, alto: 800 })).toBe(false);
-    expect(llamadas).toEqual([]);
+describe('dibujarFondo', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+
+  it('no dibuja nada sin imagen o sin alfa', () => {
+    const ctx = crearCtxFalso();
+    expect(dibujarFondo(ctx, null, disposicion, 1)).toBe(false);
+    expect(dibujarFondo(ctx, imagen(), disposicion, 0)).toBe(false);
+    expect(ctx.llamadas).toEqual([]);
   });
 
-  it('recorta una zona amplia alrededor de la cara', () => {
-    const llamadas = [];
-    const ctx = {
-      beginPath: () => llamadas.push(['beginPath']),
-      rect: (...args) => llamadas.push(['rect', ...args]),
-      ellipse: (...args) => llamadas.push(['ellipse', ...args]),
-      clip: (...args) => llamadas.push(['clip', ...args]),
-    };
-    const rostro = { centro: { x: 500, y: 300 }, radio: 100, angulo: 0.2 };
+  // El fondo se dibuja cubriendo, no estirado: una foto apaisada deformada para
+  // entrar en una pantalla vertical se nota de lejos.
+  it('cubre la pantalla conservando la relacion de la imagen', () => {
+    const ctx = crearCtxFalso();
+    expect(dibujarFondo(ctx, imagen(1920, 1080), disposicion, 1)).toBe(true);
 
-    expect(recortarFueraDeCara(ctx, rostro, { ancho: 1000, alto: 800 })).toBe(true);
-    expect(llamadas[1]).toEqual(['rect', 0, 0, 1000, 800]);
-    expect(llamadas.at(-1)).toEqual(['clip', 'evenodd']);
+    const [, , x, y, ancho, alto] = soloDe(ctx, 'drawImage')[0];
+    expect(ancho / alto).toBeCloseTo(1920 / 1080, 3);
+    expect(x).toBeLessThanOrEqual(0.001);
+    expect(y).toBeLessThanOrEqual(0.001);
+    expect(x + ancho).toBeGreaterThanOrEqual(1080 - 0.001);
+    expect(y + alto).toBeGreaterThanOrEqual(1920 - 0.001);
+  });
+});
+
+describe('dibujarPersonaRecortada', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const capa = () => {
+    const ctx = crearCtxFalso();
+    return { canvas: { es: 'capa' }, ctx };
+  };
+  const rectangulo = { x: -300, y: 0, ancho: 1680, alto: 1920 };
+
+  // Sin silueta, dibujar solo el fondo dejaria a la persona afuera de su propia
+  // escena. El llamador tiene que enterarse para caer al fondo tenue.
+  it('avisa que no pudo cuando falta la silueta, el video o la capa', () => {
+    expect(
+      dibujarPersonaRecortada(crearCtxFalso(), {
+        capa: capa(),
+        video: {},
+        silueta: null,
+        rectangulo,
+        disposicion,
+      }),
+    ).toBe(false);
+
+    expect(
+      dibujarPersonaRecortada(crearCtxFalso(), {
+        capa: capa(),
+        video: null,
+        silueta: {},
+        rectangulo,
+        disposicion,
+      }),
+    ).toBe(false);
+
+    expect(
+      dibujarPersonaRecortada(crearCtxFalso(), {
+        capa: null,
+        video: {},
+        silueta: {},
+        rectangulo,
+        disposicion,
+      }),
+    ).toBe(false);
+  });
+
+  it('recorta el video contra la silueta y lo pega en el lienzo', () => {
+    const ctx = crearCtxFalso();
+    const lienzoAparte = capa();
+
+    expect(
+      dibujarPersonaRecortada(ctx, {
+        capa: lienzoAparte,
+        video: { es: 'video' },
+        silueta: { es: 'silueta' },
+        rectangulo,
+        disposicion,
+      }),
+    ).toBe(true);
+
+    // La capa se limpia, se dibuja el video y se recorta con destination-in.
+    expect(soloDe(lienzoAparte.ctx, 'clearRect')).toHaveLength(1);
+    const dibujados = soloDe(lienzoAparte.ctx, 'drawImage').map(([, fuente]) => fuente.es);
+    expect(dibujados).toEqual(['video', 'silueta']);
+
+    // Y recien ahi la capa entera va al lienzo principal, encima del fondo.
+    expect(soloDe(ctx, 'drawImage')[0][1]).toEqual({ es: 'capa' });
+  });
+
+  // La silueta viene del lienzo de analisis, que NO esta espejado. Sin espejarla
+  // el recorte cae del lado contrario y la persona desaparece.
+  it('espeja la silueta igual que el video', () => {
+    const lienzoAparte = capa();
+    dibujarPersonaRecortada(crearCtxFalso(), {
+      capa: lienzoAparte,
+      video: { es: 'video' },
+      silueta: { es: 'silueta' },
+      rectangulo,
+      disposicion,
+    });
+    expect(soloDe(lienzoAparte.ctx, 'scale').filter(([, x]) => x === -1)).toHaveLength(2);
+  });
+});
+
+describe('dibujarHumo', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const video = { videoWidth: 1280, videoHeight: 720 };
+
+  it('no dibuja nada sin video, sin alfa o sin tamaño', () => {
+    for (const [v, alfa] of [
+      [null, 1],
+      [video, 0],
+      [{ videoWidth: 0, videoHeight: 0 }, 1],
+    ]) {
+      const ctx = crearCtxFalso();
+      dibujarHumo(ctx, v, disposicion, alfa);
+      expect(ctx.llamadas).toEqual([]);
+    }
+  });
+
+  // El video es blanco sobre negro y no tiene canal alfa: en `screen` el negro
+  // desaparece solo. En cualquier otro modo taparia la pantalla con un
+  // rectangulo gris.
+  it('lo compone en screen para que el negro desaparezca', () => {
+    const ctx = crearCtxFalso();
+    dibujarHumo(ctx, video, disposicion, 1, 0.95);
+    expect(ctx.globalCompositeOperation).toBe('screen');
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(1);
+  });
+});
+
+describe('dibujarFichaDePersona', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const carrera = {
+    nombre: 'Ingeniería Civil',
+    color: '#FF8A3D',
+    persona: { nombre: 'Ana Pérez', texto: 'Diseña puentes que aguantan cien años.' },
+  };
+
+  it('escribe el nombre y el texto de la persona', () => {
+    const ctx = crearCtxFalso();
+    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
+
+    const escrito = soloDe(ctx, 'fillText').map(([, texto]) => texto);
+    expect(escrito[0]).toBe('Ana Pérez');
+    expect(escrito.slice(1).join(' ')).toContain('puentes');
+  });
+
+  // El texto blanco sobre un fondo con una zona clara es ilegible. El degradado
+  // de abajo es lo unico que lo sostiene.
+  it('pone el degradado que despega el texto del fondo', () => {
+    const ctx = crearCtxFalso();
+    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
+    expect(soloDe(ctx, 'fillRect')).toHaveLength(1);
+  });
+
+  it('no dibuja nada sin persona o sin alfa', () => {
+    for (const [c, alfa] of [
+      [carrera, 0],
+      [{ ...carrera, persona: undefined }, 1],
+      [null, 1],
+    ]) {
+      const ctx = crearCtxFalso();
+      dibujarFichaDePersona(ctx, c, disposicion, alfa);
+      expect(ctx.llamadas).toEqual([]);
+    }
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = crearCtxFalso();
+    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
+});
+
+describe('partirEnLineas', () => {
+  // Medida falsa: cada caracter mide 10.
+  const medir = (texto) => texto.length * 10;
+
+  it('deja el texto en una linea si ya entra', () => {
+    expect(partirEnLineas('hola mundo', 1000, medir)).toEqual(['hola mundo']);
+  });
+
+  // El texto de cada persona son dos o tres renglones: sin cortarlo se sale de
+  // la pantalla por los dos lados.
+  it('corta por palabras hasta que cada linea entre', () => {
+    const lineas = partirEnLineas('uno dos tres cuatro cinco', 100, medir);
+    expect(lineas.length).toBeGreaterThan(1);
+    for (const linea of lineas) expect(medir(linea)).toBeLessThanOrEqual(100);
+    expect(lineas.join(' ')).toBe('uno dos tres cuatro cinco');
+  });
+
+  // Cortarla por la mitad se lee peor que dejarla sobresalir, y para eso esta
+  // tamanoQueEntra.
+  it('una palabra sola mas ancha que el renglon se deja igual', () => {
+    expect(partirEnLineas('supercalifragilistico', 50, medir)).toEqual(['supercalifragilistico']);
+  });
+
+  it('no devuelve lineas vacias', () => {
+    expect(partirEnLineas('', 100, medir)).toEqual([]);
+    expect(partirEnLineas('   ', 100, medir)).toEqual([]);
+    expect(partirEnLineas(null, 100, medir)).toEqual([]);
+    expect(partirEnLineas('  hola   mundo  ', 1000, medir)).toEqual(['hola mundo']);
   });
 });
 
@@ -199,30 +442,35 @@ describe('calcularDisposicion', () => {
     expect(calcularDisposicion(1920, 1080).vertical).toBe(false);
   });
 
-  // Los objetos tienen que llegar hasta el borde de abajo: un piso mas arriba se
-  // percibe como una repisa invisible flotando en el aire (feedback de la primera
-  // prueba). El texto no se defiende con un piso sino con el orden de dibujo.
-  it('la caja de fisica llega hasta el borde inferior de la pantalla', () => {
-    const d = calcularDisposicion(1080, 1920);
-    expect(d.caja).toEqual({ x: 0, y: 0, ancho: 1080, alto: 1920 });
-  });
-
-  it('la caja llega al borde tambien en pantalla apaisada', () => {
-    const d = calcularDisposicion(1920, 1080);
-    expect(d.caja.alto).toBe(1080);
-  });
-
-  it('la caja nunca se sale de la pantalla', () => {
+  // El objeto elegido no puede quedar al medio: ahi esta la cara de la persona,
+  // que es lo que la escena tiene que mostrar.
+  it('el lugar del elegido queda arriba y dentro de la pantalla', () => {
     for (const [ancho, alto] of [
       [1080, 1920],
       [1920, 1080],
       [800, 600],
-      [2160, 3840],
     ]) {
       const d = calcularDisposicion(ancho, alto);
-      expect(d.caja.ancho).toBeLessThanOrEqual(ancho);
-      expect(d.caja.alto).toBeLessThanOrEqual(alto);
+      expect(d.elegido.y).toBeLessThan(alto * 0.25);
+      expect(d.elegido.y - d.elegido.radio).toBeGreaterThan(0);
+      expect(d.elegido.x).toBeCloseTo(ancho / 2);
+      expect(d.elegido.radio).toBeGreaterThan(0);
     }
+  });
+
+  it('la ficha de la persona ocupa el pie de la pantalla', () => {
+    const d = calcularDisposicion(1080, 1920);
+    expect(d.ficha.nombreY).toBeLessThan(d.ficha.textoY);
+    expect(d.ficha.textoY).toBeLessThan(1920);
+    expect(d.ficha.nombreY).toBeGreaterThan(1920 - d.ficha.alto);
+    // Y no puede pisar al objeto elegido, que vive arriba.
+    expect(d.ficha.nombreY).toBeGreaterThan(d.elegido.y + d.elegido.radio);
+  });
+
+  it('la ficha deja margen a los costados', () => {
+    const d = calcularDisposicion(1080, 1920);
+    expect(d.ficha.margen).toBeGreaterThan(0);
+    expect(d.ficha.margen * 2).toBeLessThan(1080);
   });
 
   it('escala la tipografia con el lado corto de la pantalla', () => {
@@ -231,12 +479,7 @@ describe('calcularDisposicion', () => {
     expect(grande.texto.tamanoNombre).toBeGreaterThan(chica.texto.tamanoNombre * 1.9);
     expect(grande.texto.tamanoNombre).toBeLessThan(chica.texto.tamanoNombre * 2.1);
     expect(grande.texto.tamanoNombre).toBeGreaterThan(grande.texto.tamanoFrase);
-  });
-
-  it('pone el nombre arriba de la frase', () => {
-    const d = calcularDisposicion(1080, 1920);
-    expect(d.texto.nombreY).toBeLessThan(d.texto.fraseY);
-    expect(d.texto.fraseY).toBeLessThan(1920);
+    expect(grande.ficha.tamanoNombre).toBeGreaterThan(grande.ficha.tamanoTexto);
   });
 
   it('da una unidad de referencia positiva en cualquier pantalla', () => {

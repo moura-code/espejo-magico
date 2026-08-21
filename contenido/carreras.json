@@ -1,185 +1,525 @@
 {
-  "_nota": "Los 73 objetos que caen son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes.",
+  "_nota": "Cada carrera aporta UN objeto a la eleccion: 'objeto' si esta declarado, si no uno sorteado de 'objetos'. Los PNG son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. 'maite' es el id de esta carrera en el proyecto de las tablets: en null, la carrera no se ofrece. 'fondo' y 'persona' son lo que se ve al elegir.",
   "carreras": [
     {
       "id": "mecanica",
       "nombre": "Ingeniería Industrial Mecánica",
       "color": "#4FC3F7",
-      "frase": "Diseño y análisis de máquinas y sistemas térmicos",
-      "efecto": "engranajes",
+      "maite": "mecanica",
+      "fondo": "assets/fondos/mecanica.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Industrial Mecánica."
+      },
       "objetos": [
-        { "img": "assets/mecanica/engranaje.png", "figura": "engranaje", "escala": 0.18 },
-        { "img": "assets/mecanica/llave.png", "figura": "llave", "escala": 0.18 },
-        { "img": "assets/mecanica/martillo.png", "figura": "llave", "escala": 0.18 },
-        { "img": "assets/mecanica/tuerca.png", "figura": "rodamiento", "escala": 0.15 },
-        { "img": "assets/mecanica/rodamiento.png", "figura": "rodamiento", "escala": 0.16 },
-        { "img": "assets/mecanica/resorte.png", "figura": "resorte", "escala": 0.17 }
+        {
+          "img": "assets/mecanica/engranaje.png",
+          "figura": "engranaje",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/mecanica/llave.png",
+          "figura": "llave",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/mecanica/martillo.png",
+          "figura": "llave",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/mecanica/tuerca.png",
+          "figura": "rodamiento",
+          "escala": 0.15
+        },
+        {
+          "img": "assets/mecanica/rodamiento.png",
+          "figura": "rodamiento",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/mecanica/resorte.png",
+          "figura": "resorte",
+          "escala": 0.17
+        }
       ]
     },
     {
       "id": "electrica",
       "nombre": "Ingeniería Eléctrica",
       "color": "#FFD23F",
-      "frase": "Generación, transmisión y control de la energía",
-      "efecto": "chispas",
+      "maite": "electronica",
+      "fondo": "assets/fondos/electrica.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Eléctrica."
+      },
       "objetos": [
-        { "img": "assets/electrica/lampara.png", "figura": "lampara", "escala": 0.17 },
-        { "img": "assets/electrica/bateria.png", "figura": "bateria", "escala": 0.16 },
-        { "img": "assets/electrica/enchufe.png", "figura": "resistencia", "escala": 0.16 },
-        { "img": "assets/electrica/multimetro.png", "figura": "resistencia", "escala": 0.18 },
-        { "img": "assets/electrica/resistencia.png", "figura": "resistencia", "escala": 0.17 },
-        { "img": "assets/electrica/led.png", "figura": "lampara", "escala": 0.15 }
+        {
+          "img": "assets/electrica/lampara.png",
+          "figura": "lampara",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/electrica/bateria.png",
+          "figura": "bateria",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/electrica/enchufe.png",
+          "figura": "resistencia",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/electrica/multimetro.png",
+          "figura": "resistencia",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/electrica/resistencia.png",
+          "figura": "resistencia",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/electrica/led.png",
+          "figura": "lampara",
+          "escala": 0.15
+        }
       ]
     },
     {
       "id": "computacion",
       "nombre": "Ingeniería en Computación",
       "color": "#00E5A0",
-      "frase": "Diseño de sistemas de cómputo, del hardware al software",
-      "efecto": "codigo",
+      "maite": "sistemas",
+      "fondo": "assets/fondos/computacion.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería en Computación."
+      },
       "objetos": [
-        { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2 },
-        { "img": "assets/computacion/teclado.png", "figura": "laptop", "escala": 0.22 },
-        { "img": "assets/computacion/mouse.png", "figura": "chip", "escala": 0.14 },
-        { "img": "assets/computacion/procesador.png", "figura": "chip", "escala": 0.16 },
-        { "img": "assets/computacion/memoria.png", "figura": "chip", "escala": 0.18 },
-        { "img": "assets/computacion/placa.png", "figura": "servidor", "escala": 0.2 }
+        {
+          "img": "assets/computacion/laptop.png",
+          "figura": "laptop",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/computacion/teclado.png",
+          "figura": "laptop",
+          "escala": 0.22
+        },
+        {
+          "img": "assets/computacion/mouse.png",
+          "figura": "chip",
+          "escala": 0.14
+        },
+        {
+          "img": "assets/computacion/procesador.png",
+          "figura": "chip",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/computacion/memoria.png",
+          "figura": "chip",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/computacion/placa.png",
+          "figura": "servidor",
+          "escala": 0.2
+        }
       ]
     },
     {
       "id": "fisico-matematico",
       "nombre": "Ingeniería Físico-Matemática",
       "color": "#A78BFA",
-      "frase": "Modelado matemático y físico de sistemas complejos",
-      "efecto": "formulas",
+      "maite": null,
+      "fondo": "assets/fondos/fisico-matematico.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Físico-Matemática."
+      },
       "objetos": [
-        { "img": "assets/fisico-matematico/calculadora.png", "figura": "sumatoria", "escala": 0.18 },
-        { "img": "assets/fisico-matematico/regla.png", "figura": "viga", "escala": 0.2 },
-        { "img": "assets/fisico-matematico/compas.png", "figura": "integral", "escala": 0.18 },
-        { "img": "assets/fisico-matematico/prisma.png", "figura": "prisma", "escala": 0.17 },
-        { "img": "assets/fisico-matematico/iman.png", "figura": "pi", "escala": 0.17 },
-        { "img": "assets/fisico-matematico/osciloscopio.png", "figura": "onda", "escala": 0.2 }
+        {
+          "img": "assets/fisico-matematico/calculadora.png",
+          "figura": "sumatoria",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/fisico-matematico/regla.png",
+          "figura": "viga",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/fisico-matematico/compas.png",
+          "figura": "integral",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/fisico-matematico/prisma.png",
+          "figura": "prisma",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/fisico-matematico/iman.png",
+          "figura": "pi",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/fisico-matematico/osciloscopio.png",
+          "figura": "onda",
+          "escala": 0.2
+        }
       ]
     },
     {
       "id": "civil",
       "nombre": "Ingeniería Civil",
       "color": "#FF8A3D",
-      "frase": "Diseño y construcción de estructuras e infraestructura",
-      "efecto": "planos",
+      "maite": "civil",
+      "fondo": "assets/fondos/civil.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Civil."
+      },
       "objetos": [
-        { "img": "assets/civil/cono.png", "figura": "teodolito", "escala": 0.18 },
-        { "img": "assets/civil/ladrillo.png", "figura": "ladrillo", "escala": 0.16 },
-        { "img": "assets/civil/nivel.png", "figura": "viga", "escala": 0.18 },
-        { "img": "assets/civil/taladro.png", "figura": "motor", "escala": 0.18 },
-        { "img": "assets/civil/escalera.png", "figura": "viga", "escala": 0.2 },
-        { "img": "assets/civil/casco-obra.png", "figura": "plano", "escala": 0.18 },
-        { "img": "assets/civil/chaleco.png", "figura": "plano", "escala": 0.18 }
+        {
+          "img": "assets/civil/cono.png",
+          "figura": "teodolito",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/civil/ladrillo.png",
+          "figura": "ladrillo",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/civil/nivel.png",
+          "figura": "viga",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/civil/taladro.png",
+          "figura": "motor",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/civil/escalera.png",
+          "figura": "viga",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/civil/casco-obra.png",
+          "figura": "plano",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/civil/chaleco.png",
+          "figura": "plano",
+          "escala": 0.18
+        }
       ]
     },
     {
       "id": "quimica",
       "nombre": "Ingeniería Química",
       "color": "#FF5D8F",
-      "frase": "Procesos de transformación de la materia y la energía",
-      "efecto": "burbujas",
+      "maite": null,
+      "fondo": "assets/fondos/quimica.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Química."
+      },
       "objetos": [
-        { "img": "assets/quimica/frasco-reactivo.png", "figura": "matraz", "escala": 0.16 },
-        { "img": "assets/quimica/probeta.png", "figura": "tubo", "escala": 0.17 },
-        { "img": "assets/quimica/pipeta.png", "figura": "pipeta", "escala": 0.18 },
-        { "img": "assets/quimica/mortero.png", "figura": "matraz", "escala": 0.17 },
-        { "img": "assets/quimica/microscopio.png", "figura": "teodolito", "escala": 0.19 },
-        { "img": "assets/quimica/vaso-precipitados.png", "figura": "tubo", "escala": 0.16 }
+        {
+          "img": "assets/quimica/frasco-reactivo.png",
+          "figura": "matraz",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/quimica/probeta.png",
+          "figura": "tubo",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/quimica/pipeta.png",
+          "figura": "pipeta",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/quimica/mortero.png",
+          "figura": "matraz",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/quimica/microscopio.png",
+          "figura": "teodolito",
+          "escala": 0.19
+        },
+        {
+          "img": "assets/quimica/vaso-precipitados.png",
+          "figura": "tubo",
+          "escala": 0.16
+        }
       ]
     },
     {
       "id": "alimentos",
       "nombre": "Ingeniería de Alimentos",
       "color": "#EF5350",
-      "frase": "Procesos y tecnología para alimentos seguros y de calidad",
-      "efecto": "burbujas",
+      "maite": null,
+      "fondo": "assets/fondos/alimentos.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería de Alimentos."
+      },
       "objetos": [
-        { "img": "assets/alimentos/manzana.png", "figura": "gota", "escala": 0.15 },
-        { "img": "assets/alimentos/pan.png", "figura": "ladrillo", "escala": 0.18 },
-        { "img": "assets/alimentos/queso.png", "figura": "prisma", "escala": 0.17 },
-        { "img": "assets/alimentos/huevo.png", "figura": "gota", "escala": 0.13 },
-        { "img": "assets/alimentos/lata-conserva.png", "figura": "bateria", "escala": 0.15 },
-        { "img": "assets/alimentos/batidora.png", "figura": "motor", "escala": 0.18 }
+        {
+          "img": "assets/alimentos/manzana.png",
+          "figura": "gota",
+          "escala": 0.15
+        },
+        {
+          "img": "assets/alimentos/pan.png",
+          "figura": "ladrillo",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/alimentos/queso.png",
+          "figura": "prisma",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/alimentos/huevo.png",
+          "figura": "gota",
+          "escala": 0.13
+        },
+        {
+          "img": "assets/alimentos/lata-conserva.png",
+          "figura": "bateria",
+          "escala": 0.15
+        },
+        {
+          "img": "assets/alimentos/batidora.png",
+          "figura": "motor",
+          "escala": 0.18
+        }
       ]
     },
     {
       "id": "produccion",
       "nombre": "Ingeniería de Producción",
       "color": "#26C6DA",
-      "frase": "Organización y mejora de los sistemas productivos",
-      "efecto": "engranajes",
+      "maite": "industrial",
+      "fondo": "assets/fondos/produccion.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería de Producción."
+      },
       "objetos": [
-        { "img": "assets/produccion/cronometro.png", "figura": "rodamiento", "escala": 0.16 },
-        { "img": "assets/produccion/calibre.png", "figura": "llave", "escala": 0.2 },
-        { "img": "assets/produccion/caja-carton.png", "figura": "ladrillo", "escala": 0.18 },
-        { "img": "assets/produccion/pallet.png", "figura": "viga", "escala": 0.2 },
-        { "img": "assets/produccion/escaner-codigo.png", "figura": "resistencia", "escala": 0.16 },
-        { "img": "assets/produccion/balanza.png", "figura": "sumatoria", "escala": 0.18 }
+        {
+          "img": "assets/produccion/cronometro.png",
+          "figura": "rodamiento",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/produccion/calibre.png",
+          "figura": "llave",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/produccion/caja-carton.png",
+          "figura": "ladrillo",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/produccion/pallet.png",
+          "figura": "viga",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/produccion/escaner-codigo.png",
+          "figura": "resistencia",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/produccion/balanza.png",
+          "figura": "sumatoria",
+          "escala": 0.18
+        }
       ]
     },
     {
       "id": "agrimensura",
       "nombre": "Ingeniería en Agrimensura",
       "color": "#8D6E63",
-      "frase": "Medición del territorio y ordenamiento espacial",
-      "efecto": "planos",
+      "maite": null,
+      "fondo": "assets/fondos/agrimensura.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería en Agrimensura."
+      },
       "objetos": [
-        { "img": "assets/agrimensura/teodolito.png", "figura": "teodolito", "escala": 0.2 },
-        { "img": "assets/agrimensura/cinta-metrica.png", "figura": "rodamiento", "escala": 0.16 },
-        { "img": "assets/agrimensura/brujula.png", "figura": "rodamiento", "escala": 0.16 },
-        { "img": "assets/agrimensura/gps.png", "figura": "chip", "escala": 0.15 },
-        { "img": "assets/agrimensura/tripode.png", "figura": "teodolito", "escala": 0.2 },
-        { "img": "assets/agrimensura/mapa.png", "figura": "plano", "escala": 0.18 }
+        {
+          "img": "assets/agrimensura/teodolito.png",
+          "figura": "teodolito",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/agrimensura/cinta-metrica.png",
+          "figura": "rodamiento",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/agrimensura/brujula.png",
+          "figura": "rodamiento",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/agrimensura/gps.png",
+          "figura": "chip",
+          "escala": 0.15
+        },
+        {
+          "img": "assets/agrimensura/tripode.png",
+          "figura": "teodolito",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/agrimensura/mapa.png",
+          "figura": "plano",
+          "escala": 0.18
+        }
       ]
     },
     {
       "id": "comunicacion",
       "nombre": "Ingeniería en Sistemas de Comunicación",
       "color": "#E040FB",
-      "frase": "Redes y sistemas que transmiten la información",
-      "efecto": "codigo",
+      "maite": null,
+      "fondo": "assets/fondos/comunicacion.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería en Sistemas de Comunicación."
+      },
       "objetos": [
-        { "img": "assets/comunicacion/microfono.png", "figura": "lampara", "escala": 0.17 },
-        { "img": "assets/comunicacion/router.png", "figura": "servidor", "escala": 0.18 },
-        { "img": "assets/comunicacion/telefono.png", "figura": "chip", "escala": 0.15 },
-        { "img": "assets/comunicacion/radio.png", "figura": "servidor", "escala": 0.18 },
-        { "img": "assets/comunicacion/walkie-talkie.png", "figura": "bateria", "escala": 0.16 },
-        { "img": "assets/comunicacion/antena-satelital.png", "figura": "onda", "escala": 0.2 }
+        {
+          "img": "assets/comunicacion/microfono.png",
+          "figura": "lampara",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/comunicacion/router.png",
+          "figura": "servidor",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/comunicacion/telefono.png",
+          "figura": "chip",
+          "escala": 0.15
+        },
+        {
+          "img": "assets/comunicacion/radio.png",
+          "figura": "servidor",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/comunicacion/walkie-talkie.png",
+          "figura": "bateria",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/comunicacion/antena-satelital.png",
+          "figura": "onda",
+          "escala": 0.2
+        }
       ]
     },
     {
       "id": "forestal",
       "nombre": "Ingeniería Forestal",
       "color": "#66BB6A",
-      "frase": "Producción y manejo sostenible de los bosques",
-      "efecto": "burbujas",
+      "maite": null,
+      "fondo": "assets/fondos/forestal.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Forestal."
+      },
       "objetos": [
-        { "img": "assets/forestal/hacha.png", "figura": "llave", "escala": 0.18 },
-        { "img": "assets/forestal/motosierra.png", "figura": "motor", "escala": 0.2 },
-        { "img": "assets/forestal/metro-plegable.png", "figura": "viga", "escala": 0.18 },
-        { "img": "assets/forestal/pina.png", "figura": "gota", "escala": 0.14 },
-        { "img": "assets/forestal/hoja.png", "figura": "gota", "escala": 0.15 },
-        { "img": "assets/forestal/serrucho.png", "figura": "llave", "escala": 0.18 }
+        {
+          "img": "assets/forestal/hacha.png",
+          "figura": "llave",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/forestal/motosierra.png",
+          "figura": "motor",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/forestal/metro-plegable.png",
+          "figura": "viga",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/forestal/pina.png",
+          "figura": "gota",
+          "escala": 0.14
+        },
+        {
+          "img": "assets/forestal/hoja.png",
+          "figura": "gota",
+          "escala": 0.15
+        },
+        {
+          "img": "assets/forestal/serrucho.png",
+          "figura": "llave",
+          "escala": 0.18
+        }
       ]
     },
     {
       "id": "naval",
       "nombre": "Ingeniería Naval",
       "color": "#5C6BC0",
-      "frase": "Diseño, construcción y reparación de embarcaciones",
-      "efecto": "burbujas",
+      "maite": null,
+      "fondo": "assets/fondos/naval.png",
+      "persona": {
+        "nombre": "Nombre y Apellido",
+        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Naval."
+      },
       "objetos": [
-        { "img": "assets/naval/sextante.png", "figura": "teodolito", "escala": 0.18 },
-        { "img": "assets/naval/timon.png", "figura": "rodamiento", "escala": 0.2 },
-        { "img": "assets/naval/salvavidas.png", "figura": "rodamiento", "escala": 0.18 },
-        { "img": "assets/naval/helice.png", "figura": "engranaje", "escala": 0.17 },
-        { "img": "assets/naval/soga.png", "figura": "resorte", "escala": 0.16 },
-        { "img": "assets/naval/campana.png", "figura": "lampara", "escala": 0.15 }
+        {
+          "img": "assets/naval/sextante.png",
+          "figura": "teodolito",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/naval/timon.png",
+          "figura": "rodamiento",
+          "escala": 0.2
+        },
+        {
+          "img": "assets/naval/salvavidas.png",
+          "figura": "rodamiento",
+          "escala": 0.18
+        },
+        {
+          "img": "assets/naval/helice.png",
+          "figura": "engranaje",
+          "escala": 0.17
+        },
+        {
+          "img": "assets/naval/soga.png",
+          "figura": "resorte",
+          "escala": 0.16
+        },
+        {
+          "img": "assets/naval/campana.png",
+          "figura": "lampara",
+          "escala": 0.15
+        }
       ]
     }
   ]

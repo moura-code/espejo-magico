@@ -5,20 +5,37 @@ import { dibujarFigura } from './figuras.js';
 
 export function calcularDisposicion(ancho, alto) {
   const vertical = alto >= ancho;
-  const alturaTexto = alto * (vertical ? 0.16 : 0.22);
   const corto = Math.min(ancho, alto);
+  const unidad = Math.min(ancho, alto * 0.5625);
 
   return {
     ancho,
     alto,
     vertical,
-    // Hasta el borde: un piso mas arriba se lee como una repisa invisible. Los
-    // textos se dibujan despues de los objetos, asi que quedan encima igual.
-    caja: { x: 0, y: 0, ancho, alto },
-    unidad: Math.min(ancho, alto * 0.5625),
+    unidad,
+
+    // Donde va a parar el objeto elegido: arriba de todo, como una insignia. No
+    // puede quedar al medio, que es donde esta la cara de la persona.
+    elegido: {
+      x: ancho / 2,
+      y: alto * 0.11,
+      radio: unidad * 0.11,
+    },
+
+    // La ficha de la persona, abajo, sobre un degradado que la despega del
+    // fondo. Es el mismo lugar donde las tablets de MAITE ponen su texto, para
+    // que espejo y tablets se lean como una sola cosa.
+    ficha: {
+      alto: alto * (vertical ? 0.3 : 0.38),
+      margen: ancho * 0.08,
+      nombreY: alto * (vertical ? 0.79 : 0.74),
+      textoY: alto * (vertical ? 0.845 : 0.8),
+      tamanoNombre: Math.round(corto * 0.055),
+      tamanoTexto: Math.round(corto * 0.03),
+      interlinea: 1.35,
+    },
+
     texto: {
-      nombreY: alto - alturaTexto * 0.55,
-      fraseY: alto - alturaTexto * 0.18,
       tamanoNombre: Math.round(corto * 0.055),
       tamanoFrase: Math.round(corto * 0.03),
     },
@@ -99,6 +116,56 @@ export function dibujarVideoEspejado(ctx, video, rectangulo, disposicion, opcion
   ctx.restore();
 }
 
+/** Cubre el lienzo con una imagen sin deformarla. Lo que sobra se recorta. */
+export function dibujarFondo(ctx, imagen, disposicion, alfa = 1) {
+  if (!imagen || alfa <= 0) return false;
+
+  const rectangulo = calcularRectanguloVideo(
+    imagen.width,
+    imagen.height,
+    disposicion.ancho,
+    disposicion.alto,
+  );
+
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, alfa);
+  ctx.drawImage(imagen, rectangulo.x, rectangulo.y, rectangulo.ancho, rectangulo.alto);
+  ctx.restore();
+  return true;
+}
+
+/**
+ * La persona recortada del espejo, para pegarla encima del fondo de la carrera.
+ *
+ * `capa` es un lienzo aparte que el llamador reusa entre cuadros: el recorte
+ * necesita dos pasadas (video y despues mascara en `destination-in`) y hacerlas
+ * sobre el lienzo principal se llevaria puesto el fondo que ya esta dibujado.
+ *
+ * Devuelve false si no hay silueta. Ahi el llamador tiene que caer al fondo
+ * semitransparente sobre el espejo: sin silueta, dibujar solo el fondo dejaria a
+ * la persona afuera de su propia escena.
+ */
+export function dibujarPersonaRecortada(ctx, { capa, video, rectangulo, silueta, disposicion }) {
+  if (!capa || !video || !silueta) return false;
+
+  const { ancho, alto } = disposicion;
+  capa.ctx.clearRect(0, 0, ancho, alto);
+
+  dibujarVideoEspejado(capa.ctx, video, rectangulo, disposicion);
+
+  capa.ctx.save();
+  capa.ctx.globalCompositeOperation = 'destination-in';
+  // La silueta viene del lienzo de analisis, que NO esta espejado y cubre
+  // exactamente la pantalla. Se espeja aca para que coincida con el video.
+  capa.ctx.translate(ancho, 0);
+  capa.ctx.scale(-1, 1);
+  capa.ctx.drawImage(silueta, 0, 0, ancho, alto);
+  capa.ctx.restore();
+
+  ctx.drawImage(capa.canvas, 0, 0);
+  return true;
+}
+
 function dibujarSustituto(ctx, radio, color) {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -109,67 +176,79 @@ function dibujarSustituto(ctx, radio, color) {
   ctx.stroke();
 }
 
-export function dibujarObjetos(ctx, objetos, banco, color) {
-  for (const objeto of objetos) {
-    const imagen = banco.obtener(objeto.definicion.img);
-    const { cuerpo } = objeto;
+/**
+ * Un objeto de los que se ofrecen. Orden de preferencia: el PNG si existe, la
+ * figura vectorial si no, y un circulo del color de la carrera como ultimo
+ * recurso. Un objeto que no se dibuja es una opcion que no se puede elegir.
+ */
+export function dibujarObjeto(ctx, { definicion, x, y, radio, alfa = 1, giro = 0 }, banco, color) {
+  if (!definicion || alfa <= 0 || radio <= 0) return;
 
-    ctx.save();
-    ctx.globalAlpha = objeto.alfa;
-    ctx.translate(cuerpo.x, cuerpo.y);
-    ctx.rotate(cuerpo.giro);
-    ctx.shadowColor = 'rgba(0,0,0,0.45)';
-    ctx.shadowBlur = cuerpo.radio * 0.4;
+  const imagen = banco.obtener(definicion.img);
 
-    // Orden de preferencia: el PNG si existe, la figura vectorial si no, y un
-    // circulo del color de la carrera como ultimo recurso. Cuando diseño
-    // entregue los PNG, toman el lugar de las figuras sin tocar codigo.
-    if (imagen) {
-      const lado = cuerpo.radio * 2;
-      const escala = lado / Math.max(imagen.width, imagen.height);
-      ctx.drawImage(
-        imagen,
-        (-imagen.width * escala) / 2,
-        (-imagen.height * escala) / 2,
-        imagen.width * escala,
-        imagen.height * escala,
-      );
-    } else if (!dibujarFigura(ctx, objeto.definicion.figura, cuerpo.radio, color)) {
-      dibujarSustituto(ctx, cuerpo.radio, color);
-    }
-    ctx.restore();
-  }
-}
-
-export function recortarFueraDeCara(ctx, rostro, disposicion) {
-  if (!rostro) return false;
-
-  ctx.beginPath();
-  ctx.rect(0, 0, disposicion.ancho, disposicion.alto);
-  ctx.ellipse(
-    rostro.centro.x,
-    rostro.centro.y + rostro.radio * 0.35,
-    rostro.radio * 1.25,
-    rostro.radio * 1.75,
-    rostro.angulo ?? 0,
-    0,
-    Math.PI * 2,
-  );
-  ctx.clip('evenodd');
-  return true;
-}
-
-export function dibujarFueraDeCara(ctx, rostro, disposicion, dibujar) {
   ctx.save();
-  recortarFueraDeCara(ctx, rostro, disposicion);
-  dibujar();
+  ctx.globalAlpha = Math.min(1, alfa);
+  ctx.translate(x, y);
+  if (giro) ctx.rotate(giro);
+  ctx.shadowColor = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = radio * 0.4;
+
+  if (imagen) {
+    const lado = radio * 2;
+    const escala = lado / Math.max(imagen.width, imagen.height);
+    ctx.drawImage(
+      imagen,
+      (-imagen.width * escala) / 2,
+      (-imagen.height * escala) / 2,
+      imagen.width * escala,
+      imagen.height * escala,
+    );
+  } else if (!dibujarFigura(ctx, definicion.figura, radio, color)) {
+    dibujarSustituto(ctx, radio, color);
+  }
+  ctx.restore();
+}
+
+const TAU = Math.PI * 2;
+
+/**
+ * El anillo que se llena mientras sostenes la mano sobre un objeto.
+ *
+ * Es la unica señal de que el sostenido esta pasando, y por eso arranca arriba y
+ * gira como un reloj: cualquiera entiende un reloj sin que nadie se lo explique.
+ * La pista tenue de atras existe para que el blanco activo se distinga de los
+ * otros cuatro incluso con el anillo casi vacio.
+ */
+export function dibujarAnilloDeProgreso(ctx, { x, y, radio, progreso, color }) {
+  if (progreso <= 0) return;
+
+  const anillo = radio * 1.25;
+  const grosor = Math.max(3, radio * 0.14);
+
+  ctx.save();
+  ctx.lineCap = 'round';
+
+  ctx.globalAlpha = 0.28;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = grosor;
+  ctx.beginPath();
+  ctx.arc(x, y, anillo, 0, TAU);
+  ctx.stroke();
+
+  ctx.globalAlpha = 0.95;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = grosor * 2;
+  ctx.beginPath();
+  ctx.arc(x, y, anillo, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, progreso));
+  ctx.stroke();
+
   ctx.restore();
 }
 
 /**
  * Achica la letra lo justo para que el texto entre en el ancho disponible.
  *
- * Sin esto, una frase larga escrita en carreras.json se sale de cuadro, y eso se
+ * Sin esto, un nombre largo escrito en carreras.json se sale de cuadro, y eso se
  * descubre con publico delante. `medir` se inyecta para poder probarlo sin canvas.
  */
 export function tamanoQueEntra(texto, tamanoDeseado, anchoMaximo, medir) {
@@ -178,19 +257,112 @@ export function tamanoQueEntra(texto, tamanoDeseado, anchoMaximo, medir) {
   return Math.max(8, Math.floor(tamanoDeseado * (anchoMaximo / ancho)));
 }
 
-const MARGEN_TEXTO = 0.9;
+/**
+ * Parte un texto en lineas que entren en `anchoMaximo`.
+ *
+ * El texto de cada persona son dos o tres renglones, no una frase suelta: sin
+ * cortarlo se sale de la pantalla por los dos lados. Una palabra sola mas ancha
+ * que el renglon se deja igual en su linea — cortarla por la mitad se lee peor
+ * que dejarla sobresalir, y para eso esta tamanoQueEntra.
+ */
+export function partirEnLineas(texto, anchoMaximo, medir) {
+  const palabras = String(texto ?? '').trim().split(/\s+/).filter(Boolean);
+  if (palabras.length === 0) return [];
 
-const TAU = Math.PI * 2;
+  const lineas = [];
+  let actual = palabras[0];
 
-// Valores de respaldo, para que la funcion se pueda dibujar y probar sola. Los
-// del evento salen de CONFIG.manos.senal.
-const SENAL = {
-  resplandorFactor: 2.2,
-  nucleoFactor: 0.22,
-  anchoAnilloFactor: 0.5,
-  anillos: 2,
-  periodoMs: 1500,
-};
+  for (const palabra of palabras.slice(1)) {
+    const probada = `${actual} ${palabra}`;
+    if (medir(probada) <= anchoMaximo) actual = probada;
+    else {
+      lineas.push(actual);
+      actual = palabra;
+    }
+  }
+  lineas.push(actual);
+  return lineas;
+}
+
+const FAMILIA = 'system-ui, sans-serif';
+
+/**
+ * La ficha de la persona: su nombre y el texto que cuenta quien es.
+ *
+ * Va sobre un degradado que sube desde el borde de abajo. Sin el, el texto
+ * blanco cae encima del fondo de la carrera y se vuelve ilegible en cuanto el
+ * fondo tiene una zona clara.
+ */
+export function dibujarFichaDePersona(ctx, carrera, disposicion, alfa = 1) {
+  const persona = carrera?.persona;
+  if (!persona || alfa <= 0) return;
+
+  const { ficha, ancho, alto } = disposicion;
+  const disponible = ancho - ficha.margen * 2;
+
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, alfa);
+
+  const degradado = ctx.createLinearGradient(0, alto - ficha.alto, 0, alto);
+  degradado.addColorStop(0, 'rgba(5, 8, 14, 0)');
+  degradado.addColorStop(0.55, 'rgba(5, 8, 14, 0.88)');
+  degradado.addColorStop(1, 'rgba(5, 8, 14, 0.96)');
+  ctx.fillStyle = degradado;
+  ctx.fillRect(0, alto - ficha.alto, ancho, ficha.alto);
+
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.85)';
+  ctx.shadowBlur = 16;
+
+  const medirCon = (peso) => (contenido, tamano) => {
+    ctx.font = `${peso} ${tamano}px ${FAMILIA}`;
+    return ctx.measureText(contenido).width;
+  };
+
+  const tamanoNombre = tamanoQueEntra(
+    persona.nombre,
+    ficha.tamanoNombre,
+    disponible,
+    medirCon(700),
+  );
+  ctx.fillStyle = carrera.color;
+  ctx.font = `700 ${tamanoNombre}px ${FAMILIA}`;
+  ctx.fillText(persona.nombre, ancho / 2, ficha.nombreY);
+
+  ctx.font = `400 ${ficha.tamanoTexto}px ${FAMILIA}`;
+  const lineas = partirEnLineas(persona.texto, disponible, (t) => ctx.measureText(t).width);
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  lineas.forEach((linea, i) => {
+    ctx.fillText(linea, ancho / 2, ficha.textoY + i * ficha.tamanoTexto * ficha.interlinea);
+  });
+
+  ctx.restore();
+}
+
+/** El nombre de la ingenieria, arriba, al lado del objeto elegido. */
+export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
+  if (!carrera || alfa <= 0) return;
+
+  const { ancho, elegido, texto } = disposicion;
+  const disponible = ancho * 0.9;
+
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, alfa);
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.85)';
+  ctx.shadowBlur = 18;
+
+  const medir = (contenido, tamano) => {
+    ctx.font = `700 ${tamano}px ${FAMILIA}`;
+    return ctx.measureText(contenido).width;
+  };
+  const tamano = tamanoQueEntra(carrera.nombre, texto.tamanoNombre * 0.72, disponible, medir);
+
+  ctx.fillStyle = carrera.color;
+  ctx.font = `700 ${tamano}px ${FAMILIA}`;
+  ctx.fillText(carrera.nombre, ancho / 2, elegido.y + elegido.radio + tamano * 1.35);
+  ctx.restore();
+}
 
 /** Resplandor lleno: brillante en el centro y apagandose hacia el borde. */
 function resplandor(ctx, x, y, radio, color) {
@@ -204,101 +376,33 @@ function resplandor(ctx, x, y, radio, color) {
   ctx.fill();
 }
 
-/** Banda de luz difusa: transparente, color al medio, transparente. */
-function banda(ctx, x, y, radio, ancho, color) {
-  const degradado = ctx.createRadialGradient(
-    x,
-    y,
-    Math.max(0, radio - ancho),
-    x,
-    y,
-    radio + ancho,
-  );
-  degradado.addColorStop(0, 'rgba(0,0,0,0)');
-  degradado.addColorStop(0.5, color);
-  degradado.addColorStop(1, 'rgba(0,0,0,0)');
-
-  ctx.fillStyle = degradado;
-  ctx.beginPath();
-  ctx.arc(x, y, radio + ancho, 0, TAU);
-  ctx.fill();
-}
-
-/**
- * Donde esta el anillo `indice` en su viaje hacia la palma: 0 recien salido del
- * borde del campo, 1 llegando al centro. Los anillos se reparten el ciclo para
- * que la señal sea continua y no un latido con huecos.
- *
- * El doble modulo tolera un reloj negativo sin devolver una fase fuera de rango.
- */
-export function faseDeAnillo(ahora, periodoMs, indice, cantidad) {
-  const desfase = cantidad > 0 ? indice / cantidad : 0;
-  return (((ahora / periodoMs + desfase) % 1) + 1) % 1;
-}
-
-/** Donde cae el anillo: nace en el borde del campo y termina sobre la palma. */
-export function radioDeAnillo(alcance, nucleo, fase) {
-  return alcance + (nucleo - alcance) * fase;
-}
-
 /**
  * La señal de que las manos sirven para algo.
  *
- * NO dibuja la mano. Dibujarla —palma, dedos, nudillos— compite con la mano de
- * verdad, que ya esta ahi en el espejo: quedan dos manos superpuestas y la
- * atencion se va al dibujo. Lo que hay que mostrar es lo unico que no se ve, que
- * es el campo del iman.
- *
- * Por eso los anillos viajan HACIA la palma y no hacia afuera: es el mismo
- * movimiento que van a hacer los objetos. Alguien que pasa por delante entiende
- * en un segundo que puede estirar la mano, sin ningun cartel que se lo diga.
- *
- * El tamaño no es decorativo: el anillo nace en el alcance real del campo
- * (`alcanceFactor`, el mismo de la fisica), asi que ademas enseña hasta donde
- * llega. Y como el radio de la mano crece al abrirla, la señal crece con ella.
+ * NO dibuja la mano —palma, dedos, nudillos—: eso compite con la mano de verdad,
+ * que ya esta ahi en el espejo, y la atencion se va al dibujo. Lo unico que hace
+ * falta mostrar es DONDE registra el sistema tu palma, porque es el punto que
+ * elige. Sin esto el sostenido es a ciegas: apoyas la mano y no sabes por que no
+ * pasa nada.
  */
 export function dibujarManos(ctx, manos, color, opciones = {}) {
   if (!manos || manos.length === 0) return;
 
-  const { ahora = 0, alcanceFactor = 3.2, atrae = true } = opciones;
-  const senal = { ...SENAL, ...opciones.senal };
+  const { resplandorFactor = 2.2, nucleoFactor = 0.22 } = opciones;
 
   ctx.save();
+  // Todo en screen: la señal ilumina el video en vez de taparlo, y dos manos que
+  // se cruzan se suman sin dejar un recorte sucio.
+  ctx.globalCompositeOperation = 'screen';
 
   for (const mano of manos) {
     const { x, y } = mano.palma;
-    const radio = mano.radio;
-    const nucleo = radio * senal.nucleoFactor;
+    const nucleo = mano.radio * nucleoFactor;
 
-    // Todo va en screen: la señal ilumina el video en vez de taparlo, y dos
-    // manos que se cruzan se suman sin dejar un recorte sucio.
-    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = 0.35;
+    resplandor(ctx, x, y, mano.radio * resplandorFactor, color);
 
-    // 1. Resplandor: "esta mano existe para el sistema". Ancho y muy tenue, para
-    //    que se lea como presencia y no como un disco pegado encima.
-    ctx.globalAlpha = 0.4;
-    resplandor(ctx, x, y, radio * senal.resplandorFactor, color);
-
-    // 2. Bandas de luz cerrandose sobre la palma. Difusas a proposito: un aro
-    //    de linea fina se lee como un borde —"hasta aca"— y lo que hay que decir
-    //    es lo contrario. En modo golpe no se dibujan: ahi la mano es una paleta,
-    //    no un iman, y no hay campo que mostrar.
-    if (atrae) {
-      const alcance = radio * alcanceFactor;
-      const ancho = radio * senal.anchoAnilloFactor;
-
-      for (let i = 0; i < senal.anillos; i++) {
-        const fase = faseDeAnillo(ahora, senal.periodoMs, i, senal.anillos);
-        // Entra tenue desde el borde y se concentra al llegar: el pico va hacia
-        // el final del viaje, que es lo que hace leer "se junta acá".
-        ctx.globalAlpha = 0.45 * Math.sin(fase * Math.PI) * (0.55 + 0.45 * fase);
-        banda(ctx, x, y, radioDeAnillo(alcance, nucleo, fase), ancho, color);
-      }
-    }
-
-    // 3. Nucleo: de donde cuelga el racimo. Difuso tambien — un disco de borde
-    //    duro se lee como un puntero y desvia la atencion de la mano.
-    ctx.globalAlpha = 0.8;
+    ctx.globalAlpha = 0.85;
     resplandor(ctx, x, y, nucleo * 2.4, '#ffffff');
   }
 
@@ -309,20 +413,6 @@ export function dibujarPersona(ctx, pose, rostro, rectangulo, color) {
   if (!pose && !rostro) return;
 
   ctx.save();
-
-  const mascara = pose?.mascara?.canvas;
-  if (mascara) {
-    // El espejado se deshace con restore(), no reponiendo la identidad a mano:
-    // setTransform(1,0,0,1,0,0) pisaria cualquier transformacion que el llamador
-    // ya tuviera puesta.
-    ctx.save();
-    ctx.globalAlpha = 0.16;
-    ctx.globalCompositeOperation = 'screen';
-    ctx.translate(rectangulo.x + rectangulo.ancho, rectangulo.y);
-    ctx.scale(-1, 1);
-    ctx.drawImage(mascara, 0, 0, rectangulo.ancho, rectangulo.alto);
-    ctx.restore();
-  }
 
   if (pose) {
     ctx.globalCompositeOperation = 'source-over';
@@ -367,35 +457,20 @@ export function dibujarPersona(ctx, pose, rostro, rectangulo, color) {
   ctx.restore();
 }
 
-export function dibujarTextos(ctx, carrera, disposicion, alfa = 1) {
-  if (!carrera || alfa <= 0) return;
-  const { texto, ancho } = disposicion;
-  const disponible = ancho * MARGEN_TEXTO;
+/** El humo, compuesto en `screen`: el negro del video desaparece solo. */
+export function dibujarHumo(ctx, video, disposicion, alfa, opacidad = 1) {
+  if (!video || alfa <= 0) return;
 
-  const medirCon = (peso, familia) => (contenido, tamano) => {
-    ctx.font = `${peso} ${tamano}px ${familia}`;
-    return ctx.measureText(contenido).width;
-  };
+  const ancho = video.videoWidth || video.width;
+  const alto = video.videoHeight || video.height;
+  if (!ancho || !alto) return;
+
+  const rectangulo = calcularRectanguloVideo(ancho, alto, disposicion.ancho, disposicion.alto);
 
   ctx.save();
-  ctx.globalAlpha = alfa;
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.8)';
-  ctx.shadowBlur = 18;
-
-  const medirNombre = medirCon(700, 'system-ui, sans-serif');
-  const tamanoNombre = tamanoQueEntra(carrera.nombre, texto.tamanoNombre, disponible, medirNombre);
-  ctx.fillStyle = carrera.color;
-  ctx.font = `700 ${tamanoNombre}px system-ui, sans-serif`;
-  ctx.fillText(carrera.nombre, ancho / 2, texto.nombreY);
-
-  if (carrera.frase) {
-    const medirFrase = medirCon(400, 'system-ui, sans-serif');
-    const tamanoFrase = tamanoQueEntra(carrera.frase, texto.tamanoFrase, disponible, medirFrase);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = `400 ${tamanoFrase}px system-ui, sans-serif`;
-    ctx.fillText(carrera.frase, ancho / 2, texto.fraseY);
-  }
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = Math.min(1, alfa) * opacidad;
+  ctx.drawImage(video, rectangulo.x, rectangulo.y, rectangulo.ancho, rectangulo.alto);
   ctx.restore();
 }
 
@@ -408,9 +483,29 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';
   ctx.shadowBlur = 24;
-  ctx.font = `700 ${texto.tamanoNombre}px system-ui, sans-serif`;
+  ctx.font = `700 ${texto.tamanoNombre}px ${FAMILIA}`;
   ctx.fillText('Sentate frente al espejo', ancho / 2, alto * 0.5);
-  ctx.font = `400 ${texto.tamanoFrase}px system-ui, sans-serif`;
+  ctx.font = `400 ${texto.tamanoFrase}px ${FAMILIA}`;
   ctx.fillText('y descubrí tu ingeniería', ancho / 2, alto * 0.5 + texto.tamanoNombre);
+  ctx.restore();
+}
+
+/**
+ * La consigna de la eleccion. Es lo unico que le enseña a la persona que tiene
+ * que sostener la mano, y por eso nombra el gesto completo: "acercá la mano" no
+ * alcanza — la gente la pasa por encima y se va sin elegir nada.
+ */
+export function dibujarConsigna(ctx, disposicion, alfa = 1) {
+  if (alfa <= 0) return;
+  const { ancho, alto, texto } = disposicion;
+
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, alfa) * 0.9;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0,0,0,0.85)';
+  ctx.shadowBlur = 20;
+  ctx.font = `600 ${Math.round(texto.tamanoFrase * 1.15)}px ${FAMILIA}`;
+  ctx.fillText('Sostené la mano sobre un objeto', ancho / 2, alto * 0.93);
   ctx.restore();
 }

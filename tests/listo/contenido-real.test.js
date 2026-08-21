@@ -33,6 +33,16 @@ const IDS_ESPERADOS = [
   'naval',
 ];
 
+// El texto que deja npm run generar-fondos y el que trae carreras.json de
+// fabrica. Mientras alguno siga puesto, el contenido no esta hecho.
+const NOMBRE_PLACEHOLDER = 'Nombre y Apellido';
+
+const carrerasDeMaite = async () => {
+  const ruta = resolve(RAIZ, 'MAITE/data/carreras.json');
+  const hay = await access(ruta).then(() => true, () => false);
+  return hay ? JSON.parse(await readFile(ruta, 'utf8')) : null;
+};
+
 describe('contenido real', () => {
   it('pasa la validacion del sistema', async () => {
     expect(validarContenido(await leer())).toEqual([]);
@@ -60,11 +70,73 @@ describe('contenido real', () => {
     const datos = await leer();
     const faltantes = [];
     for (const carrera of datos.carreras) {
-      for (const ruta of carrera.objetos.map((o) => o.img)) {
+      const rutas = [
+        ...carrera.objetos.map((o) => o.img),
+        ...(carrera.objeto ? [carrera.objeto.img] : []),
+      ];
+      for (const ruta of rutas) {
         if (!(await existe(ruta))) faltantes.push(ruta);
       }
     }
     expect(faltantes).toEqual([]);
+  });
+
+  // Sin fondo, la revelacion cae al color plano de la carrera. Se ve, pero es
+  // lo que se supone que reemplaza la foto de la ingenieria.
+  it('cada carrera tiene su fondo en el disco', async () => {
+    const datos = await leer();
+    const faltantes = [];
+    for (const carrera of datos.carreras) {
+      if (!carrera.fondo) faltantes.push(`${carrera.id} (sin declarar)`);
+      else if (!(await existe(carrera.fondo))) faltantes.push(carrera.fondo);
+    }
+    expect(faltantes, 'corré npm run generar-fondos o dejá las imágenes reales').toEqual([]);
+  });
+
+  // La transicion entera depende de este archivo. Es un agregado opcional en
+  // codigo —el espejo arranca sin el— pero el dia del evento tiene que estar.
+  it('el video de humo esta copiado al contenido', async () => {
+    expect(await existe('assets/humo.mp4'), 'falta contenido/assets/humo.mp4').toBe(true);
+  });
+
+  // EL QUE MAS IMPORTA DE TODO EL SEMAFORO. Los nombres y textos de fabrica se
+  // ven perfectos en pantalla: si nadie los reemplaza, el espejo del evento le
+  // muestra a cada visitante "Nombre y Apellido" y nadie lo descubre hasta que
+  // hay publico delante.
+  it('ninguna persona quedo con el texto de fabrica', async () => {
+    const datos = await leer();
+    const sinEscribir = datos.carreras
+      .filter((c) => c.persona?.nombre === NOMBRE_PLACEHOLDER || /^Escribí acá/.test(c.persona?.texto ?? ''))
+      .map((c) => c.id);
+    expect(sinEscribir, 'faltan los nombres y textos reales en contenido/carreras.json').toEqual([]);
+  });
+
+  // Una carrera con `maite` apuntando a un id que del otro lado no existe se
+  // elige, el POST vuelve 400 y las tablets se quedan en humo. Es exactamente
+  // el sintoma mas dificil de diagnosticar el dia del evento.
+  it('cada "maite" declarado existe del otro lado', async () => {
+    const deMaite = await carrerasDeMaite();
+    if (!deMaite) return; // MAITE no esta clonado: no hay nada que cotejar.
+
+    const idsDeMaite = new Set(deMaite.map((c) => c.id));
+    const huerfanas = (await leer()).carreras
+      .filter((c) => c.maite && !idsDeMaite.has(c.maite))
+      .map((c) => `${c.id} -> ${c.maite}`);
+    expect(huerfanas).toEqual([]);
+  });
+
+  it('hay al menos una carrera jugable', async () => {
+    const jugables = (await leer()).carreras.filter((c) => c.maite).map((c) => c.id);
+    expect(jugables.length, 'ninguna carrera tiene "maite": las tablets no se van a mover')
+      .toBeGreaterThanOrEqual(1);
+  });
+
+  // Con menos de cinco, la eleccion ofrece menos objetos de los que dice
+  // CONFIG.eleccion.cantidad y el arco queda a medio llenar.
+  it('hay carreras jugables suficientes para llenar la eleccion', async () => {
+    const jugables = (await leer()).carreras.filter((c) => c.maite);
+    expect(jugables.length, 'faltan videos en MAITE para llenar los cinco objetos')
+      .toBeGreaterThanOrEqual(5);
   });
 
   it('MediaPipe esta copiado al proyecto', async () => {

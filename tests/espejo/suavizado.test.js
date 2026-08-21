@@ -4,57 +4,7 @@ import {
   crearFiltroRostro,
   crearFiltroDeManos,
   crearHisteresis,
-  crearRastreadorDeVelocidad,
 } from '../../espejo/suavizado.js';
-
-describe('crearRastreadorDeVelocidad', () => {
-  it('empieza quieto', () => {
-    const rastreador = crearRastreadorDeVelocidad();
-    expect(rastreador.actualizar(100, 100, 0)).toEqual({ vx: 0, vy: 0 });
-  });
-
-  it('mide la velocidad en pixeles por segundo', () => {
-    const rastreador = crearRastreadorDeVelocidad({ alfa: 1 });
-    rastreador.actualizar(0, 0, 0);
-    // 100 px en 100 ms son 1000 px/s.
-    expect(rastreador.actualizar(100, 0, 100)).toEqual({ vx: 1000, vy: 0 });
-  });
-
-  it('suaviza en vez de saltar de golpe', () => {
-    const rastreador = crearRastreadorDeVelocidad({ alfa: 0.5 });
-    rastreador.actualizar(0, 0, 0);
-    expect(rastreador.actualizar(100, 0, 100).vx).toBeCloseTo(500);
-  });
-
-  it('acota la velocidad para que un parpadeo no dispare un objeto', () => {
-    const rastreador = crearRastreadorDeVelocidad({ alfa: 1, maxima: 4000 });
-    rastreador.actualizar(0, 0, 0);
-    // Un salto de media pantalla en un solo cuadro.
-    const { vx } = rastreador.actualizar(900, 0, 16);
-    expect(vx).toBeLessThanOrEqual(4000);
-  });
-
-  it('mide velocidad negativa al volver', () => {
-    const rastreador = crearRastreadorDeVelocidad({ alfa: 1 });
-    rastreador.actualizar(500, 500, 0);
-    expect(rastreador.actualizar(400, 500, 100).vx).toBeCloseTo(-1000);
-  });
-
-  it('ignora dos lecturas con la misma marca de tiempo', () => {
-    const rastreador = crearRastreadorDeVelocidad({ alfa: 1 });
-    rastreador.actualizar(0, 0, 100);
-    expect(() => rastreador.actualizar(500, 0, 100)).not.toThrow();
-    expect(Number.isFinite(rastreador.velocidad().vx)).toBe(true);
-  });
-
-  it('vuelve a cero al reiniciar', () => {
-    const rastreador = crearRastreadorDeVelocidad({ alfa: 1 });
-    rastreador.actualizar(0, 0, 0);
-    rastreador.actualizar(100, 0, 100);
-    rastreador.reiniciar();
-    expect(rastreador.velocidad()).toEqual({ vx: 0, vy: 0 });
-  });
-});
 
 const rostroEn = (x) => ({
   presente: true,

@@ -1,6 +1,6 @@
 // Deteccion de manos. Mismo molde que rostro.js: entra un cuadro, sale una lista
 // de manos en pixeles de pantalla, y nada mas. No sabe que es una carrera ni que
-// existe la fisica.
+// existe la eleccion.
 //
 //   { palma: {x,y}, radio, apertura, largoPalma, puntas: [{x,y} x5], lado }
 //
@@ -92,9 +92,11 @@ export function crearDetectorDeManos({ detectorCrudo, maximo = 2, ...ajustes }) 
           const mano = mapearMano(puntos, { ...rectangulo, ...ajustes, espejar: true });
           if (!mano) return null;
 
-          // El lado sirve de identidad para seguirle la velocidad a cada mano.
-          // MediaPipe cambio el nombre del campo entre versiones: se aceptan los
-          // dos, y si no viene ninguno se cae al indice.
+          // Izquierda o derecha. No lo usa la eleccion —el filtro empareja las
+          // manos por cercania, no por etiqueta, porque MediaPipe las confunde
+          // al cruzarlas— pero sirve para diagnosticar con la malla puesta.
+          // Cambio de nombre entre versiones: se aceptan los dos, y si no viene
+          // ninguno se cae al indice.
           const lados = salida?.handedness ?? salida?.handednesses;
           mano.lado = lados?.[i]?.[0]?.categoryName ?? `mano${i}`;
           mano.puntos = puntos;

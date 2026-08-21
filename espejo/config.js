@@ -16,8 +16,19 @@ export const CONFIG = {
   // es sesionMaxima, que hace de red de seguridad y de rotacion de la fila.
   tiempos: {
     enganche: 2000,
-    sorteo: 4000,
-    revelacion: 4000,
+
+    // El humo entra, se espesa y tapa la pantalla. Detras, las nubes se abren y
+    // se sortean las carreras: cuando el humo se disipa los objetos ya estan.
+    humo: 3000,
+
+    // Tope de la eleccion, no su duracion: la eleccion termina cuando la
+    // persona elige. Existe porque sin el, quien no entiende el gesto se queda
+    // mirando cinco objetos quietos hasta el tope de sesion, tres minutos
+    // despues, con la fila esperando. Al vencerse se elige una sola por sorteo:
+    // nadie se va sin ingenieria.
+    eleccionMaxima: 30000,
+
+    revelacion: 2500,
     cierre: 3000,
 
     // Corto: quien llega despues de que el espejo volvio al reposo no tiene por
@@ -107,82 +118,138 @@ export const CONFIG = {
 
     // Mas alto que el de la cara a proposito. Una cabeza se mueve despacio; una
     // mano se mueve diez veces mas rapido, y a 22 cuadros por segundo el circulo
-    // va siempre atras de la mano de verdad: manoteas y no le pegas a nada.
+    // va siempre atras de la mano de verdad: apuntas y el anillo va atrasado.
     fps: 34,
 
     // Generosos: facil de interactuar a 1.5m - 2m de la camara sin exigir estirar el brazo.
     factorRadio: 1.5,
     radioMinimoEnPalmas: 1.2,
 
-    // Suavizado y tope de la velocidad con la que la cabeza y las manos golpean
-    // los objetos. Sin tope, un parpadeo de la deteccion dispara un objeto a
-    // velocidad absurda.
-    alfaVelocidad: 0.4,
-    velocidadMaxima: 4000,
-
-    // Que hacen las manos con los objetos que caen.
-    //   'atraer':  iman — los objetos se juntan y quedan flotando alrededor de
-    //              la palma (pedido de la primera prueba con publico).
-    //   'golpear': los objetos rebotan y se manotean.
-    // La tecla I alterna en vivo, para comparar los dos modos con gente delante.
-    interaccion: 'atraer',
-
-    // El campo del iman: un resorte hacia un anillo de reposo alrededor de la
-    // palma, con los capturados separandose entre si para no encimarse. La
-    // fuerza tiene que ganarle comodo a fisica.gravedad, o los objetos se
-    // escurren por debajo del campo; con 8000 el iman captura desde cualquier
-    // angulo y el racimo queda quieto (fisica.test.js lo vigila).
-    atraccion: {
-      alcanceFactor: 3.2, // alcance del campo, en radios de mano
-      alcanceArribaFactor: 4.5, // alcance extendido hacia arriba para capturar objetos que caen a distancia
-      reposoFactor: 0.3, // anillo de reposo, en radios de mano: bien chico para que el racimo se abrace a la palma y no flote lejos
-      fuerza: 8000, // aceleracion maxima del resorte, en px/s2
-      amortiguacion: 3.5, // 1/s: cuanto se frenan los objetos dentro del campo
-      separacion: 10, // 1/s: que tan rapido se apartan dos capturados encimados
-    },
-
-    // La señal de que las manos sirven para algo. No dibuja la mano —eso compite
-    // con la mano de verdad que ya se ve en el espejo— sino el campo del iman:
-    // un resplandor en la palma y anillos que se CIERRAN hacia ella, que es el
-    // mismo camino que hacen los objetos. El anillo nace en el alcance real del
-    // campo, asi que ademas enseña hasta donde llega.
-    senal: {
-      resplandorFactor: 2.2, // radio del resplandor, en radios de mano
-      nucleoFactor: 0.22, // brillo que marca de donde cuelga el racimo
-      anchoAnilloFactor: 0.5, // que tan difusa es cada banda, en radios de mano
-      anillos: 2, // cuantos viajan a la vez: con uno solo la señal parpadea
-      periodoMs: 1500, // lo que tarda una banda en llegar a la palma
-    },
-
-    // Suavizado SOLO para el iman: el racimo cuelga de la palma en forma
-    // permanente, asi que el temblor de la deteccion se le traslada entero; el
-    // atractor sigue una palma filtrada que lo corta. El modo golpe usa la
-    // palma cruda a proposito — el filtro mete retardo y el manotazo lo sufre.
-    suavizadoDelIman: {
+    // La palma que elige va filtrada. El sostenido mide que la mano se quede
+    // quieta encima de un objeto, y el temblor crudo de la deteccion la hace
+    // entrar y salir del blanco varias veces por segundo: el anillo de progreso
+    // se llenaria a los saltos.
+    suavizado: {
       posicion: 0.35,
       radio: 0.25,
       retencionMs: 400,
       distanciaMaximaEnRadios: 3,
     },
+
+    // La señal de que las manos sirven para algo. No dibuja la mano —eso compite
+    // con la mano de verdad que ya se ve en el espejo— sino un resplandor en la
+    // palma. Sin el, el sostenido es a ciegas: no sabes donde registra tu mano
+    // hasta que el anillo del objeto empieza a llenarse.
+    senal: {
+      resplandorFactor: 2.2, // radio del resplandor, en radios de mano
+      nucleoFactor: 0.22, // brillo que marca el punto que elige
+    },
   },
 
   pose: {
+    // La pose sostiene la presencia cuando la cara gira, y ademas recorta la
+    // silueta para meter el fondo de la carrera atras de la persona.
     fps: 12,
-    // Los hombros sostienen la presencia cuando la cara gira. La mascara solo
-    // se usaba en diagnostico y su clon por cuadro era un costo innecesario.
-    segmentacion: false,
+
+    // En la revelacion y la escena la mascara ES la imagen: a 12 cuadros por
+    // segundo el borde de la silueta va atras del cuerpo y se ve el fondo
+    // pegado al hombro. Solo sube ahi, que es donde se mira.
+    fpsConFondo: 20,
+    segmentacion: true,
   },
 
-  objetos: {
-    maximo: 24,
-    intervaloAparicion: 450,
-    vidaMs: 12000,
+  // El sostenido: como se elige un objeto sin tocar nada.
+  //
+  // El plazo es el equilibrio entre elegir sin querer al pasar la mano (corto de
+  // mas) y cansar el brazo (largo de mas). Con 1500 ms hay tiempo de sacar la
+  // mano al ver que se empieza a llenar el anillo equivocado.
+  eleccion: {
+    msParaElegir: 1500,
+
+    // Cuanto se le perdona a la deteccion antes de empezar a vaciar el anillo.
+    // NO es un detalle: la deteccion de manos se pierde varios cuadros por
+    // segundo con la mano de costado o mal iluminada, y como vaciar es mas
+    // rapido que llenar, sin gracia un 25% de cuadros perdidos convertia 1,5 s
+    // de sostenido en doce. Con 250 ms se absorbe cualquier parpadeo real y
+    // solo una mano que se fue de verdad hace bajar el anillo.
+    msDeGracia: 250,
+
+    // Pasada la gracia, el progreso NO se borra de golpe: se vacia en este
+    // tiempo. Mas rapido que llenarse, para que un roce no valga por una
+    // eleccion, pero no instantaneo.
+    msDeOlvido: 600,
+
+    // Que tan generoso es el blanco, en radios del objeto. Es mas facil
+    // disfrutar un blanco que perdona que uno exacto que te hace errar.
+    radioFactor: 1.4,
+
+    // Cuantos objetos se ofrecen. Tambien cuantas carreras se sortean.
+    cantidad: 5,
   },
 
-  efectos: {
-    // Particulas por carrera. Como los objetos, tope fijo: el rendimiento no
-    // puede depender de cuanto tiempo lleve alguien sentado.
-    presupuesto: 60,
+  // Donde se ponen esos objetos.
+  //
+  // NO van en posiciones fijas de la pantalla: a dos metros de la camara el
+  // brazo de la persona alcanza apenas el tercio central del espejo, y cinco
+  // objetos en las esquinas serian inalcanzables. Van en arco alrededor de los
+  // hombros, con el radio proporcional al ancho de hombros — que es el mejor
+  // indicador de a que distancia esta sentada.
+  tablero: {
+    radioFactor: 1.5, // alcance del arco, en anchos de hombros
+    radioObjetoFactor: 0.28, // tamaño de cada objeto, en anchos de hombros
+
+    // El arco, en grados, medidos como en el lienzo: 180 es a la izquierda, 270
+    // es arriba, 0 es a la derecha. Pasa por encima de la cabeza.
+    desde: 200,
+    hasta: 340,
+
+    // El ancla va muy suavizada: si los objetos siguieran a los hombros cuadro a
+    // cuadro, apuntarles seria imposible. Ademas se CONGELA apenas empieza un
+    // sostenido, para que el blanco no se escape de abajo de la mano.
+    suavizado: 0.06,
+
+    // Respaldo cuando no hay pose y solo hay cara: un ancho de hombros son unos
+    // tres radios de rostro, y el centro esta un radio y medio mas abajo.
+    hombrosPorRostro: 3,
+    caidaPorRostro: 1.5,
+
+    // Margen minimo al borde del lienzo, en radios de objeto. Con la persona
+    // muy cerca el arco se sale de la pantalla; esto lo mete de vuelta.
+    margen: 1.1,
+  },
+
+  // El humo que entra al sentarse. Es un video blanco sobre negro, compuesto en
+  // `screen`: el negro desaparece solo y no hace falta canal alfa.
+  humo: {
+    ruta: 'assets/humo.mp4',
+    opacidad: 0.95,
+
+    // Fraccion del estado HUMO que tarda en espesarse. El resto lo pasa tapando.
+    fraccionDeEntrada: 0.55,
+
+    // Cuanto tarda en disiparse ya dentro de la eleccion, dejando los objetos.
+    msDeSalida: 1400,
+  },
+
+  // El fondo de la carrera, detras de la persona.
+  fondo: {
+    // Cuando la mascara de segmentacion no esta —pose perdida, GPU lenta, modelo
+    // sin cargar— el fondo se dibuja igual encima del espejo con esta opacidad,
+    // en vez de dejar la pantalla en negro con publico delante.
+    opacidadSinMascara: 0.75,
+    oscurecerVideo: 0.55, // cuanto se apaga el espejo debajo del fondo sin mascara
+  },
+
+  // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio
+  // para que las tablets muestren a la gente de esa ingenieria.
+  //
+  // El espejo NO depende de esto: si MAITE no esta levantado, no contesta o
+  // tarda, la experiencia sigue igual y lo unico que queda es un aviso en la
+  // consola. En false ni se intenta.
+  maite: {
+    activo: true,
+    url: 'http://localhost:3000',
+    tiempoLimiteMs: 1500,
   },
 
   // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
@@ -190,17 +257,11 @@ export const CONFIG = {
   // mismo camino cuando la persona lleva dos segundos ausente.
   niebla: {
     cantidad: 26, // jirones en pantalla
-    agitacionSorteo: 3, // cuanto se aceleran los jirones durante el sorteo
+    agitacionHumo: 3, // cuanto se aceleran los jirones mientras entra el humo
     velocidades: {
       abrir: 1.7, // fraccion por segundo: el espejo se despeja en ~0.6 s
       cerrar: 0.34, // acompaña los tres segundos del estado de cierre
     },
-  },
-
-  fisica: {
-    gravedad: 1600,
-    restitucion: 0.55,
-    friccion: 0.98,
   },
 
   render: {

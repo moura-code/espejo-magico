@@ -45,9 +45,12 @@ describe('interpretarTecla', () => {
     expect(interpretarTecla('a', IDS)).toEqual({ accion: 'alternarManual' });
   });
 
-  it('la tecla I alterna entre iman y manotazo', () => {
-    expect(interpretarTecla('i', IDS)).toEqual({ accion: 'interaccion' });
-    expect(interpretarTecla('I', IDS)).toEqual({ accion: 'interaccion' });
+  // La I era el iman contra el manotazo, y con la fisica se fue tambien ella.
+  // Queda libre a proposito: una tecla que no hace nada es mejor que una que
+  // hace algo que ya no existe.
+  it('la tecla I ya no hace nada', () => {
+    expect(interpretarTecla('i', IDS)).toBeNull();
+    expect(interpretarTecla('I', IDS)).toBeNull();
   });
 
   it('la barra espaciadora avanza al estado siguiente', () => {
@@ -110,16 +113,13 @@ describe('instalarOperacion', () => {
       createElement: () => panel,
       body: { appendChild: vi.fn() },
     };
-    let interaccion = 'atraer';
     const espejo = {
       contenido: { ids: IDS },
-      alternarInteraccion: vi.fn(() => {
-        interaccion = 'golpear';
-      }),
-      interaccionDeManos: () => interaccion,
+      alternarMalla: vi.fn(),
       estadoDeCamara: () => ({ lista: true }),
       maquina: {
         estado: () => 'ESCENA',
+        opciones: () => ['mecanica', 'civil'],
         carrera: () => 'mecanica',
         sesion: () => 1,
         esManual: () => false,
@@ -128,7 +128,14 @@ describe('instalarOperacion', () => {
       detector: { cantidadDePuntos: () => 478 },
       manosCrudas: () => 1,
       manos: () => [],
-      pool: { vivos: () => [] },
+      pose: () => null,
+      poseCrudas: () => 1,
+      progresoDeEleccion: () => 0.5,
+      hayFondo: () => true,
+      puente: {
+        activo: () => true,
+        ultimo: () => ({ estado: 'carrera', enviado: 'mecanica', ok: true }),
+      },
       banco: { faltantes: () => [] },
     };
     const operacion = instalarOperacion({
@@ -140,10 +147,58 @@ describe('instalarOperacion', () => {
     const tecla = (key) => escuchas.get('keydown')({ key, preventDefault: vi.fn() });
 
     tecla('p');
-    tecla('i');
+    tecla('m');
     operacion.registrarCuadro(100);
 
-    expect(espejo.alternarInteraccion).toHaveBeenCalledOnce();
-    expect(panel.textContent).toContain('interaccion golpear');
+    expect(espejo.alternarMalla).toHaveBeenCalledOnce();
+    expect(panel.textContent).toContain('estado      ESCENA');
+  });
+
+  // Si las tablets no acompañan, el panel tiene que decir de un vistazo si el
+  // espejo llego a avisarle a MAITE o si el problema esta del otro lado.
+  it('el panel muestra el ultimo envio a MAITE', () => {
+    const escuchas = new Map();
+    const ventana = {
+      addEventListener: (tipo, escuchar) => escuchas.set(tipo, escuchar),
+      setInterval: vi.fn(),
+    };
+    const panel = { style: {}, textContent: '' };
+    const espejo = {
+      contenido: { ids: IDS },
+      estadoDeCamara: () => ({ lista: true }),
+      maquina: {
+        estado: () => 'ESCENA',
+        opciones: () => [],
+        carrera: () => 'civil',
+        sesion: () => 3,
+        esManual: () => false,
+      },
+      modo: () => 'camara',
+      detector: { cantidadDePuntos: () => 478 },
+      manosCrudas: () => 0,
+      manos: () => [],
+      pose: () => null,
+      poseCrudas: () => 0,
+      progresoDeEleccion: () => 0,
+      hayFondo: () => false,
+      puente: {
+        activo: () => true,
+        ultimo: () => ({ estado: 'carrera', enviado: 'civil', ok: false }),
+      },
+      banco: { faltantes: () => [] },
+    };
+
+    const operacion = instalarOperacion({
+      espejo,
+      tiempos: { recargaCadaMs: 1000 },
+      ventana,
+      documento: { createElement: () => panel, body: { appendChild: vi.fn() } },
+    });
+
+    escuchas.get('keydown')({ key: 'p', preventDefault: vi.fn() });
+    operacion.registrarCuadro(100);
+
+    expect(panel.textContent).toContain('maite       carrera civil FALLO');
+    expect(panel.textContent).toContain('humo        sin video');
   });
 });

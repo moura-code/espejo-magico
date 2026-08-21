@@ -7,7 +7,6 @@ const ACCIONES_SUELTAS = {
   p: 'panel',
   m: 'malla',
   a: 'alternarManual',
-  i: 'interaccion',
   ' ': 'avanzar',
 };
 
@@ -84,7 +83,6 @@ export function instalarOperacion({
       espejo.cambiarModo(espejo.modo() === 'demo' ? 'camara' : 'demo');
     }
     if (orden.accion === 'malla') espejo.alternarMalla();
-    if (orden.accion === 'interaccion') espejo.alternarInteraccion();
     if (orden.accion === 'panel') {
       visible = !visible;
       panel.style.display = visible ? 'block' : 'none';
@@ -105,27 +103,32 @@ export function instalarOperacion({
       if (!visible) return;
 
       const camara = espejo.estadoDeCamara();
+      const maite = espejo.puente.ultimo();
       panel.textContent = [
         `fps         ${fps.valor().toFixed(0)}`,
         `estado      ${espejo.maquina.estado()}`,
+        `ofrecidas   ${espejo.maquina.opciones().join(' ') || '-'}`,
         `carrera     ${espejo.maquina.carrera() ?? '-'}`,
         `sesion      ${espejo.maquina.sesion()}`,
         `modo        ${espejo.modo()}`,
         `camara      ${camara.lista ? 'ok' : (camara.error ?? 'sin camara')}`,
         `puntos      ${espejo.detector.cantidadDePuntos()}`,
         `manos       ${espejo.manosCrudas()} vistas / ${espejo.manos().length} usadas`,
-        `apertura    ${espejo.manos().map((m) => m.apertura.toFixed(1)).join('  ') || '-'}`,
         `radio mano  ${espejo.manos().map((m) => m.radio.toFixed(0)).join('  ') || '-'}`,
-        `interaccion ${espejo.interaccionDeManos()}`,
-        `objetos     ${espejo.pool.vivos().length}`,
+        `eleccion    ${(espejo.progresoDeEleccion() * 100).toFixed(0)}%`,
+        `pose        ${espejo.poseCrudas()} / silueta ${espejo.pose()?.mascara ? 'si' : 'no'}`,
+        `humo        ${espejo.hayFondo() ? 'ok' : 'sin video'}`,
+        // Si las tablets no acompañan, esto dice de un vistazo si el espejo
+        // llego a avisarle a MAITE o si el problema esta del otro lado.
+        `maite       ${espejo.puente.activo() ? `${maite.estado} ${maite.enviado ?? ''} ${maite.ok === null ? '' : maite.ok ? 'ok' : 'FALLO'}` : 'apagado'}`,
         `png faltan  ${espejo.banco.faltantes().length}`,
         ``,
         `avance      ${espejo.maquina.esManual() ? 'MANUAL' : 'automatico'}`,
         ``,
         `ESPACIO avanzar    A auto/manual`,
         `1-9,0,-,= carrera  R reiniciar`,
-        `I iman/golpe       D demo`,
-        `M malla            P cerrar`,
+        `D demo             M malla`,
+        `P cerrar`,
       ].join('\n');
     },
   };

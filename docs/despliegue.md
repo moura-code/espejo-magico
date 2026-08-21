@@ -73,14 +73,18 @@ chrome.exe ^
 ## 4. Prueba Completa de Verificación
 
 Antes de abrir el stand al público:
-1. **Desconectar la PC de cualquier red externa / Internet.** En la pestaña *Red* de las herramientas de desarrollo (F12) sólo puede aparecer `localhost`.
-2. Sentarse en el sillón del visitante frente al espejo.
-3. Verificar que la niebla se agite durante el sorteo y se aparte hacia los costados al revelar la carrera.
-4. Confirmar que los objetos caigan y respondan al movimiento de la cabeza y las manos.
-5. **Sentarse quieto un par de minutos.** La escena tiene que seguir siendo suya: si se corta sola, hay que revisar `CONFIG.tiempos.sesionMaxima` y `CONFIG.presencia.msParaSalir`.
-6. Probar desde el fondo del stand, no sólo de cerca: así se calibra a qué distancia poner el sillón.
-7. Levantarse del sillón y verificar que la escena se cierre y las nubes vuelvan a cubrir el espejo. Son unos **nueve segundos** desde que uno se levanta: seis de ausencia (`ausenciaParaCortar` más `presencia.msParaSalir`) y tres de cierre.
-8. **Probar el relevo:** levantarse y que se siente otra persona. Tiene que recibir su propio sorteo, no seguir en la escena de la anterior. Si se sienta antes de esos nueve segundos, hereda la escena — es un límite conocido, no una falla de calibración.
+1. **Levantar MAITE primero** (`cd MAITE && npm start`) y comprobar que su panel responde en `http://localhost:3000/control`. El espejo funciona sin él, pero las tablets no se van a mover.
+2. **Desconectar la PC de cualquier red externa / Internet.** En la pestaña *Red* de las herramientas de desarrollo (F12) sólo pueden aparecer `localhost:8080` y `localhost:3000`.
+3. Sentarse en el sillón del visitante frente al espejo.
+4. Verificar que **entre el humo** al sentarse y que al disiparse queden **cinco objetos** flotando en arco alrededor de los hombros.
+5. **Probar el sostenido:** poner la mano sobre un objeto y mantenerla. El anillo tiene que llenarse en un segundo y medio largo y elegir. Si el anillo va y viene sin llenarse, subir `CONFIG.eleccion.msDeGracia`; si elige sin querer al pasar la mano, subir `msParaElegir`.
+6. **Probar desde el fondo del stand, no sólo de cerca.** Los objetos se acomodan solos según el ancho de hombros, pero es acá donde se calibra a qué distancia poner el sillón: tienen que quedar cómodos de alcanzar sin estirar el brazo del todo.
+7. Al elegir, verificar que **las cuatro tablets cambien** a la gente de esa carrera. Si no cambian, abrir el panel (`P`) y mirar la línea `maite`: dice si el espejo llegó a avisar o si el problema está del otro lado.
+8. Confirmar que aparezca el **fondo de la ingeniería detrás de la persona**, no encima. Si se ve la persona lavada bajo el fondo, la máscara de silueta no está: mirar la línea `pose` del panel.
+9. **Sentarse quieto un par de minutos.** La escena tiene que seguir siendo suya: si se corta sola, revisar `CONFIG.tiempos.sesionMaxima` y `CONFIG.presencia.msParaSalir`.
+10. **Sentarse y no elegir nada.** A los 30 segundos el espejo tiene que resolver solo y revelar una carrera: nadie se va sin ingeniería y la fila no se traba.
+11. Levantarse del sillón y verificar que la escena se cierre, que las nubes vuelvan a cubrir el espejo y que **las tablets vuelvan a su humo**. Son unos **nueve segundos** desde que uno se levanta: seis de ausencia (`ausenciaParaCortar` más `presencia.msParaSalir`) y tres de cierre.
+12. **Probar el relevo:** levantarse y que se siente otra persona. Tiene que recibir sus propios cinco objetos, no seguir en la escena de la anterior. Si se sienta antes de esos nueve segundos, hereda la escena — es un límite conocido, no una falla de calibración.
 
 ---
 
@@ -90,9 +94,8 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 
 | Tecla | Acción | Descripción |
 |---|---|---|
-| `P` | **Panel HUD de Estado** | Muestra u oculta métricas en vivo: FPS, estado, carrera, cámara, manos detectadas, objetos y PNG faltantes. |
-| `1`–`9`, `0`, `-`, `=` | **Forzar Carrera** | Salta directamente a la revelación de la ingeniería correspondiente. Es la fila de números entera: una tecla por carrera, en el orden de `carreras.json`. |
-| `I` | **Modo Imán / Manotazo** | Alterna la interacción de las manos entre atracción magnética y golpe físico. |
+| `P` | **Panel HUD de Estado** | Muestra u oculta métricas en vivo: FPS, estado, carreras ofrecidas, carrera elegida, cámara, manos, progreso del sostenido, silueta, humo, **último envío a MAITE** y PNG faltantes. |
+| `1`–`9`, `0`, `-`, `=` | **Forzar Carrera** | Salta directamente a la revelación de la ingeniería correspondiente, y le avisa a MAITE. Es la fila de números entera: una tecla por carrera, en el orden de `carreras.json`. |
 | `A` | **Modo Auto / Manual** | Alterna entre avance automático por reloj y avance manual por teclado. |
 | `ESPACIO` / `Enter` | **Avanzar Estado** | Avanza manualmente al siguiente estado (útil en pruebas o demostraciones). |
 | `D` | **Modo Demo** | Simula un rostro en movimiento sin requerir cámara real. |
@@ -120,7 +123,22 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 ### La experiencia se siente lenta o con tirones
 1. Presionar `P` y revisar los `fps`.
 2. Si el valor es inferior a 30 FPS, cerrar otras aplicaciones abiertas en la PC.
-3. Si continúa lento, reducir el límite de objetos en `espejo/config.js` modificando la constante `CONFIG.objetos.maximo`.
+3. Si continúa lento, bajar `CONFIG.pose.fpsConFondo` en `espejo/config.js`: es lo más caro del cuadro, porque cada lectura de la silueta cuesta un viaje de la GPU a la CPU. El borde del recorte se va a ver un poco más atrasado, nada más.
+4. Como último recurso, `CONFIG.pose.segmentacion: false` apaga el recorte entero: el fondo se dibuja semitransparente encima del espejo y el espejo vuelve a ir sobrado.
+
+### Nadie consigue elegir un objeto
+1. Presionar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se está detectando: revisar luz y encuadre (`M` muestra los puntos sobre los dedos).
+2. Si el `progreso` de la línea `eleccion` sube y baja sin llegar a 100 %, la detección está entrecortada: subir `CONFIG.eleccion.msDeGracia`.
+3. Si los objetos quedan fuera del alcance del brazo, ajustar `CONFIG.tablero.radioFactor` (más chico = más cerca del cuerpo).
+
+### Las tablets no acompañan al espejo
+1. Presionar `P` y mirar la línea `maite`.
+   - `carrera <id> ok` — el espejo avisó bien; el problema está del lado de las tablets.
+   - `carrera <id> FALLO` — MAITE no está levantado, se cayó, o le falta el middleware de CORS en `MAITE/server.js`.
+   - `sin-par-en-maite` — esa carrera tiene `maite: null` en `carreras.json`. No es una falla.
+   - `apagado` — `CONFIG.maite.activo` está en `false`.
+2. Comprobar a mano que MAITE responde: abrir `http://localhost:3000/control` en otra pestaña.
+3. El espejo **nunca** se rompe por esto: si las tablets no están, la experiencia sigue igual.
 
 ---
 

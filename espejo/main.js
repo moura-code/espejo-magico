@@ -4,57 +4,64 @@
 // que orden se dibuja. Todo lo que se puede probar vive en otro lado.
 
 import { CONFIG } from './config.js';
-import { cargarContenido } from './contenido.js';
+import { cargarContenido, objetoDeCarrera } from './contenido.js';
 import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
 import { crearDetectorDeManosMediaPipe } from './manos.js';
 import { crearDetectorDePoseMediaPipe } from './pose.js';
-import {
-  crearFiltroRostro,
-  crearFiltroDeManos,
-  crearHisteresis,
-  crearRastreadorDeVelocidad,
-} from './suavizado.js';
+import { crearFiltroRostro, crearFiltroDeManos, crearHisteresis } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
-import { crearPool, fuenteDeObjetos } from './objetos.js';
-import { crearCuerpo } from './fisica.js';
+import { crearEleccion } from './eleccion.js';
+import { crearTablero } from './tablero.js';
+import { crearSilueta } from './silueta.js';
+import { crearPuente } from './maite.js';
+import { alfaDeHumo, cargarVideoDelNavegador } from './humo.js';
 import {
   crearNiebla,
   objetivoDeNiebla,
   acercarNiebla,
   calcularTransicionEscena,
 } from './niebla.js';
-import { crearEfecto, efectosDisponibles } from './efectos.js';
 import { figurasDisponibles } from './figuras.js';
 import {
   calcularDisposicion,
   calcularRecorteVisible,
   calcularRectanguloVideo,
   dibujarVideoEspejado,
-  dibujarObjetos,
-  dibujarFueraDeCara,
+  dibujarFondo,
+  dibujarPersonaRecortada,
+  dibujarObjeto,
+  dibujarAnilloDeProgreso,
   dibujarManos,
   dibujarPersona,
-  dibujarTextos,
+  dibujarFichaDePersona,
+  dibujarNombreDeCarrera,
+  dibujarHumo,
   dibujarInvitacion,
+  dibujarConsigna,
 } from './escena.js';
 import { instalarOperacion } from './operacion.js';
 
 // ---------- lienzos ----------
 // La niebla va en su propia capa para componer todos los jirones laterales sin
-// alterar el video ni los objetos que quedan debajo.
+// alterar el video ni los objetos que quedan debajo. La persona va en otra
+// porque recortarla contra la silueta necesita dos pasadas, y hacerlas sobre el
+// lienzo principal se llevaria puesto el fondo que ya esta dibujado.
 const lienzo = document.getElementById('lienzo');
 const ctx = lienzo.getContext('2d');
 const capaNiebla = document.createElement('canvas');
 const ctxNiebla = capaNiebla.getContext('2d');
+const capaPersona = document.createElement('canvas');
+const ctxPersona = capaPersona.getContext('2d');
+const persona = { canvas: capaPersona, ctx: ctxPersona };
 
 let disposicion = calcularDisposicion(1, 1);
 
 function ajustar() {
-  lienzo.width = capaNiebla.width = window.innerWidth;
-  lienzo.height = capaNiebla.height = window.innerHeight;
+  lienzo.width = capaNiebla.width = capaPersona.width = window.innerWidth;
+  lienzo.height = capaNiebla.height = capaPersona.height = window.innerHeight;
   disposicion = calcularDisposicion(lienzo.width, lienzo.height);
 }
 ajustar();
@@ -81,10 +88,7 @@ function aviso(texto) {
 aviso('cargando…');
 
 // ---------- contenido ----------
-const contenido = await cargarContenido({
-  figurasValidas: figurasDisponibles(),
-  efectosValidos: efectosDisponibles(),
-});
+const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
 const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
 const informe = await banco.precargar(contenido.todasLasImagenes());
 if (informe.faltantes.length > 0) {
@@ -92,6 +96,23 @@ if (informe.faltantes.length > 0) {
     `Faltan ${informe.faltantes.length} de ${informe.total} imagenes. Se dibujan figuras del color de la carrera:`,
     informe.faltantes,
   );
+}
+
+const jugables = contenido.idsJugables();
+if (jugables.length === 0) {
+  // Sin ninguna carrera con par en MAITE no hay nada que ofrecer. Se cae a todo
+  // el catalogo: el espejo anda solo y las tablets se quedan en humo, que es
+  // mucho mejor que una pantalla vacia el dia del evento.
+  console.warn('Ninguna carrera tiene "maite" en carreras.json: se ofrecen todas.');
+}
+
+// El humo es un agregado opcional: si el video falta o el navegador no lo puede
+// reproducir, el espejo arranca igual y lo unico que se pierde es la transicion.
+let videoDeHumo = null;
+try {
+  videoDeHumo = await cargarVideoDelNavegador(`/contenido/${CONFIG.humo.ruta}`);
+} catch (error) {
+  console.warn('Humo no disponible:', error?.message ?? error);
 }
 
 // ---------- rostro ----------
@@ -140,9 +161,10 @@ try {
     radioMinimoEnPalmas: CONFIG.manos.radioMinimoEnPalmas,
   });
 } catch (error) {
-  // Las manos son un agregado: si su modelo falta o no carga, el espejo sigue
-  // andando con la cabeza sola. No vale la pena tirar toda la instalacion.
-  console.warn('Deteccion de manos no disponible:', error);
+  // Sin manos no se puede elegir. El espejo sigue andando y el tope de la
+  // eleccion sortea una carrera solo, asi que nadie se queda sin nada — pero es
+  // una falla grave y tiene que verse en el panel del stand.
+  console.warn('Deteccion de manos no disponible: no se va a poder elegir.', error);
 }
 
 let detectorDePose = null;
@@ -157,7 +179,7 @@ try {
 
 const sintetica = crearFuenteSintetica();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
-const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizadoDelIman);
+const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizado);
 // Dos histeresis sobre dos señales distintas. `histeresis` mira rostro O pose:
 // es lo que SOSTIENE una sesion, y por eso los hombros alcanzan cuando la cara
 // gira. `histeresisDeRostro` mira solo la cara: es lo que ARRANCA una sesion, y
@@ -166,66 +188,83 @@ const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizadoDelIman);
 const histeresis = crearHisteresis(CONFIG.presencia);
 const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
 
-// Velocidad de cada colisionador, para que pueda golpear y no solo hacer rebotar.
-const opcionesVelocidad = {
-  alfa: CONFIG.manos.alfaVelocidad,
-  maxima: CONFIG.manos.velocidadMaxima,
-};
-const velocidadCabeza = crearRastreadorDeVelocidad(opcionesVelocidad);
-const velocidadDeMano = new Map();
-
-function seguirVelocidad(clave, x, y, ahora) {
-  if (!velocidadDeMano.has(clave)) {
-    velocidadDeMano.set(clave, crearRastreadorDeVelocidad(opcionesVelocidad));
-  }
-  return velocidadDeMano.get(clave).actualizar(x, y, ahora);
-}
-
 // ---------- logica ----------
-const sorteo = crearSorteo({ ids: contenido.ids });
+const sorteo = crearSorteo({ ids: jugables.length > 0 ? jugables : contenido.ids });
 const maquina = crearMaquina({
   tiempos: CONFIG.tiempos,
-  sortear: () => sorteo.siguiente(),
+  sortearOpciones: () => sorteo.siguientes(CONFIG.eleccion.cantidad),
   manual: CONFIG.avance.manual,
 });
-const pool = crearPool(CONFIG.objetos);
+const eleccion = crearEleccion(CONFIG.eleccion);
+const tablero = crearTablero(CONFIG.tablero);
+const silueta = crearSilueta({ crearLienzo: () => document.createElement('canvas') });
+const puente = crearPuente(CONFIG.maite);
 const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
 
 // La niebla arranca cerrada. Su apertura cambia de forma continua aunque la
 // maquina salte de estado, y solo desplaza nubes hacia los lados.
 let nieblaActual = { apertura: 0 };
 
-function atender(eventos) {
-  for (const evento of eventos) {
-    if (evento.tipo !== 'entra') continue;
+// Los cinco que se ofrecen, con el objeto que representa a cada carrera ya
+// sorteado. Se arman una sola vez por sesion: sortear el objeto por cuadro haria
+// que la imagen cambiara sola mientras la persona la mira.
+let ofrecidos = [];
+let blancos = [];
+// El objeto elegido y de donde sale su viaje hacia el borde de arriba. Se fija
+// UNA vez, al entrar a la revelacion: `objetoDeCarrera` sortea cuando la carrera
+// no declara representante, asi que resolverlo por cuadro hacia que el objeto
+// parpadeara entre PNG distintos. Se veia forzando una carrera con las teclas,
+// que es el camino que no pasa por el tablero.
+let elegido = null;
 
-    // Los dos vaciados que importan. En ATRACCION se limpia lo que quedo de la
-    // escena que termino. En REVELACION se limpia lo de la escena anterior
-    // cuando el operador fuerza una carrera con las teclas y salta ahi desde
-    // una sesion en curso: la carrera nueva tiene que aparecer sola.
-    if (evento.estado === ESTADOS.ATRACCION) pool.vaciar();
-    if (evento.estado === ESTADOS.REVELACION) pool.vaciar();
-  }
+function prepararOfrecidos(opciones) {
+  ofrecidos = opciones
+    .map((id) => {
+      const carrera = contenido.obtener(id);
+      return carrera ? { id, carrera, definicion: objetoDeCarrera(carrera) } : null;
+    })
+    .filter(Boolean);
 }
 
-// ---------- aparicion de objetos ----------
-let proximaAparicion = 0;
+function atender(salida, ahora) {
+  for (const evento of salida.eventos) {
+    if (evento.tipo !== 'entra') continue;
 
-function aparecerObjeto(definicion, ahora) {
-  const radio = (definicion.escala * disposicion.unidad) / 2;
-  pool.aparecer(
-    definicion,
-    crearCuerpo({
-      x: radio + Math.random() * Math.max(1, disposicion.ancho - radio * 2),
-      y: -radio,
-      vx: (Math.random() - 0.5) * 120,
-      vy: 60 + Math.random() * 120,
-      radio,
-      giro: Math.random() * Math.PI * 2,
-      velocidadGiro: (Math.random() - 0.5) * 2.5,
-    }),
-    ahora,
-  );
+    if (evento.estado === ESTADOS.HUMO) {
+      prepararOfrecidos(salida.opciones);
+      eleccion.reiniciar();
+      tablero.reiniciar();
+      elegido = null;
+    }
+
+    if (evento.estado === ESTADOS.REVELACION) {
+      const carrera = contenido.obtener(salida.carrera);
+      // Donde estaba el objeto cuando lo eligieron: desde ahi viaja hasta su
+      // lugar de arriba. Sin guardarlo, aparece de la nada en el borde superior
+      // y se pierde la unica confirmacion visual de que lo que se eligio fue eso
+      // y no otra cosa. Forzando una carrera con las teclas no hay tablero
+      // detras, asi que arranca ya puesto en su lugar.
+      const blanco = blancos.find((b) => b.id === salida.carrera);
+      elegido = carrera && {
+        definicion: blanco?.definicion ?? objetoDeCarrera(carrera),
+        origen: blanco
+          ? { x: blanco.x, y: blanco.y, radio: blanco.radio }
+          : { ...disposicion.elegido },
+      };
+
+      puente.carrera(carrera?.maite ?? null);
+    }
+
+    if (evento.estado === ESTADOS.ATRACCION) {
+      ofrecidos = [];
+      blancos = [];
+      elegido = null;
+      eleccion.reiniciar();
+      tablero.reiniciar();
+      puente.humo();
+    }
+  }
+  return salida;
 }
 
 /**
@@ -263,6 +302,8 @@ function prepararAnalisis(video, rectangulo) {
   return lienzoAnalisis;
 }
 
+const mezclar = (desde, hasta, t) => desde + (hasta - desde) * t;
+
 // ---------- bucle ----------
 let anterior = performance.now();
 let ultimaDeteccion = 0;
@@ -273,29 +314,31 @@ let hayPersona = false;
 let hayRostroEstable = false;
 let manos = [];
 let manosSuaves = [];
-let interaccionDeManos = CONFIG.manos.interaccion;
 let verMalla = false;
-let efecto = null;
-let efectoDe = null;
+let lienzoDeSilueta = null;
 let ultimaDeteccionManos = 0;
 let ultimaDeteccionPose = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
+let progresoDeEleccion = 0;
+let sobreQueBlanco = null;
 const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
-const intervaloPose = 1000 / CONFIG.pose.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
+
+const conFondo = (estado) =>
+  estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA || estado === ESTADOS.CIERRE;
 
 function cuadro(ahora) {
   requestAnimationFrame(cuadro);
 
   // Tope de cuadros. Se saltea el dibujo sin tocar `anterior`, asi el dt se
-  // acumula solo y la fisica no se entera del salteo.
+  // acumula solo.
   if (ahora - anterior < intervaloDibujo) return;
 
   operacion.registrarCuadro(ahora);
 
   // Se acota el dt: si el navegador se traba un instante, un salto grande
-  // mandaria los objetos atravesando el piso de un cuadro al otro.
+  // haria saltar la niebla de golpe.
   const dt = Math.min(0.05, (ahora - anterior) / 1000);
   anterior = ahora;
 
@@ -317,15 +360,17 @@ function cuadro(ahora) {
 
   // --- deteccion ---
   // Las manos corren en su propio reloj, mas rapido que la cara: se mueven diez
-  // veces mas rapido y a 22 cuadros por segundo el circulo va siempre atras de la
-  // mano de verdad. Solo se buscan cuando hay algo con que interactuar, porque es
-  // el detector mas caro del cuadro.
+  // veces mas rapido y a 22 cuadros por segundo el blanco va siempre atras de la
+  // mano de verdad. Solo se buscan durante la eleccion, que es el unico momento
+  // en que sirven, porque es el detector mas caro del cuadro.
   const poseSirve = detectorDePose && video && modo !== 'demo';
   const manosSirven =
-    detectorDeManos &&
-    video &&
-    modo !== 'demo' &&
-    (estadoAnterior === ESTADOS.REVELACION || estadoAnterior === ESTADOS.ESCENA);
+    detectorDeManos && video && modo !== 'demo' && estadoAnterior === ESTADOS.ELECCION;
+
+  // La mascara ES la imagen mientras hay fondo: a 12 cuadros por segundo el
+  // borde de la silueta va atras del cuerpo y se ve el fondo pegado al hombro.
+  const intervaloPose =
+    1000 / (conFondo(estadoAnterior) ? CONFIG.pose.fpsConFondo : CONFIG.pose.fps);
 
   const tocaRostro = ahora - ultimaDeteccion >= intervaloDeteccion;
   const tocaPose = poseSirve && ahora - ultimaDeteccionPose >= intervaloPose;
@@ -357,8 +402,12 @@ function cuadro(ahora) {
   if (tocaPose && analisis) {
     ultimaDeteccionPose = ahora;
     pose = detectorDePose.detectar(analisis, ahora, rectDeteccion);
+    // La silueta cuesta una lectura de la GPU a la CPU, asi que solo se arma
+    // cuando hay fondo que meterle atras a la persona.
+    lienzoDeSilueta = conFondo(estadoAnterior) ? silueta.actualizar(pose?.mascara) : null;
   } else if (!poseSirve) {
     pose = null;
+    lienzoDeSilueta = null;
   }
 
   const habiaPresencia = hayPersona;
@@ -366,37 +415,29 @@ function cuadro(ahora) {
   hayRostroEstable = histeresisDeRostro.actualizar(Boolean(crudoRostro), ahora);
   if (habiaPresencia && !hayPersona) {
     filtro.reiniciar();
-    velocidadCabeza.reiniciar();
-    velocidadDeMano.clear();
     crudoRostro = null;
     rostro = null;
     pose = null;
+    lienzoDeSilueta = null;
   }
 
   if (tocaManos && analisis) {
     ultimaDeteccionManos = ahora;
+    // La palma que elige va filtrada: el temblor crudo la hace entrar y salir
+    // del blanco varias veces por segundo y el anillo se llenaria a los saltos.
     manos = detectorDeManos.detectar(analisis, ahora, rectDeteccion);
-    // La copia filtrada es solo para el iman: corta el temblor de la deteccion
-    // sin meterle retardo al manotazo, que sigue usando la palma cruda.
     manosSuaves = filtroDeManos.filtrar(manos, ahora);
-    manos = manos.map((mano, indice) => ({
-      ...mano,
-      idSeguimiento: manosSuaves[indice]?.idSeguimiento,
-    }));
   } else if (!manosSirven) {
     manos = [];
     manosSuaves = [];
     filtroDeManos.reiniciar();
-    velocidadDeMano.clear();
   }
 
   // --- estado ---
-  const salida = maquina.actualizar({
-    puedeIniciar: hayRostroEstable,
-    hayPersona,
+  const salida = atender(
+    maquina.actualizar({ puedeIniciar: hayRostroEstable, hayPersona, ahora }),
     ahora,
-  });
-  atender(salida.eventos);
+  );
 
   const estado = salida.estado;
   estadoAnterior = estado;
@@ -408,76 +449,38 @@ function cuadro(ahora) {
     tiempos: CONFIG.tiempos,
   });
 
-  // --- fisica ---
-  const fuente = fuenteDeObjetos(estado, carrera);
-  if (fuente && fuente.length > 0 && ahora >= proximaAparicion) {
-    proximaAparicion = ahora + CONFIG.objetos.intervaloAparicion;
-    aparecerObjeto(fuente[Math.floor(Math.random() * fuente.length)], ahora);
+  // --- tablero y eleccion ---
+  // El arco se congela apenas empieza un sostenido: si siguiera a los hombros,
+  // el gesto de estirar el brazo lo correria de abajo de la propia mano.
+  const enEleccion = estado === ESTADOS.HUMO || estado === ESTADOS.ELECCION;
+  if (enEleccion && ofrecidos.length > 0) {
+    const puesto = tablero.actualizar({
+      pose,
+      rostro,
+      disposicion,
+      cantidad: ofrecidos.length,
+      congelar: progresoDeEleccion > 0,
+    });
+
+    blancos = ofrecidos.map((ofrecido, i) => ({
+      ...ofrecido,
+      x: puesto.ubicaciones[i].x,
+      y: puesto.ubicaciones[i].y,
+      radio: puesto.radioObjeto,
+    }));
   }
 
-  // La cabeza es colisionador con velocidad propia: por eso golpea los objetos
-  // en vez de solo hacerlos rebotar. Las manos cambian de papel segun el modo:
-  // en golpe son colisionadores como la cabeza; en iman son SOLO atractores —
-  // el anillo de reposo del campo mantiene los objetos fuera de la palma, y
-  // sumarle el circulo duro hace vibrar el racimo.
-  const colisionadores = [];
-  const atractores = [];
-  if (rostro) {
-    const { vx, vy } = velocidadCabeza.actualizar(rostro.centro.x, rostro.centro.y, ahora);
-    colisionadores.push({ x: rostro.centro.x, y: rostro.centro.y, radio: rostro.radio, vx, vy });
+  if (estado === ESTADOS.ELECCION) {
+    const paso = eleccion.actualizar({ manos: manosSuaves, objetivos: blancos, ahora });
+    progresoDeEleccion = paso.progreso;
+    sobreQueBlanco = paso.sobre;
+    if (paso.elegido) atender(maquina.elegir(paso.elegido, ahora), ahora);
+  } else if (!enEleccion) {
+    progresoDeEleccion = 0;
+    sobreQueBlanco = null;
   }
 
-  if (interaccionDeManos === 'atraer') {
-    for (const mano of manosSuaves) {
-      atractores.push({
-        id: mano.idSeguimiento,
-        x: mano.palma.x,
-        y: mano.palma.y,
-        alcance: mano.radio * CONFIG.manos.atraccion.alcanceFactor,
-        alcanceArriba:
-          mano.radio *
-          (CONFIG.manos.atraccion.alcanceArribaFactor ?? CONFIG.manos.atraccion.alcanceFactor),
-        reposo: mano.radio * CONFIG.manos.atraccion.reposoFactor,
-      });
-    }
-  } else {
-    // La velocidad solo la usa el modo golpe: en iman los atractores no la
-    // miran, y calcularla igual seria trabajo por cuadro sin consumidor.
-    for (const mano of manos) {
-      const clave = mano.idSeguimiento ?? mano.lado;
-      const { vx, vy } = seguirVelocidad(clave, mano.palma.x, mano.palma.y, ahora);
-      colisionadores.push({ x: mano.palma.x, y: mano.palma.y, radio: mano.radio, vx, vy });
-    }
-  }
-
-  pool.actualizar(dt, ahora, {
-    ...CONFIG.fisica,
-    caja: disposicion.caja,
-    colisionadores,
-    atractores,
-    atraccion: CONFIG.manos.atraccion,
-  });
-  niebla.actualizar(dt, estado === ESTADOS.SORTEO ? CONFIG.niebla.agitacionSorteo : 1);
-
-  // --- efecto de la carrera ---
-  // Se arma al saberse la carrera (en SORTEO) y se tira al volver a atraccion.
-  if (carrera && carrera.id !== efectoDe) {
-    efecto = crearEfecto(carrera.efecto, { presupuesto: CONFIG.efectos.presupuesto });
-    efectoDe = carrera.id;
-  } else if (!carrera && efecto) {
-    efecto = null;
-    efectoDe = null;
-  }
-
-  const contextoEfecto = {
-    ancho: disposicion.ancho,
-    alto: disposicion.alto,
-    color: carrera?.color ?? '#ffffff',
-    rostro,
-    ahora,
-    alfa: transicion.efecto,
-  };
-  if (efecto) efecto.actualizar(dt, contextoEfecto);
+  niebla.actualizar(dt, estado === ESTADOS.HUMO ? CONFIG.niebla.agitacionHumo : 1);
 
   // --- dibujo ---
   ctx.clearRect(0, 0, disposicion.ancho, disposicion.alto);
@@ -493,10 +496,46 @@ function cuadro(ahora) {
     ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
   }
 
-  // El efecto va encima del video y debajo de los objetos, para que el
-  // participante quede dentro de la escena y no tapado por ella.
-  if (efecto && transicion.efecto > 0) {
-    dibujarFueraDeCara(ctx, rostro, disposicion, () => efecto.dibujar(ctx, contextoEfecto));
+  // El fondo de la carrera entra por encima del espejo y la persona se vuelve a
+  // dibujar arriba, recortada contra su silueta: asi queda DENTRO de su
+  // ingenieria en vez de tapada por ella.
+  //
+  // Sin silueta —pose perdida, GPU lenta, modelo sin cargar— el fondo se dibuja
+  // igual, mas tenue y con el espejo apagado debajo. Se pierde la profundidad,
+  // pero nunca queda una pantalla en negro con publico delante.
+  if (transicion.fondo > 0 && carrera) {
+    const imagenDeFondo = carrera.fondo ? banco.obtener(carrera.fondo) : null;
+    const hayRecorte = Boolean(video && lienzoDeSilueta);
+
+    if (imagenDeFondo) {
+      dibujarFondo(
+        ctx,
+        imagenDeFondo,
+        disposicion,
+        transicion.fondo * (hayRecorte ? 1 : CONFIG.fondo.opacidadSinMascara),
+      );
+    } else {
+      // Sin imagen, el color de la carrera. Es feo pero es legible, y el nombre
+      // y el texto siguen entrando: una carrera sin fondo no rompe la escena.
+      ctx.save();
+      ctx.globalAlpha = transicion.fondo * 0.8;
+      ctx.fillStyle = carrera.color;
+      ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
+      ctx.restore();
+    }
+
+    if (hayRecorte) {
+      ctx.save();
+      ctx.globalAlpha = transicion.fondo;
+      dibujarPersonaRecortada(ctx, {
+        capa: persona,
+        video,
+        rectangulo,
+        silueta: lienzoDeSilueta,
+        disposicion,
+      });
+      ctx.restore();
+    }
   }
 
   // Diagnostico: la malla facial completa. Si los puntos caen sobre la cara el
@@ -519,9 +558,8 @@ function cuadro(ahora) {
       }
     }
 
-    // Los 21 puntos de cada mano y su circulo de radio real, que es lo que la
-    // fisica usa como colisionador en golpe y como base del alcance en iman. Si
-    // los puntos caen sobre tus dedos, el problema no es la deteccion.
+    // Los 21 puntos de cada mano y su circulo de radio real. Si los puntos caen
+    // sobre tus dedos, el problema no es la deteccion.
     ctx.fillStyle = '#FFD23F';
     ctx.strokeStyle = '#FFD23F';
     ctx.lineWidth = 2;
@@ -540,19 +578,74 @@ function cuadro(ahora) {
     }
   }
 
-  dibujarObjetos(ctx, pool.vivos(), banco, carrera?.color ?? '#8899aa');
+  // --- los cinco que se ofrecen ---
+  if (transicion.objetos > 0) {
+    for (const blanco of blancos) {
+      // El elegido no se dibuja aca: viaja aparte hacia su lugar de arriba.
+      if (salida.carrera && blanco.id === salida.carrera) continue;
 
-  // La señal de las manos se ve siempre que haya manos: es lo que le enseña al
-  // publico que puede estirarlas. Se dibuja sobre la mano que manda segun el
-  // modo — la filtrada en iman (donde esta el atractor), la cruda en golpe
-  // (donde pega el manotazo).
-  const atrae = interaccionDeManos === 'atraer';
-  dibujarManos(ctx, atrae ? manosSuaves : manos, carrera?.color ?? '#ffffff', {
-    ahora,
-    alcanceFactor: CONFIG.manos.atraccion.alcanceFactor,
-    atrae,
-    senal: CONFIG.manos.senal,
-  });
+      dibujarObjeto(
+        ctx,
+        {
+          definicion: blanco.definicion,
+          x: blanco.x,
+          y: blanco.y,
+          radio: blanco.radio,
+          alfa: transicion.objetos,
+        },
+        banco,
+        blanco.carrera.color,
+      );
+
+      if (blanco.id === sobreQueBlanco && progresoDeEleccion > 0) {
+        dibujarAnilloDeProgreso(ctx, {
+          x: blanco.x,
+          y: blanco.y,
+          radio: blanco.radio,
+          progreso: progresoDeEleccion,
+          color: blanco.carrera.color,
+        });
+      }
+    }
+  }
+
+  // --- el elegido, viajando a su lugar ---
+  if (carrera && elegido && transicion.fondo > 0) {
+    const t = transicion.fondo;
+
+    dibujarObjeto(
+      ctx,
+      {
+        definicion: elegido.definicion,
+        x: mezclar(elegido.origen.x, disposicion.elegido.x, t),
+        y: mezclar(elegido.origen.y, disposicion.elegido.y, t),
+        radio: mezclar(elegido.origen.radio, disposicion.elegido.radio, t),
+        alfa: 1,
+      },
+      banco,
+      carrera.color,
+    );
+  }
+
+  // La señal de las manos: donde registra el sistema tu palma. Es lo unico que
+  // le enseña al publico que puede estirarlas, y sin ella el sostenido es a
+  // ciegas. Solo durante la eleccion, que es cuando las manos hacen algo.
+  if (estado === ESTADOS.ELECCION) {
+    dibujarManos(ctx, manosSuaves, '#ffffff', CONFIG.manos.senal);
+  }
+
+  dibujarNombreDeCarrera(ctx, carrera, disposicion, transicion.contenido);
+  dibujarFichaDePersona(ctx, carrera, disposicion, transicion.contenido);
+
+  // El humo va encima de todo: su trabajo es justamente tapar el momento en que
+  // las nubes se abren y los objetos se ponen en su lugar.
+  dibujarHumo(
+    ctx,
+    videoDeHumo,
+    disposicion,
+    alfaDeHumo({ estado, transcurrido: enEstadoDesde, tiempos: CONFIG.tiempos, humo: CONFIG.humo }),
+    CONFIG.humo.opacidad,
+  );
 
   nieblaActual = acercarNiebla(
     nieblaActual,
@@ -586,20 +679,24 @@ function cuadro(ahora) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
   }
-  dibujarTextos(ctx, carrera, disposicion, transicion.contenido);
+  if (estado === ESTADOS.ELECCION) dibujarConsigna(ctx, disposicion, transicion.objetos);
 }
 
 window.espejo = {
   maquina,
   contenido,
   banco,
-  pool,
   detector,
+  puente,
   estadoDeCamara: () => estadoDeCamara,
   manos: () => manos,
   manosCrudas: () => detectorDeManos?.crudasDetectadas() ?? 0,
   pose: () => pose,
   poseCrudas: () => detectorDePose?.crudasDetectadas() ?? 0,
+  ofrecidos: () => blancos,
+  elegido: () => elegido,
+  progresoDeEleccion: () => progresoDeEleccion,
+  hayFondo: () => Boolean(videoDeHumo),
   modo: () => modo,
   cambiarModo: (nuevo) => {
     modo = nuevo;
@@ -608,18 +705,12 @@ window.espejo = {
   alternarMalla: () => {
     verMalla = !verMalla;
   },
-  interaccionDeManos: () => interaccionDeManos,
-  alternarInteraccion: () => {
-    interaccionDeManos = interaccionDeManos === 'atraer' ? 'golpear' : 'atraer';
-    filtroDeManos.reiniciar();
-    velocidadDeMano.clear();
-    return interaccionDeManos;
-  },
   // Los atajos tienen que pasar por atender(): si no, forzar una carrera con las
-  // teclas deja en pantalla los objetos de la sesion anterior.
-  avanzar: (ahora) => atender(maquina.avanzar(ahora).eventos),
-  forzarCarrera: (id, ahora) => atender(maquina.forzarCarrera(id, ahora).eventos),
-  reiniciar: (ahora) => atender(maquina.reiniciar(ahora).eventos),
+  // teclas no le avisa a MAITE y las tablets se quedan con la carrera anterior.
+  avanzar: (ahora) => atender(maquina.avanzar(ahora), ahora),
+  elegir: (id, ahora) => atender(maquina.elegir(id, ahora), ahora),
+  forzarCarrera: (id, ahora) => atender(maquina.forzarCarrera(id, ahora), ahora),
+  reiniciar: (ahora) => atender(maquina.reiniciar(ahora), ahora),
 };
 
 const operacion = instalarOperacion({ espejo: window.espejo, tiempos: CONFIG.operacion });

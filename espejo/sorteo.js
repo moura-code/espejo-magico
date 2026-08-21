@@ -1,7 +1,7 @@
-// Sorteo de carrera con bolsa barajada, no azar puro.
+// Sorteo de carreras con bolsa barajada, no azar puro.
 //
 // Con azar puro sale Computacion cuatro veces seguidas y la fila entera se
-// vuelve con la misma carrera. Con bolsa, todas salen una vez antes de que se
+// vuelve con las mismas opciones. Con bolsa, todas salen una vez antes de que se
 // repita ninguna.
 
 export function barajar(lista, azar) {
@@ -30,11 +30,36 @@ export function crearSorteo({ ids, mezclar = (lista) => barajar(lista, Math.rand
   }
 
   return {
-    siguiente() {
-      if (bolsa.length === 0) llenar();
-      ultima = bolsa.shift();
-      return ultima;
+    /**
+     * Las carreras que se le ofrecen a una persona, sin repetir entre si: dos
+     * objetos de la misma ingenieria en la misma pantalla se leen como un error
+     * del sistema, no como una opcion.
+     *
+     * Si se piden mas de las que hay, se devuelven todas. Las que salieron
+     * repetidas al recargar la bolsa vuelven al frente en vez de perderse, para
+     * que sigan teniendo su turno con la persona siguiente.
+     */
+    siguientes(cantidad) {
+      const pedidas = Math.min(Math.max(0, cantidad), ids.length);
+      const sacadas = [];
+      const apartadas = [];
+
+      while (sacadas.length < pedidas) {
+        if (bolsa.length === 0) llenar();
+        const id = bolsa.shift();
+        if (sacadas.includes(id)) apartadas.push(id);
+        else sacadas.push(id);
+      }
+
+      bolsa.unshift(...apartadas);
+      if (sacadas.length > 0) ultima = sacadas.at(-1);
+      return sacadas;
     },
+
+    siguiente() {
+      return this.siguientes(1)[0] ?? null;
+    },
+
     restantes: () => bolsa.length,
   };
 }

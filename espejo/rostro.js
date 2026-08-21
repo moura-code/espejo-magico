@@ -84,8 +84,8 @@ export function crearMedidorConfianza(ventana) {
 }
 
 /**
- * Rostro simulado que se mueve solo. Sirve para desarrollar la escena y la
- * fisica sin estar sentado frente a la webcam, para que varias personas
+ * Rostro simulado que se mueve solo. Sirve para desarrollar la escena sin estar
+ * sentado frente a la webcam, para que varias personas
  * trabajen en paralelo con una sola camara, y para el modo demo del stand.
  */
 export function crearFuenteSintetica() {
