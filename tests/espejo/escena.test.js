@@ -703,6 +703,21 @@ describe('las dos tipografias', () => {
     for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(FAMILIA_TEXTO);
   });
 
+  // Las nubes del reposo pasan por delante y a veces quedan blancas justo
+  // detras del texto. Sin una sombra propia debajo, la invitacion desaparecia
+  // cada vez que un jiron le pasaba por encima.
+  it('la invitacion se apoya sobre su propia sombra', () => {
+    const ctx = crearCtxFalso();
+
+    dibujarInvitacion(ctx, disposicion, 0.5);
+
+    const orden = ctx.llamadas.map(([que]) => que);
+    const primerTexto = orden.indexOf('fillText');
+    const primerFondo = orden.findIndex((que) => que === 'fill' || que === 'fillRect');
+    expect(primerFondo).toBeGreaterThanOrEqual(0);
+    expect(primerFondo).toBeLessThan(primerTexto);
+  });
+
   // La consigna es la unica instruccion de la experiencia, y cambia segun lo
   // que la persona ya hizo: primero ensena el gesto, despues avisa que se puede
   // repetir. Si el texto estuviera fijo adentro, la segunda mitad no existiria.

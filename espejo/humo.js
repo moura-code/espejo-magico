@@ -26,6 +26,16 @@ const suavizar = (valor) => {
  */
 export function alfaDeHumo({ estado, transcurrido, tiempos, humo }) {
   switch (estado) {
+    // EL ESPEJO DESCANSA CUBIERTO DE HUMO. Es lo que ve la fila mientras espera,
+    // y respira para que no se lea como una pantalla congelada. Nunca llega a
+    // tapar: por debajo se tiene que adivinar que hay un espejo.
+    case ESTADOS.ATRACCION: {
+      const asentado = suavizar(transcurrido / Math.max(1, humo.msParaAsentarse ?? 1));
+      const respiro =
+        0.5 + 0.5 * Math.sin((transcurrido / Math.max(1, humo.msDeRespiro ?? 1)) * Math.PI * 2);
+      return (humo.enReposo ?? 0) * asentado * (0.7 + 0.3 * respiro);
+    }
+
     case ESTADOS.HUMO: {
       const entrada = Math.max(1, tiempos.humo * humo.fraccionDeEntrada);
       return suavizar(transcurrido / entrada);

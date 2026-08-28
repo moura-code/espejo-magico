@@ -503,6 +503,26 @@ export function dibujarHumo(ctx, video, disposicion, alfa, opacidad = 1) {
 
 export function dibujarInvitacion(ctx, disposicion, pulso) {
   const { ancho, alto, texto } = disposicion;
+  const centro = alto * 0.5;
+
+  // Su propia sombra debajo. Las nubes del reposo le pasan por delante y a veces
+  // quedan blancas justo detras del texto: sin esto, la invitacion desaparecia
+  // cada vez que un jiron le pasaba por encima.
+  const halo = ctx.createRadialGradient(
+    ancho / 2,
+    centro + texto.tamanoNombre * 0.2,
+    0,
+    ancho / 2,
+    centro + texto.tamanoNombre * 0.2,
+    ancho * 0.62,
+  );
+  halo.addColorStop(0, 'rgba(4,7,12,0.62)');
+  halo.addColorStop(0.55, 'rgba(4,7,12,0.28)');
+  halo.addColorStop(1, 'rgba(4,7,12,0)');
+  ctx.save();
+  ctx.fillStyle = halo;
+  ctx.fillRect(0, 0, ancho, alto);
+  ctx.restore();
 
   ctx.save();
   ctx.globalAlpha = 0.65 + 0.35 * pulso;
@@ -511,9 +531,9 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
   ctx.shadowColor = 'rgba(0,0,0,0.8)';
   ctx.shadowBlur = 24;
   ctx.font = `${PESO_TITULO} ${texto.tamanoNombre}px ${FAMILIA_TITULO}`;
-  ctx.fillText('Sentate frente al espejo', ancho / 2, alto * 0.5);
+  ctx.fillText('Sentate frente al espejo', ancho / 2, centro);
   ctx.font = `400 ${texto.tamanoFrase}px ${FAMILIA_TEXTO}`;
-  ctx.fillText('y descubrí tu ingeniería', ancho / 2, alto * 0.5 + texto.tamanoNombre);
+  ctx.fillText('y descubrí tu ingeniería', ancho / 2, centro + texto.tamanoNombre);
   ctx.restore();
 }
 

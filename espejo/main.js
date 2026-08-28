@@ -711,7 +711,9 @@ function cuadro(ahora) {
 
   if (estado === ESTADOS.ATRACCION) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
-    dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
+    // 700 ms era un parpadeo, no una respiracion: apurado, se leia como un
+    // aviso de error mas que como una invitacion.
+    dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 1400) + 1) / 2);
   }
   // La consigna cambia con lo que la persona ya hizo: primero ensena el gesto,
   // y una vez que vio una ingenieria avisa que puede seguir. Sin esa segunda

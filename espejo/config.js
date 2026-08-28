@@ -231,6 +231,15 @@ export const CONFIG = {
     // Fraccion del estado HUMO que tarda en espesarse. El resto lo pasa tapando.
     fraccionDeEntrada: 0.55,
 
+    // Cuanto humo queda mientras el espejo descansa. Es lo que ve la fila
+    // mientras espera: tiene que leerse como un espejo cubierto, no como una
+    // pantalla apagada, asi que nunca llega a tapar del todo.
+    enReposo: 0.35,
+    msParaAsentarse: 1500,
+    // Lo que tarda una respiracion entera. Lento a proposito: mas rapido se
+    // lee como un parpadeo del video y no como algo vivo.
+    msDeRespiro: 5200,
+
     // Cuanto tarda en disiparse ya dentro de la eleccion, dejando los objetos.
     msDeSalida: 1400,
 
