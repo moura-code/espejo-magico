@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Los fondos de cada ingeniería</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #0b0e13;
+      color: #e8eaf0;
+      font: 14px/1.4 system-ui, sans-serif;
+    }
+    h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+    p { margin: 0 0 24px; color: #97a0b5; }
+    .grilla {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 18px;
+    }
+    figure { margin: 0; }
+    canvas { width: 100%; height: auto; display: block; border-radius: 6px; }
+    figcaption { margin-top: 6px; font-size: 12px; color: #97a0b5; }
+    b { color: #e8eaf0; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <!-- Hermana de figuras.html: se abre desde `npm start` para mirar las doce
+       escenas juntas. Las dibuja en vivo desde espejo/escenarios.js, asi que
+       muestra el codigo de ahora y no los PNG ya generados. -->
+  <h1>Los fondos de cada ingeniería</h1>
+  <p>Dibujados en vivo desde <b>espejo/escenarios.js</b>. Para generar los PNG: <b>npm run generar-fondos</b>.</p>
+  <div class="grilla" id="grilla"></div>
+
+  <script type="module">
+    import { dibujarEscenario, ESCENARIOS } from '../espejo/escenarios.js';
+    import { figurasDisponibles } from '../espejo/figuras.js';
+    import { cargarContenido } from '../espejo/contenido.js';
+
+    const ANCHO = 540;
+    const ALTO = 960;
+
+    const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
+    const grilla = document.getElementById('grilla');
+
+    for (const carrera of contenido.carreras) {
+      const figura = document.createElement('figure');
+      const lienzo = document.createElement('canvas');
+      lienzo.width = ANCHO;
+      lienzo.height = ALTO;
+
+      const hay = dibujarEscenario(lienzo.getContext('2d'), carrera.id, ANCHO, ALTO, carrera.color);
+
+      const pie = document.createElement('figcaption');
+      pie.innerHTML = `<b>${carrera.nombre}</b><br>${carrera.id}${hay ? '' : ' — SIN ESCENA'}`;
+
+      figura.append(lienzo, pie);
+      grilla.append(figura);
+    }
+
+    document.title = `${Object.keys(ESCENARIOS).length} escenas`;
+  </script>
+</body>
+</html>

@@ -1,163 +1,136 @@
-// Genera un fondo de respaldo para cada carrera que no tenga imagen: un
-// degradado del color de la ingenieria, en las rutas que declara carreras.json.
+// Genera el fondo de cada carrera que no tenga imagen: el lugar donde se
+// trabaja esa ingenieria, dibujado con formas vectoriales (espejo/escenarios.js)
+// en las rutas que declara carreras.json.
 //
-// Es un PLACEHOLDER, no arte final. Existe para que el sistema entero se pueda
-// ver andando —eleccion, revelacion, persona recortada contra el fondo— antes de
+// Es un RESPALDO, no arte final. Existe para que el sistema entero se pueda ver
+// andando —agarrar un objeto, el fondo entrando detras de la persona— antes de
 // que haya una sola fotografia, y para que el dia que lleguen las de verdad
-// alcance con dejarlas en su ruta. Un fondo que ya existe NUNCA se pisa.
+// alcance con dejarlas en su ruta. Un fondo que ya existe NUNCA se pisa: para
+// regenerar un respaldo, primero borra el archivo.
 //
-// A diferencia de generar-pngs, esto no necesita Chrome ni red: escribe el PNG a
-// mano con zlib, que es un modulo de Node. Un degradado no justifica levantar un
-// navegador.
+// Los dibuja el propio Chrome de la maquina (el mismo que corre el espejo) en
+// modo sin cabeza: las escenas usan la API de canvas, que Node no tiene. No pide
+// red: levanta el servidor del proyecto en un puerto libre y Chrome lee todo de
+// localhost.
 //
 //   npm run generar-fondos
 
-import { deflateSync } from 'node:zlib';
-import { access, mkdir, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { access, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { crearServidor } from '../servidor/servidor.js';
 
 const RAIZ = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const CONTENIDO = resolve(RAIZ, 'contenido');
+const PREFIJO_PNG = 'data:image/png;base64,';
 
-// Chico a proposito: es un degradado que se escala a pantalla completa, y a
-// tamaño real serian doce archivos de varios megas para tirar a la basura en
-// cuanto lleguen las fotos.
-const ANCHO = 540;
-const ALTO = 960;
+// Las mismas rutas que prueba herramientas/arrancar.bat, mas la variable de
+// entorno CHROME para las maquinas que lo tengan en otro lado.
+const CANDIDATOS = [
+  process.env.CHROME,
+  process.env.ProgramFiles && join(process.env.ProgramFiles, 'Google/Chrome/Application/chrome.exe'),
+  process.env['ProgramFiles(x86)'] &&
+    join(process.env['ProgramFiles(x86)'], 'Google/Chrome/Application/chrome.exe'),
+  process.env.LOCALAPPDATA && join(process.env.LOCALAPPDATA, 'Google/Chrome/Application/chrome.exe'),
+].filter(Boolean);
 
-// ---------- PNG a mano ----------
-
-const TABLA_CRC = Uint32Array.from({ length: 256 }, (_, n) => {
-  let c = n;
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  return c >>> 0;
-});
-
-function crc32(datos) {
-  let c = 0xffffffff;
-  for (const byte of datos) c = TABLA_CRC[(c ^ byte) & 0xff] ^ (c >>> 8);
-  return (c ^ 0xffffffff) >>> 0;
+async function encontrarChrome() {
+  for (const candidato of CANDIDATOS) {
+    if (await access(candidato).then(() => true, () => false)) return candidato;
+  }
+  throw new Error('No se encontro Chrome. Instalalo o indica su ruta en la variable CHROME.');
 }
 
-function trozo(tipo, datos) {
-  const cuerpo = Buffer.concat([Buffer.from(tipo, 'ascii'), datos]);
-  const largo = Buffer.alloc(4);
-  largo.writeUInt32BE(datos.length);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(cuerpo));
-  return Buffer.concat([largo, cuerpo, crc]);
+// El perfil propio y descartable evita chocar con un Chrome ya abierto, que
+// tiene tomado el perfil por defecto.
+function correrChrome(chrome, perfil, url) {
+  return new Promise((listo, falla) => {
+    const proceso = spawn(
+      chrome,
+      [
+        '--headless',
+        '--disable-gpu',
+        `--user-data-dir=${perfil}`,
+        '--no-first-run',
+        '--no-default-browser-check',
+        '--virtual-time-budget=20000',
+        '--dump-dom',
+        url,
+      ],
+      { windowsHide: true },
+    );
+
+    let dom = '';
+    proceso.stdout.on('data', (trozo) => {
+      dom += trozo;
+    });
+    proceso.on('error', falla);
+    proceso.on('close', (codigo) => {
+      if (codigo === 0) listo(dom);
+      else falla(new Error(`Chrome termino con codigo ${codigo}`));
+    });
+  });
 }
 
-/** `pixeles` es RGB sin alfa, ancho*alto*3. */
-function armarPng(ancho, alto, pixeles) {
-  const cabecera = Buffer.alloc(13);
-  cabecera.writeUInt32BE(ancho, 0);
-  cabecera.writeUInt32BE(alto, 4);
-  cabecera[8] = 8; // bits por canal
-  cabecera[9] = 2; // color verdadero, sin alfa
-  cabecera[10] = 0; // compresion
-  cabecera[11] = 0; // filtro
-  cabecera[12] = 0; // sin entrelazado
+// El <pre> llega serializado como HTML: alcanza con deshacer las entidades que
+// la serializacion escapa dentro de un nodo de texto.
+const desescapar = (texto) =>
+  texto.replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
 
-  // Cada fila lleva adelante su byte de filtro. Con 0 ("ninguno") el degradado
-  // igual comprime a nada: son gradientes suaves.
-  const conFiltro = Buffer.alloc(alto * (1 + ancho * 3));
-  for (let y = 0; y < alto; y++) {
-    conFiltro[y * (1 + ancho * 3)] = 0;
-    pixeles.copy(conFiltro, y * (1 + ancho * 3) + 1, y * ancho * 3, (y + 1) * ancho * 3);
+const enKb = (bytes) => (bytes / 1024).toFixed(1) + ' KB';
+
+const chrome = await encontrarChrome();
+const perfil = await mkdtemp(join(tmpdir(), 'espejo-fondos-'));
+const servidor = crearServidor();
+const puerto = await servidor.escuchar(0);
+
+try {
+  const dom = await correrChrome(
+    chrome,
+    perfil,
+    `http://localhost:${puerto}/herramientas/generar-fondos.html`,
+  );
+
+  const coincidencia = /@@SALIDA@@(.*?)@@FIN@@/s.exec(dom);
+  if (!coincidencia) {
+    throw new Error(
+      'La pagina no dejo su salida en el DOM. Abri herramientas/generar-fondos.html ' +
+        'desde npm start y mira la consola para ver que fallo.',
+    );
   }
 
-  return Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    trozo('IHDR', cabecera),
-    trozo('IDAT', deflateSync(conFiltro, { level: 9 })),
-    trozo('IEND', Buffer.alloc(0)),
-  ]);
-}
+  const { pngs, avisos } = JSON.parse(desescapar(coincidencia[1]));
+  for (const aviso of avisos) console.warn('AVISO:', aviso);
 
-// ---------- el degradado ----------
-
-const aRgb = (hex) => [
-  parseInt(hex.slice(1, 3), 16),
-  parseInt(hex.slice(3, 5), 16),
-  parseInt(hex.slice(5, 7), 16),
-];
-
-const mezclar = (a, b, t) => a + (b - a) * t;
-
-/**
- * Diagonal del color de la carrera (arriba a la izquierda) al casi negro
- * (abajo a la derecha), con un oscurecido hacia los bordes.
- *
- * El fondo termina detras de una persona y debajo de un texto blanco: por eso
- * nunca llega al color puro —quedaria mas brillante que la cara— y por eso la
- * parte de abajo es la mas oscura, que es donde va la ficha de la persona.
- */
-function degradado(ancho, alto, color) {
-  const [r, g, b] = aRgb(color);
-  const pixeles = Buffer.alloc(ancho * alto * 3);
-
-  for (let y = 0; y < alto; y++) {
-    for (let x = 0; x < ancho; x++) {
-      const diagonal = (x / ancho + y / alto) / 2;
-
-      // Vignette suave: mas oscuro cuanto mas lejos del centro.
-      const dx = (x / ancho - 0.5) * 2;
-      const dy = (y / alto - 0.5) * 2;
-      const borde = 1 - Math.min(1, Math.hypot(dx, dy) / 1.6) * 0.35;
-
-      // Del 42% del color hasta el 6%: legible como "esto es electrica" sin
-      // competir con la persona que se dibuja encima.
-      const fuerza = mezclar(0.42, 0.06, diagonal) * borde;
-      const base = mezclar(14, 6, diagonal);
-
-      const i = (y * ancho + x) * 3;
-      pixeles[i] = Math.round(Math.min(255, base + r * fuerza));
-      pixeles[i + 1] = Math.round(Math.min(255, base + g * fuerza));
-      pixeles[i + 2] = Math.round(Math.min(255, base + b * fuerza));
+  let total = 0;
+  let omitidos = 0;
+  for (const [ruta, dataUrl] of Object.entries(pngs)) {
+    if (!dataUrl.startsWith(PREFIJO_PNG)) {
+      throw new Error(`${ruta}: la pagina devolvio algo que no es un PNG`);
     }
+    const destino = resolve(CONTENIDO, ruta);
+    if (!destino.startsWith(CONTENIDO + sep)) {
+      throw new Error(`${ruta}: la ruta se sale de contenido/`);
+    }
+
+    if (await access(destino).then(() => true, () => false)) {
+      omitidos += 1;
+      continue;
+    }
+
+    const bytes = Buffer.from(dataUrl.slice(PREFIJO_PNG.length), 'base64');
+    await mkdir(dirname(destino), { recursive: true });
+    await writeFile(destino, bytes);
+    total += 1;
+    console.log(`contenido/${ruta}  (${enKb(bytes.length)})`);
   }
 
-  return pixeles;
-}
-
-// ---------- ----------
-
-const existe = (ruta) => access(ruta).then(() => true, () => false);
-
-const datos = JSON.parse(await readFile(resolve(CONTENIDO, 'carreras.json'), 'utf8'));
-
-let generados = 0;
-let salteados = 0;
-
-for (const carrera of datos.carreras) {
-  if (!carrera.fondo) continue;
-
-  const destino = resolve(CONTENIDO, carrera.fondo);
-  if (await existe(destino)) {
-    salteados++;
-    continue;
-  }
-
-  // El respaldo solo sabe hacer PNG. Si carreras.json pide otro formato es
-  // porque alguien puso una foto de verdad y todavia no la copio: avisar es
-  // mucho mejor que escribir un PNG con nombre de jpg, que Chrome muestra igual
-  // y nadie descubre hasta que lo abre en otro lado.
-  if (!destino.toLowerCase().endsWith('.png')) {
-    console.warn(`  ${carrera.id}: "${carrera.fondo}" no es .png — dejá ahí la imagen real.`);
-    salteados++;
-    continue;
-  }
-
-  await mkdir(dirname(destino), { recursive: true });
-  await writeFile(destino, armarPng(ANCHO, ALTO, degradado(ANCHO, ALTO, carrera.color)));
-  console.log(`  ${carrera.id} → ${carrera.fondo}`);
-  generados++;
-}
-
-console.log(`\n${generados} fondos generados, ${salteados} ya estaban o no son .png.`);
-if (generados > 0) {
-  console.log('Son placeholders: reemplazalos por las imágenes reales cuando las tengas.');
+  console.log(
+    `\n${total} fondos de respaldo generados; ${omitidos} carreras ya tenian imagen y no se tocaron.`,
+  );
+} finally {
+  await servidor.cerrar();
+  await rm(perfil, { recursive: true, force: true }).catch(() => {});
 }

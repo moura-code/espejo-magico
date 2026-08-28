@@ -25,6 +25,7 @@ import {
   calcularTransicionEscena,
 } from './niebla.js';
 import { figurasDisponibles } from './figuras.js';
+import { crearBancoDeEscenarios } from './escenarios.js';
 import {
   calcularDisposicion,
   calcularRecorteVisible,
@@ -220,6 +221,18 @@ const maquina = crearMaquina({
 const eleccion = crearEleccion(CONFIG.eleccion);
 const tablero = crearTablero(CONFIG.tablero);
 const silueta = crearSilueta({ crearLienzo: () => document.createElement('canvas') });
+
+// Las escenas vectoriales de cada ingenieria, el respaldo cuando falta el PNG
+// del fondo. Se dibuja una sola vez por carrera y despues es un drawImage, igual
+// de barato que la imagen a la que reemplaza.
+const escenarios = crearBancoDeEscenarios({
+  crearLienzo: (ancho, alto) => {
+    const lienzoEscena = document.createElement('canvas');
+    lienzoEscena.width = ancho;
+    lienzoEscena.height = alto;
+    return { lienzo: lienzoEscena, ctx: lienzoEscena.getContext('2d') };
+  },
+});
 const puente = crearPuente(CONFIG.maite);
 const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
 
@@ -532,16 +545,20 @@ function cuadro(ahora) {
     const imagenDeFondo = carrera.fondo ? banco.obtener(carrera.fondo) : null;
     const hayRecorte = Boolean(video && lienzoDeSilueta);
 
-    if (imagenDeFondo) {
-      dibujarFondo(
-        ctx,
-        imagenDeFondo,
-        disposicion,
-        transicion.fondo * (hayRecorte ? 1 : CONFIG.fondo.opacidadSinMascara),
-      );
+    // Orden de preferencia, el mismo que el de los objetos: la foto si esta, la
+    // escena vectorial si no, y el color plano como ultimo recurso. Un
+    // degradado del color no le dice a nadie que es Ingenieria Quimica; un
+    // laboratorio si.
+    const escena =
+      imagenDeFondo ??
+      escenarios.obtener(carrera.id, disposicion.ancho, disposicion.alto, carrera.color);
+    const alfaDelFondo = transicion.fondo * (hayRecorte ? 1 : CONFIG.fondo.opacidadSinMascara);
+
+    if (escena) {
+      dibujarFondo(ctx, escena, disposicion, alfaDelFondo);
     } else {
-      // Sin imagen, el color de la carrera. Es feo pero es legible, y el nombre
-      // y el texto siguen entrando: una carrera sin fondo no rompe la escena.
+      // Ni foto ni escena: el color de la carrera. Es feo pero es legible, y el
+      // nombre y el texto siguen entrando: una carrera sin fondo no rompe nada.
       ctx.save();
       ctx.globalAlpha = transicion.fondo * 0.8;
       ctx.fillStyle = carrera.color;
