@@ -38,12 +38,12 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
 | Campo | Tipo | Descripción |
 |---|---|---|
 | `id` | `string` | Identificador único sin acentos ni espacios (`mecanica`, `forestal`, `quimica`). |
-| `nombre` | `string` | Nombre oficial completo. Se ve arriba, junto al objeto elegido. |
-| `color` | `string` | Color hexadecimal distintivo (`#rrggbb`). Se usa en el nombre, el anillo de progreso y el fondo de respaldo. |
+| `nombre` | `string` | Nombre oficial completo. Se ve arriba de todo mientras se muestra la carrera. |
+| `color` | `string` | Color hexadecimal distintivo (`#rrggbb`). Se usa en el nombre, el anillo de progreso y como acento de la escena de respaldo. |
 | `maite` | `string \| null` | El id que **esta misma carrera tiene en el proyecto MAITE**. Ver §7. |
-| `fondo` | `string` | Ruta a la imagen que aparece detrás de la persona al elegir esta carrera. |
+| `fondo` | `string` | Ruta a la imagen que aparece detrás de la persona mientras se muestra esta carrera. |
 | `persona` | `objeto` | `{ nombre, texto }`: quién es la persona que se muestra y qué cuenta de ella. Los dos son obligatorios. |
-| `objeto` | `objeto` | **Opcional.** El objeto que representa a esta carrera en la elección. Si no está, se sortea uno de `objetos`. |
+| `objeto` | `objeto` | **Opcional.** El objeto que representa a esta carrera entre los cinco que se ofrecen. Si no está, se sortea uno de `objetos`. |
 | `objetos` | `array` | Lista de 6 o más objetos característicos. De acá sale el representante cuando `objeto` no está declarado. |
 
 ### La persona
@@ -60,7 +60,7 @@ placeholders se ven perfectos en pantalla y sin esa red llegan al evento.
 
 ### Los objetos
 
-Cada carrera aporta **un solo objeto** a la elección, y esos son los cinco que la
+Cada carrera aporta **un solo objeto** a lo que se ofrece, y esos son los cinco que la
 persona ve flotando en arco a su alrededor.
 
 - **`img`**: ruta al PNG con fondo transparente (`assets/mecanica/engranaje.png`).
@@ -88,13 +88,17 @@ inferior**, que es donde va el nombre y el texto en blanco.
 npm run generar-fondos
 ```
 
-genera un degradado del color de cada carrera para las que no tengan imagen.
+dibuja, con el Chrome de la máquina y sin red, el lugar donde se trabaja cada
+ingeniería para las que no tengan imagen: el laboratorio de química, el puente de
+civil, la sala de servidores de computación. Salen de `espejo/escenarios.js`, y
+`herramientas/fondos.html` las muestra las doce juntas.
 Es un **placeholder**, no arte final: existe para poder ver el sistema entero
 funcionando antes de que haya una sola fotografía. Nunca pisa un archivo
 existente, así que para reemplazarlo alcanza con dejar la imagen real en su ruta.
 
-Si el fondo falta del todo, la revelación cae al color plano de la carrera. Se
-ve, y el nombre y el texto siguen entrando: una carrera sin fondo no rompe la
+Si el PNG falta, el espejo dibuja la escena vectorial en vivo; si tampoco hay
+escena, cae al color plano de la carrera. Se ve, y el nombre y el texto siguen
+entrando: una carrera sin fondo no rompe la
 escena.
 
 ---
@@ -126,7 +130,7 @@ http://localhost:8080/herramientas/figuras.html
 ```
 
 El orden de preferencia al dibujar es **PNG → figura → círculo del color**. Un
-objeto que no se dibuja es una opción que no se puede elegir: la persona ve un
+objeto que no se dibuja es una opción que no se puede agarrar: la persona ve un
 hueco en el arco y no entiende por qué ahí no pasa nada.
 
 ---
@@ -179,8 +183,8 @@ catálogos crecieron por separado, así que no coinciden:
 | `mecanica` | `mecanica` |
 
 **`maite: null` significa "todavía no hay gente filmada para esta ingeniería"**:
-la carrera queda escrita en el catálogo pero **no se ofrece** en la elección. Es
-deliberado — si se ofreciera, alguien la elegiría y las tablets se quedarían en
+la carrera queda escrita en el catálogo pero **no se ofrece** entre los cinco. Es
+deliberado — si se ofreciera, alguien la agarraría y las tablets se quedarían en
 humo, que se lee como que el sistema se rompió.
 
 Hoy hay **5 carreras jugables de 12**. Para sumar una: filmar a su gente, darla
@@ -199,7 +203,7 @@ Verifica que estén los PNG de objetos declarados, los doce fondos, el video de
 humo, las doce carreras con sus colores distintos y al menos seis objetos cada
 una, que los nombres y textos de las personas estén escritos de verdad, que cada
 `maite` declarado exista del otro lado, que haya al menos cinco carreras jugables
-para llenar la elección, y que MediaPipe esté vendorizado.
+para llenar los cinco lugares, y que MediaPipe esté vendorizado.
 
 - **En rojo:** falta algo que el stand necesita. El espejo igual funciona
   —los objetos sin PNG caen a la figura vectorial y de ahí al círculo del color,

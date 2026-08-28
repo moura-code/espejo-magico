@@ -13,7 +13,9 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    (el servidor) y Chrome a pantalla completa. **No cerrar la ventana negra.**
 4. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar
    el humo, sostener la mano sobre un objeto hasta que el anillo se llene, ver
-   que las tablets cambien, levantarse y ver que las nubes vuelvan.
+   que las tablets cambien, **bajar el brazo y agarrar otro objeto** para
+   comprobar que la información cambia a la nueva ingeniería, levantarse y ver
+   que las nubes vuelvan.
 
 El espejo no necesita internet. Sí necesita que las tablets estén en la misma
 máquina o en la red del stand, pero eso lo maneja el otro proyecto.
@@ -28,7 +30,7 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 
 | Tecla | Qué hace |
 |---|---|
-| `1` a `9`, `0`, `-` y `=` | Fuerza una carrera y salta directo a la revelación |
+| `1` a `9`, `0`, `-` y `=` | Fuerza una carrera y la muestra directo |
 | `ESPACIO` / `Enter` / `➔` | Avanza manualmente al siguiente estado |
 | `A` | Alterna entre avance automático (reloj) y avance manual |
 | `D` | Modo demo: funciona sin cámara, con un rostro simulado |
@@ -63,13 +65,13 @@ antes de cerrar la sesión. La regla para la fila es simple: **que el siguiente 
 siente recién cuando las nubes hayan vuelto a tapar la pantalla.** Si hay apuro,
 apretar `R` en la PC corta la sesión al instante.
 
-**No consigue elegir: pone la mano sobre un objeto y no pasa nada.**
+**No pasa nada al poner la mano sobre un objeto.**
 Apretar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se ve: casi
 siempre está fuera del cuadro (muy abajo o muy al costado) o hay contraluz.
 Apretar `M` para ver si aparecen los puntos sobre los dedos. La mano tiene que
 estar **abierta y de frente**, no de canto.
 
-**El anillo se llena y se vacía sin terminar de elegir.**
+**El anillo se llena y se vacía sin llegar a mostrar nada.**
 La detección de la mano está entrecortada. Suele ser luz o distancia. Si pasa
 seguido con mucha gente, avisar al equipo técnico: se sube
 `eleccion.msDeGracia` en `espejo/config.js`.

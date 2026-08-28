@@ -70,7 +70,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 |---|---|
 | `config.js` | Única fuente de verdad para parámetros ajustables (tiempos, geometría del tablero, plazos del sostenido y umbrales de detección). |
 | `main.js` | Orquestador principal y bucle de renderizado (`requestAnimationFrame`). Conecta captura de cámara, detección, elección, máquina de estados y dibujo. |
-| `maquina-estados.js` | Lógica de estados pura (`ATRACCION`, `ENGANCHE`, `HUMO`, `ELECCION`, `REVELACION`, `ESCENA`, `CIERRE`). No dibuja ni accede al DOM. |
+| `maquina-estados.js` | Lógica de estados pura (`ATRACCION`, `ENGANCHE`, `HUMO`, `EXPLORACION`, `CIERRE`). No dibuja ni accede al DOM. |
 | `vision.js` | Inicializador de los modelos WASM de MediaPipe Tasks Vision (`FaceLandmarker`, `HandLandmarker`, `PoseLandmarker`). |
 | `camara.js` | Manejo de `navigator.mediaDevices.getUserMedia`, volteo horizontal y bucle de reintentos continuos en caso de desconexión. |
 | `rostro.js` | Transforma los puntos landmarks de MediaPipe a coordenadas de pantalla (`{ centro, ojoIzq, ojoDer, radio, angulo, confianza }`). Soporta fuentes sintéticas y video grabado para desarrollo sin cámara. |
@@ -105,16 +105,22 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
 └─────▲─────┘                   └───────────┘  se sortean    └─────┬─────┘
       │                                        las cinco           │
       │ 3 s                                                        ▼
-┌─────┴─────┐   ausencia 4 s    ┌───────────┐   2,5 s       ┌───────────┐
-│  CIERRE   │◄──────────────────┤  ESCENA   │◄──────────────┤ ELECCION  │
-└───────────┘  o tope 180 s     └─────▲─────┘               └─────┬─────┘
-      │                               │                           │
-      │                         ┌───────────┐   elegir(id)        │
-      └── POST /api/humo        │REVELACION │◄────────────────────┘
-                                └───────────┘   o tope 30 s
-                                      │
-                                      └── POST /api/carrera
+┌─────┴─────┐  sin rostro 4 s   ┌─────────────────────────────────────────┐
+│  CIERRE   │◄──────────────────┤             EXPLORACION                 │
+└───────────┘  o tope 180 s     │                                         │
+      │                         │   mirar(id) ──► POST /api/carrera       │
+      │                         │        ▲                                │
+      └── POST /api/humo        │        └──── y de nuevo con otro objeto │
+                                └─────────────────────────────────────────┘
+                                  sin duración propia; a los 30 s sin que
+                                  nadie agarre nada, muestra opciones[0]
 ```
+
+**EXPLORACION no es una elección.** No hay estado "ya elegiste": agarrar un
+objeto muestra su ingeniería, soltarlo la deja puesta, agarrar otro la
+reemplaza. Lo que antes hacían `REVELACION` y `ESCENA` —el fondo y la ficha
+entrando— es ahora una transición **por ingeniería**, con su propio reloj
+(`miraDesdeCuando`), no un tramo del ciclo.
 
 ### El equilibrio de la presencia
 
@@ -142,24 +148,30 @@ verdad, para que mover una no rompa la otra en silencio.
 > posición y el tamaño del rostro entre la desaparición y la reaparición, no
 > acortar plazos: acortarlos vuelve a cortarle la escena a quien no se movió.
 
-El único evento que sale de la máquina es `{ tipo: 'entra', estado }`. Lo ofrecido,
-la carrera elegida y el número de sesión viajan en la salida (`salida.opciones`,
-`salida.carrera`, `salida.sesion`) y se leen cuando hagan falta.
+De la máquina salen dos eventos: `{ tipo: 'entra', estado }` cuando cambia el
+estado y `{ tipo: 'mira', carrera }` cuando cambia la ingeniería que se muestra.
+Lo ofrecido, la carrera y el número de sesión viajan en la salida
+(`salida.opciones`, `salida.carrera`, `salida.sesion`) y se leen cuando hagan
+falta.
 
-1. **`ATRACCION`**: Niebla completa sobre el espejo, video atenuado y desenfocado, texto de invitación pulsando. Nadie sentado. Al entrar se le pide a MAITE que vuelva a su humo.
+1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Nadie sentado. Al entrar se le pide a MAITE que vuelva a su humo.
 2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado.
 3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se sortean las cinco carreras** que se van a ofrecer. Ese margen le sirve al espejo para tener listos los PNG y los fondos, y como todavía no se ve nada, no se cuenta el final.
-4. **`ELECCION`**: El humo se disipa y quedan los cinco objetos en arco alrededor de los hombros. La persona sostiene la mano sobre uno y un anillo se llena. **No tiene duración propia:** termina cuando elige. `tiempos.eleccionMaxima` (30 s) es la red de seguridad de la fila — al vencerse se revela la primera de la lista, que como viene barajada ya es un sorteo.
-5. **`REVELACION`**: El objeto elegido viaja al borde superior mientras los otros cuatro se apagan; entran el fondo de la carrera, el nombre y la ficha de la persona. Se incrementa el número de sesión y **se le avisa a MAITE**.
-6. **`ESCENA`**: La composición completa: fondo de la carrera, la persona recortada encima, su nombre y su historia. Dura mientras permanezca sentada, con `sesionMaxima` como red de seguridad y rotación de la fila.
-7. **`CIERRE`**: Desvanecido general de fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
+4. **`EXPLORACION`**: El humo se disipa y quedan los cinco objetos en arco alrededor de los hombros. La persona sostiene la mano sobre uno, un anillo se llena y aparece esa ingeniería: fondo, nombre y ficha. Al soltar, la información **se queda puesta**; agarrar otro objeto la reemplaza, y los cinco siguen en pantalla por delante del fondo. **No tiene duración propia:** dura mientras siga sentada. `tiempos.eleccionMaxima` (30 s) es la red de seguridad de la fila — si nadie agarró nada, muestra la primera de la lista, que como viene barajada ya es un sorteo, y la exploración sigue.
+5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
-**La elección se le informa a la máquina desde afuera**, con `elegir(id, ahora)`:
-la máquina no sabe qué es una mano. Sólo vale durante `ELECCION` — al elegir la
-mano sigue puesta un rato, y sin esa guarda el cuadro siguiente reiniciaría la
-revelación y contaría una sesión de más.
+**Lo que se muestra se le informa a la máquina desde afuera**, con
+`mirar(id, ahora)`: la máquina no sabe qué es una mano. Sólo vale durante
+`EXPLORACION`, y **volver a pedir la misma no emite nada** — con la mano quieta
+el sostenido se repite cuadro a cuadro, y sin esa guarda MAITE recibiría cien
+avisos por segundo. La sesión se cuenta una sola vez por persona, la primera vez
+que mira algo, no una por objeto.
 
-Una **pose** (los hombros) sostiene una sesión ya iniciada cuando la cara gira, pero no alcanza para iniciar una: para eso hace falta rostro. Son dos histéresis distintas sobre dos señales distintas.
+**El rostro es lo que sostiene la sesión.** Una pose (los hombros) ya no alcanza
+para mantenerla viva con la cara girada: en cuanto la cara deja de reconocerse,
+y pasado el colchón de la presencia, el espejo vuelve a su pantalla inicial y
+queda libre para el que sigue en la fila. Siguen siendo dos histéresis sobre dos
+señales distintas, pero la que manda es la del rostro.
 
 ---
 
@@ -222,7 +234,7 @@ El borde queda suave porque la confianza también lo es, y eso es deseado: un
 recorte de borde duro delata el truco, uno difuso se lee como profundidad.
 
 La máscara *es* la imagen mientras hay fondo, así que la pose sube de 12 a
-`CONFIG.pose.fpsConFondo` (20) en `REVELACION` y `ESCENA`: a 12 cuadros por
+`CONFIG.pose.fpsConFondo` (20) mientras se muestra una ingeniería: a 12 cuadros por
 segundo el borde va atrás del cuerpo y se ve el fondo pegado al hombro.
 
 **Y si la máscara no está** —pose perdida, GPU lenta, modelo sin cargar— el fondo
@@ -232,7 +244,7 @@ pantalla en negro con público delante.
 
 ### 5.4. El puente a MAITE (`espejo/maite.js`)
 
-Un `POST` a `localhost:3000/api/carrera` al entrar en `REVELACION` y otro a
+Un `POST` a `localhost:3000/api/carrera` con cada evento `mira` y otro a
 `/api/humo` al volver a `ATRACCION`. El id que viaja es **el de MAITE**, no el
 del espejo: los dos catálogos crecieron por separado y `computacion` acá es
 `sistemas` allá. Eso se declara en el campo `maite` de cada carrera; en `null`,
@@ -272,7 +284,7 @@ Por eso `main.js` mantiene un lienzo de análisis con exactamente el recorte vis
 El recorte se prepara **una vez por cuadro** y sólo si algún detector va a correr.
 
 ### Presupuestos
-- Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**, que sube a **20** mientras hay fondo. Las manos además sólo se buscan durante `ELECCION`, que es el único momento en que hacen algo: es el detector más caro del cuadro.
+- Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**, que sube a **20** mientras hay fondo. Las manos además sólo se buscan durante `EXPLORACION`, que es el único momento en que hacen algo: es el detector más caro del cuadro.
 - La lectura de la máscara de segmentación cuesta un viaje de la GPU a la CPU, así que **sólo se arma cuando hay fondo** que meterle atrás a la persona.
 - Renderizado con tope de **60 FPS** (`CONFIG.render.fpsMaximo`). En una pantalla de 144 o 240 Hz, dibujar todos los cuadros es calor y consumo sin beneficio visible.
 - Los objetos en pantalla son siempre **cinco**, quietos: el rendimiento no depende de cuánto tiempo lleve alguien sentado.

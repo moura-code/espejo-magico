@@ -77,9 +77,9 @@ Antes de abrir el stand al público:
 2. **Desconectar la PC de cualquier red externa / Internet.** En la pestaña *Red* de las herramientas de desarrollo (F12) sólo pueden aparecer `localhost:8080` y `localhost:3000`.
 3. Sentarse en el sillón del visitante frente al espejo.
 4. Verificar que **entre el humo** al sentarse y que al disiparse queden **cinco objetos** flotando en arco alrededor de los hombros.
-5. **Probar el sostenido:** poner la mano sobre un objeto y mantenerla. El anillo tiene que llenarse en un segundo y medio largo y elegir. Si el anillo va y viene sin llenarse, subir `CONFIG.eleccion.msDeGracia`; si elige sin querer al pasar la mano, subir `msParaElegir`.
+5. **Probar el sostenido:** poner la mano sobre un objeto y mantenerla. El anillo tiene que llenarse en un segundo y medio largo y aparecer la ingeniería. Después, bajar el brazo y agarrar otro: la información tiene que cambiar a la nueva. Si el anillo va y viene sin llenarse, subir `CONFIG.eleccion.msDeGracia`; si se dispara sin querer al pasar la mano, subir `msParaElegir`.
 6. **Probar desde el fondo del stand, no sólo de cerca.** Los objetos se acomodan solos según el ancho de hombros, pero es acá donde se calibra a qué distancia poner el sillón: tienen que quedar cómodos de alcanzar sin estirar el brazo del todo.
-7. Al elegir, verificar que **las cuatro tablets cambien** a la gente de esa carrera. Si no cambian, abrir el panel (`P`) y mirar la línea `maite`: dice si el espejo llegó a avisar o si el problema está del otro lado.
+7. Al agarrar un objeto, verificar que **las cuatro tablets cambien** a la gente de esa carrera, y que vuelvan a cambiar al agarrar otro. Si no cambian, abrir el panel (`P`) y mirar la línea `maite`: dice si el espejo llegó a avisar o si el problema está del otro lado.
 8. Confirmar que aparezca el **fondo de la ingeniería detrás de la persona**, no encima. Si se ve la persona lavada bajo el fondo, la máscara de silueta no está: mirar la línea `pose` del panel.
 9. **Sentarse quieto un par de minutos.** La escena tiene que seguir siendo suya: si se corta sola, revisar `CONFIG.tiempos.sesionMaxima` y `CONFIG.presencia.msParaSalir`.
 10. **Sentarse y no elegir nada.** A los 30 segundos el espejo tiene que resolver solo y revelar una carrera: nadie se va sin ingeniería y la fila no se traba.

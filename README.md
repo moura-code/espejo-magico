@@ -3,16 +3,19 @@
 Instalación interactiva para el stand de una Facultad de Ingeniería.
 
 Un visitante se sienta frente a una pantalla enmarcada como espejo, que descansa
-cubierta de nubes. Una cámara detecta su rostro y entra un humo que lo cubre
-todo; cuando se disipa, quedan flotando alrededor suyo **cinco objetos, uno por
-ingeniería**. Sostiene la mano sobre el que quiera —un anillo se va llenando
-mientras la mantiene ahí— y esa es su elección: aparece el fondo de esa
-ingeniería detrás suyo, con el nombre y la historia de alguien que la estudió. En
-ese momento el espejo le avisa a **MAITE**, el proyecto de las tablets, para que
-los retratos del stand muestren a la gente de esa carrera.
+cubierta de humo y de nubes. Una cámara detecta su rostro y entra un humo que lo
+cubre todo; cuando se disipa, quedan flotando alrededor suyo **cinco objetos, uno
+por ingeniería**. Sostiene la mano sobre el que quiera —un anillo se va llenando
+mientras la mantiene ahí— y aparece esa ingeniería detrás suyo, con el nombre y
+la historia de alguien que la estudió.
 
-La escena dura mientras la persona siga sentada; tras unos segundos sin
-detectarla, las nubes vuelven a cubrir el espejo.
+**No termina ahí.** Al bajar el brazo la información se queda puesta, y agarrar
+otro objeto la reemplaza: los cinco siguen en pantalla y puede recorrerlas todas.
+Cada vez que cambia, el espejo le avisa a **MAITE**, el proyecto de las tablets,
+para que los retratos del stand muestren a la gente de esa carrera.
+
+Dura mientras la persona siga sentada; en cuanto el espejo deja de reconocer su
+cara, vuelve a cubrirse y queda libre para el que sigue en la fila.
 
 Todo corre en una sola pestaña de Chrome, en una sola PC, **sin conexión a
 internet**. La única comunicación que sale de esa pestaña es un aviso a MAITE en
@@ -64,7 +67,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | `npm run listo` | ¿Se puede montar el stand? Verifica los PNG, los fondos, el video de humo, que los nombres y textos de las personas estén escritos, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose. |
 | `npm run generar-pngs` | Genera el PNG de respaldo de los objetos que no tengan imagen (no pisa existentes). Necesita Chrome; no usa red. |
-| `npm run generar-fondos` | Genera un fondo de respaldo (degradado del color de la carrera) para las que no tengan imagen. No pisa existentes, no necesita Chrome ni red. |
+| `npm run generar-fondos` | Genera el fondo de respaldo de cada carrera que no tenga imagen, dibujando con el Chrome local (sin red) el lugar donde se trabaja esa ingeniería. No pisa existentes. `herramientas/fondos.html` las muestra las doce juntas. |
 | `npm start` | Levanta el servidor local. |
 
 ## Atajos, en la PC del espejo
@@ -99,7 +102,7 @@ estados y el sostenido se prueban enteros sin cámara ni pantalla. `main.js` es
 sólo cableado: decide qué módulo habla con cuál y en qué orden se dibuja.
 
 **Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:**
-nombre, color, objetos, fondo, la persona que se muestra al elegirla y el id que
+nombre, color, objetos, fondo, la persona que se muestra al agarrarla y el id que
 esa carrera tiene en MAITE. Agregar o cambiar una carrera no toca una línea de
 código.
 
@@ -109,11 +112,13 @@ Wikimedia Commons llevan autor, origen y licencia en
 figura → círculo del color**: si un PNG falta, `npm run generar-pngs` rasteriza
 la figura vectorial de respaldo (`espejo/figuras.js`) sin pisar los existentes,
 y los definitivos de diseño reemplazan a cualquiera en la misma ruta, sin tocar
-código. Lo mismo para los fondos, con `npm run generar-fondos`.
+código. Lo mismo para los fondos, con `npm run generar-fondos`, que dibuja la escena de
+cada ingeniería (`espejo/escenarios.js`).
 
 ### El puente a MAITE
 
-Al elegir, el espejo hace un `POST` a `http://localhost:3000/api/carrera` con el
+Cada vez que cambia la ingeniería que muestra, el espejo hace un `POST` a
+`http://localhost:3000/api/carrera` con el
 id que esa ingeniería tiene **del lado de MAITE** (los dos catálogos crecieron
 por separado: "computacion" acá es "sistemas" allá, y eso se declara en el campo
 `maite` de cada carrera). Al terminar la sesión hace `POST /api/humo` y las

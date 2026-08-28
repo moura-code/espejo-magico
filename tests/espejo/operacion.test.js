@@ -118,7 +118,7 @@ describe('instalarOperacion', () => {
       alternarMalla: vi.fn(),
       estadoDeCamara: () => ({ lista: true }),
       maquina: {
-        estado: () => 'ESCENA',
+        estado: () => 'EXPLORACION',
         opciones: () => ['mecanica', 'civil'],
         carrera: () => 'mecanica',
         sesion: () => 1,
@@ -151,7 +151,7 @@ describe('instalarOperacion', () => {
     operacion.registrarCuadro(100);
 
     expect(espejo.alternarMalla).toHaveBeenCalledOnce();
-    expect(panel.textContent).toContain('estado      ESCENA');
+    expect(panel.textContent).toContain('estado      EXPLORACION');
   });
 
   // Si las tablets no acompañan, el panel tiene que decir de un vistazo si el
@@ -167,7 +167,7 @@ describe('instalarOperacion', () => {
       contenido: { ids: IDS },
       estadoDeCamara: () => ({ lista: true }),
       maquina: {
-        estado: () => 'ESCENA',
+        estado: () => 'EXPLORACION',
         opciones: () => [],
         carrera: () => 'civil',
         sesion: () => 3,
