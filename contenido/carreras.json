@@ -5,7 +5,7 @@
       "id": "mecanica",
       "nombre": "Ingeniería Industrial Mecánica",
       "color": "#4FC3F7",
-      "maite": "mecanica",
+      "maite": "industrial_mecanica",
       "fondo": "assets/fondos/mecanica.png",
       "persona": {
         "nombre": "Nombre y Apellido",
@@ -134,7 +134,7 @@
       "id": "fisico-matematico",
       "nombre": "Ingeniería Físico-Matemática",
       "color": "#A78BFA",
-      "maite": null,
+      "maite": "fisico_matematica",
       "fondo": "assets/fondos/fisico-matematico.png",
       "persona": {
         "nombre": "Nombre y Apellido",
@@ -225,7 +225,7 @@
       "id": "quimica",
       "nombre": "Ingeniería Química",
       "color": "#FF5D8F",
-      "maite": null,
+      "maite": "quimica",
       "fondo": "assets/fondos/quimica.png",
       "persona": {
         "nombre": "Nombre y Apellido",
@@ -268,7 +268,7 @@
       "id": "alimentos",
       "nombre": "Ingeniería de Alimentos",
       "color": "#EF5350",
-      "maite": null,
+      "maite": "alimentos",
       "fondo": "assets/fondos/alimentos.png",
       "persona": {
         "nombre": "Nombre y Apellido",
@@ -311,7 +311,7 @@
       "id": "produccion",
       "nombre": "Ingeniería de Producción",
       "color": "#26C6DA",
-      "maite": "industrial",
+      "maite": "produccion",
       "fondo": "assets/fondos/produccion.png",
       "persona": {
         "nombre": "Nombre y Apellido",
@@ -354,7 +354,7 @@
       "id": "agrimensura",
       "nombre": "Ingeniería en Agrimensura",
       "color": "#8D6E63",
-      "maite": null,
+      "maite": "agrimensura",
       "fondo": "assets/fondos/agrimensura.png",
       "persona": {
         "nombre": "Nombre y Apellido",
@@ -397,7 +397,7 @@
       "id": "comunicacion",
       "nombre": "Ingeniería en Sistemas de Comunicación",
       "color": "#E040FB",
-      "maite": null,
+      "maite": "comunicacion",
       "fondo": "assets/fondos/comunicacion.png",
       "persona": {
         "nombre": "Nombre y Apellido",
@@ -440,7 +440,7 @@
       "id": "forestal",
       "nombre": "Ingeniería Forestal",
       "color": "#66BB6A",
-      "maite": null,
+      "maite": "forestal",
       "fondo": "assets/fondos/forestal.png",
       "persona": {
         "nombre": "Nombre y Apellido",
@@ -483,7 +483,7 @@
       "id": "naval",
       "nombre": "Ingeniería Naval",
       "color": "#5C6BC0",
-      "maite": null,
+      "maite": "naval",
       "fondo": "assets/fondos/naval.png",
       "persona": {
         "nombre": "Nombre y Apellido",

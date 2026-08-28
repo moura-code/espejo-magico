@@ -176,20 +176,42 @@ catálogos crecieron por separado, así que no coinciden:
 
 | Espejo | MAITE |
 |---|---|
-| `computacion` | `sistemas` |
+| `mecanica` (Ing. Industrial Mecánica) | `industrial_mecanica` |
 | `electrica` | `electronica` |
-| `produccion` | `industrial` |
+| `computacion` | `sistemas` |
+| `fisico-matematico` | `fisico_matematica` |
 | `civil` | `civil` |
-| `mecanica` | `mecanica` |
+| `quimica` | `quimica` |
+| `alimentos` | `alimentos` |
+| `produccion` | `produccion` |
+| `agrimensura` | `agrimensura` |
+| `comunicacion` | `comunicacion` |
+| `forestal` | `forestal` |
+| `naval` | `naval` |
+
+**Están las doce mapeadas.** MAITE tiene un catálogo de 14 desde el 26 de agosto
+de 2026 (antes eran cinco), y las doce del espejo tienen su par ahí.
+
+> **Cuidado con los dos que parecen sinónimos.** MAITE tiene `mecanica`
+> (*Ingeniería Mecánica*) **y** `industrial_mecanica` (*Ingeniería Industrial
+> Mecánica*), e `industrial` (*Ingeniería Industrial*) **y** `produccion`
+> (*Ingeniería de Producción*). El espejo ofrece las segundas de cada par. Cuando
+> MAITE tenía cinco carreras, estas dos apuntaban a las primeras y las tablets
+> mostraban gente de otra ingeniería sin que nada fallara.
 
 **`maite: null` significa "todavía no hay gente filmada para esta ingeniería"**:
 la carrera queda escrita en el catálogo pero **no se ofrece** entre los cinco. Es
 deliberado — si se ofreciera, alguien la agarraría y las tablets se quedarían en
-humo, que se lee como que el sistema se rompió.
+humo, que se lee como que el sistema se rompió. Hoy no lo usa ninguna.
 
-Hoy hay **5 carreras jugables de 12**. Para sumar una: filmar a su gente, darla
-de alta en `MAITE/data/carreras.json`, y poner ese id acá. Ni una línea de
-código.
+> **Que MAITE conozca un id no quiere decir que tenga el video.** Hoy sólo
+> `sistemas` tiene archivos de verdad en `public/videos/`; las otras trece
+> apuntan a `<carrera>/persona-1..4.mp4`, que todavía no están. El espejo no se
+> entera ni le importa: muestra la ingeniería igual —fondo, nombre e historia— y
+> lo único que no pasa es que las tablets acompañen.
+
+Para sumar una carrera nueva: filmar a su gente, darla de alta en
+`data/carreras.json` de MAITE, y poner ese id acá. Ni una línea de código.
 
 ---
 
@@ -204,6 +226,11 @@ humo, las doce carreras con sus colores distintos y al menos seis objetos cada
 una, que los nombres y textos de las personas estén escritos de verdad, que cada
 `maite` declarado exista del otro lado, que haya al menos cinco carreras jugables
 para llenar los cinco lugares, y que MediaPipe esté vendorizado.
+
+El cotejo contra MAITE busca su `data/carreras.json` en `MAITE/` (dentro del
+proyecto) y en `../maite/` (al lado, que es como suelen quedar los dos repos al
+clonarlos juntos). Si no lo encuentra en ninguno de los dos, ese chequeo se
+saltea en silencio — y ahí es donde un id equivocado pasa de largo.
 
 - **En rojo:** falta algo que el stand necesita. El espejo igual funciona
   —los objetos sin PNG caen a la figura vectorial y de ahí al círculo del color,

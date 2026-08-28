@@ -37,10 +37,18 @@ const IDS_ESPERADOS = [
 // fabrica. Mientras alguno siga puesto, el contenido no esta hecho.
 const NOMBRE_PLACEHOLDER = 'Nombre y Apellido';
 
+// MAITE puede estar adentro del proyecto o al lado, que es como suele quedar al
+// clonar los dos repos juntos. Se prueban las dos: buscando en una sola, el
+// cotejo se salteaba en silencio y este semaforo daba verde con ids que del
+// otro lado no existian — que es justo lo que vino a evitar.
 const carrerasDeMaite = async () => {
-  const ruta = resolve(RAIZ, 'MAITE/data/carreras.json');
-  const hay = await access(ruta).then(() => true, () => false);
-  return hay ? JSON.parse(await readFile(ruta, 'utf8')) : null;
+  for (const donde of ['MAITE/data/carreras.json', '../maite/data/carreras.json']) {
+    const ruta = resolve(RAIZ, donde);
+    if (await access(ruta).then(() => true, () => false)) {
+      return JSON.parse(await readFile(ruta, 'utf8'));
+    }
+  }
+  return null; // MAITE no esta clonado: no hay nada que cotejar.
 };
 
 describe('contenido real', () => {
