@@ -131,15 +131,61 @@ describe('crearEleccion', () => {
     expect(siguiendo.elegido).toBeNull();
   });
 
-  // El cuadro siguiente a elegir todavia tiene la mano puesta. Sin traba, el
-  // progreso seguiria corriendo sobre un blanco que ya no se ofrece.
-  it('una vez elegido queda trabado hasta reiniciar', () => {
+  // El elegido es "sobre cual esta la mano ahora, sostenida", no "cual eligio
+  // la persona para siempre": soltarlo y agarrar otro tiene que volver a
+  // disparar, que es lo que hace posible recorrer las cinco ingenierias.
+  it('el elegido se suelta cuando la mano se va', () => {
     const eleccion = crearEleccion(AJUSTES);
     sostener(eleccion, objetivos, [mano(100, 100)], 0, 1600);
     expect(eleccion.elegido()).toBe('a');
 
-    sostener(eleccion, objetivos, [mano(400, 100)], 1650, 4000);
+    sostener(eleccion, objetivos, [mano(900, 900)], 1650, 2400);
+    expect(eleccion.elegido()).toBeNull();
+    expect(eleccion.progreso()).toBe(0);
+  });
+
+  it('soltar y agarrar otro objeto vuelve a elegir', () => {
+    const eleccion = crearEleccion(AJUSTES);
+    sostener(eleccion, objetivos, [mano(100, 100)], 0, 1600);
     expect(eleccion.elegido()).toBe('a');
+
+    sostener(eleccion, objetivos, [mano(900, 900)], 1650, 2400);
+    const segundo = sostener(eleccion, objetivos, [mano(400, 100)], 2450, 4100);
+
+    expect(segundo.elegido).toBe('b');
+  });
+
+  // El cuadro siguiente a elegir todavia tiene la mano puesta: mientras no se
+  // mueva, el elegido es el mismo y no se vuelve a anunciar nada.
+  it('con la mano quieta el elegido no cambia ni se repite el progreso', () => {
+    const eleccion = crearEleccion(AJUSTES);
+    sostener(eleccion, objetivos, [mano(100, 100)], 0, 1600);
+
+    const quieto = sostener(eleccion, objetivos, [mano(100, 100)], 1650, 5000);
+    expect(quieto.elegido).toBe('a');
+    expect(quieto.progreso).toBe(1);
+  });
+
+  // Pasar el brazo por encima de otro objeto camino al que se quiere no puede
+  // valer por una eleccion: el nuevo blanco arranca de cero.
+  it('mover la mano a otro blanco arranca su anillo de cero', () => {
+    const eleccion = crearEleccion(AJUSTES);
+    sostener(eleccion, objetivos, [mano(100, 100)], 0, 1600);
+
+    const recien = eleccion.actualizar({
+      manos: [mano(400, 100)],
+      objetivos,
+      ahora: 1650,
+    });
+
+    expect(recien.sobre).toBe('b');
+    expect(recien.elegido).toBeNull();
+    expect(recien.progreso).toBeLessThan(1);
+  });
+
+  it('reiniciar deja todo en cero', () => {
+    const eleccion = crearEleccion(AJUSTES);
+    sostener(eleccion, objetivos, [mano(100, 100)], 0, 1600);
 
     eleccion.reiniciar();
     expect(eleccion.elegido()).toBeNull();

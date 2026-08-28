@@ -69,15 +69,16 @@ export function crearEleccion({ msParaElegir, msDeOlvido, msDeGracia = 0, radioF
   return {
     /**
      * `objetivos` son `{ id, x, y, radio }` y `manos` son `{ palma: {x, y} }`.
-     * Una vez que hay elegido, la eleccion queda trabada hasta reiniciar(): el
-     * cuadro siguiente a elegir todavia tiene la mano puesta, y sin la traba el
-     * progreso seguiria corriendo sobre un blanco que ya no se ofrece.
+     *
+     * `elegido` es "sobre cual esta la mano ahora, ya sostenida", no "cual
+     * eligio la persona para siempre". Se suelta cuando la mano se va o se
+     * mueve a otro blanco, y eso es lo que hace posible recorrer las cinco
+     * ingenierias en una sola sesion. Quien recibe el elegido tiene que
+     * aguantar que se repita cuadro a cuadro mientras la mano no se mueva.
      */
     actualizar({ manos = [], objetivos = [], ahora }) {
       const dt = ultimoReloj === null ? 0 : acotar(ahora - ultimoReloj, 0, DT_MAXIMO);
       ultimoReloj = ahora;
-
-      if (elegido) return salida();
 
       const ahoraSobre = blancoBajoLaMano(manos, objetivos, radioFactor);
 
@@ -92,13 +93,20 @@ export function crearEleccion({ msParaElegir, msDeOlvido, msDeGracia = 0, radioF
           // El blanco se suelta recien cuando el anillo termina de vaciarse:
           // hasta ahi sigue siendo "el que estabas por elegir", y volver a poner
           // la mano continua desde donde iba.
-          if (acumulado === 0) sobre = null;
+          if (acumulado === 0) {
+            sobre = null;
+            elegido = null;
+          }
         }
       } else {
         fueraDesde = null;
         if (ahoraSobre !== sobre) {
+          // Mover el brazo a otro objeto es deliberado: heredar lo acumulado
+          // haria que el segundo se eligiera casi instantaneamente, y pasar por
+          // encima de uno camino a otro valdria por una eleccion.
           sobre = ahoraSobre;
           acumulado = 0;
+          elegido = null;
         }
         acumulado += dt;
         if (acumulado >= msParaElegir) elegido = sobre;

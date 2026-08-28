@@ -1,8 +1,8 @@
-// Elegir un objeto no es de un modulo solo: es la cadena entera.
+// Agarrar un objeto no es de un modulo solo: es la cadena entera.
 //
 //   pose -> tablero (donde estan los blancos)
 //        -> eleccion (cuanto lleva la mano encima)
-//        -> maquina de estados (la carrera queda elegida)
+//        -> maquina de estados (la ingenieria queda mostrada)
 //
 // Cada pieza por separado se ve razonable; mal calibradas juntas dan un espejo
 // donde el objeto se escapa de abajo de la mano, o donde elegis sin querer al
@@ -29,8 +29,17 @@ const poseEn = (x, y, ancho = 380) => ({
 /**
  * Corre la cadena como lo hace main.js. `manoEn` recibe el reloj y los blancos
  * de este cuadro y devuelve donde esta la palma, o null si no se ve la mano.
+ *
+ * `pararAlMostrar` corta apenas aparece la primera ingenieria, que es lo que
+ * hace falta para medir cuanto tardo el sostenido. Puesto en false corre la
+ * ventana entera, que es como se prueba recorrer varias.
  */
-function correr({ manoEn, poseEn: dondeLaPose = () => poseEn(540, 1300), hasta }) {
+function correr({
+  manoEn,
+  poseEn: dondeLaPose = () => poseEn(540, 1300),
+  hasta,
+  pararAlMostrar = true,
+}) {
   const tablero = crearTablero(CONFIG.tablero);
   const eleccion = crearEleccion(CONFIG.eleccion);
   const maquina = crearMaquina({
@@ -38,19 +47,21 @@ function correr({ manoEn, poseEn: dondeLaPose = () => poseEn(540, 1300), hasta }
     sortearOpciones: () => [...OFRECIDAS],
   });
 
-  // Se deja llegar hasta la eleccion con la persona sentada y quieta.
+  // Se deja llegar hasta la exploracion con la persona sentada y quieta.
   let ahora = 0;
-  while (maquina.estado() !== ESTADOS.ELECCION && ahora <= 20000) {
+  while (maquina.estado() !== ESTADOS.EXPLORACION && ahora <= 20000) {
     maquina.actualizar({ hayRostro: true, ahora });
     ahora += PASO;
   }
-  expect(maquina.estado()).toBe(ESTADOS.ELECCION);
+  expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
 
   const empezo = ahora;
   let progreso = 0;
   let blancos = [];
+  const mostradas = [];
+  let primera = null;
 
-  while (ahora <= empezo + hasta && maquina.estado() === ESTADOS.ELECCION) {
+  while (ahora <= empezo + hasta && maquina.estado() === ESTADOS.EXPLORACION) {
     const puesto = tablero.actualizar({
       pose: dondeLaPose(ahora),
       rostro: null,
@@ -74,26 +85,80 @@ function correr({ manoEn, poseEn: dondeLaPose = () => poseEn(540, 1300), hasta }
       ahora,
     });
     progreso = paso.progreso;
-    if (paso.elegido) maquina.elegir(paso.elegido, ahora);
+
+    if (paso.elegido) {
+      // La maquina descarta el repetido: solo quedan los cambios de verdad.
+      for (const evento of maquina.mirar(paso.elegido, ahora).eventos) {
+        if (evento.tipo !== 'mira') continue;
+        mostradas.push(evento.carrera);
+        primera ??= ahora;
+      }
+    }
 
     maquina.actualizar({ hayRostro: true, ahora });
     ahora += PASO;
+    if (pararAlMostrar && mostradas.length > 0) break;
   }
 
-  return { maquina, blancos, progreso, transcurrido: ahora - empezo };
+  return {
+    maquina,
+    blancos,
+    progreso,
+    mostradas,
+    transcurrido: (primera ?? ahora) - empezo,
+  };
 }
 
-describe('elegir un objeto', () => {
-  it('sostener la mano sobre un objeto elige esa carrera', () => {
+describe('agarrar un objeto', () => {
+  it('sostener la mano sobre un objeto muestra esa ingenieria', () => {
     const { maquina, transcurrido } = correr({
       manoEn: (_ahora, blancos) => ({ x: blancos[2].x, y: blancos[2].y }),
       hasta: 6000,
     });
 
-    expect(maquina.estado()).toBe(ESTADOS.REVELACION);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
     expect(maquina.carrera()).toBe(OFRECIDAS[2]);
     // Y no tarda un mundo: el plazo de config mas un cuadro o dos.
     expect(transcurrido).toBeLessThan(CONFIG.eleccion.msParaElegir + 200);
+  });
+
+  // ESTO ES LO QUE HACE LA EXPERIENCIA. Agarrar un objeto muestra su
+  // ingenieria; soltarlo la deja puesta; agarrar otro la reemplaza. Sin esta
+  // cadena andando, la persona ve una sola de las cinco y se termina ahi.
+  it('soltar y agarrar otro objeto muestra la segunda ingenieria', () => {
+    let base = null;
+
+    const { maquina, mostradas } = correr({
+      // Dos segundos y medio sobre el primero, uno con la mano baja —mas que la
+      // gracia y el olvido juntos, o sea soltar de verdad— y el resto sobre otro.
+      manoEn: (ahora, blancos) => {
+        base ??= ahora;
+        const t = ahora - base;
+        if (t < 2500) return { x: blancos[0].x, y: blancos[0].y };
+        if (t < 3500) return null;
+        return { x: blancos[4].x, y: blancos[4].y };
+      },
+      hasta: 8000,
+      pararAlMostrar: false,
+    });
+
+    expect(mostradas).toEqual([OFRECIDAS[0], OFRECIDAS[4]]);
+    expect(maquina.carrera()).toBe(OFRECIDAS[4]);
+    // Una sola persona, aunque haya mirado dos ingenierias.
+    expect(maquina.sesion()).toBe(1);
+  });
+
+  // Con la mano quieta encima, el elegido se repite cuadro a cuadro. Si cada
+  // repeticion contara, MAITE recibiria cien avisos por segundo y las tablets
+  // no pararian de parpadear.
+  it('la mano quieta no vuelve a avisar la misma ingenieria', () => {
+    const { mostradas } = correr({
+      manoEn: (_ahora, blancos) => ({ x: blancos[2].x, y: blancos[2].y }),
+      hasta: 8000,
+      pararAlMostrar: false,
+    });
+
+    expect(mostradas).toEqual([OFRECIDAS[2]]);
   });
 
   // Es el caso que decide si el sostenido es usable: la deteccion de manos se
@@ -107,13 +172,12 @@ describe('elegir un objeto', () => {
       hasta: 8000,
     });
 
-    expect(maquina.estado()).toBe(ESTADOS.REVELACION);
     expect(maquina.carrera()).toBe(OFRECIDAS[1]);
   });
 
   // La otra punta: pasar la mano por delante mirando los objetos no puede
   // elegir. Si eligiera, nadie llegaria a ver las cinco opciones.
-  it('pasar la mano por encima de todos no elige ninguno', () => {
+  it('pasar la mano por encima de todos no muestra ninguna', () => {
     const { maquina, progreso } = correr({
       // Recorre los cinco blancos, quedandose 400 ms en cada uno.
       manoEn: (ahora, blancos) => {
@@ -123,7 +187,7 @@ describe('elegir un objeto', () => {
       hasta: 8000,
     });
 
-    expect(maquina.estado()).toBe(ESTADOS.ELECCION);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
     expect(maquina.carrera()).toBeNull();
     expect(progreso).toBeLessThan(1);
   });
@@ -134,7 +198,8 @@ describe('elegir un objeto', () => {
       hasta: 8000,
     });
 
-    expect(maquina.estado()).toBe(ESTADOS.ELECCION);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
+    expect(maquina.carrera()).toBeNull();
     expect(progreso).toBe(0);
   });
 
@@ -155,7 +220,6 @@ describe('elegir un objeto', () => {
       hasta: 6000,
     });
 
-    expect(maquina.estado()).toBe(ESTADOS.REVELACION);
     expect(maquina.carrera()).toBe(OFRECIDAS[3]);
   });
 });
@@ -177,7 +241,8 @@ describe('la calibracion del sostenido', () => {
   });
 
   // Cinco objetos en el arco y un blanco generoso no pueden dar dos blancos
-  // superpuestos: ahi el de al lado se vuelve inelegible.
+  // superpuestos: ahi el de al lado se vuelve inelegible. Con los objetos mas
+  // chicos hay mas aire, pero el que se calibra es el alcance, no el dibujo.
   it('el blanco generoso no hace que dos objetos se pisen', () => {
     const tablero = crearTablero(CONFIG.tablero);
     let puesto = null;

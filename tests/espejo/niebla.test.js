@@ -20,9 +20,7 @@ describe('objetivoDeNiebla', () => {
     for (const estado of [
       ESTADOS.ENGANCHE,
       ESTADOS.HUMO,
-      ESTADOS.ELECCION,
-      ESTADOS.REVELACION,
-      ESTADOS.ESCENA,
+      ESTADOS.EXPLORACION,
     ]) {
       expect(objetivoDeNiebla(estado)).toEqual({ apertura: 1 });
     }
@@ -96,9 +94,9 @@ describe('posicionLateralNube', () => {
 });
 
 describe('calcularTransicionEscena', () => {
-  const tiempos = { enganche: 2000, humo: 3000, revelacion: 2000, cierre: 4000 };
-  const en = (estado, transcurrido) =>
-    calcularTransicionEscena({ estado, transcurrido, tiempos });
+  const tiempos = { enganche: 2000, humo: 3000, aparicion: 2000, cierre: 4000 };
+  const en = (estado, transcurrido, desdeLaMirada = null) =>
+    calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, tiempos });
 
   it('en reposo y en el enganche no se ve ninguna capa', () => {
     expect(en(ESTADOS.ATRACCION, 0)).toEqual({ objetos: 0, fondo: 0, contenido: 0 });
@@ -116,32 +114,46 @@ describe('calcularTransicionEscena', () => {
     expect(en(ESTADOS.HUMO, 2000).fondo).toBe(0);
   });
 
-  it('durante la eleccion se ven los objetos y nada mas', () => {
-    expect(en(ESTADOS.ELECCION, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
-    expect(en(ESTADOS.ELECCION, 20000)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
+  it('sin nada agarrado se ven los objetos y nada mas', () => {
+    expect(en(ESTADOS.EXPLORACION, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
+    expect(en(ESTADOS.EXPLORACION, 20000)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
   });
 
-  // El fundido cruzado de la revelacion: los que no se eligieron se apagan al
-  // mismo ritmo con que entran el fondo y el texto.
-  it('cruza objetos con fondo y contenido durante la revelacion', () => {
-    expect(en(ESTADOS.REVELACION, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
+  // LOS OBJETOS NO SE APAGAN AL APARECER EL FONDO. Quedan enteros y por delante,
+  // porque soltar uno y agarrar otro es justamente lo que se puede hacer: si se
+  // desvanecieran, la unica lectura posible seria "ya elegiste, se termino".
+  it('el fondo y el texto entran sin apagar los objetos', () => {
+    expect(en(ESTADOS.EXPLORACION, 5000, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
 
-    const medio = en(ESTADOS.REVELACION, 1000);
+    const medio = en(ESTADOS.EXPLORACION, 6000, 1000);
+    expect(medio.objetos).toBe(1);
     expect(medio.fondo).toBeCloseTo(0.5);
     expect(medio.contenido).toBeCloseTo(0.5);
-    expect(medio.objetos).toBeCloseTo(0.5);
 
-    expect(en(ESTADOS.REVELACION, 2000)).toEqual({ objetos: 0, fondo: 1, contenido: 1 });
+    expect(en(ESTADOS.EXPLORACION, 7000, 2000)).toEqual({ objetos: 1, fondo: 1, contenido: 1 });
   });
 
-  it('la escena se ve entera y sin los objetos que se ofrecian', () => {
-    expect(en(ESTADOS.ESCENA, 0)).toEqual({ objetos: 0, fondo: 1, contenido: 1 });
-    expect(en(ESTADOS.ESCENA, 90000)).toEqual({ objetos: 0, fondo: 1, contenido: 1 });
+  // La info se queda puesta: con el brazo en alto no se lee, y soltar el objeto
+  // no puede costar la ingenieria que se acaba de mostrar.
+  it('el fondo se queda entero mientras no se agarre otro objeto', () => {
+    expect(en(ESTADOS.EXPLORACION, 90000, 88000)).toEqual({
+      objetos: 1,
+      fondo: 1,
+      contenido: 1,
+    });
   });
 
-  it('desvanece fondo y contenido juntos durante el cierre', () => {
-    expect(en(ESTADOS.CIERRE, 0)).toEqual({ objetos: 0, fondo: 1, contenido: 1 });
-    expect(en(ESTADOS.CIERRE, 2000)).toEqual({ objetos: 0, fondo: 0.5, contenido: 0.5 });
+  // El reloj del fondo es el de la mirada, no el del estado: agarrar otro
+  // objeto reinicia la aparicion sin que el estado haya cambiado.
+  it('agarrar otro objeto vuelve a hacer entrar el fondo desde cero', () => {
+    const reciencambiado = en(ESTADOS.EXPLORACION, 90000, 0);
+    expect(reciencambiado.fondo).toBe(0);
+    expect(reciencambiado.objetos).toBe(1);
+  });
+
+  it('desvanece todas las capas juntas durante el cierre', () => {
+    expect(en(ESTADOS.CIERRE, 0)).toEqual({ objetos: 1, fondo: 1, contenido: 1 });
+    expect(en(ESTADOS.CIERRE, 2000)).toEqual({ objetos: 0.5, fondo: 0.5, contenido: 0.5 });
     expect(en(ESTADOS.CIERRE, 4000)).toEqual({ objetos: 0, fondo: 0, contenido: 0 });
   });
 

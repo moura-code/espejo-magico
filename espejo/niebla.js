@@ -43,15 +43,18 @@ export function posicionLateralNube(xNormalizada, radio, ancho, apertura, lado) 
 
 /**
  * Cuanto se ve de cada capa en cada momento, sin tocar la apertura lateral de
- * las nubes. Las tres viajan juntas y en tension:
+ * las nubes:
  *
  *   objetos   los cinco que se ofrecen. Aparecen tapados por el humo y se
- *             apagan durante la revelacion, menos el elegido, que sigue su
- *             propio camino hacia el borde de arriba.
+ *             quedan puestos, por delante del fondo, toda la exploracion.
  *   fondo     la imagen de la ingenieria detras de la persona.
  *   contenido el nombre y el texto de la persona.
+ *
+ * `desdeLaMirada` es hace cuanto se muestra la ingenieria actual, o null si no
+ * hay ninguna. Es un reloj propio, distinto del del estado: agarrar otro objeto
+ * vuelve a hacer entrar el fondo desde cero sin que el estado haya cambiado.
  */
-export function calcularTransicionEscena({ estado, transcurrido, tiempos }) {
+export function calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, tiempos }) {
   switch (estado) {
     case ESTADOS.ATRACCION:
     case ESTADOS.ENGANCHE:
@@ -67,20 +70,19 @@ export function calcularTransicionEscena({ estado, transcurrido, tiempos }) {
         contenido: 0,
       };
 
-    case ESTADOS.ELECCION:
-      return { objetos: 1, fondo: 0, contenido: 0 };
-
-    case ESTADOS.REVELACION: {
-      const t = progreso(transcurrido, tiempos.revelacion);
-      return { objetos: 1 - t, fondo: t, contenido: t };
+    // LOS OBJETOS NO SE APAGAN AL APARECER EL FONDO: quedan enteros y por
+    // delante. Soltar uno y agarrar otro es justamente lo que se puede hacer, y
+    // si se desvanecieran la unica lectura posible seria "ya elegiste, se
+    // termino". El fondo y el texto se quedan puestos hasta que se agarre otro:
+    // con el brazo en alto no se lee.
+    case ESTADOS.EXPLORACION: {
+      const t = desdeLaMirada === null ? 0 : progreso(desdeLaMirada, tiempos.aparicion);
+      return { objetos: 1, fondo: t, contenido: t };
     }
-
-    case ESTADOS.ESCENA:
-      return { objetos: 0, fondo: 1, contenido: 1 };
 
     case ESTADOS.CIERRE: {
       const salida = 1 - progreso(transcurrido, tiempos.cierre);
-      return { objetos: 0, fondo: salida, contenido: salida };
+      return { objetos: salida, fondo: salida, contenido: salida };
     }
 
     default:

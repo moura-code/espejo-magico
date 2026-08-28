@@ -232,12 +232,11 @@ let nieblaActual = { apertura: 0 };
 // que la imagen cambiara sola mientras la persona la mira.
 let ofrecidos = [];
 let blancos = [];
-// El objeto elegido y de donde sale su viaje hacia el borde de arriba. Se fija
-// UNA vez, al entrar a la revelacion: `objetoDeCarrera` sortea cuando la carrera
-// no declara representante, asi que resolverlo por cuadro hacia que el objeto
-// parpadeara entre PNG distintos. Se veia forzando una carrera con las teclas,
-// que es el camino que no pasa por el tablero.
-let elegido = null;
+// La ingenieria que se esta mostrando ahora. La fija el evento `mira` de la
+// maquina y no se recalcula por cuadro: `objetoDeCarrera` sortea cuando la
+// carrera no declara representante, asi que resolverla en cada cuadro hacia
+// parpadear el objeto entre PNG distintos.
+let mostrada = null;
 
 function prepararOfrecidos(opciones) {
   ofrecidos = opciones
@@ -250,37 +249,30 @@ function prepararOfrecidos(opciones) {
 
 function atender(salida, ahora) {
   for (const evento of salida.eventos) {
+    // Cambio la ingenieria que se esta mostrando. Es lo unico que le avisa a
+    // MAITE, y la maquina ya se encargo de que no se repita: agarrar dos veces
+    // el mismo objeto no manda dos veces, asi las tablets no parpadean.
+    if (evento.tipo === 'mira') {
+      const carrera = contenido.obtener(evento.carrera);
+      mostrada = carrera ?? null;
+      puente.carrera(carrera?.maite ?? null);
+      continue;
+    }
+
     if (evento.tipo !== 'entra') continue;
 
     if (evento.estado === ESTADOS.HUMO) {
       prepararOfrecidos(salida.opciones);
       eleccion.reiniciar();
       tablero.reiniciar();
-      elegido = null;
+      mostrada = null;
     }
 
-    if (evento.estado === ESTADOS.REVELACION) {
-      const carrera = contenido.obtener(salida.carrera);
-      // Donde estaba el objeto cuando lo eligieron: desde ahi viaja hasta su
-      // lugar de arriba. Sin guardarlo, aparece de la nada en el borde superior
-      // y se pierde la unica confirmacion visual de que lo que se eligio fue eso
-      // y no otra cosa. Forzando una carrera con las teclas no hay tablero
-      // detras, asi que arranca ya puesto en su lugar.
-      const blanco = blancos.find((b) => b.id === salida.carrera);
-      elegido = carrera && {
-        definicion: blanco?.definicion ?? objetoDeCarrera(carrera),
-        origen: blanco
-          ? { x: blanco.x, y: blanco.y, radio: blanco.radio }
-          : { ...disposicion.elegido },
-      };
-
-      puente.carrera(carrera?.maite ?? null);
-    }
 
     if (evento.estado === ESTADOS.ATRACCION) {
       ofrecidos = [];
       blancos = [];
-      elegido = null;
+      mostrada = null;
       eleccion.reiniciar();
       tablero.reiniciar();
       puente.humo();
@@ -347,8 +339,11 @@ const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
 const intervaloManos = 1000 / CONFIG.manos.fps;
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
 
-const conFondo = (estado) =>
-  estado === ESTADOS.REVELACION || estado === ESTADOS.ESCENA || estado === ESTADOS.CIERRE;
+// La silueta cuesta una lectura de la GPU a la CPU: solo se arma cuando hay un
+// fondo que meterle atras a la persona, que ahora depende de si se esta
+// mostrando una ingenieria y no del estado solo.
+const conFondo = (estado, hayCarrera) =>
+  Boolean(hayCarrera) && (estado === ESTADOS.EXPLORACION || estado === ESTADOS.CIERRE);
 
 function cuadro(ahora) {
   requestAnimationFrame(cuadro);
@@ -387,12 +382,12 @@ function cuadro(ahora) {
   // en que sirven, porque es el detector mas caro del cuadro.
   const poseSirve = detectorDePose && video && modo !== 'demo';
   const manosSirven =
-    detectorDeManos && video && modo !== 'demo' && estadoAnterior === ESTADOS.ELECCION;
+    detectorDeManos && video && modo !== 'demo' && estadoAnterior === ESTADOS.EXPLORACION;
 
   // La mascara ES la imagen mientras hay fondo: a 12 cuadros por segundo el
   // borde de la silueta va atras del cuerpo y se ve el fondo pegado al hombro.
   const intervaloPose =
-    1000 / (conFondo(estadoAnterior) ? CONFIG.pose.fpsConFondo : CONFIG.pose.fps);
+    1000 / (conFondo(estadoAnterior, mostrada) ? CONFIG.pose.fpsConFondo : CONFIG.pose.fps);
 
   const tocaRostro = ahora - ultimaDeteccion >= intervaloDeteccion;
   const tocaPose = poseSirve && ahora - ultimaDeteccionPose >= intervaloPose;
@@ -426,7 +421,9 @@ function cuadro(ahora) {
     pose = detectorDePose.detectar(analisis, ahora, rectDeteccion);
     // La silueta cuesta una lectura de la GPU a la CPU, asi que solo se arma
     // cuando hay fondo que meterle atras a la persona.
-    lienzoDeSilueta = conFondo(estadoAnterior) ? silueta.actualizar(pose?.mascara) : null;
+    lienzoDeSilueta = conFondo(estadoAnterior, mostrada)
+      ? silueta.actualizar(pose?.mascara)
+      : null;
   } else if (!poseSirve) {
     pose = null;
     lienzoDeSilueta = null;
@@ -465,16 +462,20 @@ function cuadro(ahora) {
   estadoAnterior = estado;
   const carrera = salida.carrera ? contenido.obtener(salida.carrera) : null;
   const enEstadoDesde = ahora - maquina.desdeCuando();
+  // El fondo tiene su propio reloj: agarrar otro objeto lo hace entrar de nuevo
+  // sin que el estado haya cambiado.
+  const miraDesde = maquina.miraDesdeCuando();
   const transicion = calcularTransicionEscena({
     estado,
     transcurrido: enEstadoDesde,
+    desdeLaMirada: miraDesde === null ? null : ahora - miraDesde,
     tiempos: CONFIG.tiempos,
   });
 
   // --- tablero y eleccion ---
   // El arco se congela apenas empieza un sostenido: si siguiera a los hombros,
   // el gesto de estirar el brazo lo correria de abajo de la propia mano.
-  const enEleccion = estado === ESTADOS.HUMO || estado === ESTADOS.ELECCION;
+  const enEleccion = estado === ESTADOS.HUMO || estado === ESTADOS.EXPLORACION;
   if (enEleccion && ofrecidos.length > 0) {
     const puesto = tablero.actualizar({
       pose,
@@ -492,11 +493,13 @@ function cuadro(ahora) {
     }));
   }
 
-  if (estado === ESTADOS.ELECCION) {
+  if (estado === ESTADOS.EXPLORACION) {
     const paso = eleccion.actualizar({ manos: manosSuaves, objetivos: blancos, ahora });
     progresoDeEleccion = paso.progreso;
     sobreQueBlanco = paso.sobre;
-    if (paso.elegido) atender(maquina.elegir(paso.elegido, ahora), ahora);
+    // `elegido` se repite cuadro a cuadro mientras la mano no se mueva: la
+    // maquina descarta el repetido, asi que aca no hace falta recordarlo.
+    if (paso.elegido) atender(maquina.mirar(paso.elegido, ahora), ahora);
   } else if (!enEleccion) {
     progresoDeEleccion = 0;
     sobreQueBlanco = null;
@@ -601,10 +604,14 @@ function cuadro(ahora) {
   }
 
   // --- los cinco que se ofrecen ---
+  // VAN POR DELANTE DEL FONDO Y NO SE APAGAN. Son la unica pista de que se
+  // puede soltar uno y agarrar otro; si se desvanecieran al aparecer la
+  // ingenieria, la pantalla diria "ya elegiste" y la exploracion se terminaria
+  // ahi. El que se esta mostrando se queda con su anillo lleno: es la
+  // confirmacion de que lo que se ve atras salio de ese objeto y no de otro.
   if (transicion.objetos > 0) {
     for (const blanco of blancos) {
-      // El elegido no se dibuja aca: viaja aparte hacia su lugar de arriba.
-      if (salida.carrera && blanco.id === salida.carrera) continue;
+      const esElMostrado = blanco.id === salida.carrera;
 
       dibujarObjeto(
         ctx,
@@ -619,40 +626,28 @@ function cuadro(ahora) {
         blanco.carrera.color,
       );
 
-      if (blanco.id === sobreQueBlanco && progresoDeEleccion > 0) {
+      const progresoDelAnillo = esElMostrado
+        ? 1
+        : blanco.id === sobreQueBlanco
+          ? progresoDeEleccion
+          : 0;
+
+      if (progresoDelAnillo > 0) {
         dibujarAnilloDeProgreso(ctx, {
           x: blanco.x,
           y: blanco.y,
           radio: blanco.radio,
-          progreso: progresoDeEleccion,
+          progreso: progresoDelAnillo,
           color: blanco.carrera.color,
         });
       }
     }
   }
 
-  // --- el elegido, viajando a su lugar ---
-  if (carrera && elegido && transicion.fondo > 0) {
-    const t = transicion.fondo;
-
-    dibujarObjeto(
-      ctx,
-      {
-        definicion: elegido.definicion,
-        x: mezclar(elegido.origen.x, disposicion.elegido.x, t),
-        y: mezclar(elegido.origen.y, disposicion.elegido.y, t),
-        radio: mezclar(elegido.origen.radio, disposicion.elegido.radio, t),
-        alfa: 1,
-      },
-      banco,
-      carrera.color,
-    );
-  }
-
   // La señal de las manos: donde registra el sistema tu palma. Es lo unico que
   // le enseña al publico que puede estirarlas, y sin ella el sostenido es a
-  // ciegas. Solo durante la eleccion, que es cuando las manos hacen algo.
-  if (estado === ESTADOS.ELECCION) {
+  // ciegas. Solo durante la exploracion, que es cuando las manos hacen algo.
+  if (estado === ESTADOS.EXPLORACION) {
     dibujarManos(ctx, manosSuaves, '#ffffff', CONFIG.manos.senal);
   }
 
@@ -701,7 +696,17 @@ function cuadro(ahora) {
     // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 700) + 1) / 2);
   }
-  if (estado === ESTADOS.ELECCION) dibujarConsigna(ctx, disposicion, transicion.objetos);
+  // La consigna cambia con lo que la persona ya hizo: primero ensena el gesto,
+  // y una vez que vio una ingenieria avisa que puede seguir. Sin esa segunda
+  // linea nadie descubre que se puede agarrar otro objeto.
+  if (estado === ESTADOS.EXPLORACION) {
+    dibujarConsigna(
+      ctx,
+      disposicion,
+      transicion.objetos,
+      carrera ? 'Agarrá otro objeto para ver otra ingeniería' : undefined,
+    );
+  }
 }
 
 window.espejo = {
@@ -716,7 +721,7 @@ window.espejo = {
   pose: () => pose,
   poseCrudas: () => detectorDePose?.crudasDetectadas() ?? 0,
   ofrecidos: () => blancos,
-  elegido: () => elegido,
+  mostrada: () => mostrada,
   progresoDeEleccion: () => progresoDeEleccion,
   hayFondo: () => Boolean(videoDeHumo),
   modo: () => modo,
@@ -730,7 +735,7 @@ window.espejo = {
   // Los atajos tienen que pasar por atender(): si no, forzar una carrera con las
   // teclas no le avisa a MAITE y las tablets se quedan con la carrera anterior.
   avanzar: (ahora) => atender(maquina.avanzar(ahora), ahora),
-  elegir: (id, ahora) => atender(maquina.elegir(id, ahora), ahora),
+  mirar: (id, ahora) => atender(maquina.mirar(id, ahora), ahora),
   forzarCarrera: (id, ahora) => atender(maquina.forzarCarrera(id, ahora), ahora),
   reiniciar: (ahora) => atender(maquina.reiniciar(ahora), ahora),
 };

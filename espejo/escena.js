@@ -14,12 +14,12 @@ export function calcularDisposicion(ancho, alto) {
     vertical,
     unidad,
 
-    // Donde va a parar el objeto elegido: arriba de todo, como una insignia. No
-    // puede quedar al medio, que es donde esta la cara de la persona.
-    elegido: {
+    // El ancla del nombre de la ingenieria: arriba de todo, como un rotulo. No
+    // puede quedar al medio, que es donde esta la cara de la persona. Los
+    // objetos se quedan en su arco, asi que este lugar es solo del titulo.
+    titulo: {
       x: ancho / 2,
-      y: alto * 0.11,
-      radio: unidad * 0.11,
+      y: alto * 0.09,
     },
 
     // La ficha de la persona, abajo, sobre un degradado que la despega del
@@ -367,7 +367,7 @@ export function dibujarFichaDePersona(ctx, carrera, disposicion, alfa = 1) {
 export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
   if (!carrera || alfa <= 0) return;
 
-  const { ancho, elegido, texto } = disposicion;
+  const { ancho, titulo, texto } = disposicion;
   const disponible = ancho * 0.9;
 
   ctx.save();
@@ -384,10 +384,10 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
 
   ctx.fillStyle = carrera.color;
   ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
-  // El aire se mide contra el OBJETO, que es con lo que choca, no contra la
-  // letra: con un margen proporcional al texto, el nombre se apoyaba sobre el
-  // borde de abajo del objeto y las dos cosas se leian peor.
-  ctx.fillText(carrera.nombre, ancho / 2, elegido.y + elegido.radio * 1.3 + tamano);
+  // El ancla es la linea de ARRIBA del texto, no su base: con una tipografia
+  // alta como Germania One, anclar por la base movia el rotulo de lugar segun
+  // el largo del nombre de cada ingenieria.
+  ctx.fillText(carrera.nombre, ancho / 2, titulo.y + tamano);
   ctx.restore();
 }
 
@@ -522,7 +522,12 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
  * que sostener la mano, y por eso nombra el gesto completo: "acercá la mano" no
  * alcanza — la gente la pasa por encima y se va sin elegir nada.
  */
-export function dibujarConsigna(ctx, disposicion, alfa = 1) {
+export function dibujarConsigna(
+  ctx,
+  disposicion,
+  alfa = 1,
+  frase = 'Sostené la mano sobre un objeto',
+) {
   if (alfa <= 0) return;
   const { ancho, alto, texto } = disposicion;
 
@@ -535,6 +540,6 @@ export function dibujarConsigna(ctx, disposicion, alfa = 1) {
   // La consigna va en la sans a proposito: es la unica instruccion de toda la
   // experiencia y tiene que entenderse de un vistazo, desde lejos y de costado.
   ctx.font = `600 ${Math.round(texto.tamanoFrase * 1.15)}px ${FAMILIA_TEXTO}`;
-  ctx.fillText('Sostené la mano sobre un objeto', ancho / 2, alto * 0.93);
+  ctx.fillText(frase, ancho / 2, alto * 0.93);
   ctx.restore();
 }

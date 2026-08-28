@@ -15,8 +15,12 @@ import { CONFIG } from '../../espejo/config.js';
 import { crearHisteresis } from '../../espejo/suavizado.js';
 import { crearMaquina, ESTADOS } from '../../espejo/maquina-estados.js';
 
-/** Corre el ciclo del espejo con una señal de deteccion cruda dada. */
-function correr({ hayRostroEn, hasta, paso = 50 }) {
+/**
+ * Corre el ciclo del espejo con una señal de deteccion cruda dada. `hayPoseEn`
+ * es la otra señal: por defecto acompaña al rostro, y se separa para probar el
+ * caso de la cara girada con los hombros todavia a la vista.
+ */
+function correr({ hayRostroEn, hayPoseEn = hayRostroEn, hasta, paso = 50 }) {
   const histeresis = crearHisteresis(CONFIG.presencia);
   const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
   const maquina = crearMaquina({
@@ -24,20 +28,23 @@ function correr({ hayRostroEn, hasta, paso = 50 }) {
     sortearOpciones: () => ['civil', 'quimica', 'naval', 'forestal', 'mecanica'],
   });
   const entradas = [];
+  const miradas = [];
 
   for (let ahora = 0; ahora <= hasta; ahora += paso) {
-    const crudo = Boolean(hayRostroEn(ahora));
+    const crudoRostro = Boolean(hayRostroEn(ahora));
+    const crudoPersona = Boolean(hayPoseEn(ahora)) || crudoRostro;
     const salida = maquina.actualizar({
-      puedeIniciar: histeresisDeRostro.actualizar(crudo, ahora),
-      hayPersona: histeresis.actualizar(crudo, ahora),
+      puedeIniciar: histeresisDeRostro.actualizar(crudoRostro, ahora),
+      hayPersona: histeresis.actualizar(crudoPersona, ahora),
       ahora,
     });
     for (const evento of salida.eventos) {
       if (evento.tipo === 'entra') entradas.push({ estado: evento.estado, ahora });
+      if (evento.tipo === 'mira') miradas.push({ carrera: evento.carrera, ahora });
     }
   }
 
-  return { maquina, entradas, visitados: entradas.map((e) => e.estado) };
+  return { maquina, entradas, miradas, visitados: entradas.map((e) => e.estado) };
 }
 
 const cuantos = (visitados, estado) => visitados.filter((e) => e === estado).length;
@@ -53,7 +60,7 @@ describe('estabilidad de la sesion', () => {
       hasta: 60000,
     });
 
-    expect(visitados).toContain(ESTADOS.ESCENA);
+    expect(visitados).toContain(ESTADOS.EXPLORACION);
     expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
     expect(maquina.sesion()).toBe(1);
   });
@@ -68,17 +75,17 @@ describe('estabilidad de la sesion', () => {
 
     expect(cuantos(visitados, ESTADOS.ATRACCION)).toBe(0);
     expect(cuantos(visitados, ESTADOS.ENGANCHE)).toBe(1);
-    expect(visitados).toContain(ESTADOS.ESCENA);
+    expect(visitados).toContain(ESTADOS.EXPLORACION);
   });
 
   // El tope de sesion es una red de seguridad, no un temporizador de la
   // experiencia. Si le corta la escena a alguien que la esta disfrutando, esta
   // mal puesto.
-  it('quien se queda sentado y bien detectado conserva su escena varios minutos', () => {
+  it('quien se queda sentado y bien detectado conserva su exploracion varios minutos', () => {
     const { visitados, maquina } = correr({ hayRostroEn: () => true, hasta: 150000 });
 
     expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
   });
 
   // Pero la red de seguridad tiene que seguir existiendo: si la deteccion se
@@ -117,23 +124,54 @@ describe('estabilidad de la sesion', () => {
     expect(cuantos(visitados, ESTADOS.HUMO)).toBe(2);
   });
 
-  // La otra red de seguridad de la fila, y la unica que es nueva: quien se
-  // sienta y no entiende el gesto no puede dejar el espejo tomado hasta el tope
-  // de sesion, tres minutos despues. El tope de la eleccion lo destraba, y como
-  // lo ofrecido viene barajado, la carrera que recibe igual es un sorteo.
-  it('quien no elige nada igual recibe una ingenieria', () => {
-    const { maquina, visitados } = correr({ hayRostroEn: () => true, hasta: 60000 });
+  // La otra red de seguridad de la fila: quien se sienta y no entiende el gesto
+  // no puede dejar el espejo tomado hasta el tope de sesion, tres minutos
+  // despues. La red le muestra una y como lo ofrecido viene barajado, la
+  // ingenieria que recibe igual es un sorteo. Despues puede agarrar otras.
+  it('quien no agarra nada igual recibe una ingenieria', () => {
+    const { maquina, visitados, miradas } = correr({ hayRostroEn: () => true, hasta: 60000 });
 
-    expect(visitados).toContain(ESTADOS.ELECCION);
-    expect(visitados).toContain(ESTADOS.REVELACION);
+    expect(visitados).toContain(ESTADOS.EXPLORACION);
+    expect(miradas).toHaveLength(1);
     expect(maquina.carrera()).not.toBeNull();
     expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
   });
 
-  // El tope de la eleccion tiene que ser comodo para leer cinco objetos y
-  // decidir, pero no tanto como para que la fila se pare. Y por debajo del humo
-  // no tendria sentido: la eleccion empezaria vencida.
-  it('el tope de la eleccion deja tiempo de decidir sin frenar la fila', () => {
+  // LO QUE PIDIO EL STAND: cuando el espejo deja de reconocer una cara, vuelve a
+  // su pantalla inicial. Antes los hombros sostenian la sesion con la cara
+  // girada, y alguien que se iba de costado se llevaba el espejo con el.
+  it('perder la cara devuelve el espejo a la pantalla inicial, aunque quede el cuerpo', () => {
+    const SE_VA = 20000;
+    const { entradas } = correr({
+      hayRostroEn: (ahora) => ahora < SE_VA,
+      // El cuerpo se sigue viendo todo el tiempo: no alcanza para sostenerla.
+      hayPoseEn: () => true,
+      hasta: 60000,
+    });
+
+    const vuelta = entradas.find((e) => e.estado === ESTADOS.ATRACCION);
+    expect(vuelta).toBeDefined();
+    expect(vuelta.ahora - SE_VA).toBeLessThanOrEqual(10000);
+  });
+
+  // Pero el colchon tiene que seguir: girar la cabeza un momento para hablar con
+  // alguien no puede costarle a nadie la ingenieria que esta mirando.
+  it('girar la cabeza un momento no corta nada', () => {
+    const { visitados } = correr({
+      // Cuatro segundos de cara y uno y medio girada, todo el tiempo.
+      hayRostroEn: (ahora) => ahora % 5500 < 4000,
+      hayPoseEn: () => true,
+      hasta: 60000,
+    });
+
+    expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
+    expect(visitados).toContain(ESTADOS.EXPLORACION);
+  });
+
+  // La red de la fila tiene que ser comoda para leer cinco objetos y decidir,
+  // pero no tanto como para que la fila se pare. Y por debajo del humo no
+  // tendria sentido: la exploracion empezaria vencida.
+  it('la red de la fila deja tiempo de decidir sin frenarla', () => {
     expect(CONFIG.tiempos.eleccionMaxima).toBeGreaterThan(CONFIG.tiempos.humo);
     expect(CONFIG.tiempos.eleccionMaxima).toBeGreaterThanOrEqual(15000);
     expect(CONFIG.tiempos.eleccionMaxima).toBeLessThan(CONFIG.tiempos.sesionMaxima / 2);

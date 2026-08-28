@@ -11,9 +11,10 @@ export const CONFIG = {
     manual: false,
   },
 
-  // Duraciones de cada estado, en milisegundos. La escena no tiene duracion
-  // propia a proposito: dura mientras la persona siga sentada, y el unico tope
-  // es sesionMaxima, que hace de red de seguridad y de rotacion de la fila.
+  // Duraciones de cada estado, en milisegundos. La exploracion no tiene
+  // duracion propia a proposito: dura mientras la persona siga sentada, y el
+  // unico tope es sesionMaxima, que hace de red de seguridad y de rotacion de
+  // la fila.
   tiempos: {
     enganche: 2000,
 
@@ -21,14 +22,17 @@ export const CONFIG = {
     // se sortean las carreras: cuando el humo se disipa los objetos ya estan.
     humo: 3000,
 
-    // Tope de la eleccion, no su duracion: la eleccion termina cuando la
-    // persona elige. Existe porque sin el, quien no entiende el gesto se queda
-    // mirando cinco objetos quietos hasta el tope de sesion, tres minutos
-    // despues, con la fila esperando. Al vencerse se elige una sola por sorteo:
-    // nadie se va sin ingenieria.
+    // La red de seguridad de la fila, no un tope de la experiencia: la
+    // exploracion no termina nunca sola. Existe porque sin ella, quien no
+    // entiende el gesto se queda mirando cinco objetos quietos hasta el tope de
+    // sesion, tres minutos despues, con la fila esperando. Al vencerse se
+    // muestra una sola por sorteo y se puede seguir agarrando otras: nadie se
+    // va sin ingenieria.
     eleccionMaxima: 30000,
 
-    revelacion: 2500,
+    // Cuanto tarda en entrar el fondo de una ingenieria con su ficha. Es el
+    // reloj de la mirada, no el de un estado: agarrar otro objeto lo reinicia.
+    aparicion: 2500,
     cierre: 3000,
 
     // Corto: quien llega despues de que el espejo volvio al reposo no tiene por
@@ -51,7 +55,7 @@ export const CONFIG = {
 
     // Red de seguridad, no temporizador de la experiencia: existe por si la
     // deteccion se traba en verdadero (un poster, el respaldo de una silla) y el
-    // espejo se queda en escena para siempre. Con 75 s le cortaba la escena a
+    // espejo se queda tomado para siempre. Con 75 s le cortaba la exploracion a
     // quien la estaba disfrutando, que es justo lo que no tiene que hacer.
     sesionMaxima: 180000,
   },
@@ -196,7 +200,7 @@ export const CONFIG = {
   // indicador de a que distancia esta sentada.
   tablero: {
     radioFactor: 1.5, // alcance del arco, en anchos de hombros
-    radioObjetoFactor: 0.28, // tamaño de cada objeto, en anchos de hombros
+    radioObjetoFactor: 0.22, // tamaño de cada objeto, en anchos de hombros
 
     // El arco, en grados, medidos como en el lienzo: 180 es a la izquierda, 270
     // es arriba, 0 es a la derecha. Pasa por encima de la cabeza.

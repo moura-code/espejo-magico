@@ -20,7 +20,7 @@ const suavizar = (valor) => {
  * Cuanto humo hay, de 0 a 1.
  *
  * Se espesa mientras dura el HUMO —tapando el momento en que las nubes se abren
- * y los objetos se ponen en su lugar— y se disipa ya dentro de la ELECCION,
+ * y los objetos se ponen en su lugar— y se disipa ya dentro de la EXPLORACION,
  * descubriendolos. La entrada es mas lenta que la salida a proposito: entrar
  * despacio se lee como algo que llega, salir rapido devuelve el control.
  */
@@ -30,7 +30,7 @@ export function alfaDeHumo({ estado, transcurrido, tiempos, humo }) {
       const entrada = Math.max(1, tiempos.humo * humo.fraccionDeEntrada);
       return suavizar(transcurrido / entrada);
     }
-    case ESTADOS.ELECCION:
+    case ESTADOS.EXPLORACION:
       return 1 - suavizar(transcurrido / Math.max(1, humo.msDeSalida));
     default:
       return 0;

@@ -38,20 +38,20 @@ describe('alfaDeHumo', () => {
   });
 
   it('arranca la eleccion tapando y se disipa dejando los objetos', () => {
-    expect(alfa(ESTADOS.ELECCION, 0)).toBe(1);
-    expect(alfa(ESTADOS.ELECCION, 700)).toBeLessThan(1);
-    expect(alfa(ESTADOS.ELECCION, 700)).toBeGreaterThan(0);
-    expect(alfa(ESTADOS.ELECCION, HUMO.msDeSalida)).toBe(0);
+    expect(alfa(ESTADOS.EXPLORACION, 0)).toBe(1);
+    expect(alfa(ESTADOS.EXPLORACION, 700)).toBeLessThan(1);
+    expect(alfa(ESTADOS.EXPLORACION, 700)).toBeGreaterThan(0);
+    expect(alfa(ESTADOS.EXPLORACION, HUMO.msDeSalida)).toBe(0);
   });
 
   it('no vuelve a aparecer mientras dura la eleccion', () => {
-    expect(alfa(ESTADOS.ELECCION, 20000)).toBe(0);
+    expect(alfa(ESTADOS.EXPLORACION, 20000)).toBe(0);
   });
 
   it('no hay humo en la revelacion, la escena ni el cierre', () => {
-    expect(alfa(ESTADOS.REVELACION, 0)).toBe(0);
-    expect(alfa(ESTADOS.REVELACION, 1200)).toBe(0);
-    expect(alfa(ESTADOS.ESCENA, 5000)).toBe(0);
+    expect(alfa(ESTADOS.CIERRE, 0)).toBe(0);
+    expect(alfa(ESTADOS.CIERRE, 1200)).toBe(0);
+    expect(alfa(ESTADOS.ATRACCION, 5000)).toBe(0);
     expect(alfa(ESTADOS.CIERRE, 1000)).toBe(0);
   });
 

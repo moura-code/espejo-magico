@@ -1,18 +1,23 @@
 // La maquina de estados de la experiencia. No dibuja nada y no sabe de camaras:
 // recibe "hay rostro si o no" mas un reloj, y devuelve el estado, las carreras
-// que se ofrecen, la que la persona eligio y los cambios de estado que hay que
-// atender. Por eso se prueba entera sin nada.
+// que se ofrecen, la que se esta mostrando y los cambios que hay que atender.
+// Por eso se prueba entera sin nada.
 //
-// Unico evento: { tipo: 'entra', estado }. El resto de lo que hace falta saber
-// (opciones, carrera, sesion) viaja en la salida, que se lee cuando se quiera.
+// Dos eventos: { tipo: 'entra', estado } cuando cambia el estado, y
+// { tipo: 'mira', carrera } cuando cambia la ingenieria que se esta mostrando.
+// El resto de lo que hace falta saber (opciones, carrera, sesion) viaja en la
+// salida, que se lee cuando se quiera.
+//
+// LA EXPLORACION NO ES UNA ELECCION. Agarrar un objeto muestra su ingenieria;
+// soltarlo deja la info puesta; agarrar otro la reemplaza. No hay un punto sin
+// retorno, y por eso no hay un estado "ya elegiste": mientras la persona este
+// sentada puede recorrer las cinco.
 
 export const ESTADOS = {
   ATRACCION: 'ATRACCION',
   ENGANCHE: 'ENGANCHE',
   HUMO: 'HUMO',
-  ELECCION: 'ELECCION',
-  REVELACION: 'REVELACION',
-  ESCENA: 'ESCENA',
+  EXPLORACION: 'EXPLORACION',
   CIERRE: 'CIERRE',
 };
 
@@ -20,10 +25,8 @@ export const ESTADOS = {
 const SIGUIENTE = {
   [ESTADOS.ATRACCION]: ESTADOS.ENGANCHE,
   [ESTADOS.ENGANCHE]: ESTADOS.HUMO,
-  [ESTADOS.HUMO]: ESTADOS.ELECCION,
-  [ESTADOS.ELECCION]: ESTADOS.REVELACION,
-  [ESTADOS.REVELACION]: ESTADOS.ESCENA,
-  [ESTADOS.ESCENA]: ESTADOS.CIERRE,
+  [ESTADOS.HUMO]: ESTADOS.EXPLORACION,
+  [ESTADOS.EXPLORACION]: ESTADOS.CIERRE,
   [ESTADOS.CIERRE]: ESTADOS.ATRACCION,
 };
 
@@ -43,7 +46,9 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
   let finDeCierre = null;
   let opciones = [];
   let carrera = null;
+  let miraDesde = null;
   let sesion = 0;
+  let contada = false;
   let enManual = manual;
 
   function ir(nuevo, ahora, eventos) {
@@ -53,24 +58,35 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
     rostroContinuoDesde = nuevo === ESTADOS.ENGANCHE ? ahora : null;
     eventos.push({ tipo: 'entra', estado: nuevo });
 
-    if (nuevo === ESTADOS.REVELACION) sesion += 1;
     if (nuevo === ESTADOS.ATRACCION) {
       opciones = [];
       carrera = null;
+      miraDesde = null;
       inicioDeSesion = null;
+      contada = false;
     }
   }
 
   const salida = (eventos) => ({ estado, opciones, carrera, sesion, eventos });
 
   /**
-   * Pasa a la revelacion con la carrera pedida. Si no se pide ninguna se toma la
-   * primera de las ofrecidas: como vienen barajadas del sorteo, eso ya es un
-   * sorteo. Es lo que corre cuando alguien se sienta y no elige nada.
+   * Muestra una ingenieria. Devuelve true si de verdad cambio algo: volver a
+   * agarrar el mismo objeto no reenvia nada, que es lo que evita que las
+   * tablets de MAITE parpadeen mientras la mano tiembla sobre un blanco.
    */
-  function revelar(id, ahora, eventos) {
-    carrera = id ?? opciones[0] ?? null;
-    ir(ESTADOS.REVELACION, ahora, eventos);
+  function mostrar(id, ahora, eventos) {
+    if (!id || id === carrera) return false;
+
+    carrera = id;
+    miraDesde = ahora;
+    // La sesion es la persona, no cada objeto que toca: se cuenta la primera
+    // vez que mira algo y no vuelve a contarse hasta que el espejo se libera.
+    if (!contada) {
+      sesion += 1;
+      contada = true;
+    }
+    eventos.push({ tipo: 'mira', carrera: id });
+    return true;
   }
 
   return {
@@ -79,6 +95,8 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
     carrera: () => carrera,
     sesion: () => sesion,
     desdeCuando: () => desde,
+    /** Desde cuando se muestra la carrera actual. Es el reloj de su aparicion. */
+    miraDesdeCuando: () => miraDesde,
     esManual: () => enManual,
 
     /** Alterna entre avanzar solo y avanzar a pedido. */
@@ -103,25 +121,23 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       ausenteDesde = null;
       rostroAusenteDesde = null;
 
-      if (proximo === ESTADOS.REVELACION) revelar(null, ahora, eventos);
-      else ir(proximo, ahora, eventos);
-
+      ir(proximo, ahora, eventos);
       return salida(eventos);
     },
 
     /**
-     * La persona eligio uno de los objetos. Solo vale durante la eleccion: en
-     * cualquier otro estado no hay nada ofrecido y un llamado tardio —la mano
-     * sigue puesta cuando ya se paso a la revelacion— no puede volver a arrancar
-     * la sesion.
+     * La persona sostuvo la mano sobre un objeto: se muestra su ingenieria.
+     * Solo vale durante la exploracion — en cualquier otro estado no hay nada
+     * ofrecido y un llamado tardio, con la mano todavia puesta, no puede
+     * revivir una sesion que ya termino.
      */
-    elegir(id, ahora) {
+    mirar(id, ahora) {
       const eventos = [];
-      if (estado !== ESTADOS.ELECCION) return salida(eventos);
+      if (estado !== ESTADOS.EXPLORACION) return salida(eventos);
 
       ausenteDesde = null;
       rostroAusenteDesde = null;
-      revelar(id, ahora, eventos);
+      mostrar(id, ahora, eventos);
       return salida(eventos);
     },
 
@@ -134,11 +150,15 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       else if (rostroAusenteDesde === null) rostroAusenteDesde = ahora;
 
       // En manual el reloj no decide nada: ni los tiempos de cada estado ni los
-      // cortes por ausencia. Solo avanzar() y elegir() mueven la maquina.
+      // cortes por ausencia. Solo avanzar() y mirar() mueven la maquina.
       if (enManual) return salida(eventos);
 
       const seFue =
         !hayPersona && ausenteDesde !== null && ahora - ausenteDesde >= tiempos.ausenciaParaCortar;
+      // EL ROSTRO ES LO QUE SOSTIENE LA SESION. Los hombros ya no alcanzan: en
+      // cuanto la cara deja de reconocerse, y pasado el colchon que perdona un
+      // giro de cabeza, el espejo vuelve a su pantalla inicial y queda libre
+      // para el que sigue en la fila.
       const sePerdioElRostro =
         !puedeIniciar &&
         rostroAusenteDesde !== null &&
@@ -172,10 +192,8 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
           }
 
           if (!puedeIniciar) {
-            // El enganche exige rostro continuo. Una pose mantiene viva una
-            // sesion ya iniciada, pero no acumula tiempo para comenzar otra.
-            // El reloj propio deja intacto `desde`, que es lo que mide la
-            // transicion visual del estado.
+            // El enganche exige rostro continuo. El reloj propio deja intacto
+            // `desde`, que es lo que mide la transicion visual del estado.
             rostroContinuoDesde = null;
             if (sePerdioElRostro) ir(ESTADOS.ATRACCION, ahora, eventos);
             break;
@@ -192,30 +210,21 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
           break;
 
         case ESTADOS.HUMO:
-          if (seFue || pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
-          else if (transcurrido >= tiempos.humo) ir(ESTADOS.ELECCION, ahora, eventos);
+          if (seFue || sePerdioElRostro || pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
+          else if (transcurrido >= tiempos.humo) ir(ESTADOS.EXPLORACION, ahora, eventos);
           break;
 
-        // La eleccion no tiene duracion propia: termina cuando la persona elige,
-        // y elegir() es lo unico que la mueve hacia adelante. El tope es la red
-        // de seguridad de la fila — quien no entiende el gesto no puede dejar el
-        // espejo tomado hasta el tope de sesion.
-        case ESTADOS.ELECCION:
-          if (seFue || pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
-          else if (transcurrido >= tiempos.eleccionMaxima) revelar(null, ahora, eventos);
-          break;
-
-        case ESTADOS.REVELACION:
-          if (seFue || pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
-          else if (transcurrido >= tiempos.revelacion) ir(ESTADOS.ESCENA, ahora, eventos);
-          break;
-
-        // La escena es de la persona, no del reloj: dura mientras siga sentada.
-        // Se corta cuando se va, o al tope de sesion, que queda como red de
-        // seguridad del stand (y como rotacion de la fila en horas pico).
-        case ESTADOS.ESCENA:
-          if (seFue || pasoElTope) {
+        // La exploracion no tiene duracion propia: dura mientras la persona
+        // siga sentada. El tope es la red de seguridad de la fila — quien no
+        // entiende el gesto no puede dejar el espejo tomado sin ver nada, asi
+        // que se le muestra una por sorteo y sigue pudiendo agarrar otras.
+        case ESTADOS.EXPLORACION:
+          if (seFue || sePerdioElRostro || pasoElTope) {
             ir(ESTADOS.CIERRE, ahora, eventos);
+            break;
+          }
+          if (carrera === null && transcurrido >= tiempos.eleccionMaxima) {
+            mostrar(opciones[0] ?? null, ahora, eventos);
           }
           break;
 
@@ -236,10 +245,12 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       finDeCierre = null;
       ausenteDesde = null;
       rostroAusenteDesde = null;
-      // Sin opciones detras, la carrera forzada tiene que ser la que se pidio:
-      // revelar() no puede caer en la primera de una lista de la sesion anterior.
+      contada = false;
+      carrera = null;
+      // Sin opciones detras, la carrera forzada tiene que ser la que se pidio.
       opciones = [id];
-      revelar(id, ahora, eventos);
+      ir(ESTADOS.EXPLORACION, ahora, eventos);
+      mostrar(id, ahora, eventos);
       return salida(eventos);
     },
 

@@ -449,25 +449,23 @@ describe('calcularDisposicion', () => {
     expect(calcularDisposicion(1920, 1080).vertical).toBe(false);
   });
 
-  // El objeto elegido no puede quedar al medio: ahi esta la cara de la persona,
-  // que es lo que la escena tiene que mostrar.
-  it('el lugar del elegido queda arriba y dentro de la pantalla', () => {
+  // El titulo no puede quedar al medio: ahi esta la cara de la persona, que es
+  // lo que el espejo tiene que mostrar. Y como los objetos ya no viajan al
+  // borde de arriba, ese lugar quedo libre para el nombre de la ingenieria.
+  it('el ancla del titulo queda arriba y dentro de la pantalla', () => {
     for (const [ancho, alto] of [
       [1080, 1920],
       [1920, 1080],
       [800, 600],
     ]) {
       const d = calcularDisposicion(ancho, alto);
-      expect(d.elegido.y).toBeLessThan(alto * 0.25);
-      expect(d.elegido.y - d.elegido.radio).toBeGreaterThan(0);
-      expect(d.elegido.x).toBeCloseTo(ancho / 2);
-      expect(d.elegido.radio).toBeGreaterThan(0);
+      expect(d.titulo.y).toBeGreaterThan(0);
+      expect(d.titulo.y).toBeLessThan(alto * 0.2);
+      expect(d.titulo.x).toBeCloseTo(ancho / 2);
     }
   });
 
-  // El nombre se apoyaba sobre el borde de abajo del objeto elegido y las dos
-  // cosas se leian peor. Se nota mas con la tipografia de titulo, que es alta.
-  it('el nombre de la carrera no pisa al objeto elegido', () => {
+  it('el nombre de la carrera se apoya en el ancla del titulo', () => {
     const ctx = crearCtxFalso();
     let fuente = '';
     Object.defineProperty(ctx, 'font', { get: () => fuente, set: (v) => (fuente = v) });
@@ -476,9 +474,11 @@ describe('calcularDisposicion', () => {
     dibujarNombreDeCarrera(ctx, { nombre: 'Ingeniería Civil', color: '#FF8A3D' }, d, 1);
 
     const [, , , y] = ctx.llamadas.find(([q]) => q === 'fillText');
-    const tamano = Number(fuente.match(/(\d+)px/)[1]);
-    // La linea de arriba del texto tiene que quedar por debajo del objeto.
-    expect(y - tamano).toBeGreaterThan(d.elegido.y + d.elegido.radio);
+    // La linea de arriba del texto arranca en el ancla, sin hueco de sobra. El
+    // tamano se lee redondeado de la fuente, asi que se compara con un pixel de
+    // tolerancia y no al valor exacto.
+    const tamano = Number(fuente.match(/([\d.]+)px/)[1]);
+    expect(Math.abs(y - tamano - d.titulo.y)).toBeLessThan(1);
   });
 
   it('la ficha de la persona ocupa el pie de la pantalla', () => {
@@ -486,8 +486,8 @@ describe('calcularDisposicion', () => {
     expect(d.ficha.nombreY).toBeLessThan(d.ficha.textoY);
     expect(d.ficha.textoY).toBeLessThan(1920);
     expect(d.ficha.nombreY).toBeGreaterThan(1920 - d.ficha.alto);
-    // Y no puede pisar al objeto elegido, que vive arriba.
-    expect(d.ficha.nombreY).toBeGreaterThan(d.elegido.y + d.elegido.radio);
+    // Y no puede pisar al titulo de la ingenieria, que vive arriba.
+    expect(d.ficha.nombreY).toBeGreaterThan(d.titulo.y);
   });
 
   it('la ficha deja margen a los costados', () => {
@@ -701,6 +701,27 @@ describe('las dos tipografias', () => {
     const ctx = ctxQueAnotaFuentes();
     dibujarConsigna(ctx, disposicion, 1);
     for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(FAMILIA_TEXTO);
+  });
+
+  // La consigna es la unica instruccion de la experiencia, y cambia segun lo
+  // que la persona ya hizo: primero ensena el gesto, despues avisa que se puede
+  // repetir. Si el texto estuviera fijo adentro, la segunda mitad no existiria.
+  it('la consigna dice el texto que se le pide', () => {
+    const ctx = crearCtxFalso();
+
+    dibujarConsigna(ctx, disposicion, 1, 'Agarrá otro objeto');
+
+    const dichos = soloDe(ctx, 'fillText').map(([, texto]) => texto);
+    expect(dichos).toContain('Agarrá otro objeto');
+  });
+
+  it('sin texto propio ensena el gesto', () => {
+    const ctx = crearCtxFalso();
+
+    dibujarConsigna(ctx, disposicion, 1);
+
+    const dichos = soloDe(ctx, 'fillText').map(([, texto]) => texto);
+    expect(dichos).toContain('Sostené la mano sobre un objeto');
   });
 
   // Germania One trae UNA sola variante. Pedirle 700 da un falso-bold que le
