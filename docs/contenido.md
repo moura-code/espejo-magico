@@ -109,6 +109,28 @@ persona recortada y el nombre se lean encima; cada una lleva su obra de origen,
 autoría y licencia en `assets/CREDITOS.md`. Las derivadas conservan la licencia
 de origen y quedan versionadas: el stand no necesita red.
 
+Para preparar una foto nueva, con el ffmpeg de la máquina de desarrollo (no hace
+falta en la PC del evento):
+
+```bash
+ffmpeg -i original.jpg -vf "crop=ih*9/16:ih:(iw-ih*9/16)/2:0,\
+scale=1080:1920:flags=lanczos,colorlevels=romax=0.55:gomax=0.55:bomax=0.55,\
+eq=saturation=0.85" -q:v 4 contenido/assets/fondos/<id>-2.jpg
+```
+
+Tres cosas que se descubren rompiéndose:
+
+- **`romax`, no `rimax`.** `rimax` baja el máximo de *entrada*, o sea recorta las
+  luces a blanco: deja la foto más clara, que es justo lo contrario. `romax` baja
+  el máximo de *salida*, y eso sí oscurece.
+- **Cuánto oscurecer se mide, no se estima.** Un fondo servible queda entre 25 y
+  70 de brillo medio sobre 255; con `0.55` suele caer ahí, pero un cielo grande
+  necesita `0.42`. Para medirlo:
+  `ffprobe -f lavfi -i "movie=fondo.jpg,signalstats" -show_entries frame_tags=lavfi.signalstats.YAVG -of csv=p=0`
+- **Bajarle la saturación** (`eq=saturation`): un cielo azul o un modelo de
+  terreno en falso color compiten con el nombre de la carrera, que va en su
+  color.
+
 ### El respaldo vectorial
 
 ```bash
