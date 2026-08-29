@@ -212,10 +212,16 @@ const histeresis = crearHisteresis(CONFIG.presencia);
 const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
 
 // ---------- logica ----------
-const sorteo = crearSorteo({ ids: jugables.length > 0 ? jugables : contenido.ids });
+// Se ofrecen TODAS las carreras jugables, en el carrusel. El sorteo sigue
+// existiendo por el orden: la bolsa entrega una permutacion fresca por sesion,
+// asi dos visitantes seguidos no ven el anillo igual, y la primera de una
+// sesion nunca repite la ultima de la anterior (que es la que muestra la red
+// de la fila si nadie agarra nada).
+const ofrecibles = jugables.length > 0 ? jugables : contenido.ids;
+const sorteo = crearSorteo({ ids: ofrecibles });
 const maquina = crearMaquina({
   tiempos: CONFIG.tiempos,
-  sortearOpciones: () => sorteo.siguientes(CONFIG.eleccion.cantidad),
+  sortearOpciones: () => sorteo.siguientes(ofrecibles.length),
   manual: CONFIG.avance.manual,
 });
 const eleccion = crearEleccion(CONFIG.eleccion);
@@ -240,7 +246,7 @@ const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
 // maquina salte de estado, y solo desplaza nubes hacia los lados.
 let nieblaActual = { apertura: 0 };
 
-// Los cinco que se ofrecen, con el objeto que representa a cada carrera ya
+// Las que se ofrecen, con el objeto que representa a cada carrera ya
 // sorteado. Se arman una sola vez por sesion: sortear el objeto por cuadro haria
 // que la imagen cambiara sola mientras la persona la mira.
 let ofrecidos = [];
@@ -486,8 +492,10 @@ function cuadro(ahora) {
   });
 
   // --- tablero y eleccion ---
-  // El arco se congela apenas empieza un sostenido: si siguiera a los hombros,
-  // el gesto de estirar el brazo lo correria de abajo de la propia mano.
+  // El anillo se congela apenas empieza un sostenido —ancla y giro—: si
+  // siguiera a los hombros, el gesto de estirar el brazo correria el blanco de
+  // abajo de la propia mano; y si siguiera girando, elegir seria perseguir un
+  // objeto que se escapa. Es la pausa del carrusel que pide la catedra.
   const enEleccion = estado === ESTADOS.HUMO || estado === ESTADOS.EXPLORACION;
   if (enEleccion && ofrecidos.length > 0) {
     const puesto = tablero.actualizar({
@@ -496,6 +504,7 @@ function cuadro(ahora) {
       disposicion,
       cantidad: ofrecidos.length,
       congelar: progresoDeEleccion > 0,
+      dt,
     });
 
     blancos = ofrecidos.map((ofrecido, i) => ({
@@ -503,11 +512,18 @@ function cuadro(ahora) {
       x: puesto.ubicaciones[i].x,
       y: puesto.ubicaciones[i].y,
       radio: puesto.radioObjeto,
+      alfa: puesto.ubicaciones[i].alfa,
     }));
   }
 
   if (estado === ESTADOS.EXPLORACION) {
-    const paso = eleccion.actualizar({ manos: manosSuaves, objetivos: blancos, ahora });
+    // Solo se puede agarrar lo que esta entero dentro de la ventana: una
+    // ranura a medio entrar todavia no es una opcion.
+    const paso = eleccion.actualizar({
+      manos: manosSuaves,
+      objetivos: blancos.filter((blanco) => blanco.alfa === 1),
+      ahora,
+    });
     progresoDeEleccion = paso.progreso;
     sobreQueBlanco = paso.sobre;
     // `elegido` se repite cuadro a cuadro mientras la mano no se mueva: la
@@ -620,14 +636,16 @@ function cuadro(ahora) {
     }
   }
 
-  // --- los cinco que se ofrecen ---
-  // VAN POR DELANTE DEL FONDO Y NO SE APAGAN. Son la unica pista de que se
-  // puede soltar uno y agarrar otro; si se desvanecieran al aparecer la
+  // --- el carrusel ---
+  // VA POR DELANTE DEL FONDO Y NO SE APAGA. Es la unica pista de que se puede
+  // soltar un objeto y agarrar otro; si se desvaneciera al aparecer la
   // ingenieria, la pantalla diria "ya elegiste" y la exploracion se terminaria
-  // ahi. El que se esta mostrando se queda con su anillo lleno: es la
-  // confirmacion de que lo que se ve atras salio de ese objeto y no de otro.
+  // ahi. Cada ranura se dibuja con su alfa de ventana: las que estan detras
+  // del marco no se ven. El que se esta mostrando se queda con su anillo
+  // lleno: es la confirmacion de que lo que se ve atras salio de ese objeto.
   if (transicion.objetos > 0) {
     for (const blanco of blancos) {
+      if (blanco.alfa <= 0) continue;
       const esElMostrado = blanco.id === salida.carrera;
 
       dibujarObjeto(
@@ -637,7 +655,7 @@ function cuadro(ahora) {
           x: blanco.x,
           y: blanco.y,
           radio: blanco.radio,
-          alfa: transicion.objetos,
+          alfa: transicion.objetos * blanco.alfa,
         },
         banco,
         blanco.carrera.color,
@@ -650,6 +668,8 @@ function cuadro(ahora) {
           : 0;
 
       if (progresoDelAnillo > 0) {
+        ctx.save();
+        ctx.globalAlpha = transicion.objetos * blanco.alfa;
         dibujarAnilloDeProgreso(ctx, {
           x: blanco.x,
           y: blanco.y,
@@ -657,6 +677,7 @@ function cuadro(ahora) {
           progreso: progresoDelAnillo,
           color: blanco.carrera.color,
         });
+        ctx.restore();
       }
     }
   }

@@ -186,9 +186,6 @@ export const CONFIG = {
     // Que tan generoso es el blanco, en radios del objeto. Es mas facil
     // disfrutar un blanco que perdona que uno exacto que te hace errar.
     radioFactor: 1.4,
-
-    // Cuantos objetos se ofrecen. Tambien cuantas carreras se sortean.
-    cantidad: 5,
   },
 
   // Donde se ponen los objetos que se ofrecen: un anillo con todas las
@@ -207,9 +204,11 @@ export const CONFIG = {
 
     // La ventana visible, en grados, medidos como en el lienzo: 180 es a la
     // izquierda, 270 es arriba, 0 es a la derecha. Pasa por encima de la
-    // cabeza. Lo que queda fuera no se dibuja ni se puede agarrar.
-    desde: 200,
-    hasta: 340,
+    // cabeza y baja hasta la altura de los hombros a cada lado: con doce a 30
+    // grados se ven cinco o seis, como en el boceto de la catedra. Lo que
+    // queda fuera no se dibuja ni se puede agarrar.
+    desde: 190,
+    hasta: 350,
 
     // Cuanto gira el carrusel. Lento a proposito: a 8 grados por segundo la
     // vuelta entera lleva 45 s y entra un objeto nuevo cada cuatro. La mano

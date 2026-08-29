@@ -153,11 +153,10 @@ describe('contenido real', () => {
       .toBeGreaterThanOrEqual(1);
   });
 
-  // Con menos de cinco, la eleccion ofrece menos objetos de los que dice
-  // CONFIG.eleccion.cantidad y el arco queda a medio llenar.
-  it('hay carreras jugables suficientes para llenar la eleccion', async () => {
+  // Con muy pocas, el carrusel es un anillo casi vacio y girar no tiene sentido.
+  it('hay carreras jugables suficientes para que el carrusel sea un carrusel', async () => {
     const jugables = (await leer()).carreras.filter((c) => c.maite);
-    expect(jugables.length, 'faltan videos en MAITE para llenar los cinco objetos')
+    expect(jugables.length, 'faltan videos en MAITE para llenar el carrusel')
       .toBeGreaterThanOrEqual(5);
   });
 
