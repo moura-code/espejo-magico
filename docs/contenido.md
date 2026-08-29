@@ -116,9 +116,9 @@ npm run generar-fondos
 ```
 
 dibuja, con el Chrome de la máquina y sin red, el lugar donde se trabaja cada
-ingeniería para las que no tengan imagen **activa** (`fondos[0]`): el laboratorio
-de química, el puente de civil, la sala de servidores de computación. Salen de
-`espejo/escenarios.js`.
+ingeniería: el laboratorio de química, el puente de civil, la sala de servidores
+de computación. Salen de `espejo/escenarios.js` y van al candidato `.png` de
+cada carrera —el respaldo, no el activo—, y sólo si falta.
 Es un **placeholder**, no arte final: existe para poder ver el sistema entero
 funcionando antes de que haya una sola fotografía. Nunca pisa un archivo
 existente, así que para reemplazarlo alcanza con dejar la imagen real en su ruta.
