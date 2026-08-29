@@ -1,16 +1,16 @@
 {
-  "_nota": "Cada carrera aporta UN objeto a la eleccion: 'objeto' si esta declarado, si no uno sorteado de 'objetos'. Los PNG son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. 'maite' es el id de esta carrera en el proyecto de las tablets: en null, la carrera no se ofrece. 'fondo' y 'persona' son lo que se ve al elegir.",
+  "_nota": "Cada carrera aporta UN objeto al carrusel: 'objeto' si esta declarado, si no uno sorteado de 'objetos'. Los PNG son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. 'maite' es el id de esta carrera en el proyecto de las tablets: en null, la carrera no se ofrece. 'fondos' son los candidatos de fondo y el espejo muestra el primero: elegir es reordenar. Cada uno puede declarar 'lugar' {x, y, escala}, normalizado a la imagen, donde se apoya el objeto agarrado; sin lugar vale CONFIG.fondo.lugarPorDefecto. Se los mira todos juntos en herramientas/fondos.html.",
   "carreras": [
     {
       "id": "mecanica",
       "nombre": "Ingeniería Industrial Mecánica",
       "color": "#4FC3F7",
       "maite": "industrial_mecanica",
-      "fondo": "assets/fondos/mecanica.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Industrial Mecánica."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/mecanica.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/mecanica/engranaje.png",
@@ -49,11 +49,11 @@
       "nombre": "Ingeniería Eléctrica",
       "color": "#FFD23F",
       "maite": "electronica",
-      "fondo": "assets/fondos/electrica.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Eléctrica."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/electrica.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/electrica/lampara.png",
@@ -92,11 +92,11 @@
       "nombre": "Ingeniería en Computación",
       "color": "#00E5A0",
       "maite": "sistemas",
-      "fondo": "assets/fondos/computacion.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería en Computación."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/computacion.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/computacion/laptop.png",
@@ -135,11 +135,11 @@
       "nombre": "Ingeniería Físico-Matemática",
       "color": "#A78BFA",
       "maite": "fisico_matematica",
-      "fondo": "assets/fondos/fisico-matematico.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Físico-Matemática."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/fisico-matematico.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/fisico-matematico/calculadora.png",
@@ -178,11 +178,11 @@
       "nombre": "Ingeniería Civil",
       "color": "#FF8A3D",
       "maite": "civil",
-      "fondo": "assets/fondos/civil.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Civil."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/civil.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/civil/cono.png",
@@ -226,11 +226,11 @@
       "nombre": "Ingeniería Química",
       "color": "#FF5D8F",
       "maite": "quimica",
-      "fondo": "assets/fondos/quimica.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Química."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/quimica.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/quimica/frasco-reactivo.png",
@@ -269,11 +269,11 @@
       "nombre": "Ingeniería de Alimentos",
       "color": "#EF5350",
       "maite": "alimentos",
-      "fondo": "assets/fondos/alimentos.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería de Alimentos."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/alimentos.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/alimentos/manzana.png",
@@ -312,11 +312,11 @@
       "nombre": "Ingeniería de Producción",
       "color": "#26C6DA",
       "maite": "produccion",
-      "fondo": "assets/fondos/produccion.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería de Producción."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/produccion.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/produccion/cronometro.png",
@@ -355,11 +355,11 @@
       "nombre": "Ingeniería en Agrimensura",
       "color": "#8D6E63",
       "maite": "agrimensura",
-      "fondo": "assets/fondos/agrimensura.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería en Agrimensura."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/agrimensura.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/agrimensura/teodolito.png",
@@ -398,11 +398,11 @@
       "nombre": "Ingeniería en Sistemas de Comunicación",
       "color": "#E040FB",
       "maite": "comunicacion",
-      "fondo": "assets/fondos/comunicacion.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería en Sistemas de Comunicación."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/comunicacion.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/comunicacion/microfono.png",
@@ -441,11 +441,11 @@
       "nombre": "Ingeniería Forestal",
       "color": "#66BB6A",
       "maite": "forestal",
-      "fondo": "assets/fondos/forestal.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Forestal."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/forestal.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/forestal/hacha.png",
@@ -484,11 +484,11 @@
       "nombre": "Ingeniería Naval",
       "color": "#5C6BC0",
       "maite": "naval",
-      "fondo": "assets/fondos/naval.png",
-      "persona": {
-        "nombre": "Nombre y Apellido",
-        "texto": "Escribí acá dos o tres líneas sobre quién es y qué hace en Ingeniería Naval."
-      },
+      "fondos": [
+        {
+          "img": "assets/fondos/naval.png"
+        }
+      ],
       "objetos": [
         {
           "img": "assets/naval/sextante.png",

@@ -3,6 +3,7 @@ import {
   validarContenido,
   cargarContenido,
   objetoDeCarrera,
+  fondoActivo,
 } from '../../espejo/contenido.js';
 
 const carreraValida = () => ({
@@ -10,8 +11,7 @@ const carreraValida = () => ({
   nombre: 'Ingeniería Civil',
   color: '#FF8A3D',
   maite: 'civil',
-  fondo: 'assets/fondos/civil.png',
-  persona: { nombre: 'Ana Pérez', texto: 'Diseña puentes que aguantan cien años.' },
+  fondos: [{ img: 'assets/fondos/civil.png', lugar: { x: 0.2, y: 0.3, escala: 0.16 } }],
   objetos: [{ img: 'assets/civil/grua.png', escala: 0.2 }],
 });
 
@@ -48,23 +48,11 @@ describe('validarContenido', () => {
     );
   });
 
-  // La persona es lo unico que la pantalla muestra al elegir esa carrera: sin
-  // nombre o sin texto, la revelacion queda vacia y nadie se entera hasta que
-  // hay alguien sentado delante.
-  it('exige la persona con nombre y texto', () => {
-    conError({ carreras: [{ ...carreraValida(), persona: undefined }] }, 'falta "persona"');
-    conError(
-      { carreras: [{ ...carreraValida(), persona: { texto: 'algo' } }] },
-      '"persona" sin "nombre"',
-    );
-    conError(
-      { carreras: [{ ...carreraValida(), persona: { nombre: 'Ana' } }] },
-      '"persona" sin "texto"',
-    );
-    conError(
-      { carreras: [{ ...carreraValida(), persona: { nombre: '  ', texto: '  ' } }] },
-      '"persona" sin "nombre"',
-    );
+  // Las personas las muestran las tablets de MAITE; el espejo muestra la
+  // ingenieria. Un JSON viejo con `persona` no molesta y no se valida.
+  it('no exige ni valida la persona', () => {
+    sinErrores({ carreras: [{ ...carreraValida(), persona: undefined }] });
+    sinErrores({ carreras: [{ ...carreraValida(), persona: { nombre: '' } }] });
   });
 
   // maite en null significa "todavia no hay gente filmada para esta
@@ -95,11 +83,36 @@ describe('validarContenido', () => {
     );
   });
 
-  it('el fondo es opcional pero tiene que ser una ruta', () => {
-    const sinFondo = carreraValida();
-    delete sinFondo.fondo;
-    sinErrores({ carreras: [sinFondo] });
-    conError({ carreras: [{ ...carreraValida(), fondo: 42 }] }, '"fondo" tiene que ser');
+  it('los fondos son opcionales, pero cada uno necesita su ruta', () => {
+    sinErrores({ carreras: [{ ...carreraValida(), fondos: undefined }] });
+    sinErrores({ carreras: [{ ...carreraValida(), fondos: [{ img: 'a.png' }] }] });
+    conError(
+      { carreras: [{ ...carreraValida(), fondos: 'a.png' }] },
+      '"fondos" tiene que ser una lista',
+    );
+    conError({ carreras: [{ ...carreraValida(), fondos: [{ lugar: {} }] }] }, 'fondos[0] sin "img"');
+  });
+
+  // Un lugar fuera de la imagen deja el objeto fuera de la pantalla, y nadie
+  // lo nota hasta que hay alguien sentado delante.
+  it('el lugar, si esta, cae dentro de la imagen y tiene tamaño', () => {
+    const con = (lugar) => ({
+      carreras: [{ ...carreraValida(), fondos: [{ img: 'a.png', lugar }] }],
+    });
+    sinErrores(con({ x: 0, y: 1, escala: 0.1 }));
+    conError(con({ x: 1.2, y: 0.5, escala: 0.1 }), 'entre 0 y 1');
+    conError(con({ x: 0.5, y: -0.1, escala: 0.1 }), 'entre 0 y 1');
+    conError(con({ x: 0.5, y: 0.5, escala: 0 }), 'mayor que cero');
+    conError(con({ x: 0.5 }), 'entre 0 y 1');
+  });
+
+  // El campo viejo, en singular, dejaria a la carrera sin fondo en silencio.
+  it('rechaza el viejo "fondo" y dice como migrarlo', () => {
+    conError(
+      { carreras: [{ ...carreraValida(), fondo: 'assets/fondos/civil.png' }] },
+      '"fondo" ya no existe',
+    );
+    conError({ carreras: [{ ...carreraValida(), fondo: 'x' }] }, 'fondos');
   });
 
   it('valida tambien el objeto representante, si esta declarado', () => {
@@ -132,7 +145,7 @@ describe('validarContenido', () => {
   it('junta todos los problemas en vez de cortar en el primero', () => {
     const roto = {
       carreras: [
-        { ...carreraValida(), nombre: undefined, color: 'azul', objetos: [], persona: undefined },
+        { ...carreraValida(), nombre: undefined, color: 'azul', objetos: [], fondos: 'x' },
       ],
     };
     expect(validarContenido(roto).length).toBeGreaterThanOrEqual(4);
@@ -160,6 +173,19 @@ describe('objetoDeCarrera', () => {
   it('no rompe con una carrera vacia', () => {
     expect(objetoDeCarrera(null)).toBeNull();
     expect(objetoDeCarrera({ objetos: [] })).toBeNull();
+  });
+});
+
+describe('fondoActivo', () => {
+  it('es el primero de la lista: elegir es reordenar', () => {
+    const carrera = { fondos: [{ img: 'uno.png' }, { img: 'dos.png' }] };
+    expect(fondoActivo(carrera)).toEqual({ img: 'uno.png' });
+  });
+
+  it('es null sin fondos', () => {
+    expect(fondoActivo({})).toBeNull();
+    expect(fondoActivo({ fondos: [] })).toBeNull();
+    expect(fondoActivo(null)).toBeNull();
   });
 });
 
@@ -194,10 +220,18 @@ describe('cargarContenido', () => {
     expect(contenido.idsJugables()).toEqual(['civil', 'naval']);
   });
 
-  it('junta objetos, representante y fondo para precargarlos', async () => {
+  // Solo se precarga el fondo activo de cada carrera: 36 candidatos de
+  // 1080x1920 en memoria de video no tienen sentido para mostrar doce.
+  it('junta objetos, representante y el fondo activo para precargarlos', async () => {
     const contenido = await cargarContenido({
       traer: traerCon({
-        carreras: [{ ...carreraValida(), objeto: { img: 'assets/civil/casco.png', escala: 0.2 } }],
+        carreras: [
+          {
+            ...carreraValida(),
+            objeto: { img: 'assets/civil/casco.png', escala: 0.2 },
+            fondos: [{ img: 'assets/fondos/civil.png' }, { img: 'assets/fondos/civil-2.jpg' }],
+          },
+        ],
       }),
     });
     expect(contenido.todasLasImagenes()).toEqual([

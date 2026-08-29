@@ -20,6 +20,25 @@ function validarObjeto(objeto, donde, figurasValidas, errores) {
   }
 }
 
+const entreCeroYUno = (valor) => typeof valor === 'number' && valor >= 0 && valor <= 1;
+
+/**
+ * `lugar` es donde se apoya el objeto agarrado, normalizado a la imagen. Fuera
+ * de 0–1 el objeto cae fuera de la pantalla.
+ */
+function validarFondo(fondo, donde, errores) {
+  if (!fondo || !esTextoUtil(fondo.img)) errores.push(`${donde} sin "img"`);
+  if (!fondo?.lugar) return;
+
+  const { x, y, escala } = fondo.lugar;
+  if (!entreCeroYUno(x) || !entreCeroYUno(y)) {
+    errores.push(`${donde} "lugar" necesita "x" e "y" entre 0 y 1`);
+  }
+  if (typeof escala !== 'number' || escala <= 0) {
+    errores.push(`${donde} "lugar.escala" tiene que ser un numero mayor que cero`);
+  }
+}
+
 /**
  * `figurasValidas` es opcional. Cuando se pasa, se verifica que cada nombre
  * declarado exista de verdad: asi un error de tipeo aparece al arrancar y no
@@ -60,20 +79,22 @@ export function validarContenido(datos, { figurasValidas = null } = {}) {
       }
     }
 
-    if (carrera.fondo !== undefined && !esTextoUtil(carrera.fondo)) {
-      errores.push(`${donde}: "fondo" tiene que ser la ruta de una imagen`);
+    // `fondos` son los candidatos: el espejo usa el primero y elegir es
+    // reordenar. El campo viejo, en singular, se rechaza con la receta: un JSON
+    // sin migrar dejaria a la carrera sin fondo y nadie lo notaria hasta que
+    // hay alguien sentado delante.
+    if (carrera.fondo !== undefined) {
+      errores.push(
+        `${donde}: "fondo" ya no existe; es "fondos": [{ "img": "...", "lugar": {...} }]`,
+      );
     }
-
-    // La persona es lo que la pantalla muestra al elegir esta carrera: sin
-    // nombre y sin texto, la revelacion queda vacia.
-    if (!carrera.persona) {
-      errores.push(`${donde}: falta "persona"`);
-    } else {
-      if (!esTextoUtil(carrera.persona.nombre)) {
-        errores.push(`${donde}: "persona" sin "nombre"`);
-      }
-      if (!esTextoUtil(carrera.persona.texto)) {
-        errores.push(`${donde}: "persona" sin "texto"`);
+    if (carrera.fondos !== undefined) {
+      if (!Array.isArray(carrera.fondos)) {
+        errores.push(`${donde}: "fondos" tiene que ser una lista de { img, lugar }`);
+      } else {
+        carrera.fondos.forEach((fondo, j) =>
+          validarFondo(fondo, `${donde}: fondos[${j}]`, errores),
+        );
       }
     }
 
@@ -109,6 +130,14 @@ export function objetoDeCarrera(carrera, azar = Math.random) {
   return lista[Math.floor(azar() * lista.length)] ?? lista[0];
 }
 
+/**
+ * El fondo que se muestra: el primero de los candidatos. Elegir entre los
+ * candidatos es reordenar la lista en carreras.json.
+ */
+export function fondoActivo(carrera) {
+  return carrera?.fondos?.[0] ?? null;
+}
+
 export async function cargarContenido({
   ruta = '/contenido/carreras.json',
   traer = fetch,
@@ -136,11 +165,13 @@ export async function cargarContenido({
 
     obtener: (id) => porId.get(id) ?? null,
 
+    // Solo el fondo activo: los otros candidatos se miran en la herramienta,
+    // no en el espejo.
     todasLasImagenes: () =>
       datos.carreras.flatMap((carrera) => [
         ...carrera.objetos.map((objeto) => objeto.img),
         ...(carrera.objeto ? [carrera.objeto.img] : []),
-        ...(carrera.fondo ? [carrera.fondo] : []),
+        ...(fondoActivo(carrera) ? [fondoActivo(carrera).img] : []),
       ]),
   };
 }

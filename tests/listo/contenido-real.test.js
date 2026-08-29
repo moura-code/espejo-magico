@@ -33,9 +33,6 @@ const IDS_ESPERADOS = [
   'naval',
 ];
 
-// El texto que deja npm run generar-fondos y el que trae carreras.json de
-// fabrica. Mientras alguno siga puesto, el contenido no esta hecho.
-const NOMBRE_PLACEHOLDER = 'Nombre y Apellido';
 
 // MAITE puede estar adentro del proyecto o al lado, que es como suele quedar al
 // clonar los dos repos juntos. Se prueban las dos: buscando en una sola, el
@@ -89,14 +86,17 @@ describe('contenido real', () => {
     expect(faltantes).toEqual([]);
   });
 
-  // Sin fondo, la revelacion cae al color plano de la carrera. Se ve, pero es
-  // lo que se supone que reemplaza la foto de la ingenieria.
-  it('cada carrera tiene su fondo en el disco', async () => {
+  // Sin fondo, la escena cae al color plano de la carrera. Se ve, pero es lo
+  // que se supone que reemplaza la foto de la ingenieria. Y todo candidato
+  // declarado tiene que estar: la herramienta de eleccion los muestra todos.
+  it('cada carrera tiene su fondo activo, y todos los candidatos estan en el disco', async () => {
     const datos = await leer();
     const faltantes = [];
     for (const carrera of datos.carreras) {
-      if (!carrera.fondo) faltantes.push(`${carrera.id} (sin declarar)`);
-      else if (!(await existe(carrera.fondo))) faltantes.push(carrera.fondo);
+      if (!carrera.fondos?.length) faltantes.push(`${carrera.id} (sin declarar)`);
+      for (const fondo of carrera.fondos ?? []) {
+        if (!(await existe(fondo.img))) faltantes.push(fondo.img);
+      }
     }
     expect(faltantes, 'corré npm run generar-fondos o dejá las imágenes reales').toEqual([]);
   });
@@ -121,17 +121,6 @@ describe('contenido real', () => {
     }
   });
 
-  // EL QUE MAS IMPORTA DE TODO EL SEMAFORO. Los nombres y textos de fabrica se
-  // ven perfectos en pantalla: si nadie los reemplaza, el espejo del evento le
-  // muestra a cada visitante "Nombre y Apellido" y nadie lo descubre hasta que
-  // hay publico delante.
-  it('ninguna persona quedo con el texto de fabrica', async () => {
-    const datos = await leer();
-    const sinEscribir = datos.carreras
-      .filter((c) => c.persona?.nombre === NOMBRE_PLACEHOLDER || /^Escribí acá/.test(c.persona?.texto ?? ''))
-      .map((c) => c.id);
-    expect(sinEscribir, 'faltan los nombres y textos reales en contenido/carreras.json').toEqual([]);
-  });
 
   // Una carrera con `maite` apuntando a un id que del otro lado no existe se
   // elige, el POST vuelve 400 y las tablets se quedan en humo. Es exactamente
