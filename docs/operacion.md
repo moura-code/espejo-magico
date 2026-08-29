@@ -82,10 +82,10 @@ problema está en las tablets. Si dice `FALLO`, el proyecto de las tablets no es
 levantado o se cayó. Si dice `sin-par-en-maite`, esa ingeniería todavía no tiene
 gente filmada — no es una falla.
 
-**Siempre aparecen las mismas cinco ingenierías.**
-Sólo se ofrecen las que ya tienen gente filmada en las tablets. Hoy son cinco de
-las doce. Las otras siete están escritas pero en silencio hasta que tengan su
-video.
+**Falta alguna ingeniería en el carrusel.**
+Sólo se ofrecen las que tienen su par en las tablets (`maite` en
+`carreras.json`). Hoy son las doce; una carrera con `maite: null` queda escrita
+pero en silencio hasta que tenga su video.
 
 **La pantalla quedó en negro o dice "cargando…".**
 Se cerró la ventana negra del servidor. Cerrar Chrome y volver a correr
@@ -123,11 +123,11 @@ matices.
 |---|---|
 | Dibujos de cada carrera | `contenido/assets/<carrera>/` |
 | Fondos de cada ingeniería | `contenido/assets/fondos/` |
-| Nombres, colores, personas y textos | `contenido/carreras.json` |
+| Nombres, colores, objetos y fondos | `contenido/carreras.json` |
 | Duraciones y ajustes finos | `espejo/config.js` |
 
-Para corregir el nombre de una carrera, su color, o el nombre y la historia de la
-persona que se muestra, se edita `contenido/carreras.json` y listo: no hay que
+Para corregir el nombre de una carrera, su color, o cuál de sus fondos se muestra
+(el primero de `fondos`), se edita `contenido/carreras.json` y listo: no hay que
 tocar una línea de código.
 
 ---

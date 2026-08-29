@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Qué es
 
-Instalación interactiva para el stand de una Facultad de Ingeniería: un espejo (pantalla + cámara) que descansa cubierto de humo detecta el rostro del visitante, se llena de humo, y al disiparse le ofrece **cinco objetos, uno por ingeniería**. La persona **sostiene la mano** sobre uno —un anillo se llena mientras la mantiene ahí— y aparece esa ingeniería detrás suyo: su fondo recortado contra su silueta, con el nombre y la historia de alguien que la estudió.
+Instalación interactiva para el stand de una Facultad de Ingeniería: un espejo (pantalla + cámara) que descansa cubierto de humo detecta el rostro del visitante, se llena de humo, y al disiparse le ofrece **un carrusel con las doce ingenierías**, un objeto por cada una, que gira lento a su alrededor. La persona **sostiene la mano** sobre uno —el carrusel se detiene y un anillo se llena mientras la mantiene ahí— y aparece esa ingeniería detrás suyo: su fondo recortado contra su silueta, el objeto volando a su lugar dentro de ese fondo y el nombre de la ingeniería al pie.
 
-**No es una elección con punto final.** Al soltar el objeto la información se queda puesta, y agarrar otro la reemplaza: mientras esté sentada puede recorrer las cinco. Cada vez que cambia, el espejo le avisa a **MAITE** —el proyecto de las tablets, en `localhost:3000`— para que los retratos del stand muestren a la gente de esa carrera. Cuando el espejo deja de reconocer su cara, vuelve a la pantalla inicial y queda libre para el que sigue en la fila.
+**No es una elección con punto final.** Al soltar el objeto la información se queda puesta, y agarrar otro la reemplaza: mientras esté sentada puede recorrer las doce. Cada vez que cambia, el espejo le avisa a **MAITE** —el proyecto de las tablets, en `localhost:3000`— para que los retratos del stand muestren a la gente de esa carrera. Cuando el espejo deja de reconocer su cara, vuelve a la pantalla inicial y queda libre para el que sigue en la fila.
 
 Todo corre en una sola pestaña de Chrome, en una sola PC, **sin conexión a internet**.
 
@@ -16,11 +16,11 @@ Todo corre en una sola pestaña de Chrome, en una sola PC, **sin conexión a int
 |---|---|
 | `npm test` | Toda la suite (vitest, entorno node). Tiene que estar en verde siempre. Incluye `tests/integracion/sintaxis.test.js`, la única red de `main.js` —que ninguna prueba importa porque es cableado del DOM—: parsea todos los módulos con `node --check` y además verifica que **cada import apunte a un export que exista**, que es el error más fácil de cometer al refactorizar y revienta recién en el navegador. |
 | `npx vitest run tests/espejo/eleccion.test.js` | Una sola suite. `npm run test:mirar` para modo watch. |
-| `npm run listo` | Semáforo de contenido: los 73 PNG, los doce fondos, el video de humo, las doce carreras, que cada `maite` exista del otro lado y MediaPipe vendorizado. **Hoy está en rojo a propósito**: falta escribir los nombres y textos reales de las personas en `carreras.json` (están los de fábrica, "Nombre y Apellido"). Corre `tests/listo/`, excluido de `npm test` a propósito: depende de archivos que pueden faltar en una máquina de desarrollo. |
+| `npm run listo` | Semáforo de contenido: los 73 PNG, el fondo activo y todos los candidatos declarados de cada carrera, el video de humo, las doce carreras, la tipografía Muffaroo con su nota de licencia, que cada `maite` exista del otro lado y MediaPipe vendorizado. **Hoy está en verde.** Corre `tests/listo/`, excluido de `npm test` a propósito: depende de archivos que pueden faltar en una máquina de desarrollo. |
 | `npm start` | Servidor en :8080. El espejo se abre por `http://localhost:8080/espejo/espejo.html` — **nunca por IP ni por `file://`**: Chrome solo entrega la cámara en contextos seguros, y esa es la única razón por la que hay un servidor. |
 | `npm run vendorizar` | Copia MediaPipe a `vendor/` y baja los modelos. Único paso que necesita red; se corre una sola vez. |
 | `npm run generar-pngs` | Genera con el Chrome local (sin red) un PNG de respaldo desde la figura vectorial para cada objeto sin imagen; nunca pisa un PNG existente. Los objetos reales son fotos de Wikimedia Commons con el fondo recortado: autor y licencia por archivo en `contenido/assets/CREDITOS.md`. |
-| `npm run generar-fondos` | Genera con el Chrome local (sin red) el fondo de cada carrera que no tenga imagen, a partir de su escena vectorial en `espejo/escenarios.js`: el laboratorio de química, el puente de civil, la sala de servidores de computación. Nunca pisa un fondo existente. Para verlos todos juntos, `herramientas/fondos.html` desde `npm start` (hermana de `figuras.html`). |
+| `npm run generar-fondos` | Genera con el Chrome local (sin red) el fondo **activo** (`fondos[0]`) de cada carrera cuya imagen falte, a partir de su escena vectorial en `espejo/escenarios.js`: el laboratorio de química, el puente de civil, la sala de servidores de computación. Nunca pisa un fondo existente. Para ver todos los candidatos de cada carrera tal como se verían —silueta, objeto apoyado y nombre al pie—, `herramientas/fondos.html` desde `npm start` (hermana de `figuras.html`): es la página con la que la cátedra elige. |
 
 No hay build ni lint: módulos ES nativos servidos tal cual, sin bundler. Mantenerlo así. En la PC del evento (Windows) se arranca con `herramientas/arrancar.bat`.
 
@@ -41,9 +41,9 @@ Dos piezas, y una de las dos casi no hace nada:
 
 El ciclo: `ATRACCION → ENGANCHE → HUMO → EXPLORACION → CIERRE → ATRACCION`. Recibe `{puedeIniciar, hayPersona, ahora}` y devuelve `{estado, opciones, carrera, sesion, eventos}`; no dibuja, no conoce cámaras y por eso se prueba entera sin nada. Dos eventos: `{tipo: 'entra', estado}` y `{tipo: 'mira', carrera}`.
 
-Las cinco carreras que se ofrecen (`opciones`) se sortean al entrar a HUMO, mientras el humo tapa la pantalla: ese margen le sirve al espejo para tener listos los PNG y los fondos, y como todavía no se ve nada tampoco se cuenta el final. `carrera` queda en null hasta que la persona agarra algo.
+Todas las carreras jugables se ofrecen (`opciones`), en orden barajado por sesión, al entrar a HUMO, mientras el humo tapa la pantalla: ese margen le sirve al espejo para tener listos los PNG y los fondos, y como todavía no se ve nada tampoco se cuenta el final. `carrera` queda en null hasta que la persona agarra algo.
 
-**EXPLORACION NO ES UNA ELECCIÓN.** No hay un estado "ya elegiste": mientras la persona siga sentada puede recorrer las cinco. Por eso REVELACION y ESCENA dejaron de ser estados — lo que hacían (el fondo y la ficha entrando) es ahora una transición **por ingeniería**, con su propio reloj (`miraDesdeCuando`), no un tramo del ciclo.
+**EXPLORACION NO ES UNA ELECCIÓN.** No hay un estado "ya elegiste": mientras la persona siga sentada puede recorrer las doce. Por eso REVELACION y ESCENA dejaron de ser estados — lo que hacían (el fondo entrando) es ahora una transición **por ingeniería**, con su propio reloj (`miraDesdeCuando`), no un tramo del ciclo.
 
 **Lo que se muestra se le informa a la máquina desde afuera**, con `mirar(id, ahora)`: la máquina no sabe qué es una mano. Solo vale durante EXPLORACION, y **volver a pedir la misma no emite nada** — con la mano quieta el sostenido se repite cuadro a cuadro, y sin esa guarda MAITE recibiría cien avisos por segundo. La sesión se cuenta una sola vez por persona, la primera vez que mira algo, no una por objeto.
 
@@ -61,24 +61,33 @@ La regla de corte: cada archivo se tiene que poder entender y probar solo.
 - **Los detectores no reciben el `<video>`: reciben un lienzo con el recorte de lo que se ve en pantalla.** Cámara apaisada en espejo vertical significa que dos tercios del ancho de la cámara no se ven nunca; analizarlos gastaba la resolución del modelo en píxeles invisibles y era el techo real de la distancia de reconocimiento. `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué se analiza) tienen que salir siempre del mismo rectángulo — si alguno se calcula por su cuenta, los marcadores se van de la cara.
 - **La estabilidad de la sesión vive entre dos módulos, no en uno.** `CONFIG.presencia.msParaSalir` es el colchón que absorbe los huecos de la detección antes de que lleguen a la máquina; `CONFIG.tiempos.ausenciaParaCortar` es lo que la máquina aguanta después. Los dos están en tensión y ninguno se toca solo: **cortos de más** le cortan la escena a alguien que sigue sentado, **largos de más** dejan que quien se fue se lleve el espejo y el siguiente en la fila mire una escena ajena. `tests/integracion/presencia.test.js` fija las dos puntas con la CONFIG de verdad. Límite conocido y documentado: por debajo de esos ~6 s el sistema no distingue a dos personas y un relevo rápido hereda la sesión.
 
-### El sostenido (`eleccion.js` + `tablero.js`)
+### El carrusel y el sostenido (`tablero.js` + `eleccion.js`)
 
 Es la parte que más fácil se rompe al calibrar. `tests/integracion/eleccion.test.js` arma la cadena entera —pose → tablero → elección → máquina— con la CONFIG de verdad.
 
-- **Los objetos NO van en posiciones fijas de la pantalla.** A dos metros de la cámara el brazo alcanza apenas el tercio central del espejo: cinco objetos repartidos por el lienzo serían inalcanzables para quien está lejos y le taparían la cara a quien está cerca. Van en arco alrededor de los hombros, con el radio proporcional al ancho de hombros — el mejor indicador de a qué distancia está sentada. No hay ningún umbral por distancia: sale solo de la geometría.
-- **El arco se congela apenas empieza un sostenido.** Estirar el brazo mueve los hombros, y si el arco los siguiera el blanco se correría de abajo de la propia mano: elegir sería perseguir un objeto que se escapa.
+- **Los objetos NO van en posiciones fijas de la pantalla.** A dos metros de la cámara el brazo alcanza apenas el tercio central del espejo: doce objetos repartidos por el lienzo serían inalcanzables para quien está lejos y le taparían la cara a quien está cerca. Van en un **anillo** alrededor de los hombros, con el radio proporcional al ancho de hombros — el mejor indicador de a qué distancia está sentada. No hay ningún umbral por distancia: sale solo de la geometría.
+- **El anillo es un carrusel: una ranura por carrera, y solo se ve la ventana de arriba** (`tablero.desde` → `tablero.hasta`, 190°→350°, unos cinco o seis objetos). El resto está "detrás del marco", como en el boceto de la cátedra: existe, gira y no se dibuja. La fase crece a `tablero.gradosPorSegundo` (8°/s: vuelta entera en 45 s, un objeto nuevo cada ~4 s), en el sentido de las flechas del boceto: sube por la izquierda, pasa por arriba, baja por la derecha. Cada ranura tiene un `alfa` de ventana con una rampa en los bordes (`gradosDeFundido`), y **solo son blancos las ranuras enteras (`alfa === 1`)**. El radio se mide contra la ventana fija, no contra las ranuras —si no respiraría con el giro— y el tamaño del objeto se acota a la cuerda entre vecinos (`aireEntreObjetos`), porque con doce a 30° y el radio achicado por el borde dos objetos se encimaban.
+- **`congelar` detiene el ancla Y la rotación, y se pone en `progreso > 0`.** Es la pausa que pidió la cátedra: mano sobre un objeto, el anillo empieza a llenarse y el carrusel se para ahí mismo; sacar la mano antes de completar vacía el anillo (gracia + olvido, ~0,85 s como máximo) y el carrusel sigue girando. Sin congelar el ancla, estirar el brazo mueve los hombros y el blanco se corre de abajo de la propia mano; sin congelar el giro, elegir sería perseguir un objeto que se escapa. `tests/integracion/eleccion.test.js` fija las dos cosas de punta a punta.
 - **`CONFIG.eleccion.msDeGracia` no es un detalle, es lo que hace usable el gesto.** La detección de manos se pierde varios cuadros por segundo con la mano de costado o mal iluminada. Como vaciar el anillo es más rápido que llenarlo (`msDeOlvido` < `msParaElegir`, y tiene que serlo para que un roce no valga por una elección), sin gracia un 25 % de cuadros perdidos convertía 1,5 s de sostenido en **doce**. Es la misma idea que `presencia.msParaSalir` para el rostro —entrar rápido, salir lento— aplicada a la mano.
 - **`elegido` es "sobre cuál está la mano ahora, ya sostenida", no "cuál eligió la persona".** Se suelta cuando la mano se va o se mueve a otro blanco, y eso es lo que hace posible recorrer las cinco. Quien lo recibe tiene que aguantar que se repita cuadro a cuadro mientras la mano no se mueva — la máquina descarta el repetido.
-- **Los objetos NO se apagan cuando aparece el fondo**: quedan enteros y por delante. Son la única pista de que se puede soltar uno y agarrar otro; si se desvanecieran, la pantalla diría "ya elegiste" y la exploración se terminaría ahí. El que se está mostrando se queda con su anillo lleno.
-- El sorteo entrega cinco **sin repetir entre sí**: dos objetos de la misma ingeniería en la misma pantalla se leen como un error del sistema, no como una opción.
+- **El carrusel NO se apaga cuando aparece el fondo**: sigue girando por delante. Es la única pista de que se puede soltar un objeto y agarrar otro; si se desvaneciera, la pantalla diría "ya elegiste" y la exploración se terminaría ahí. **La ranura del objeto mostrado queda vacía con su anillo lleno**: el objeto se fue a vivir al fondo, y la marca dice cuál fue. Sigue siendo blanco: la mano quieta encima sostiene la pausa y no dispara nada.
+- El orden del anillo lo da `sorteo.js`, barajado por sesión y sin repetir carrera: dos visitantes seguidos no ven el anillo igual, y `opciones[0]` —lo que muestra la red de la fila— nunca repite el de la sesión anterior.
+
+### El objeto en su lugar (`vuelo.js`)
+
+Al completarse el sostenido, el objeto **vuela de su ranura a su lugar en el fondo** (`tiempos.vuelo`, 1 s, con easing e interpolando el tamaño). Cada fondo declara `lugar: {x, y, escala}` **normalizado a la imagen**, no a la pantalla: el fondo se dibuja cubriendo y recortado, y un punto normalizado a la imagen cae siempre en el mismo sitio de la escena en cualquier resolución. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`. El origen se captura en el evento `mira` (la ranura en ese cuadro), porque el carrusel sigue girando mientras el objeto vuela; sin ranura a la vista —la red de la fila, una carrera forzada por teclado— el objeto crece en su lugar desde cero. **Mientras vuela va por delante de todo; al aterrizar pasa detrás de la persona recortada**, con un halo del color de la carrera debajo (`fondo.haloDelLugar`) y una flotación suave (`fondo.flotar`): integrado a la escena, y si la persona se inclina sobre ese punto lo tapa, que es lo correcto. `calcularTransicionEscena` lleva la capa `vuelo` junto a `fondo` y `contenido`.
 
 ### La tipografía
 
-Los títulos van en **Germania One**, la misma que usan las tablets de MAITE
-(`--font-display` en su `style.css`). No es decoración: las dos piezas están a
-dos metros una de otra en el stand y tienen que leerse como una sola
-instalación. El archivo y su licencia OFL viven en
-`contenido/assets/tipografias/`, y `npm run listo` los exige.
+Los títulos van en **Muffaroo**, la que muestran de verdad las tablets de MAITE:
+su `style.css` base declara Germania One como `--font-display`, pero los cuatro
+temas (`temas/tablet-*.css`) la pisan con Muffaroo, y el espejo copiaba la base
+que ninguna tablet usa. No es decoración: las dos piezas están a dos metros una
+de otra en el stand y tienen que leerse como una sola instalación. El archivo y
+su nota de licencia viven en `contenido/assets/tipografias/`, y `npm run listo`
+los exige. **Ojo con la licencia**: el TTF se declara "free for personal use
+only" (Imagex, 2010); un stand de facultad no es uso personal, la nota lo dice y
+la decisión es de la cátedra, no del código.
 
 Dos cosas que se rompen solas si no se saben:
 
@@ -86,13 +95,14 @@ Dos cosas que se rompen solas si no se saben:
   todavía no cargó no la pide: cae en silencio a la del sistema y sigue como si
   nada. Por eso `main.js` espera con `document.fonts.load()` antes del primer
   cuadro.
-- **Germania One trae una sola variante (Regular, 400).** Pedirle `700` da un
+- **Muffaroo trae una sola variante (Regular, 400).** Pedirle `700` da un
   falso-bold que le arruina las formas. Todo lo que la use va en `PESO_TITULO`, y
-  `tests/espejo/escena.test.js` lo vigila.
+  `tests/espejo/escena.test.js` lo vigila. Es condensada, en versales y sin
+  serifas: el respaldo es una sans condensada, no Georgia.
 
-La división es la de MAITE: display para los nombres, sans del sistema para el
-texto de cada persona y para la consigna del sostenido, que es la única
-instrucción de la experiencia y tiene que entenderse de un vistazo.
+La división es la de MAITE: display para el nombre de la ingeniería (al pie, en
+una o dos líneas), sans del sistema para la consigna del sostenido, que es la
+única instrucción de la experiencia y tiene que entenderse de un vistazo.
 
 ### El fondo detrás de la persona
 
@@ -110,8 +120,8 @@ La máscara ES la imagen mientras hay fondo, así que la pose sube a `fpsConFond
 - **Un solo puente saliente, y opcional.** El espejo le avisa a MAITE cada vez que cambia la ingeniería que muestra (`POST localhost:3000/api/carrera`) y cuándo terminó la sesión (`POST /api/humo`). Una persona que recorre tres ingenierías dispara tres avisos; agarrar dos veces el mismo objeto no dispara ninguno de más. Va y no vuelve: el espejo no lee nada de MAITE, no espera su respuesta y no comparte estado con él. **La regla que no se negocia: esto nunca puede romper el espejo.** Si MAITE no está levantado, tarda o contesta cualquier cosa, la experiencia sigue igual y lo único que queda es un `console.warn`. Por eso `maite.js` no tiene reintentos, no tiene cola, corta a los 1,5 s y nunca lanza. Se apaga entero con `CONFIG.maite.activo`.
 - **Los ids de las carreras no coinciden entre los dos proyectos** y se resuelve con dato, no con código: cada carrera declara su `maite` en `carreras.json` (`computacion` → `sistemas`, `electrica` → `electronica`, `fisico-matematico` → `fisico_matematica`). `maite: null` significa "todavía no hay gente filmada": la carrera queda escrita y **no se ofrece**. **Hoy están las doce mapeadas**, contra el catálogo de 14 que MAITE tiene desde el 26 de agosto de 2026. Ojo con esto: que MAITE conozca un id no quiere decir que tenga el video — hoy sólo `sistemas` tiene archivos de verdad en `public/videos/`, y las otras trece apuntan a `<carrera>/persona-1..4.mp4` que todavía no existen. El espejo no se entera ni le importa: muestra la ingeniería igual y lo único que no pasa es que las tablets acompañen.
 - **Todo número ajustable vive en `espejo/config.js`.** Ningún otro archivo debería tener constantes mágicas: lo que se calibra el día del evento, se calibra ahí.
-- **Todo lo que distingue una carrera vive en `contenido/carreras.json`** (nombre, color, objetos, `fondo`, `persona`, `maite`, y `objeto` opcional). Agregar o cambiar una carrera no toca una línea de código, pero sí necesita su tecla: la fila de números en `operacion.js` tiene que crecer con el catálogo, y `tests/integracion/atajos.test.js` lo verifica. Orden de dibujo de un objeto: PNG → figura vectorial (`espejo/figuras.js`) → círculo del color. El del fondo es el mismo: PNG → escena vectorial (`espejo/escenarios.js`) → color plano de la carrera.
-- **Cada carrera aporta UN objeto a lo que se ofrece**: `objeto` si está declarado (el representante fijo, para las carreras donde un solo PNG se entiende de lejos), si no uno sorteado de `objetos` — así dos visitantes seguidos no ven exactamente la misma pantalla.
+- **Todo lo que distingue una carrera vive en `contenido/carreras.json`** (nombre, color, objetos, `fondos` —los candidatos, el primero es el activo y cada uno puede declarar el `lugar` del objeto—, `maite`, y `objeto` opcional). **Ya no lleva `persona`**: las personas las muestran las tablets de MAITE, el espejo muestra la ingeniería. Agregar o cambiar una carrera no toca una línea de código, pero sí necesita su tecla: la fila de números en `operacion.js` tiene que crecer con el catálogo, y `tests/integracion/atajos.test.js` lo verifica. Orden de dibujo de un objeto: PNG → figura vectorial (`espejo/figuras.js`) → círculo del color. El del fondo es el mismo: PNG → escena vectorial (`espejo/escenarios.js`) → color plano de la carrera.
+- **Cada carrera aporta UN objeto al carrusel**: `objeto` si está declarado (el representante fijo, para las carreras donde un solo PNG se entiende de lejos), si no uno sorteado de `objetos` — así dos visitantes seguidos no ven exactamente la misma pantalla.
 - `CONFIG.avance.manual` está en `false` (modo evento, automático). Para desarrollar sin pelear con el reloj: tecla `A` en vivo, o ponerlo en `true` — mientras esté puesto, el espejo lo avisa en pantalla. En manual la red de la fila tampoco se dispara sola, pero **agarrar con la mano sigue funcionando**: es justamente el gesto que se prueba.
 - Privacidad: la imagen de la cámara nunca sale de la PC — no se graba, no se guarda, no se transmite.
 

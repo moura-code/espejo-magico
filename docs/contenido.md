@@ -18,11 +18,10 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
   "nombre": "Ingeniería en Computación",
   "color": "#00E5A0",
   "maite": "sistemas",
-  "fondo": "assets/fondos/computacion.png",
-  "persona": {
-    "nombre": "Maite Martínez",
-    "texto": "Diseña los sistemas que hacen que el resto funcione."
-  },
+  "fondos": [
+    { "img": "assets/fondos/computacion.png" },
+    { "img": "assets/fondos/computacion-2.jpg", "lugar": { "x": 0.2, "y": 0.28, "escala": 0.15 } }
+  ],
   "objeto": { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2 },
   "objetos": [
     { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2 },
@@ -38,30 +37,20 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
 | Campo | Tipo | Descripción |
 |---|---|---|
 | `id` | `string` | Identificador único sin acentos ni espacios (`mecanica`, `forestal`, `quimica`). |
-| `nombre` | `string` | Nombre oficial completo. Se ve arriba de todo mientras se muestra la carrera. |
+| `nombre` | `string` | Nombre oficial completo. Se ve al pie, en una o dos líneas, mientras se muestra la carrera. |
 | `color` | `string` | Color hexadecimal distintivo (`#rrggbb`). Se usa en el nombre, el anillo de progreso y como acento de la escena de respaldo. |
 | `maite` | `string \| null` | El id que **esta misma carrera tiene en el proyecto MAITE**. Ver §7. |
-| `fondo` | `string` | Ruta a la imagen que aparece detrás de la persona mientras se muestra esta carrera. |
-| `persona` | `objeto` | `{ nombre, texto }`: quién es la persona que se muestra y qué cuenta de ella. Los dos son obligatorios. |
-| `objeto` | `objeto` | **Opcional.** El objeto que representa a esta carrera entre los cinco que se ofrecen. Si no está, se sortea uno de `objetos`. |
+| `fondos` | `array` | Los fondos candidatos: `{ img, lugar? }`. El espejo muestra **el primero**; elegir es reordenar. `lugar` es dónde se apoya el objeto, normalizado a la imagen. Ver §3. |
+| `objeto` | `objeto` | **Opcional.** El objeto que representa a esta carrera en el carrusel. Si no está, se sortea uno de `objetos`. |
 | `objetos` | `array` | Lista de 6 o más objetos característicos. De acá sale el representante cuando `objeto` no está declarado. |
 
-### La persona
-
-Es lo único que la pantalla muestra del contenido humano: el nombre en el color
-de la carrera y, debajo, dos o tres renglones sobre quién es. El texto se parte
-solo en líneas y el nombre se achica si no entra, así que no hay un largo máximo
-duro — pero un texto de más de tres renglones ya no se alcanza a leer en los
-segundos que alguien está sentado.
-
-De fábrica cada carrera trae `"Nombre y Apellido"` y un texto de relleno.
-**`npm run listo` se queda en rojo mientras eso siga puesto**, a propósito: los
-placeholders se ven perfectos en pantalla y sin esa red llegan al evento.
+No hay `persona`: las personas de cada ingeniería las muestran las tablets de
+MAITE, y el espejo muestra la ingeniería.
 
 ### Los objetos
 
-Cada carrera aporta **un solo objeto** a lo que se ofrece, y esos son los cinco que la
-persona ve flotando en arco a su alrededor.
+Cada carrera aporta **un solo objeto** al carrusel que gira alrededor de la
+persona, y es el que vuela a su lugar en el fondo cuando lo agarra.
 
 - **`img`**: ruta al PNG con fondo transparente (`assets/mecanica/engranaje.png`).
 - **`figura`**: nombre de la figura vectorial de reserva en `espejo/figuras.js`.
@@ -79,27 +68,64 @@ lista y dos visitantes seguidos no ven exactamente la misma pantalla.
 
 El fondo aparece **detrás de la persona**: el espejo recorta su silueta con la
 segmentación de MediaPipe y la vuelve a dibujar encima, así queda dentro de su
-ingeniería en vez de tapada por ella.
+ingeniería en vez de tapada por ella. Y el objeto con el que agarró la carrera
+**vuela a su lugar dentro del fondo** y se queda ahí, flotando apenas, detrás de
+la persona.
 
-Por eso conviene que sean imágenes **oscuras y sin mucho detalle en la mitad
-inferior**, que es donde va el nombre y el texto en blanco.
+Por eso conviene que sean imágenes **oscuras, con el centro y la mitad inferior
+tranquilos** —ahí van la persona y el nombre en letra grande— y con una zona
+libre a un costado para apoyar el objeto.
+
+### Candidatos y `lugar`
+
+Cada carrera declara `fondos`, una lista de candidatos. **El espejo muestra el
+primero; elegir es reordenar.** Cada candidato puede declarar `lugar`, dónde se
+apoya el objeto, **normalizado a la imagen** (`x` e `y` de 0 a 1, `escala` es el
+diámetro como fracción del ancho de la imagen): como el fondo se dibuja cubriendo
+la pantalla y recortado, un punto normalizado a la imagen cae siempre en el
+mismo sitio de la escena. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`.
+
+```json
+"fondos": [
+  { "img": "assets/fondos/quimica.png" },
+  { "img": "assets/fondos/quimica-2.jpg", "lugar": { "x": 0.2, "y": 0.28, "escala": 0.15 } },
+  { "img": "assets/fondos/quimica-3.jpg", "lugar": { "x": 0.78, "y": 0.33, "escala": 0.16 } }
+]
+```
+
+Para elegir mirando, y no imaginando:
+
+```
+http://localhost:8080/herramientas/fondos.html
+```
+
+muestra los candidatos de cada carrera **tal como se verían**: la imagen, una
+silueta donde va la persona, el halo y el objeto apoyados en su lugar y el
+nombre al pie, con las mismas funciones que usa el espejo.
+
+Los candidatos `-2` y `-3` son fotografías de Wikimedia Commons con licencia
+libre, **recortadas a 9:16, escaladas a 1080×1920 y oscurecidas** para que la
+persona recortada y el nombre se lean encima; cada una lleva su obra de origen,
+autoría y licencia en `assets/CREDITOS.md`. Las derivadas conservan la licencia
+de origen y quedan versionadas: el stand no necesita red.
+
+### El respaldo vectorial
 
 ```bash
 npm run generar-fondos
 ```
 
 dibuja, con el Chrome de la máquina y sin red, el lugar donde se trabaja cada
-ingeniería para las que no tengan imagen: el laboratorio de química, el puente de
-civil, la sala de servidores de computación. Salen de `espejo/escenarios.js`, y
-`herramientas/fondos.html` las muestra las doce juntas.
+ingeniería para las que no tengan imagen **activa** (`fondos[0]`): el laboratorio
+de química, el puente de civil, la sala de servidores de computación. Salen de
+`espejo/escenarios.js`.
 Es un **placeholder**, no arte final: existe para poder ver el sistema entero
 funcionando antes de que haya una sola fotografía. Nunca pisa un archivo
 existente, así que para reemplazarlo alcanza con dejar la imagen real en su ruta.
 
 Si el PNG falta, el espejo dibuja la escena vectorial en vivo; si tampoco hay
-escena, cae al color plano de la carrera. Se ve, y el nombre y el texto siguen
-entrando: una carrera sin fondo no rompe la
-escena.
+escena, cae al color plano de la carrera. Se ve, y el nombre sigue entrando: una
+carrera sin fondo no rompe la escena.
 
 ---
 
@@ -131,7 +157,7 @@ http://localhost:8080/herramientas/figuras.html
 
 El orden de preferencia al dibujar es **PNG → figura → círculo del color**. Un
 objeto que no se dibuja es una opción que no se puede agarrar: la persona ve un
-hueco en el arco y no entiende por qué ahí no pasa nada.
+hueco en el carrusel y no entiende por qué ahí no pasa nada.
 
 ---
 
@@ -150,22 +176,25 @@ silenciosa el día del evento no la mira nadie.
 
 ## 6. La tipografía (`assets/tipografias/`)
 
-Los nombres —el de la ingeniería y el de la persona— se dibujan en **Germania
-One**, la misma tipografía que usan las tablets de MAITE. El espejo y los
-retratos están a dos metros uno del otro en el stand: comparten la letra para
-que se lean como una sola instalación.
+El nombre de la ingeniería se dibuja en **Muffaroo**, la tipografía que muestran
+de verdad las tablets de MAITE: su `style.css` base declara Germania One, pero
+los cuatro temas de tablet (`temas/tablet-*.css`) la pisan con Muffaroo. El
+espejo y los retratos están a dos metros uno del otro en el stand: comparten la
+letra para que se lean como una sola instalación.
 
-El texto de cada persona y la consigna del sostenido van en la sans del sistema.
-No es una concesión: a tamaño de párrafo la display cuesta leerla, y son segundos
-los que alguien está sentado. MAITE hace la misma división.
+La consigna del sostenido va en la sans del sistema. No es una concesión: es la
+única instrucción de la experiencia y tiene que entenderse de un vistazo. MAITE
+hace la misma división.
 
 Para reemplazarla hay que tocar tres lugares: el archivo en
 `contenido/assets/tipografias/`, el `@font-face` de `espejo/espejo.html` y las
-constantes `FAMILIA_TITULO` / `FAMILIA_TEXTO` de `espejo/escena.js`. Si la nueva
+constantes `TITULO_SOLO` / `FAMILIA_TITULO` de `espejo/escena.js`. Si la nueva
 tiene negrita de verdad, ahí se puede subir `PESO_TITULO`.
 
-La licencia (SIL OFL) viaja al lado del archivo, que es lo que la licencia exige,
-y está acreditada en `contenido/assets/CREDITOS.md`.
+**La licencia.** El TTF de Muffaroo declara "Copyright Imagex © 2010 — Free for
+personal use ONLY". Un stand de facultad no es uso personal: la nota viaja al
+lado del archivo (`Muffaroo-LEEME.txt`), `npm run listo` la exige, y la decisión
+de comprar la licencia comercial o cambiar la letra es de la cátedra.
 
 ---
 
@@ -200,14 +229,14 @@ de 2026 (antes eran cinco), y las doce del espejo tienen su par ahí.
 > mostraban gente de otra ingeniería sin que nada fallara.
 
 **`maite: null` significa "todavía no hay gente filmada para esta ingeniería"**:
-la carrera queda escrita en el catálogo pero **no se ofrece** entre los cinco. Es
+la carrera queda escrita en el catálogo pero **no se ofrece** en el carrusel. Es
 deliberado — si se ofreciera, alguien la agarraría y las tablets se quedarían en
 humo, que se lee como que el sistema se rompió. Hoy no lo usa ninguna.
 
 > **Que MAITE conozca un id no quiere decir que tenga el video.** Hoy sólo
 > `sistemas` tiene archivos de verdad en `public/videos/`; las otras trece
 > apuntan a `<carrera>/persona-1..4.mp4`, que todavía no están. El espejo no se
-> entera ni le importa: muestra la ingeniería igual —fondo, nombre e historia— y
+> entera ni le importa: muestra la ingeniería igual —fondo, objeto y nombre— y
 > lo único que no pasa es que las tablets acompañen.
 
 Para sumar una carrera nueva: filmar a su gente, darla de alta en
@@ -221,11 +250,12 @@ Para sumar una carrera nueva: filmar a su gente, darla de alta en
 npm run listo
 ```
 
-Verifica que estén los PNG de objetos declarados, los doce fondos, el video de
-humo, las doce carreras con sus colores distintos y al menos seis objetos cada
-una, que los nombres y textos de las personas estén escritos de verdad, que cada
-`maite` declarado exista del otro lado, que haya al menos cinco carreras jugables
-para llenar los cinco lugares, y que MediaPipe esté vendorizado.
+Verifica que estén los PNG de objetos declarados, el fondo activo y todos los
+candidatos declarados de cada carrera, el video de humo, las doce carreras con
+sus colores distintos y al menos seis objetos cada una, la tipografía Muffaroo
+con su nota de licencia, que cada `maite` declarado exista del otro lado, que
+haya al menos cinco carreras jugables para que el carrusel sea un carrusel, y
+que MediaPipe esté vendorizado.
 
 El cotejo contra MAITE busca su `data/carreras.json` en `MAITE/` (dentro del
 proyecto) y en `../maite/` (al lado, que es como suelen quedar los dos repos al

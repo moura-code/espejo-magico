@@ -4,13 +4,14 @@ Instalación interactiva para el stand de una Facultad de Ingeniería.
 
 Un visitante se sienta frente a una pantalla enmarcada como espejo, que descansa
 cubierta de humo y de nubes. Una cámara detecta su rostro y entra un humo que lo
-cubre todo; cuando se disipa, quedan flotando alrededor suyo **cinco objetos, uno
-por ingeniería**. Sostiene la mano sobre el que quiera —un anillo se va llenando
-mientras la mantiene ahí— y aparece esa ingeniería detrás suyo, con el nombre y
-la historia de alguien que la estudió.
+cubre todo; cuando se disipa, queda girando despacio alrededor suyo **un carrusel
+con las doce ingenierías, un objeto por cada una**. Sostiene la mano sobre el que
+quiera —el carrusel se detiene y un anillo se va llenando mientras la mantiene
+ahí— y aparece esa ingeniería detrás suyo: su fondo, el objeto volando a su
+lugar dentro de ese fondo, y el nombre de la ingeniería al pie.
 
 **No termina ahí.** Al bajar el brazo la información se queda puesta, y agarrar
-otro objeto la reemplaza: los cinco siguen en pantalla y puede recorrerlas todas.
+otro objeto la reemplaza: el carrusel sigue girando y puede recorrerlas todas.
 Cada vez que cambia, el espejo le avisa a **MAITE**, el proyecto de las tablets,
 para que los retratos del stand muestren a la gente de esa carrera.
 
@@ -97,14 +98,14 @@ docs/        arquitectura, contenido, despliegue y guía de operación del stand
 Dentro de `espejo/`, la regla de corte es que cada archivo se pueda entender y
 probar solo: `rostro.js` no sabe qué es una carrera, `maquina-estados.js` no
 dibuja, `escena.js` no sabe que existe MediaPipe, `eleccion.js` no sabe qué es
-una ingeniería y `tablero.js` sólo conoce arcos y círculos. Por eso la máquina de
+una ingeniería y `tablero.js` sólo conoce anillos y círculos. Por eso la máquina de
 estados y el sostenido se prueban enteros sin cámara ni pantalla. `main.js` es
 sólo cableado: decide qué módulo habla con cuál y en qué orden se dibuja.
 
 **Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:**
-nombre, color, objetos, fondo, la persona que se muestra al agarrarla y el id que
-esa carrera tiene en MAITE. Agregar o cambiar una carrera no toca una línea de
-código.
+nombre, color, objetos, los fondos candidatos con el lugar donde se apoya el
+objeto, y el id que esa carrera tiene en MAITE. Agregar o cambiar una carrera no
+toca una línea de código. Las personas no están acá: las muestran las tablets.
 
 Los objetos son fotografías reales con el fondo recortado; las que salieron de
 Wikimedia Commons llevan autor, origen y licencia en
@@ -113,7 +114,10 @@ figura → círculo del color**: si un PNG falta, `npm run generar-pngs` rasteri
 la figura vectorial de respaldo (`espejo/figuras.js`) sin pisar los existentes,
 y los definitivos de diseño reemplazan a cualquiera en la misma ruta, sin tocar
 código. Lo mismo para los fondos, con `npm run generar-fondos`, que dibuja la escena de
-cada ingeniería (`espejo/escenarios.js`).
+cada ingeniería (`espejo/escenarios.js`). Cada carrera puede declarar hasta tres
+fondos candidatos; `herramientas/fondos.html` los muestra tal como se verían —con
+la persona delante, el objeto apoyado en su lugar y el nombre al pie— para
+elegir mirando.
 
 ### El puente a MAITE
 

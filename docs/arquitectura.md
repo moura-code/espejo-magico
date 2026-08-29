@@ -78,16 +78,17 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `pose.js` | Extrae hombros como respaldo de posición y la máscara de segmentación de la silueta. |
 | `suavizado.js` | Filtros exponenciales (`crearFiltroExponencial`, `crearFiltroRostro`, `crearFiltroDeManos`) para eliminar el temblor de los landmarks, más la histéresis de presencia (`crearHisteresis`). |
 | `eleccion.js` | El **sostenido**: entra dónde están las manos y dónde están los blancos, sale sobre cuál está la mano, cuánto lleva y si ya alcanzó. No sabe qué es una carrera ni dibuja el anillo. |
-| `tablero.js` | Dónde se para cada objeto: un arco anclado a los hombros, con el radio proporcional al ancho de hombros. Sólo geometría. |
+| `tablero.js` | Dónde se para cada objeto: un anillo con todas las carreras, anclado a los hombros y con el radio proporcional al ancho de hombros, que gira despacio y del que sólo se ve la ventana de arriba. Sólo geometría. |
+| `vuelo.js` | El viaje del objeto agarrado desde su ranura hasta su lugar en el fondo (normalizado a la imagen) y su flotación una vez apoyado. Sólo números. |
 | `silueta.js` | Traduce la máscara de MediaPipe —un byte de confianza por píxel, **sin canal alfa**— a una imagen blanca cuyo alfa es esa confianza, que es lo único que el lienzo puede usar para recortar. |
 | `maite.js` | El único puente saliente. Va y no vuelve, nunca lanza, no reintenta y corta a los 1,5 s. |
 | `humo.js` | Cuánto humo hay en cada momento (curva pura) y la carga del video. Dibujarlo es tarea de `escena.js`. |
-| `sorteo.js` | Gestor de sorteo aleatorio con **bolsa barajada sin repetición contigua**. `siguientes(n)` entrega las cinco que se ofrecen, sin repetir entre sí. |
+| `sorteo.js` | Gestor de sorteo aleatorio con **bolsa barajada sin repetición contigua**. `siguientes(n)` entrega el orden del carrusel: todas las jugables, barajadas por sesión. |
 | `niebla.js` | Animación de las nubes que cubren el espejo durante el reposo. Se apartan **hacia los costados**, no en círculo: cada jirón queda fijado a su mitad de pantalla al crearse y viaja hasta el borde exterior. La transición tiene una sola magnitud (`apertura`). |
 | `figuras.js` | Sistema de fallback vectorial en Canvas 2D (36 figuras dibujadas por código para cuando no existen archivos PNG). |
 | `imagenes.js` | Gestor y precargador de imágenes con fallback elegante (objetos y fondos). |
 | `contenido.js` | Carga y valida `contenido/carreras.json` al inicio, y decide qué objeto representa a cada carrera. |
-| `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Fondo de la carrera → Persona recortada → Objetos y anillo → Señal de manos → Ficha de la persona → Humo → Niebla). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza). |
+| `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Fondo de la carrera → Objeto apoyado → Persona recortada → Carrusel y anillo → Objeto en vuelo → Señal de manos → Nombre al pie → Humo → Niebla). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza). |
 | `operacion.js` | Atajos de teclado (incluida `TECLAS_CARRERA`, la fila de números completa: una tecla por carrera), panel HUD de métricas/FPS y recarga periódica de mantenimiento. |
 
 ---
@@ -102,8 +103,8 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
       ▼          rostro continuo                    3 s            │
 ┌───────────┐        2 s        ┌───────────┐                ┌───────────┐
 │ ATRACCION ├──────────────────►│ ENGANCHE  ├───────────────►│   HUMO    │
-└─────▲─────┘                   └───────────┘  se sortean    └─────┬─────┘
-      │                                        las cinco           │
+└─────▲─────┘                   └───────────┘  se barajan    └─────┬─────┘
+      │                                        las doce            │
       │ 3 s                                                        ▼
 ┌─────┴─────┐  sin rostro 4 s   ┌─────────────────────────────────────────┐
 │  CIERRE   │◄──────────────────┤             EXPLORACION                 │
@@ -118,7 +119,7 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
 
 **EXPLORACION no es una elección.** No hay estado "ya elegiste": agarrar un
 objeto muestra su ingeniería, soltarlo la deja puesta, agarrar otro la
-reemplaza. Lo que antes hacían `REVELACION` y `ESCENA` —el fondo y la ficha
+reemplaza. Lo que antes hacían `REVELACION` y `ESCENA` —el fondo y el nombre
 entrando— es ahora una transición **por ingeniería**, con su propio reloj
 (`miraDesdeCuando`), no un tramo del ciclo.
 
@@ -156,8 +157,8 @@ falta.
 
 1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Nadie sentado. Al entrar se le pide a MAITE que vuelva a su humo.
 2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado.
-3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se sortean las cinco carreras** que se van a ofrecer. Ese margen le sirve al espejo para tener listos los PNG y los fondos, y como todavía no se ve nada, no se cuenta el final.
-4. **`EXPLORACION`**: El humo se disipa y quedan los cinco objetos en arco alrededor de los hombros. La persona sostiene la mano sobre uno, un anillo se llena y aparece esa ingeniería: fondo, nombre y ficha. Al soltar, la información **se queda puesta**; agarrar otro objeto la reemplaza, y los cinco siguen en pantalla por delante del fondo. **No tiene duración propia:** dura mientras siga sentada. `tiempos.eleccionMaxima` (30 s) es la red de seguridad de la fila — si nadie agarró nada, muestra la primera de la lista, que como viene barajada ya es un sorteo, y la exploración sigue.
+3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Ese margen le sirve al espejo para tener listos los PNG y los fondos, y como todavía no se ve nada, no se cuenta el final.
+4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. Al soltar, la información **se queda puesta**; agarrar otro objeto la reemplaza, y el carrusel sigue girando por delante del fondo. **No tiene duración propia:** dura mientras siga sentada. `tiempos.eleccionMaxima` (30 s) es la red de seguridad de la fila — si nadie agarró nada, muestra la primera de la lista, que como viene barajada ya es un sorteo, y la exploración sigue.
 5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
 **Lo que se muestra se le informa a la máquina desde afuera**, con
@@ -203,24 +204,41 @@ superpuestos gana el más cercano al centro, no el primero de la lista.
 ### 5.2. El tablero (`espejo/tablero.js`)
 
 **Los objetos NO van en posiciones fijas de la pantalla.** A dos metros de la
-cámara el brazo alcanza apenas el tercio central del espejo: cinco objetos
+cámara el brazo alcanza apenas el tercio central del espejo: doce objetos
 repartidos por el lienzo serían inalcanzables para quien está lejos y le taparían
 la cara a quien está cerca.
 
-Van en un arco alrededor de los hombros (`desde` 200°, `hasta` 340°, por encima
-de la cabeza), con el radio proporcional al **ancho de hombros** — el mejor
-indicador de a qué distancia está sentada. Más lejos: todo más chico y más junto.
-Más cerca: todo más grande y más abierto. **No hay ningún umbral por distancia**:
-sale solo de la geometría. Sin pose, los hombros se deducen del rostro.
+Van en un **anillo** alrededor de los hombros, con el radio proporcional al
+**ancho de hombros** — el mejor indicador de a qué distancia está sentada. Más
+lejos: todo más chico y más junto. Más cerca: todo más grande y más abierto. **No
+hay ningún umbral por distancia**: sale solo de la geometría. Sin pose, los
+hombros se deducen del rostro.
 
-Dos detalles que no son decorativos:
+**El anillo es un carrusel.** Tiene una ranura por carrera, separadas `360°/n`,
+y gira despacio (`gradosPorSegundo`, 8°/s: vuelta entera en 45 s) en el sentido
+de las flechas del boceto de la cátedra: sube por la izquierda, pasa por arriba,
+baja por la derecha. De él sólo se ve la **ventana** (`desde` 190°, `hasta`
+350°, por encima de la cabeza): cinco o seis objetos. El resto está "detrás del
+marco": existe, gira y no se dibuja. Cada ranura sale con un `alfa` de ventana
+—0 afuera, 1 adentro, una rampa de `gradosDeFundido` en cada borde— y **sólo son
+blancos las ranuras enteras** (`alfa === 1`).
 
-- **El arco se achica para entrar en el lienzo, no se recortan los puntos de a
-  uno.** Recortar cada punto contra su borde deforma el arco y amontona dos
+Cuatro detalles que no son decorativos:
+
+- **El anillo se achica para entrar en el lienzo, no se recortan los puntos de
+  a uno.** Recortar cada punto contra su borde deforma el anillo y amontona dos
   objetos en la misma esquina, que es justo lo que hace imposible elegir.
-- **El arco se congela apenas empieza un sostenido.** Estirar el brazo mueve los
-  hombros, y si el arco los siguiera, el blanco se correría de abajo de la propia
-  mano: elegir sería perseguir un objeto que se escapa.
+- **El radio se mide contra la ventana fija, no contra las ranuras.** Si
+  dependiera de dónde está cada objeto, respiraría cuadro a cuadro con el giro.
+- **El tamaño del objeto se acota a la cuerda entre vecinos**
+  (`aireEntreObjetos`). Con doce a 30° y el radio achicado por el borde, dos
+  objetos se encimaban y el de atrás quedaba inelegible.
+- **`congelar` detiene el ancla y la rotación, y se pone apenas empieza un
+  sostenido.** Estirar el brazo mueve los hombros, y si el anillo los siguiera,
+  el blanco se correría de abajo de la propia mano; y si siguiera girando,
+  elegir sería perseguir un objeto que se escapa. Es la pausa del carrusel que
+  pidió la cátedra: sacar la mano antes de completar vacía el anillo y el
+  carrusel sigue.
 
 ### 5.3. El fondo detrás de la persona (`espejo/silueta.js`)
 
@@ -268,6 +286,24 @@ Para garantizar la solidez de la instalación, el dibujo de un objeto sigue una 
 
 ---
 
+### 5.6. El objeto en su lugar (`espejo/vuelo.js`)
+
+Al completarse el sostenido, el objeto **vuela de su ranura a su lugar en el
+fondo** (`tiempos.vuelo`, 1 s, con easing e interpolando el tamaño) y se queda
+ahí, flotando apenas (`fondo.flotar`), sobre un halo del color de la carrera
+(`fondo.haloDelLugar`). Cada fondo declara `lugar: {x, y, escala}` **normalizado
+a la imagen**: como el fondo se dibuja cubriendo la pantalla y recortado, un
+punto normalizado a la imagen cae siempre en el mismo sitio de la escena, en
+cualquier resolución. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`.
+
+El origen se captura en el evento `mira` —la ranura en ese cuadro— porque el
+carrusel sigue girando mientras el objeto vuela. Sin ranura a la vista (la red
+de la fila, una carrera forzada por teclado) el objeto crece en su lugar desde
+cero. **Mientras vuela va por delante de todo; al aterrizar pasa detrás de la
+persona recortada**: integrado a la escena, y si la persona se inclina sobre ese
+punto lo tapa, que es lo correcto. `calcularTransicionEscena` lleva la capa
+`vuelo` junto a `fondo` y `contenido`.
+
 ## 6. Garantías de Rendimiento y Presupuesto
 
 ### Los detectores miran el recorte, no la cámara
@@ -287,6 +323,6 @@ El recorte se prepara **una vez por cuadro** y sólo si algún detector va a cor
 - Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**, que sube a **20** mientras hay fondo. Las manos además sólo se buscan durante `EXPLORACION`, que es el único momento en que hacen algo: es el detector más caro del cuadro.
 - La lectura de la máscara de segmentación cuesta un viaje de la GPU a la CPU, así que **sólo se arma cuando hay fondo** que meterle atrás a la persona.
 - Renderizado con tope de **60 FPS** (`CONFIG.render.fpsMaximo`). En una pantalla de 144 o 240 Hz, dibujar todos los cuadros es calor y consumo sin beneficio visible.
-- Los objetos en pantalla son siempre **cinco**, quietos: el rendimiento no depende de cuánto tiempo lleve alguien sentado.
+- Los objetos en pantalla son a lo sumo **seis**, girando a 8°/s: el rendimiento no depende de cuánto tiempo lleve alguien sentado.
 - El salto de reloj del sostenido se acota a 250 ms: si el navegador se traba un instante, un salto grande completaría un sostenido que nadie hizo.
 - Recarga de mantenimiento automática: si el espejo está en `ATRACCION` tras el intervalo configurado (`CONFIG.operacion.recargaCadaMs`), la página se recarga para liberar memoria acumulada. Nunca corta una sesión en curso.
