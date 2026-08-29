@@ -8,13 +8,13 @@
       "maite": "industrial_mecanica",
       "fondos": [
         {
-          "img": "assets/fondos/mecanica.png"
-        },
-        {
           "img": "assets/fondos/mecanica-2.jpg"
         },
         {
           "img": "assets/fondos/mecanica-3.jpg"
+        },
+        {
+          "img": "assets/fondos/mecanica.png"
         }
       ],
       "objetos": [
@@ -57,13 +57,13 @@
       "maite": "electronica",
       "fondos": [
         {
-          "img": "assets/fondos/electrica.png"
-        },
-        {
           "img": "assets/fondos/electrica-2.jpg"
         },
         {
           "img": "assets/fondos/electrica-3.jpg"
+        },
+        {
+          "img": "assets/fondos/electrica.png"
         }
       ],
       "objetos": [
@@ -106,9 +106,6 @@
       "maite": "sistemas",
       "fondos": [
         {
-          "img": "assets/fondos/computacion.png"
-        },
-        {
           "img": "assets/fondos/computacion-2.jpg"
         },
         {
@@ -118,6 +115,9 @@
             "y": 0.34,
             "escala": 0.16
           }
+        },
+        {
+          "img": "assets/fondos/computacion.png"
         }
       ],
       "objetos": [
@@ -160,13 +160,13 @@
       "maite": "fisico_matematica",
       "fondos": [
         {
-          "img": "assets/fondos/fisico-matematico.png"
-        },
-        {
           "img": "assets/fondos/fisico-matematico-2.jpg"
         },
         {
           "img": "assets/fondos/fisico-matematico-3.jpg"
+        },
+        {
+          "img": "assets/fondos/fisico-matematico.png"
         }
       ],
       "objetos": [
@@ -209,13 +209,13 @@
       "maite": "civil",
       "fondos": [
         {
-          "img": "assets/fondos/civil.png"
-        },
-        {
           "img": "assets/fondos/civil-2.jpg"
         },
         {
           "img": "assets/fondos/civil-3.jpg"
+        },
+        {
+          "img": "assets/fondos/civil.png"
         }
       ],
       "objetos": [
@@ -263,9 +263,6 @@
       "maite": "quimica",
       "fondos": [
         {
-          "img": "assets/fondos/quimica.png"
-        },
-        {
           "img": "assets/fondos/quimica-2.jpg"
         },
         {
@@ -275,6 +272,9 @@
             "y": 0.26,
             "escala": 0.15
           }
+        },
+        {
+          "img": "assets/fondos/quimica.png"
         }
       ],
       "objetos": [
@@ -317,13 +317,13 @@
       "maite": "alimentos",
       "fondos": [
         {
-          "img": "assets/fondos/alimentos.png"
-        },
-        {
           "img": "assets/fondos/alimentos-2.jpg"
         },
         {
           "img": "assets/fondos/alimentos-3.jpg"
+        },
+        {
+          "img": "assets/fondos/alimentos.png"
         }
       ],
       "objetos": [
@@ -366,13 +366,13 @@
       "maite": "produccion",
       "fondos": [
         {
-          "img": "assets/fondos/produccion.png"
-        },
-        {
           "img": "assets/fondos/produccion-2.jpg"
         },
         {
           "img": "assets/fondos/produccion-3.jpg"
+        },
+        {
+          "img": "assets/fondos/produccion.png"
         }
       ],
       "objetos": [
@@ -415,13 +415,13 @@
       "maite": "agrimensura",
       "fondos": [
         {
-          "img": "assets/fondos/agrimensura.png"
+          "img": "assets/fondos/agrimensura-3.jpg"
         },
         {
           "img": "assets/fondos/agrimensura-2.jpg"
         },
         {
-          "img": "assets/fondos/agrimensura-3.jpg"
+          "img": "assets/fondos/agrimensura.png"
         }
       ],
       "objetos": [
@@ -464,9 +464,6 @@
       "maite": "comunicacion",
       "fondos": [
         {
-          "img": "assets/fondos/comunicacion.png"
-        },
-        {
           "img": "assets/fondos/comunicacion-2.jpg"
         },
         {
@@ -476,6 +473,9 @@
             "y": 0.22,
             "escala": 0.15
           }
+        },
+        {
+          "img": "assets/fondos/comunicacion.png"
         }
       ],
       "objetos": [
@@ -518,9 +518,6 @@
       "maite": "forestal",
       "fondos": [
         {
-          "img": "assets/fondos/forestal.png"
-        },
-        {
           "img": "assets/fondos/forestal-2.jpg"
         },
         {
@@ -530,6 +527,9 @@
             "y": 0.24,
             "escala": 0.15
           }
+        },
+        {
+          "img": "assets/fondos/forestal.png"
         }
       ],
       "objetos": [
@@ -572,9 +572,6 @@
       "maite": "naval",
       "fondos": [
         {
-          "img": "assets/fondos/naval.png"
-        },
-        {
           "img": "assets/fondos/naval-2.jpg"
         },
         {
@@ -584,6 +581,9 @@
             "y": 0.2,
             "escala": 0.15
           }
+        },
+        {
+          "img": "assets/fondos/naval.png"
         }
       ],
       "objetos": [
