@@ -107,13 +107,15 @@ describe('contenido real', () => {
     expect(await existe('assets/humo.mp4'), 'falta contenido/assets/humo.mp4').toBe(true);
   });
 
-  // Si falta, el espejo cae a Georgia sin decir nada y deja de leerse como una
-  // misma instalacion con las tablets — que es exactamente para lo que se copio
-  // la tipografia. Su licencia (OFL) tiene que viajar con el archivo.
-  it('la tipografia de MAITE esta copiada, con su licencia', async () => {
+  // Si falta, el espejo cae a la sans del sistema sin decir nada y deja de
+  // leerse como una misma instalacion con las tablets — que es exactamente
+  // para lo que se copio la tipografia. La nota de licencia viaja con el
+  // archivo: Muffaroo se declara "free for personal use only" y la facultad
+  // tiene que saberlo.
+  it('la tipografia de las tablets de MAITE esta copiada, con su nota de licencia', async () => {
     for (const archivo of [
-      'assets/tipografias/GermaniaOne-Regular.ttf',
-      'assets/tipografias/GermaniaOne-OFL.txt',
+      'assets/tipografias/Muffaroo-Regular.ttf',
+      'assets/tipografias/Muffaroo-LEEME.txt',
     ]) {
       expect(await existe(archivo), `falta contenido/${archivo}`).toBe(true);
     }

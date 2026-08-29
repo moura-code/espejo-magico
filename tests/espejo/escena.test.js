@@ -739,7 +739,7 @@ describe('las dos tipografias', () => {
     expect(dichos).toContain('Sostené la mano sobre un objeto');
   });
 
-  // Germania One trae UNA sola variante. Pedirle 700 da un falso-bold que le
+  // Muffaroo trae UNA sola variante. Pedirle 700 da un falso-bold que le
   // arruina las formas — y como ya es una letra pesada, no le hace falta.
   it('nunca se le pide negrita a la tipografia de titulo', () => {
     const ctx = ctxQueAnotaFuentes();
@@ -754,12 +754,14 @@ describe('las dos tipografias', () => {
     expect(PESO_TITULO).toBe(400);
   });
 
-  // Si el archivo faltara, el cambio no puede pasar de un cambio de fuente: sin
-  // respaldo declarado el navegador cae en la sans por defecto y la pantalla
-  // cambia de caracter entera.
-  it('la tipografia de titulo declara un respaldo con serifas', () => {
+  // Muffaroo es una display condensada, en versales y sin serifas. Si el
+  // archivo faltara, el cambio no puede pasar de un cambio de fuente: el
+  // respaldo tiene que ser una sans condensada, no una serif ni la sans por
+  // defecto del navegador.
+  it('la tipografia de titulo es Muffaroo con un respaldo sans', () => {
+    expect(TITULO_SOLO).toBe("'Muffaroo'");
     expect(FAMILIA_TITULO).toContain(TITULO_SOLO);
-    expect(FAMILIA_TITULO).toMatch(/serif\s*$/);
+    expect(FAMILIA_TITULO).toMatch(/sans-serif\s*$/);
     expect(FAMILIA_TEXTO).not.toContain(TITULO_SOLO);
   });
 });

@@ -286,26 +286,30 @@ export function partirEnLineas(texto, anchoMaximo, medir) {
 
 /**
  * Las dos tipografias, y la division es la MISMA que hacen las tablets de MAITE
- * (`--font-display` y `--font-body` en su style.css): espejo y retratos estan a
+ * (`--font-display` y `--font-body` en sus temas): espejo y retratos estan a
  * dos metros uno del otro en el stand y tienen que leerse como una sola
  * instalacion.
  *
- * `titulo` es Germania One, que trae UNA sola variante (Regular, 400). Pedirle
- * 700 le da un falso-bold que le arruina las formas, asi que todo lo que la use
- * va en 400 — y como ya es una letra pesada, no le hace falta.
+ * `titulo` es Muffaroo, la que los cuatro temas de tablet ponen en
+ * `--font-display` (el style.css base dice Germania One, pero ninguna tablet
+ * la muestra). Trae UNA sola variante (Regular, 400): pedirle 700 le da un
+ * falso-bold que le arruina las formas, asi que todo lo que la use va en 400.
+ * Es una display condensada, en versales y sin serifas: el respaldo es una sans
+ * condensada, para que si el archivo faltara el cambio no pase de un cambio de
+ * fuente.
  *
  * `texto` es la sans del sistema, y no es una concesion: a tamaño de parrafo la
- * display cuesta leerla, y el texto de cada persona hay que poder leerlo en los
- * segundos que alguien esta sentado. MAITE llego a la misma conclusion.
+ * display cuesta leerla, y la consigna hay que entenderla de un vistazo. MAITE
+ * llego a la misma conclusion.
  *
  * `TITULO_SOLO` es el nombre de la familia sin respaldo, que es lo que hay que
  * pasarle a document.fonts.load(): el canvas NO dispara la carga de una fuente.
  */
-export const TITULO_SOLO = "'Germania One'";
-export const FAMILIA_TITULO = `${TITULO_SOLO}, Georgia, serif`;
+export const TITULO_SOLO = "'Muffaroo'";
+export const FAMILIA_TITULO = `${TITULO_SOLO}, 'Arial Narrow', sans-serif`;
 export const FAMILIA_TEXTO = 'system-ui, sans-serif';
 
-/** Germania One no tiene negrita: se dibuja siempre en 400. */
+/** Muffaroo no tiene negrita: se dibuja siempre en 400. */
 export const PESO_TITULO = 400;
 
 /**
@@ -385,7 +389,7 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
   ctx.fillStyle = carrera.color;
   ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
   // El ancla es la linea de ARRIBA del texto, no su base: con una tipografia
-  // alta como Germania One, anclar por la base movia el rotulo de lugar segun
+  // alta como Muffaroo, anclar por la base movia el rotulo de lugar segun
   // el largo del nombre de cada ingenieria.
   ctx.fillText(carrera.nombre, ancho / 2, titulo.y + tamano);
   ctx.restore();
