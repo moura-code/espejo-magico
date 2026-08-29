@@ -14,25 +14,16 @@ export function calcularDisposicion(ancho, alto) {
     vertical,
     unidad,
 
-    // El ancla del nombre de la ingenieria: arriba de todo, como un rotulo. No
-    // puede quedar al medio, que es donde esta la cara de la persona. Los
-    // objetos se quedan en su arco, asi que este lugar es solo del titulo.
-    titulo: {
-      x: ancho / 2,
-      y: alto * 0.09,
-    },
-
-    // La ficha de la persona, abajo, sobre un degradado que la despega del
+    // El pie: el nombre de la ingenieria, sobre un degradado que lo despega del
     // fondo. Es el mismo lugar donde las tablets de MAITE ponen su texto, para
-    // que espejo y tablets se lean como una sola cosa.
-    ficha: {
+    // que espejo y tablets se lean como una sola cosa, y no puede ir al medio,
+    // que es donde esta la cara. `base` es la linea de base del ultimo renglon.
+    pie: {
       alto: alto * (vertical ? 0.3 : 0.38),
       margen: ancho * 0.08,
-      nombreY: alto * (vertical ? 0.79 : 0.74),
-      textoY: alto * (vertical ? 0.845 : 0.8),
-      tamanoNombre: Math.round(corto * 0.055),
-      tamanoTexto: Math.round(corto * 0.03),
-      interlinea: 1.35,
+      base: alto * (vertical ? 0.84 : 0.8),
+      tamano: Math.round(corto * 0.075),
+      interlinea: 1.1,
     },
 
     texto: {
@@ -313,86 +304,81 @@ export const FAMILIA_TEXTO = 'system-ui, sans-serif';
 export const PESO_TITULO = 400;
 
 /**
- * La ficha de la persona: su nombre y el texto que cuenta quien es.
+ * El nombre de la ingenieria, al pie, donde antes iba el de la persona.
  *
- * Va sobre un degradado que sube desde el borde de abajo. Sin el, el texto
- * blanco cae encima del fondo de la carrera y se vuelve ilegible en cuanto el
- * fondo tiene una zona clara.
+ * Va sobre un degradado que sube desde el borde de abajo. Sin el, el nombre cae
+ * encima del fondo de la carrera y se vuelve ilegible en cuanto el fondo tiene
+ * una zona clara. Un nombre largo va en dos renglones antes que achicarse hasta
+ * lo ilegible; y si aun asi no entra, se achica.
  */
-export function dibujarFichaDePersona(ctx, carrera, disposicion, alfa = 1) {
-  const persona = carrera?.persona;
-  if (!persona || alfa <= 0) return;
+export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
+  if (!carrera || alfa <= 0) return;
 
-  const { ficha, ancho, alto } = disposicion;
-  const disponible = ancho - ficha.margen * 2;
+  const { pie, ancho, alto } = disposicion;
+  const disponible = ancho - pie.margen * 2;
 
   ctx.save();
   ctx.globalAlpha = Math.min(1, alfa);
 
-  const degradado = ctx.createLinearGradient(0, alto - ficha.alto, 0, alto);
+  const degradado = ctx.createLinearGradient(0, alto - pie.alto, 0, alto);
   degradado.addColorStop(0, 'rgba(5, 8, 14, 0)');
   degradado.addColorStop(0.55, 'rgba(5, 8, 14, 0.88)');
   degradado.addColorStop(1, 'rgba(5, 8, 14, 0.96)');
   ctx.fillStyle = degradado;
-  ctx.fillRect(0, alto - ficha.alto, ancho, ficha.alto);
+  ctx.fillRect(0, alto - pie.alto, ancho, pie.alto);
 
   ctx.textAlign = 'center';
   ctx.shadowColor = 'rgba(0,0,0,0.85)';
   ctx.shadowBlur = 16;
 
-  const medirCon = (peso, familia) => (contenido, tamano) => {
-    ctx.font = `${peso} ${tamano}px ${familia}`;
+  const medir = (contenido, tamano) => {
+    ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
     return ctx.measureText(contenido).width;
   };
 
-  const tamanoNombre = tamanoQueEntra(
-    persona.nombre,
-    ficha.tamanoNombre,
-    disponible,
-    medirCon(PESO_TITULO, FAMILIA_TITULO),
+  // Primero se intenta entero; si no entra, en dos renglones; y cada renglon
+  // se achica lo justo si sigue sin entrar (una sola palabra kilometrica).
+  let lineas = [carrera.nombre];
+  if (medir(carrera.nombre, pie.tamano) > disponible) {
+    lineas = partirEnLineas(carrera.nombre, disponible, (t) => medir(t, pie.tamano)).slice(0, 2);
+  }
+  const tamano = Math.min(
+    ...lineas.map((linea) => tamanoQueEntra(linea, pie.tamano, disponible, medir)),
   );
-  ctx.fillStyle = carrera.color;
-  ctx.font = `${PESO_TITULO} ${tamanoNombre}px ${FAMILIA_TITULO}`;
-  ctx.fillText(persona.nombre, ancho / 2, ficha.nombreY);
 
-  // El texto va en la sans: es lo unico de toda la pantalla que hay que LEER,
-  // no mirar.
-  ctx.font = `400 ${ficha.tamanoTexto}px ${FAMILIA_TEXTO}`;
-  const lineas = partirEnLineas(persona.texto, disponible, (t) => ctx.measureText(t).width);
-  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.fillStyle = carrera.color;
+  ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
+  const paso = tamano * pie.interlinea;
   lineas.forEach((linea, i) => {
-    ctx.fillText(linea, ancho / 2, ficha.textoY + i * ficha.tamanoTexto * ficha.interlinea);
+    ctx.fillText(linea, ancho / 2, pie.base - (lineas.length - 1 - i) * paso);
   });
 
   ctx.restore();
 }
 
-/** El nombre de la ingenieria, arriba, al lado del objeto elegido. */
-export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
-  if (!carrera || alfa <= 0) return;
+/**
+ * El objeto agarrado, apoyado en su lugar del fondo.
+ *
+ * Debajo lleva un halo del color de la carrera: lo presenta sobre cualquier
+ * fondo, foto o escena vectorial, sin pedirle a cada imagen que tenga una mesa
+ * justo ahi. `giro` es la inclinacion de la flotacion.
+ */
+export function dibujarObjetoApoyado(
+  ctx,
+  { definicion, x, y, radio, alfa = 1, giro = 0, halo = 0 },
+  banco,
+  color,
+) {
+  if (!definicion || alfa <= 0 || radio <= 0) return;
 
-  const { ancho, titulo, texto } = disposicion;
-  const disponible = ancho * 0.9;
+  if (halo > 0) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, alfa) * halo;
+    resplandor(ctx, x, y, radio * 2.2, color);
+    ctx.restore();
+  }
 
-  ctx.save();
-  ctx.globalAlpha = Math.min(1, alfa);
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.85)';
-  ctx.shadowBlur = 18;
-
-  const medir = (contenido, tamano) => {
-    ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
-    return ctx.measureText(contenido).width;
-  };
-  const tamano = tamanoQueEntra(carrera.nombre, texto.tamanoNombre * 0.72, disponible, medir);
-
-  ctx.fillStyle = carrera.color;
-  ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
-  // El ancla es la linea de ARRIBA del texto, no su base: con una tipografia
-  // alta como Muffaroo, anclar por la base movia el rotulo de lugar segun
-  // el largo del nombre de cada ingenieria.
-  ctx.fillText(carrera.nombre, ancho / 2, titulo.y + tamano);
-  ctx.restore();
+  dibujarObjeto(ctx, { definicion, x, y, radio, alfa, giro }, banco, color);
 }
 
 /** Resplandor lleno: brillante en el centro y apagandose hacia el borde. */

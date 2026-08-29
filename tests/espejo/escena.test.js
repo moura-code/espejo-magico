@@ -9,13 +9,13 @@ import {
   calcularRectanguloVideo,
   dibujarAnilloDeProgreso,
   dibujarConsigna,
-  dibujarFichaDePersona,
   dibujarFondo,
   dibujarHumo,
   dibujarInvitacion,
   dibujarManos,
   dibujarNombreDeCarrera,
   dibujarObjeto,
+  dibujarObjetoApoyado,
   dibujarPersonaRecortada,
   partirEnLineas,
   tamanoQueEntra,
@@ -338,48 +338,117 @@ describe('dibujarHumo', () => {
   });
 });
 
-describe('dibujarFichaDePersona', () => {
+describe('dibujarNombreDeCarrera', () => {
   const disposicion = calcularDisposicion(1080, 1920);
-  const carrera = {
-    nombre: 'Ingeniería Civil',
-    color: '#FF8A3D',
-    persona: { nombre: 'Ana Pérez', texto: 'Diseña puentes que aguantan cien años.' },
-  };
+  const carrera = { nombre: 'Ingeniería Civil', color: '#FF8A3D' };
 
-  it('escribe el nombre y el texto de la persona', () => {
+  it('escribe el nombre de la ingenieria al pie', () => {
     const ctx = crearCtxFalso();
-    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
 
-    const escrito = soloDe(ctx, 'fillText').map(([, texto]) => texto);
-    expect(escrito[0]).toBe('Ana Pérez');
-    expect(escrito.slice(1).join(' ')).toContain('puentes');
+    const textos = soloDe(ctx, 'fillText');
+    expect(textos.map(([, texto]) => texto).join(' ')).toBe('Ingeniería Civil');
+    for (const [, , , y] of textos) {
+      expect(y).toBeGreaterThan(1920 - disposicion.pie.alto);
+      expect(y).toBeLessThanOrEqual(disposicion.pie.base);
+    }
   });
 
-  // El texto blanco sobre un fondo con una zona clara es ilegible. El degradado
-  // de abajo es lo unico que lo sostiene.
-  it('pone el degradado que despega el texto del fondo', () => {
+  // "Ingenieria en Sistemas de Comunicacion" no entra en un renglon a tamaño
+  // de titulo: se parte en dos antes que achicarse hasta lo ilegible.
+  it('un nombre largo va en dos lineas, y la ultima queda en la base', () => {
     const ctx = crearCtxFalso();
-    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
+    // Medida que escala con la letra, como la de verdad: a tamaño de pie el
+    // nombre no entra en el ancho disponible.
+    ctx.measureText = (texto) => ({
+      width: texto.length * Number(ctx.font.match(/([\d.]+)px/)[1]) * 0.5,
+    });
+    dibujarNombreDeCarrera(
+      ctx,
+      { nombre: 'Ingeniería en Sistemas de Comunicación', color: '#E040FB' },
+      disposicion,
+      1,
+    );
+
+    const textos = soloDe(ctx, 'fillText');
+    expect(textos).toHaveLength(2);
+    expect(textos.map(([, texto]) => texto).join(' ')).toBe(
+      'Ingeniería en Sistemas de Comunicación',
+    );
+    expect(textos[1][3]).toBeCloseTo(disposicion.pie.base);
+    expect(textos[0][3]).toBeLessThan(textos[1][3]);
+  });
+
+  // El texto blanco o de color sobre un fondo con una zona clara es ilegible.
+  // El degradado de abajo es lo unico que lo sostiene.
+  it('pone el degradado que despega el nombre del fondo', () => {
+    const ctx = crearCtxFalso();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
     expect(soloDe(ctx, 'fillRect')).toHaveLength(1);
   });
 
-  it('no dibuja nada sin persona o sin alfa', () => {
+  it('usa el color de la carrera', () => {
+    const ctx = crearCtxFalso();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    expect(ctx.fillStyle).toBe('#FF8A3D');
+  });
+
+  it('no dibuja nada sin carrera o sin alfa', () => {
     for (const [c, alfa] of [
       [carrera, 0],
-      [{ ...carrera, persona: undefined }, 1],
       [null, 1],
     ]) {
       const ctx = crearCtxFalso();
-      dibujarFichaDePersona(ctx, c, disposicion, alfa);
+      dibujarNombreDeCarrera(ctx, c, disposicion, alfa);
       expect(ctx.llamadas).toEqual([]);
     }
   });
 
   it('deja el lienzo como estaba', () => {
     const ctx = crearCtxFalso();
-    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
     expect(ctx.llamadas[0]).toEqual(['save']);
     expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
+});
+
+describe('dibujarObjetoApoyado', () => {
+  const definicion = { img: 'assets/civil/grua.png', figura: 'grua', escala: 0.2 };
+  const apoyado = { definicion, x: 240, y: 580, radio: 70, alfa: 1, giro: 0.02, halo: 0.35 };
+
+  // El halo presenta el objeto sobre cualquier fondo, foto o escena vectorial,
+  // sin pedirle a cada imagen que tenga una mesa justo ahi. Va debajo.
+  it('dibuja el halo antes que el objeto', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(ctx, apoyado, bancoCon({ 'assets/civil/grua.png': imagen() }), '#FF8A3D');
+
+    const orden = ctx.llamadas.map(([que]) => que);
+    expect(orden.indexOf('fill')).toBeGreaterThanOrEqual(0);
+    expect(orden.indexOf('fill')).toBeLessThan(orden.indexOf('drawImage'));
+  });
+
+  it('inclina el objeto con el giro pedido', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(ctx, apoyado, bancoCon({ 'assets/civil/grua.png': imagen() }), '#FF8A3D');
+    expect(soloDe(ctx, 'rotate')).toEqual([['rotate', 0.02]]);
+  });
+
+  it('sin halo dibuja solo el objeto', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(
+      ctx,
+      { ...apoyado, halo: 0 },
+      bancoCon({ 'assets/civil/grua.png': imagen() }),
+      '#FF8A3D',
+    );
+    expect(soloDe(ctx, 'fill')).toHaveLength(0);
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(1);
+  });
+
+  it('no dibuja nada invisible', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(ctx, { ...apoyado, alfa: 0 }, bancoCon(), '#FF8A3D');
+    expect(ctx.llamadas).toEqual([]);
   });
 });
 
@@ -449,51 +518,22 @@ describe('calcularDisposicion', () => {
     expect(calcularDisposicion(1920, 1080).vertical).toBe(false);
   });
 
-  // El titulo no puede quedar al medio: ahi esta la cara de la persona, que es
-  // lo que el espejo tiene que mostrar. Y como los objetos ya no viajan al
-  // borde de arriba, ese lugar quedo libre para el nombre de la ingenieria.
-  it('el ancla del titulo queda arriba y dentro de la pantalla', () => {
+  // El nombre de la ingenieria va donde iba el de la persona: al pie, que es
+  // el mismo lugar donde las tablets de MAITE ponen su texto. No puede quedar
+  // al medio, que es donde esta la cara.
+  it('el pie queda abajo, dentro de la pantalla y con margen a los costados', () => {
     for (const [ancho, alto] of [
       [1080, 1920],
       [1920, 1080],
       [800, 600],
     ]) {
       const d = calcularDisposicion(ancho, alto);
-      expect(d.titulo.y).toBeGreaterThan(0);
-      expect(d.titulo.y).toBeLessThan(alto * 0.2);
-      expect(d.titulo.x).toBeCloseTo(ancho / 2);
+      expect(d.pie.base).toBeGreaterThan(alto * 0.6);
+      expect(d.pie.base).toBeLessThan(alto);
+      expect(d.pie.base).toBeGreaterThan(alto - d.pie.alto);
+      expect(d.pie.margen).toBeGreaterThan(0);
+      expect(d.pie.margen * 2).toBeLessThan(ancho);
     }
-  });
-
-  it('el nombre de la carrera se apoya en el ancla del titulo', () => {
-    const ctx = crearCtxFalso();
-    let fuente = '';
-    Object.defineProperty(ctx, 'font', { get: () => fuente, set: (v) => (fuente = v) });
-
-    const d = calcularDisposicion(1080, 1920);
-    dibujarNombreDeCarrera(ctx, { nombre: 'Ingeniería Civil', color: '#FF8A3D' }, d, 1);
-
-    const [, , , y] = ctx.llamadas.find(([q]) => q === 'fillText');
-    // La linea de arriba del texto arranca en el ancla, sin hueco de sobra. El
-    // tamano se lee redondeado de la fuente, asi que se compara con un pixel de
-    // tolerancia y no al valor exacto.
-    const tamano = Number(fuente.match(/([\d.]+)px/)[1]);
-    expect(Math.abs(y - tamano - d.titulo.y)).toBeLessThan(1);
-  });
-
-  it('la ficha de la persona ocupa el pie de la pantalla', () => {
-    const d = calcularDisposicion(1080, 1920);
-    expect(d.ficha.nombreY).toBeLessThan(d.ficha.textoY);
-    expect(d.ficha.textoY).toBeLessThan(1920);
-    expect(d.ficha.nombreY).toBeGreaterThan(1920 - d.ficha.alto);
-    // Y no puede pisar al titulo de la ingenieria, que vive arriba.
-    expect(d.ficha.nombreY).toBeGreaterThan(d.titulo.y);
-  });
-
-  it('la ficha deja margen a los costados', () => {
-    const d = calcularDisposicion(1080, 1920);
-    expect(d.ficha.margen).toBeGreaterThan(0);
-    expect(d.ficha.margen * 2).toBeLessThan(1080);
   });
 
   it('escala la tipografia con el lado corto de la pantalla', () => {
@@ -502,7 +542,9 @@ describe('calcularDisposicion', () => {
     expect(grande.texto.tamanoNombre).toBeGreaterThan(chica.texto.tamanoNombre * 1.9);
     expect(grande.texto.tamanoNombre).toBeLessThan(chica.texto.tamanoNombre * 2.1);
     expect(grande.texto.tamanoNombre).toBeGreaterThan(grande.texto.tamanoFrase);
-    expect(grande.ficha.tamanoNombre).toBeGreaterThan(grande.ficha.tamanoTexto);
+    // El nombre al pie es lo mas grande de la pantalla: mas que la consigna.
+    expect(grande.pie.tamano).toBeGreaterThan(chica.pie.tamano * 1.9);
+    expect(grande.pie.tamano).toBeGreaterThan(grande.texto.tamanoFrase);
   });
 
   it('da una unidad de referencia positiva en cualquier pantalla', () => {
@@ -670,11 +712,7 @@ describe('las dos tipografias', () => {
   }
 
   const disposicion = calcularDisposicion(1080, 1920);
-  const carrera = {
-    nombre: 'Ingeniería en Computación',
-    color: '#00E5A0',
-    persona: { nombre: 'Maite Martínez', texto: 'Diseña los sistemas que hacen que el resto funcione.' },
-  };
+  const carrera = { nombre: 'Ingeniería en Computación', color: '#00E5A0' };
 
   it('el nombre de la carrera va en la tipografia de titulo', () => {
     const ctx = ctxQueAnotaFuentes();
@@ -683,16 +721,10 @@ describe('las dos tipografias', () => {
     for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(TITULO_SOLO);
   });
 
-  it('en la ficha, el nombre va en titulo y el texto en la sans', () => {
+  it('el pie usa solo la tipografia de titulo', () => {
     const ctx = ctxQueAnotaFuentes();
-    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
-
-    const fuentes = fuentesDe(ctx);
-    expect(fuentes.some((f) => f.includes(TITULO_SOLO))).toBe(true);
-    // El texto de la persona es lo unico de la pantalla que hay que LEER: a
-    // tamaño de parrafo la display cuesta, y son segundos los que hay.
-    expect(fuentes.at(-1)).toContain(FAMILIA_TEXTO);
-    expect(fuentes.at(-1)).not.toContain(TITULO_SOLO);
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(TITULO_SOLO);
   });
 
   // La consigna es la unica instruccion de toda la experiencia: tiene que
@@ -744,7 +776,6 @@ describe('las dos tipografias', () => {
   it('nunca se le pide negrita a la tipografia de titulo', () => {
     const ctx = ctxQueAnotaFuentes();
     dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
-    dibujarFichaDePersona(ctx, carrera, disposicion, 1);
     dibujarInvitacion(ctx, disposicion, 0.5);
 
     for (const fuente of fuentesDe(ctx)) {
