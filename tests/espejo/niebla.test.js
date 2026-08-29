@@ -94,13 +94,13 @@ describe('posicionLateralNube', () => {
 });
 
 describe('calcularTransicionEscena', () => {
-  const tiempos = { enganche: 2000, humo: 3000, aparicion: 2000, cierre: 4000 };
+  const tiempos = { enganche: 2000, humo: 3000, aparicion: 2000, vuelo: 1000, cierre: 4000 };
   const en = (estado, transcurrido, desdeLaMirada = null) =>
     calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, tiempos });
 
   it('en reposo y en el enganche no se ve ninguna capa', () => {
-    expect(en(ESTADOS.ATRACCION, 0)).toEqual({ objetos: 0, fondo: 0, contenido: 0 });
-    expect(en(ESTADOS.ENGANCHE, 1000)).toEqual({ objetos: 0, fondo: 0, contenido: 0 });
+    expect(en(ESTADOS.ATRACCION, 0)).toEqual({ objetos: 0, fondo: 0, contenido: 0, vuelo: 0 });
+    expect(en(ESTADOS.ENGANCHE, 1000)).toEqual({ objetos: 0, fondo: 0, contenido: 0, vuelo: 0 });
   });
 
   // Los objetos estan puestos desde el principio del humo, pero encenderlos
@@ -115,22 +115,28 @@ describe('calcularTransicionEscena', () => {
   });
 
   it('sin nada agarrado se ven los objetos y nada mas', () => {
-    expect(en(ESTADOS.EXPLORACION, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
-    expect(en(ESTADOS.EXPLORACION, 20000)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
+    expect(en(ESTADOS.EXPLORACION, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0, vuelo: 0 });
+    expect(en(ESTADOS.EXPLORACION, 20000)).toEqual({ objetos: 1, fondo: 0, contenido: 0, vuelo: 0 });
   });
 
   // LOS OBJETOS NO SE APAGAN AL APARECER EL FONDO. Quedan enteros y por delante,
   // porque soltar uno y agarrar otro es justamente lo que se puede hacer: si se
   // desvanecieran, la unica lectura posible seria "ya elegiste, se termino".
   it('el fondo y el texto entran sin apagar los objetos', () => {
-    expect(en(ESTADOS.EXPLORACION, 5000, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0 });
+    expect(en(ESTADOS.EXPLORACION, 5000, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0, vuelo: 0 });
 
     const medio = en(ESTADOS.EXPLORACION, 6000, 1000);
     expect(medio.objetos).toBe(1);
     expect(medio.fondo).toBeCloseTo(0.5);
     expect(medio.contenido).toBeCloseTo(0.5);
+    expect(medio.vuelo).toBe(1);
 
-    expect(en(ESTADOS.EXPLORACION, 7000, 2000)).toEqual({ objetos: 1, fondo: 1, contenido: 1 });
+    expect(en(ESTADOS.EXPLORACION, 7000, 2000)).toEqual({
+      objetos: 1,
+      fondo: 1,
+      contenido: 1,
+      vuelo: 1,
+    });
   });
 
   // La info se queda puesta: con el brazo en alto no se lee, y soltar el objeto
@@ -140,6 +146,7 @@ describe('calcularTransicionEscena', () => {
       objetos: 1,
       fondo: 1,
       contenido: 1,
+      vuelo: 1,
     });
   });
 
@@ -149,12 +156,22 @@ describe('calcularTransicionEscena', () => {
     const reciencambiado = en(ESTADOS.EXPLORACION, 90000, 0);
     expect(reciencambiado.fondo).toBe(0);
     expect(reciencambiado.objetos).toBe(1);
+    expect(reciencambiado.vuelo).toBe(0);
+  });
+
+  // El vuelo tiene su propio plazo, mas corto que la aparicion del fondo: el
+  // objeto llega a su lugar mientras el fondo todavia esta entrando.
+  it('el objeto vuela a su lugar en tiempos.vuelo', () => {
+    expect(en(ESTADOS.EXPLORACION, 5000, 0).vuelo).toBe(0);
+    expect(en(ESTADOS.EXPLORACION, 5500, 500).vuelo).toBeCloseTo(0.5);
+    expect(en(ESTADOS.EXPLORACION, 6000, 1000).vuelo).toBe(1);
+    expect(en(ESTADOS.EXPLORACION, 9000, 4000).vuelo).toBe(1);
   });
 
   it('desvanece todas las capas juntas durante el cierre', () => {
-    expect(en(ESTADOS.CIERRE, 0)).toEqual({ objetos: 1, fondo: 1, contenido: 1 });
-    expect(en(ESTADOS.CIERRE, 2000)).toEqual({ objetos: 0.5, fondo: 0.5, contenido: 0.5 });
-    expect(en(ESTADOS.CIERRE, 4000)).toEqual({ objetos: 0, fondo: 0, contenido: 0 });
+    expect(en(ESTADOS.CIERRE, 0)).toEqual({ objetos: 1, fondo: 1, contenido: 1, vuelo: 1 });
+    expect(en(ESTADOS.CIERRE, 2000)).toEqual({ objetos: 0.5, fondo: 0.5, contenido: 0.5, vuelo: 1 });
+    expect(en(ESTADOS.CIERRE, 4000)).toEqual({ objetos: 0, fondo: 0, contenido: 0, vuelo: 1 });
   });
 
   it('ninguna capa se sale del rango, ni con tiempos raros', () => {

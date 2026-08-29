@@ -48,7 +48,8 @@ export function posicionLateralNube(xNormalizada, radio, ancho, apertura, lado) 
  *   objetos   los cinco que se ofrecen. Aparecen tapados por el humo y se
  *             quedan puestos, por delante del fondo, toda la exploracion.
  *   fondo     la imagen de la ingenieria detras de la persona.
- *   contenido el nombre y el texto de la persona.
+ *   contenido el nombre de la ingenieria, al pie.
+ *   vuelo     el objeto agarrado, de su ranura (0) a su lugar en el fondo (1).
  *
  * `desdeLaMirada` es hace cuanto se muestra la ingenieria actual, o null si no
  * hay ninguna. Es un reloj propio, distinto del del estado: agarrar otro objeto
@@ -58,7 +59,7 @@ export function calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, 
   switch (estado) {
     case ESTADOS.ATRACCION:
     case ESTADOS.ENGANCHE:
-      return { objetos: 0, fondo: 0, contenido: 0 };
+      return { objetos: 0, fondo: 0, contenido: 0, vuelo: 0 };
 
     // Los objetos se encienden en la segunda mitad del humo. Estan puestos
     // desde el principio del estado, pero encenderlos antes de que el humo
@@ -68,25 +69,29 @@ export function calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, 
         objetos: progreso(transcurrido - tiempos.humo / 2, tiempos.humo / 2),
         fondo: 0,
         contenido: 0,
+        vuelo: 0,
       };
 
     // LOS OBJETOS NO SE APAGAN AL APARECER EL FONDO: quedan enteros y por
     // delante. Soltar uno y agarrar otro es justamente lo que se puede hacer, y
     // si se desvanecieran la unica lectura posible seria "ya elegiste, se
-    // termino". El fondo y el texto se quedan puestos hasta que se agarre otro:
-    // con el brazo en alto no se lee.
+    // termino". El fondo y el nombre se quedan puestos hasta que se agarre
+    // otro: con el brazo en alto no se lee. El objeto agarrado vuela a su
+    // lugar con su propio plazo, mas corto: llega mientras el fondo entra.
     case ESTADOS.EXPLORACION: {
       const t = desdeLaMirada === null ? 0 : progreso(desdeLaMirada, tiempos.aparicion);
-      return { objetos: 1, fondo: t, contenido: t };
+      const vuelo = desdeLaMirada === null ? 0 : progreso(desdeLaMirada, tiempos.vuelo);
+      return { objetos: 1, fondo: t, contenido: t, vuelo };
     }
 
+    // En el cierre el objeto ya esta apoyado: se desvanece con todo lo demas.
     case ESTADOS.CIERRE: {
       const salida = 1 - progreso(transcurrido, tiempos.cierre);
-      return { objetos: salida, fondo: salida, contenido: salida };
+      return { objetos: salida, fondo: salida, contenido: salida, vuelo: 1 };
     }
 
     default:
-      return { objetos: 0, fondo: 0, contenido: 0 };
+      return { objetos: 0, fondo: 0, contenido: 0, vuelo: 0 };
   }
 }
 

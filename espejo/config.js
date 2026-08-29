@@ -33,6 +33,11 @@ export const CONFIG = {
     // Cuanto tarda en entrar el fondo de una ingenieria con su ficha. Es el
     // reloj de la mirada, no el de un estado: agarrar otro objeto lo reinicia.
     aparicion: 2500,
+
+    // Cuanto tarda el objeto agarrado en volar de su ranura a su lugar en el
+    // fondo. Mas corto que la aparicion: llega mientras el fondo todavia entra,
+    // y se lee como que el fondo se arma alrededor de lo que la persona eligio.
+    vuelo: 1000,
     cierre: 3000,
 
     // Corto: quien llega despues de que el espejo volvio al reposo no tiene por
@@ -268,13 +273,27 @@ export const CONFIG = {
     msParaCargar: 8000,
   },
 
-  // El fondo de la carrera, detras de la persona.
+  // El fondo de la carrera, detras de la persona, y el objeto apoyado en el.
   fondo: {
     // Cuando la mascara de segmentacion no esta —pose perdida, GPU lenta, modelo
     // sin cargar— el fondo se dibuja igual encima del espejo con esta opacidad,
     // en vez de dejar la pantalla en negro con publico delante.
     opacidadSinMascara: 0.75,
     oscurecerVideo: 0.55, // cuanto se apaga el espejo debajo del fondo sin mascara
+
+    // Donde se apoya el objeto cuando el fondo no declara su `lugar`:
+    // normalizado a la imagen, arriba a la izquierda, lejos de la cara y del
+    // nombre. `escala` es el diametro como fraccion del ancho de la imagen.
+    lugarPorDefecto: { x: 0.22, y: 0.3, escala: 0.16 },
+
+    // El halo del color de la carrera debajo del objeto apoyado. Lo presenta
+    // sobre cualquier fondo, foto o escena vectorial, sin pedirle a cada imagen
+    // que tenga una mesa justo ahi.
+    haloDelLugar: 0.35,
+
+    // La flotacion del objeto apoyado: `amplitud` en radios del objeto. Poca a
+    // proposito: tiene que leerse vivo, no competir con la persona.
+    flotar: { amplitud: 0.08, periodoMs: 3200 },
   },
 
   // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio
