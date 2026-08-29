@@ -191,25 +191,44 @@ export const CONFIG = {
     cantidad: 5,
   },
 
-  // Donde se ponen esos objetos.
+  // Donde se ponen los objetos que se ofrecen: un anillo con todas las
+  // carreras, del que solo se ve una ventana.
   //
   // NO van en posiciones fijas de la pantalla: a dos metros de la camara el
-  // brazo de la persona alcanza apenas el tercio central del espejo, y cinco
-  // objetos en las esquinas serian inalcanzables. Van en arco alrededor de los
-  // hombros, con el radio proporcional al ancho de hombros — que es el mejor
-  // indicador de a que distancia esta sentada.
+  // brazo de la persona alcanza apenas el tercio central del espejo, y doce
+  // objetos repartidos por el lienzo serian inalcanzables. Van en un anillo
+  // alrededor de los hombros, con el radio proporcional al ancho de hombros —
+  // que es el mejor indicador de a que distancia esta sentada. Del anillo se
+  // dibuja solo la ventana de arriba; el resto esta "detras del marco" y sigue
+  // girando.
   tablero: {
-    radioFactor: 1.5, // alcance del arco, en anchos de hombros
+    radioFactor: 1.5, // alcance del anillo, en anchos de hombros
     radioObjetoFactor: 0.22, // tamaño de cada objeto, en anchos de hombros
 
-    // El arco, en grados, medidos como en el lienzo: 180 es a la izquierda, 270
-    // es arriba, 0 es a la derecha. Pasa por encima de la cabeza.
+    // La ventana visible, en grados, medidos como en el lienzo: 180 es a la
+    // izquierda, 270 es arriba, 0 es a la derecha. Pasa por encima de la
+    // cabeza. Lo que queda fuera no se dibuja ni se puede agarrar.
     desde: 200,
     hasta: 340,
 
+    // Cuanto gira el carrusel. Lento a proposito: a 8 grados por segundo la
+    // vuelta entera lleva 45 s y entra un objeto nuevo cada cuatro. La mano
+    // lo sigue sin esfuerzo, y se detiene en cuanto empieza un sostenido.
+    gradosPorSegundo: 8,
+
+    // La rampa de alfa en cada borde de la ventana, para que nada aparezca ni
+    // desaparezca de golpe. Un objeto a medio entrar no se puede agarrar.
+    gradosDeFundido: 12,
+
+    // Aire minimo entre dos objetos vecinos, en radios de objeto. Con doce a
+    // 30 grados y el radio achicado por el borde del lienzo, sin esto dos
+    // objetos se encimarian y el de atras seria inelegible.
+    aireEntreObjetos: 0.2,
+
     // El ancla va muy suavizada: si los objetos siguieran a los hombros cuadro a
     // cuadro, apuntarles seria imposible. Ademas se CONGELA apenas empieza un
-    // sostenido, para que el blanco no se escape de abajo de la mano.
+    // sostenido —y con ella la rotacion—, para que el blanco no se escape de
+    // abajo de la mano.
     suavizado: 0.06,
 
     // Respaldo cuando no hay pose y solo hay cara: un ancho de hombros son unos
@@ -218,7 +237,7 @@ export const CONFIG = {
     caidaPorRostro: 1.5,
 
     // Margen minimo al borde del lienzo, en radios de objeto. Con la persona
-    // muy cerca el arco se sale de la pantalla; esto lo mete de vuelta.
+    // muy cerca el anillo se sale de la pantalla; esto lo mete de vuelta.
     margen: 1.1,
   },
 
