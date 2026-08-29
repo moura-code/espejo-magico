@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <title>Los fondos de cada ingeniería</title>
   <style>
+    @font-face {
+      font-family: 'Muffaroo';
+      src: url('/contenido/assets/tipografias/Muffaroo-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
     body {
       margin: 0;
       padding: 24px;
@@ -12,53 +18,144 @@
       font: 14px/1.4 system-ui, sans-serif;
     }
     h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
-    p { margin: 0 0 24px; color: #97a0b5; }
-    .grilla {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 18px;
-    }
-    figure { margin: 0; }
-    canvas { width: 100%; height: auto; display: block; border-radius: 6px; }
+    h2 { font-size: 15px; font-weight: 600; margin: 28px 0 8px; }
+    p { margin: 0 0 8px; color: #97a0b5; }
+    .fila { display: flex; gap: 18px; flex-wrap: wrap; }
+    figure { margin: 0; width: 270px; }
+    canvas { width: 270px; height: 480px; display: block; border-radius: 6px; background: #000; }
     figcaption { margin-top: 6px; font-size: 12px; color: #97a0b5; }
     b { color: #e8eaf0; font-weight: 600; }
+    .activo { color: #00E5A0; }
+    .muestra {
+      display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+      vertical-align: -1px; margin-right: 6px;
+    }
   </style>
 </head>
 <body>
-  <!-- Hermana de figuras.html: se abre desde `npm start` para mirar las doce
-       escenas juntas. Las dibuja en vivo desde espejo/escenarios.js, asi que
-       muestra el codigo de ahora y no los PNG ya generados. -->
+  <!-- Hermana de figuras.html: se abre desde `npm start`. Muestra los fondos
+       candidatos de cada carrera TAL COMO SE VERIAN en el espejo: la imagen (o
+       la escena vectorial si el archivo no esta), una silueta donde va la
+       persona, el halo y el objeto apoyados en su lugar, y el nombre al pie con
+       las mismas funciones de escena.js. La catedra elige mirando. -->
   <h1>Los fondos de cada ingeniería</h1>
-  <p>Dibujados en vivo desde <b>espejo/escenarios.js</b>. Para generar los PNG: <b>npm run generar-fondos</b>.</p>
-  <div class="grilla" id="grilla"></div>
+  <p>El primero de cada fila es el <b class="activo">activo</b>: el espejo muestra ese. Para elegir otro, reordená <b>fondos</b> en <b>contenido/carreras.json</b>. El objeto se apoya en <b>lugar</b>; sin declararlo vale <b>CONFIG.fondo.lugarPorDefecto</b>.</p>
+  <div id="carreras"></div>
 
   <script type="module">
-    import { dibujarEscenario, ESCENARIOS } from '../espejo/escenarios.js';
+    import { CONFIG } from '../espejo/config.js';
+    import { dibujarEscenario } from '../espejo/escenarios.js';
     import { figurasDisponibles } from '../espejo/figuras.js';
-    import { cargarContenido } from '../espejo/contenido.js';
+    import { cargarContenido, fondoActivo, objetoDeCarrera } from '../espejo/contenido.js';
+    import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
+    import { lugarEnPantalla } from '../espejo/vuelo.js';
+    import {
+      calcularDisposicion,
+      calcularRectanguloVideo,
+      dibujarFondo,
+      dibujarNombreDeCarrera,
+      dibujarObjetoApoyado,
+      TITULO_SOLO,
+      PESO_TITULO,
+    } from '../espejo/escena.js';
 
+    // A escala: el espejo es 1080x1920 y aca se dibuja a la mitad.
     const ANCHO = 540;
     const ALTO = 960;
+    const disposicion = calcularDisposicion(ANCHO, ALTO);
+
+    // El canvas no dispara la carga de la fuente: se espera antes de dibujar.
+    await document.fonts.load(`${PESO_TITULO} 32px ${TITULO_SOLO}`).catch(() => {});
 
     const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
-    const grilla = document.getElementById('grilla');
+    const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
+    await banco.precargar(
+      contenido.carreras.flatMap((c) => [
+        ...(c.fondos ?? []).map((f) => f.img),
+        ...c.objetos.map((o) => o.img),
+        ...(c.objeto ? [c.objeto.img] : []),
+      ]),
+    );
 
-    for (const carrera of contenido.carreras) {
-      const figura = document.createElement('figure');
-      const lienzo = document.createElement('canvas');
-      lienzo.width = ANCHO;
-      lienzo.height = ALTO;
-
-      const hay = dibujarEscenario(lienzo.getContext('2d'), carrera.id, ANCHO, ALTO, carrera.color);
-
-      const pie = document.createElement('figcaption');
-      pie.innerHTML = `<b>${carrera.nombre}</b><br>${carrera.id}${hay ? '' : ' — SIN ESCENA'}`;
-
-      figura.append(lienzo, pie);
-      grilla.append(figura);
+    /** Una silueta gris, cabeza y hombros, donde se para la persona. */
+    function dibujarSilueta(ctx) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(180, 190, 205, 0.55)';
+      ctx.beginPath();
+      ctx.ellipse(ANCHO / 2, ALTO * 0.42, ANCHO * 0.11, ANCHO * 0.14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(ANCHO * 0.22, ALTO);
+      ctx.quadraticCurveTo(ANCHO * 0.24, ALTO * 0.56, ANCHO / 2, ALTO * 0.55);
+      ctx.quadraticCurveTo(ANCHO * 0.76, ALTO * 0.56, ANCHO * 0.78, ALTO);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
     }
 
-    document.title = `${Object.keys(ESCENARIOS).length} escenas`;
+    /** Dibuja un candidato como se veria en el espejo. Devuelve si habia imagen. */
+    function dibujarCandidato(lienzo, carrera, fondo, definicion) {
+      const ctx = lienzo.getContext('2d');
+      const imagen = fondo ? banco.obtener(fondo.img) : null;
+      let rectangulo = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
+
+      if (imagen) {
+        dibujarFondo(ctx, imagen, disposicion, 1);
+        rectangulo = calcularRectanguloVideo(imagen.width, imagen.height, ANCHO, ALTO);
+      } else if (!dibujarEscenario(ctx, carrera.id, ANCHO, ALTO, carrera.color)) {
+        ctx.fillStyle = carrera.color;
+        ctx.fillRect(0, 0, ANCHO, ALTO);
+      }
+
+      const puesto = lugarEnPantalla(fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto, rectangulo);
+      dibujarObjetoApoyado(
+        ctx,
+        { definicion, ...puesto, alfa: 1, halo: CONFIG.fondo.haloDelLugar },
+        banco,
+        carrera.color,
+      );
+      dibujarSilueta(ctx);
+      dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+      return Boolean(imagen);
+    }
+
+    const raiz = document.getElementById('carreras');
+
+    for (const carrera of contenido.carreras) {
+      const titulo = document.createElement('h2');
+      titulo.innerHTML =
+        `<span class="muestra" style="background:${carrera.color}"></span>` +
+        `${carrera.nombre} <span style="color:#97a0b5">(${carrera.id})</span>`;
+      const fila = document.createElement('div');
+      fila.className = 'fila';
+
+      const candidatos = carrera.fondos?.length ? carrera.fondos : [null];
+      const definicion = objetoDeCarrera(carrera);
+
+      candidatos.forEach((fondo, i) => {
+        const figura = document.createElement('figure');
+        const lienzo = document.createElement('canvas');
+        lienzo.width = ANCHO;
+        lienzo.height = ALTO;
+        const hayImagen = dibujarCandidato(lienzo, carrera, fondo, definicion);
+
+        const pie = document.createElement('figcaption');
+        const lugar = fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto;
+        pie.innerHTML =
+          `${i === 0 ? '<b class="activo">activo</b>' : `candidato ${i + 1}`} · ` +
+          `<b>${fondo?.img ?? 'sin fondos declarados'}</b>` +
+          `${fondo && !hayImagen ? ' — ARCHIVO NO ENCONTRADO, se muestra la escena vectorial' : ''}` +
+          `<br>lugar: x ${lugar.x}, y ${lugar.y}, escala ${lugar.escala}` +
+          `${fondo?.lugar ? '' : ' (por defecto)'}`;
+
+        figura.append(lienzo, pie);
+        fila.append(figura);
+      });
+
+      raiz.append(titulo, fila);
+    }
+
+    document.title = `${contenido.carreras.length} ingenierías, sus fondos`;
   </script>
 </body>
 </html>

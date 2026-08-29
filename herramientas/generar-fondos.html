@@ -11,7 +11,7 @@
   <script type="module">
     import { dibujarEscenario, ESCENARIOS } from '../espejo/escenarios.js';
     import { figurasDisponibles } from '../espejo/figuras.js';
-    import { cargarContenido } from '../espejo/contenido.js';
+    import { cargarContenido, fondoActivo } from '../espejo/contenido.js';
 
     // El tamaño de la pantalla del stand. El fondo se dibuja cubriendo, asi que
     // generarlo mas chico se notaria: es lo unico de la escena que no tiene
@@ -22,9 +22,12 @@
     const salida = { pngs: {}, avisos: [] };
     const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
 
+    // Se genera solo el fondo ACTIVO de cada carrera: los otros candidatos son
+    // fotografias, y una escena vectorial repetida tres veces no es una opcion.
     for (const carrera of contenido.carreras) {
-      if (!carrera.fondo) {
-        salida.avisos.push(`${carrera.id}: no declara fondo en carreras.json`);
+      const fondo = fondoActivo(carrera);
+      if (!fondo) {
+        salida.avisos.push(`${carrera.id}: no declara fondos en carreras.json`);
         continue;
       }
       if (!ESCENARIOS[carrera.id]) {
@@ -38,7 +41,7 @@
       const ctx = lienzo.getContext('2d');
 
       dibujarEscenario(ctx, carrera.id, ANCHO, ALTO, carrera.color);
-      salida.pngs[carrera.fondo] = lienzo.toDataURL('image/png');
+      salida.pngs[fondo.img] = lienzo.toDataURL('image/png');
     }
 
     // Las marcas se arman por partes: si aparecieran enteras en este fuente,
