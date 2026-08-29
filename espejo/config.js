@@ -282,9 +282,11 @@ export const CONFIG = {
     oscurecerVideo: 0.55, // cuanto se apaga el espejo debajo del fondo sin mascara
 
     // Donde se apoya el objeto cuando el fondo no declara su `lugar`:
-    // normalizado a la imagen, arriba a la izquierda, lejos de la cara y del
-    // nombre. `escala` es el diametro como fraccion del ancho de la imagen.
-    lugarPorDefecto: { x: 0.22, y: 0.3, escala: 0.16 },
+    // normalizado a la imagen, arriba a la izquierda, lejos de la cara, del
+    // nombre y del recorrido del carrusel, que pasa por encima de la cabeza a
+    // un tercio de la pantalla. `escala` es el diametro como fraccion del ancho
+    // de la imagen.
+    lugarPorDefecto: { x: 0.2, y: 0.22, escala: 0.16 },
 
     // El halo del color de la carrera debajo del objeto apoyado. Lo presenta
     // sobre cualquier fondo, foto o escena vectorial, sin pedirle a cada imagen

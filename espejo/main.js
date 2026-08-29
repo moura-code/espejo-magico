@@ -4,7 +4,7 @@
 // que orden se dibuja. Todo lo que se puede probar vive en otro lado.
 
 import { CONFIG } from './config.js';
-import { cargarContenido, objetoDeCarrera } from './contenido.js';
+import { cargarContenido, objetoDeCarrera, fondoActivo } from './contenido.js';
 import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
@@ -16,6 +16,7 @@ import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearEleccion } from './eleccion.js';
 import { crearTablero } from './tablero.js';
 import { crearSilueta } from './silueta.js';
+import { lugarEnPantalla, posicionEnVuelo, flotacion } from './vuelo.js';
 import { crearPuente } from './maite.js';
 import { alfaDeHumo, cargarVideoDelNavegador } from './humo.js';
 import {
@@ -34,10 +35,10 @@ import {
   dibujarFondo,
   dibujarPersonaRecortada,
   dibujarObjeto,
+  dibujarObjetoApoyado,
   dibujarAnilloDeProgreso,
   dibujarManos,
   dibujarPersona,
-  dibujarFichaDePersona,
   dibujarNombreDeCarrera,
   dibujarHumo,
   dibujarInvitacion,
@@ -256,6 +257,14 @@ let blancos = [];
 // carrera no declara representante, asi que resolverla en cada cuadro hacia
 // parpadear el objeto entre PNG distintos.
 let mostrada = null;
+// El objeto con el que se agarro la carrera mostrada. Sale de `ofrecidos`, que
+// ya sorteo uno por sesion: resolverlo por cuadro haria parpadear el PNG.
+let objetoMostrado = null;
+// De donde salio ese objeto: la posicion de su ranura en el cuadro en que se
+// agarro. Se captura una vez, porque el carrusel sigue girando mientras el
+// objeto vuela y el origen no puede irse con el. Null cuando no habia ranura a
+// la vista: la red de la fila, o una carrera forzada por teclado.
+let origenDelVuelo = null;
 
 function prepararOfrecidos(opciones) {
   ofrecidos = opciones
@@ -274,6 +283,12 @@ function atender(salida, ahora) {
     if (evento.tipo === 'mira') {
       const carrera = contenido.obtener(evento.carrera);
       mostrada = carrera ?? null;
+      objetoMostrado =
+        ofrecidos.find((ofrecido) => ofrecido.id === evento.carrera)?.definicion ??
+        objetoDeCarrera(carrera);
+      const ranura = blancos.find((blanco) => blanco.id === evento.carrera);
+      origenDelVuelo =
+        ranura && ranura.alfa > 0 ? { x: ranura.x, y: ranura.y, radio: ranura.radio } : null;
       puente.carrera(carrera?.maite ?? null);
       continue;
     }
@@ -285,6 +300,8 @@ function atender(salida, ahora) {
       eleccion.reiniciar();
       tablero.reiniciar();
       mostrada = null;
+      objetoMostrado = null;
+      origenDelVuelo = null;
     }
 
 
@@ -292,6 +309,8 @@ function atender(salida, ahora) {
       ofrecidos = [];
       blancos = [];
       mostrada = null;
+      objetoMostrado = null;
+      origenDelVuelo = null;
       eleccion.reiniciar();
       tablero.reiniciar();
       puente.humo();
@@ -557,8 +576,13 @@ function cuadro(ahora) {
   // Sin silueta —pose perdida, GPU lenta, modelo sin cargar— el fondo se dibuja
   // igual, mas tenue y con el espejo apagado debajo. Se pierde la profundidad,
   // pero nunca queda una pantalla en negro con publico delante.
+  // Donde esta el objeto agarrado en este cuadro. Se usa en dos capas: detras
+  // de la persona una vez apoyado, y por delante de todo mientras vuela.
+  let apoyado = null;
+
   if (transicion.fondo > 0 && carrera) {
-    const imagenDeFondo = carrera.fondo ? banco.obtener(carrera.fondo) : null;
+    const fondo = fondoActivo(carrera);
+    const imagenDeFondo = fondo ? banco.obtener(fondo.img) : null;
     const hayRecorte = Boolean(video && lienzoDeSilueta);
 
     // Orden de preferencia, el mismo que el de los objetos: la foto si esta, la
@@ -574,12 +598,43 @@ function cuadro(ahora) {
       dibujarFondo(ctx, escena, disposicion, alfaDelFondo);
     } else {
       // Ni foto ni escena: el color de la carrera. Es feo pero es legible, y el
-      // nombre y el texto siguen entrando: una carrera sin fondo no rompe nada.
+      // nombre sigue entrando: una carrera sin fondo no rompe nada.
       ctx.save();
       ctx.globalAlpha = transicion.fondo * 0.8;
       ctx.fillStyle = carrera.color;
       ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
       ctx.restore();
+    }
+
+    // El lugar del objeto va normalizado a la imagen que se dibujo (o al
+    // lienzo entero si no hay imagen), asi cae siempre en el mismo sitio de la
+    // escena sin importar el recorte. El origen del vuelo se capturo al
+    // agarrar; sin origen, el objeto crece en su lugar.
+    const rectanguloDelFondo = escena
+      ? calcularRectanguloVideo(escena.width, escena.height, disposicion.ancho, disposicion.alto)
+      : { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
+    const destino = lugarEnPantalla(fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto, rectanguloDelFondo);
+    const enVuelo = posicionEnVuelo({ origen: origenDelVuelo, destino, t: transicion.vuelo });
+    const aterrizo = transicion.vuelo >= 1;
+    const flota = aterrizo ? flotacion(ahora, enVuelo.radio, CONFIG.fondo.flotar) : { dy: 0, giro: 0 };
+    apoyado = {
+      definicion: objetoMostrado,
+      x: enVuelo.x,
+      y: enVuelo.y + flota.dy,
+      radio: enVuelo.radio,
+      giro: flota.giro,
+      aterrizo,
+    };
+
+    // Apoyado, va DETRAS de la persona: integrado a la escena. Si la persona se
+    // inclina sobre ese punto lo tapa, que es lo correcto.
+    if (aterrizo) {
+      dibujarObjetoApoyado(
+        ctx,
+        { ...apoyado, alfa: transicion.objetos, halo: CONFIG.fondo.haloDelLugar },
+        banco,
+        carrera.color,
+      );
     }
 
     if (hayRecorte) {
@@ -648,18 +703,22 @@ function cuadro(ahora) {
       if (blanco.alfa <= 0) continue;
       const esElMostrado = blanco.id === salida.carrera;
 
-      dibujarObjeto(
-        ctx,
-        {
-          definicion: blanco.definicion,
-          x: blanco.x,
-          y: blanco.y,
-          radio: blanco.radio,
-          alfa: transicion.objetos * blanco.alfa,
-        },
-        banco,
-        blanco.carrera.color,
-      );
+      // La ranura del objeto mostrado queda vacia con su anillo lleno: el
+      // objeto se fue a vivir al fondo, y la marca dice cual fue.
+      if (!esElMostrado) {
+        dibujarObjeto(
+          ctx,
+          {
+            definicion: blanco.definicion,
+            x: blanco.x,
+            y: blanco.y,
+            radio: blanco.radio,
+            alfa: transicion.objetos * blanco.alfa,
+          },
+          banco,
+          blanco.carrera.color,
+        );
+      }
 
       const progresoDelAnillo = esElMostrado
         ? 1
@@ -682,6 +741,23 @@ function cuadro(ahora) {
     }
   }
 
+  // Mientras vuela, el objeto va por delante de todo: sale de su ranura, cruza
+  // la pantalla y recien al aterrizar pasa detras de la persona.
+  if (apoyado && !apoyado.aterrizo) {
+    dibujarObjeto(
+      ctx,
+      {
+        definicion: apoyado.definicion,
+        x: apoyado.x,
+        y: apoyado.y,
+        radio: apoyado.radio,
+        alfa: transicion.objetos,
+      },
+      banco,
+      carrera.color,
+    );
+  }
+
   // La señal de las manos: donde registra el sistema tu palma. Es lo unico que
   // le enseña al publico que puede estirarlas, y sin ella el sostenido es a
   // ciegas. Solo durante la exploracion, que es cuando las manos hacen algo.
@@ -690,7 +766,6 @@ function cuadro(ahora) {
   }
 
   dibujarNombreDeCarrera(ctx, carrera, disposicion, transicion.contenido);
-  dibujarFichaDePersona(ctx, carrera, disposicion, transicion.contenido);
 
   // El humo va encima de todo: su trabajo es justamente tapar el momento en que
   // las nubes se abren y los objetos se ponen en su lugar.
@@ -762,6 +837,7 @@ window.espejo = {
   poseCrudas: () => detectorDePose?.crudasDetectadas() ?? 0,
   ofrecidos: () => blancos,
   mostrada: () => mostrada,
+  origenDelVuelo: () => origenDelVuelo,
   progresoDeEleccion: () => progresoDeEleccion,
   hayFondo: () => Boolean(videoDeHumo),
   modo: () => modo,
