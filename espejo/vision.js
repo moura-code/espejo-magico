@@ -19,3 +19,35 @@ export function olvidarVision() {
   modulo = null;
   recursos = null;
 }
+
+/**
+ * Crea un detector pidiendo la GPU y, si el navegador no la da, lo reintenta en
+ * CPU.
+ *
+ * Los tres modelos corren sobre WebGL. Cuando Chrome no entrega contexto
+ * —ventana tapada al arrancar, aceleracion por hardware apagada, GPU sin
+ * driver— MediaPipe falla con `emscripten_webgl_create_context() returned error
+ * 0` y arrastra al espejo entero: el rostro es obligatorio, asi que main.js
+ * muestra "MediaPipe no cargó" y no dibuja nada mas. Un stand con publico
+ * delante no puede quedarse en negro por eso.
+ *
+ * En CPU el reconocimiento anda mas lento —se nota sobre todo en la pose, que
+ * ademas segmenta— pero la experiencia entera sigue en pie. Es el mismo criterio
+ * que el fondo sin mascara: peor, nunca ausente.
+ */
+export async function crearConRespaldoEnCPU(crear, opciones) {
+  const con = (delegate) => ({
+    ...opciones,
+    baseOptions: { ...opciones.baseOptions, delegate },
+  });
+
+  try {
+    return await crear(con('GPU'));
+  } catch (error) {
+    console.warn(
+      'MediaPipe no consiguió GPU, se reintenta en CPU (va a ir más lento):',
+      error?.message ?? error,
+    );
+    return crear(con('CPU'));
+  }
+}

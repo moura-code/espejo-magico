@@ -1,128 +1,203 @@
 import { describe, it, expect } from 'vitest';
 import {
+  FAMILIA_TEXTO,
+  FAMILIA_TITULO,
+  PESO_TITULO,
+  TITULO_SOLO,
   calcularDisposicion,
   calcularRecorteVisible,
   calcularRectanguloVideo,
+  dibujarAnilloDeProgreso,
+  dibujarConsigna,
+  dibujarFondo,
+  dibujarHumo,
+  dibujarInvitacion,
   dibujarManos,
-  faseDeAnillo,
-  radioDeAnillo,
-  recortarFueraDeCara,
+  dibujarNombreDeCarrera,
+  dibujarObjeto,
+  dibujarObjetoApoyado,
+  dibujarPersonaRecortada,
+  medidasDe,
+  partirEnLineas,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
 
 // Lienzo falso: registra las llamadas para poder afirmar sobre lo dibujado.
 function crearCtxFalso() {
   const llamadas = [];
-  return {
+  const ctx = {
     llamadas,
     strokeStyle: '',
     fillStyle: '',
     lineWidth: 0,
+    lineCap: '',
+    font: '',
+    textAlign: '',
     globalAlpha: 1,
+    globalCompositeOperation: 'source-over',
     shadowColor: '',
     shadowBlur: 0,
+    filter: '',
     save: () => llamadas.push(['save']),
     restore: () => llamadas.push(['restore']),
     beginPath: () => llamadas.push(['beginPath']),
     closePath: () => llamadas.push(['closePath']),
     moveTo: (x, y) => llamadas.push(['moveTo', x, y]),
     lineTo: (x, y) => llamadas.push(['lineTo', x, y]),
-    arc: (x, y, radio) => llamadas.push(['arc', x, y, radio]),
+    arc: (x, y, radio, desde, hasta) => llamadas.push(['arc', x, y, radio, desde, hasta]),
+    ellipse: (...args) => llamadas.push(['ellipse', ...args]),
+    rect: (...args) => llamadas.push(['rect', ...args]),
+    fillRect: (...args) => llamadas.push(['fillRect', ...args]),
+    // Los usan las figuras vectoriales, que son el respaldo cuando falta el PNG.
+    strokeRect: (...args) => llamadas.push(['strokeRect', ...args]),
+    strokeText: (...args) => llamadas.push(['strokeText', ...args]),
+    quadraticCurveTo: (...args) => llamadas.push(['quadraticCurveTo', ...args]),
+    clearRect: (...args) => llamadas.push(['clearRect', ...args]),
     stroke: () => llamadas.push(['stroke']),
     fill: () => llamadas.push(['fill']),
+    clip: (...args) => llamadas.push(['clip', ...args]),
+    translate: (x, y) => llamadas.push(['translate', x, y]),
+    scale: (x, y) => llamadas.push(['scale', x, y]),
+    rotate: (a) => llamadas.push(['rotate', a]),
+    fillText: (texto, x, y) => llamadas.push(['fillText', texto, x, y]),
+    measureText: (texto) => ({ width: texto.length * 10 }),
+    drawImage: (...args) => llamadas.push(['drawImage', ...args]),
     createRadialGradient: () => ({ addColorStop: () => {} }),
+    createLinearGradient: () => ({ addColorStop: () => {} }),
   };
+  return ctx;
 }
 
-describe('faseDeAnillo', () => {
-  it('reparte el ciclo entre los anillos para que la señal no tenga huecos', () => {
-    expect(faseDeAnillo(0, 1000, 0, 2)).toBeCloseTo(0);
-    expect(faseDeAnillo(0, 1000, 1, 2)).toBeCloseTo(0.5);
-    expect(faseDeAnillo(500, 1000, 0, 2)).toBeCloseTo(0.5);
+const soloDe = (ctx, nombre) => ctx.llamadas.filter(([que]) => que === nombre);
+
+const bancoCon = (mapa = {}) => ({ obtener: (ruta) => mapa[ruta] ?? null });
+const imagen = (ancho = 100, alto = 100) => ({ width: ancho, height: alto });
+// Un <video>: sus medidas NO estan en width/height, que valen 0 hasta el primer
+// cuadro. Es la trampa que medidasDe existe para tapar.
+const videoDe = (ancho = 1080, alto = 1920) => ({
+  width: 0,
+  height: 0,
+  videoWidth: ancho,
+  videoHeight: alto,
+});
+
+describe('dibujarObjeto', () => {
+  const definicion = { img: 'assets/civil/grua.png', figura: 'grua', escala: 0.2 };
+
+  it('dibuja el PNG cuando esta en el banco', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjeto(
+      ctx,
+      { definicion, x: 300, y: 400, radio: 60 },
+      bancoCon({ 'assets/civil/grua.png': imagen() }),
+      '#FF8A3D',
+    );
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(1);
+    expect(soloDe(ctx, 'translate')[0]).toEqual(['translate', 300, 400]);
   });
 
-  it('siempre cae dentro del ciclo, incluso con relojes raros', () => {
-    for (const ahora of [-3000, -1, 0, 1, 12345, 9e9]) {
-      const fase = faseDeAnillo(ahora, 1400, 1, 3);
-      expect(fase).toBeGreaterThanOrEqual(0);
-      expect(fase).toBeLessThan(1);
+  // Un objeto que no se dibuja es una opcion que no se puede elegir: la persona
+  // ve un hueco en el arco y no entiende por que ahi no pasa nada.
+  it('sin PNG cae a la figura o al circulo del color, pero dibuja algo', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjeto(ctx, { definicion, x: 300, y: 400, radio: 60 }, bancoCon(), '#FF8A3D');
+    expect(ctx.llamadas.length).toBeGreaterThan(2);
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(0);
+  });
+
+  it('no dibuja nada invisible ni sin definicion', () => {
+    for (const caso of [
+      { definicion, x: 0, y: 0, radio: 60, alfa: 0 },
+      { definicion, x: 0, y: 0, radio: 0 },
+      { definicion: null, x: 0, y: 0, radio: 60 },
+    ]) {
+      const ctx = crearCtxFalso();
+      dibujarObjeto(ctx, caso, bancoCon({ 'assets/civil/grua.png': imagen() }), '#fff');
+      expect(ctx.llamadas).toEqual([]);
     }
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjeto(ctx, { definicion, x: 1, y: 1, radio: 10 }, bancoCon(), '#fff');
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
   });
 });
 
-describe('radioDeAnillo', () => {
-  const ALCANCE = 320;
-  const NUCLEO = 20;
+describe('dibujarAnilloDeProgreso', () => {
+  const base = { x: 300, y: 400, radio: 60, color: '#00E5A0' };
 
-  // El corazon del efecto: el anillo va HACIA la palma, que es el camino que
-  // hacen los objetos capturados. Hacia afuera diria lo contrario — que el
-  // espejo emite algo — y es justo lo que no hay que enseñar.
-  it('se cierra sobre la palma en vez de expandirse', () => {
-    const radios = [0, 0.25, 0.5, 0.75, 1].map((f) => radioDeAnillo(ALCANCE, NUCLEO, f));
-    const ordenado = [...radios].sort((a, b) => b - a);
-    expect(radios).toEqual(ordenado);
+  it('sin progreso no dibuja nada', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 0 });
+    expect(ctx.llamadas).toEqual([]);
   });
 
-  it('nace en el alcance real del campo y termina en el nucleo', () => {
-    expect(radioDeAnillo(ALCANCE, NUCLEO, 0)).toBeCloseTo(ALCANCE);
-    expect(radioDeAnillo(ALCANCE, NUCLEO, 1)).toBeCloseTo(NUCLEO);
+  // Es la unica señal de que el sostenido esta pasando. Si el arco no creciera
+  // con el progreso, la persona no sabria si le falta mucho o nada.
+  it('el arco crece con el progreso', () => {
+    const barrido = (progreso) => {
+      const ctx = crearCtxFalso();
+      dibujarAnilloDeProgreso(ctx, { ...base, progreso });
+      const [, , , , desde, hasta] = soloDe(ctx, 'arc').at(-1);
+      return hasta - desde;
+    };
+
+    expect(barrido(0.25)).toBeGreaterThan(0);
+    expect(barrido(0.5)).toBeGreaterThan(barrido(0.25));
+    expect(barrido(1)).toBeCloseTo(Math.PI * 2);
   });
 
-  it('nunca se sale del campo ni se da vuelta', () => {
-    for (let f = 0; f <= 1; f += 0.01) {
-      const r = radioDeAnillo(ALCANCE, NUCLEO, f);
-      expect(r).toBeGreaterThanOrEqual(NUCLEO);
-      expect(r).toBeLessThanOrEqual(ALCANCE);
+  it('un progreso pasado de rosca no da mas de una vuelta', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 3 });
+    const [, , , , desde, hasta] = soloDe(ctx, 'arc').at(-1);
+    expect(hasta - desde).toBeCloseTo(Math.PI * 2);
+  });
+
+  // Arranca arriba y gira como un reloj: cualquiera entiende un reloj sin que
+  // nadie se lo explique.
+  it('arranca arriba del objeto', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 0.5 });
+    const [, , , , desde] = soloDe(ctx, 'arc').at(-1);
+    expect(desde).toBeCloseTo(-Math.PI / 2);
+  });
+
+  it('el anillo rodea al objeto sin taparlo', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 0.5 });
+    for (const [, x, y, radio] of soloDe(ctx, 'arc')) {
+      expect(x).toBe(base.x);
+      expect(y).toBe(base.y);
+      expect(radio).toBeGreaterThan(base.radio);
     }
   });
 });
 
 describe('dibujarManos', () => {
   const mano = { palma: { x: 300, y: 400 }, radio: 100 };
-  const ALCANCE_FACTOR = 3.2;
-  const ANILLOS = 2;
-
-  const dibujarEn = (ahora, extra = {}) => {
-    const ctx = crearCtxFalso();
-    dibujarManos(ctx, [mano], '#00E5A0', {
-      ahora,
-      alcanceFactor: ALCANCE_FACTOR,
-      senal: { anillos: ANILLOS },
-      ...extra,
-    });
-    return ctx;
-  };
-
-  const arcos = (ctx) => ctx.llamadas.filter(([nombre]) => nombre === 'arc');
-
-  it('en modo golpe no dibuja anillos: no hay campo que mostrar', () => {
-    const conCampo = arcos(dibujarEn(500, { atrae: true })).length;
-    const sinCampo = arcos(dibujarEn(500, { atrae: false })).length;
-    expect(conCampo - sinCampo).toBe(ANILLOS);
-  });
 
   it('todo lo que dibuja esta centrado en la palma', () => {
-    const centrados = arcos(dibujarEn(500)).every(
-      ([, x, y]) => x === mano.palma.x && y === mano.palma.y,
-    );
-    expect(centrados).toBe(true);
-  });
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [mano], '#ffffff', { resplandorFactor: 2.2, nucleoFactor: 0.22 });
 
-  it('marca la palma aunque el reloj este quieto', () => {
-    expect(arcos(dibujarEn(0)).length).toBeGreaterThan(0);
+    const arcos = soloDe(ctx, 'arc');
+    expect(arcos.length).toBeGreaterThan(0);
+    expect(arcos.every(([, x, y]) => x === mano.palma.x && y === mano.palma.y)).toBe(true);
   });
 
   // Antes se dibujaban la palma, los dedos y los nudillos: eso pintaba un
   // segundo par de manos encima de las que ya se ven en el espejo.
   it('no depende de los 21 puntos de la mano', () => {
-    const puntosPantalla = Array.from({ length: 21 }, (_, i) => ({ x: 100 + i * 5, y: 200 + i * 5 }));
-    const conPuntos = dibujarEn(500, {}).llamadas;
-    const ctx = crearCtxFalso();
-    dibujarManos(ctx, [{ ...mano, puntosPantalla, largoPalma: 60 }], '#00E5A0', {
-      ahora: 500,
-      alcanceFactor: ALCANCE_FACTOR,
-    });
-    expect(ctx.llamadas).toEqual(conPuntos);
+    const puntos = Array.from({ length: 21 }, (_, i) => ({ x: 100 + i * 5, y: 200 + i * 5 }));
+    const simple = crearCtxFalso();
+    const conPuntos = crearCtxFalso();
+
+    dibujarManos(simple, [mano], '#ffffff');
+    dibujarManos(conPuntos, [{ ...mano, puntos, largoPalma: 60 }], '#ffffff');
+    expect(conPuntos.llamadas).toEqual(simple.llamadas);
   });
 
   it('no toca el lienzo sin manos', () => {
@@ -140,27 +215,325 @@ describe('dibujarManos', () => {
   });
 });
 
-describe('recortarFueraDeCara', () => {
-  it('no aplica recorte si no hay rostro', () => {
-    const llamadas = [];
-    const ctx = { clip: () => llamadas.push('clip') };
-    expect(recortarFueraDeCara(ctx, null, { ancho: 1000, alto: 800 })).toBe(false);
-    expect(llamadas).toEqual([]);
+describe('dibujarFondo', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+
+  it('no dibuja nada sin imagen o sin alfa', () => {
+    const ctx = crearCtxFalso();
+    expect(dibujarFondo(ctx, null, disposicion, 1)).toBeNull();
+    expect(dibujarFondo(ctx, imagen(), disposicion, 0)).toBeNull();
+    expect(ctx.llamadas).toEqual([]);
   });
 
-  it('recorta una zona amplia alrededor de la cara', () => {
-    const llamadas = [];
-    const ctx = {
-      beginPath: () => llamadas.push(['beginPath']),
-      rect: (...args) => llamadas.push(['rect', ...args]),
-      ellipse: (...args) => llamadas.push(['ellipse', ...args]),
-      clip: (...args) => llamadas.push(['clip', ...args]),
-    };
-    const rostro = { centro: { x: 500, y: 300 }, radio: 100, angulo: 0.2 };
+  // El objeto agarrado se apoya normalizado a ESTE rectangulo. Devolverlo es lo
+  // que evita que el llamador lo calcule por su cuenta y los dos se separen.
+  it('devuelve el rectangulo que uso, el mismo con el que dibujo', () => {
+    const ctx = crearCtxFalso();
+    const rectangulo = dibujarFondo(ctx, imagen(1920, 1080), disposicion, 1);
 
-    expect(recortarFueraDeCara(ctx, rostro, { ancho: 1000, alto: 800 })).toBe(true);
-    expect(llamadas[1]).toEqual(['rect', 0, 0, 1000, 800]);
-    expect(llamadas.at(-1)).toEqual(['clip', 'evenodd']);
+    const [, , x, y, ancho, alto] = soloDe(ctx, 'drawImage')[0];
+    expect(rectangulo).toEqual({ x, y, ancho, alto });
+  });
+
+  // El fondo se dibuja cubriendo, no estirado: una foto apaisada deformada para
+  // entrar en una pantalla vertical se nota de lejos.
+  it('cubre la pantalla conservando la relacion de la imagen', () => {
+    const ctx = crearCtxFalso();
+    expect(dibujarFondo(ctx, imagen(1920, 1080), disposicion, 1)).not.toBeNull();
+
+    const [, , x, y, ancho, alto] = soloDe(ctx, 'drawImage')[0];
+    expect(ancho / alto).toBeCloseTo(1920 / 1080, 3);
+    expect(x).toBeLessThanOrEqual(0.001);
+    expect(y).toBeLessThanOrEqual(0.001);
+    expect(x + ancho).toBeGreaterThanOrEqual(1080 - 0.001);
+    expect(y + alto).toBeGreaterThanOrEqual(1920 - 0.001);
+  });
+
+  // Un fondo con movimiento se dibuja igual que una foto. Si midiera por
+  // `width` —que en un video es 0— el rectangulo saldria del tamaño de la
+  // pantalla y el fondo quedaria estirado.
+  it('un video se dibuja igual que una foto, por sus medidas de video', () => {
+    const ctx = crearCtxFalso();
+    expect(dibujarFondo(ctx, videoDe(1920, 1080), disposicion, 1)).not.toBeNull();
+
+    const [, , , , ancho, alto] = soloDe(ctx, 'drawImage')[0];
+    expect(ancho / alto).toBeCloseTo(1920 / 1080, 3);
+  });
+
+  // Sin cuadro decodificado, drawImage no dibuja nada y no avisa: el fondo
+  // quedaria vacio. Diciendo que no, el que llama cae a la foto.
+  it('no dibuja un video que todavia no tiene medidas', () => {
+    const ctx = crearCtxFalso();
+    expect(dibujarFondo(ctx, videoDe(0, 0), disposicion, 1)).toBeNull();
+    expect(ctx.llamadas).toEqual([]);
+  });
+});
+
+describe('medidasDe', () => {
+  it('mide una foto por width y height', () => {
+    expect(medidasDe(imagen(800, 600))).toEqual({ ancho: 800, alto: 600 });
+  });
+
+  it('mide un video por videoWidth y videoHeight', () => {
+    expect(medidasDe(videoDe(1080, 1920))).toEqual({ ancho: 1080, alto: 1920 });
+  });
+
+  it('devuelve null cuando no hay nada que medir', () => {
+    expect(medidasDe(null)).toBeNull();
+    expect(medidasDe(videoDe(0, 0))).toBeNull();
+    expect(medidasDe(imagen(0, 0))).toBeNull();
+  });
+});
+
+describe('dibujarPersonaRecortada', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const capa = () => {
+    const ctx = crearCtxFalso();
+    return { canvas: { es: 'capa' }, ctx };
+  };
+  const rectangulo = { x: -300, y: 0, ancho: 1680, alto: 1920 };
+
+  // Sin silueta, dibujar solo el fondo dejaria a la persona afuera de su propia
+  // escena. El llamador tiene que enterarse para caer al fondo tenue.
+  it('avisa que no pudo cuando falta la silueta, el video o la capa', () => {
+    expect(
+      dibujarPersonaRecortada(crearCtxFalso(), {
+        capa: capa(),
+        video: {},
+        silueta: null,
+        rectangulo,
+        disposicion,
+      }),
+    ).toBe(false);
+
+    expect(
+      dibujarPersonaRecortada(crearCtxFalso(), {
+        capa: capa(),
+        video: null,
+        silueta: {},
+        rectangulo,
+        disposicion,
+      }),
+    ).toBe(false);
+
+    expect(
+      dibujarPersonaRecortada(crearCtxFalso(), {
+        capa: null,
+        video: {},
+        silueta: {},
+        rectangulo,
+        disposicion,
+      }),
+    ).toBe(false);
+  });
+
+  it('recorta el video contra la silueta y lo pega en el lienzo', () => {
+    const ctx = crearCtxFalso();
+    const lienzoAparte = capa();
+
+    expect(
+      dibujarPersonaRecortada(ctx, {
+        capa: lienzoAparte,
+        video: { es: 'video' },
+        silueta: { es: 'silueta' },
+        rectangulo,
+        disposicion,
+      }),
+    ).toBe(true);
+
+    // La capa se limpia, se dibuja el video y se recorta con destination-in.
+    expect(soloDe(lienzoAparte.ctx, 'clearRect')).toHaveLength(1);
+    const dibujados = soloDe(lienzoAparte.ctx, 'drawImage').map(([, fuente]) => fuente.es);
+    expect(dibujados).toEqual(['video', 'silueta']);
+
+    // Y recien ahi la capa entera va al lienzo principal, encima del fondo.
+    expect(soloDe(ctx, 'drawImage')[0][1]).toEqual({ es: 'capa' });
+  });
+
+  // La silueta viene del lienzo de analisis, que NO esta espejado. Sin espejarla
+  // el recorte cae del lado contrario y la persona desaparece.
+  it('espeja la silueta igual que el video', () => {
+    const lienzoAparte = capa();
+    dibujarPersonaRecortada(crearCtxFalso(), {
+      capa: lienzoAparte,
+      video: { es: 'video' },
+      silueta: { es: 'silueta' },
+      rectangulo,
+      disposicion,
+    });
+    expect(soloDe(lienzoAparte.ctx, 'scale').filter(([, x]) => x === -1)).toHaveLength(2);
+  });
+});
+
+describe('dibujarHumo', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const video = { videoWidth: 1280, videoHeight: 720 };
+
+  it('no dibuja nada sin video, sin alfa o sin tamaño', () => {
+    for (const [v, alfa] of [
+      [null, 1],
+      [video, 0],
+      [{ videoWidth: 0, videoHeight: 0 }, 1],
+    ]) {
+      const ctx = crearCtxFalso();
+      dibujarHumo(ctx, v, disposicion, alfa);
+      expect(ctx.llamadas).toEqual([]);
+    }
+  });
+
+  // El video es blanco sobre negro y no tiene canal alfa: en `screen` el negro
+  // desaparece solo. En cualquier otro modo taparia la pantalla con un
+  // rectangulo gris.
+  it('lo compone en screen para que el negro desaparezca', () => {
+    const ctx = crearCtxFalso();
+    dibujarHumo(ctx, video, disposicion, 1, 0.95);
+    expect(ctx.globalCompositeOperation).toBe('screen');
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(1);
+  });
+});
+
+describe('dibujarNombreDeCarrera', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const carrera = { nombre: 'Ingeniería Civil', color: '#FF8A3D' };
+
+  it('escribe el nombre de la ingenieria al pie', () => {
+    const ctx = crearCtxFalso();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+
+    const textos = soloDe(ctx, 'fillText');
+    expect(textos.map(([, texto]) => texto).join(' ')).toBe('Ingeniería Civil');
+    for (const [, , , y] of textos) {
+      expect(y).toBeGreaterThan(1920 - disposicion.pie.alto);
+      expect(y).toBeLessThanOrEqual(disposicion.pie.base);
+    }
+  });
+
+  // "Ingenieria en Sistemas de Comunicacion" no entra en un renglon a tamaño
+  // de titulo: se parte en dos antes que achicarse hasta lo ilegible.
+  it('un nombre largo va en dos lineas, y la ultima queda en la base', () => {
+    const ctx = crearCtxFalso();
+    // Medida que escala con la letra, como la de verdad: a tamaño de pie el
+    // nombre no entra en el ancho disponible.
+    ctx.measureText = (texto) => ({
+      width: texto.length * Number(ctx.font.match(/([\d.]+)px/)[1]) * 0.5,
+    });
+    dibujarNombreDeCarrera(
+      ctx,
+      { nombre: 'Ingeniería en Sistemas de Comunicación', color: '#E040FB' },
+      disposicion,
+      1,
+    );
+
+    const textos = soloDe(ctx, 'fillText');
+    expect(textos).toHaveLength(2);
+    expect(textos.map(([, texto]) => texto).join(' ')).toBe(
+      'Ingeniería en Sistemas de Comunicación',
+    );
+    expect(textos[1][3]).toBeCloseTo(disposicion.pie.base);
+    expect(textos[0][3]).toBeLessThan(textos[1][3]);
+  });
+
+  // El texto blanco o de color sobre un fondo con una zona clara es ilegible.
+  // El degradado de abajo es lo unico que lo sostiene.
+  it('pone el degradado que despega el nombre del fondo', () => {
+    const ctx = crearCtxFalso();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    expect(soloDe(ctx, 'fillRect')).toHaveLength(1);
+  });
+
+  it('usa el color de la carrera', () => {
+    const ctx = crearCtxFalso();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    expect(ctx.fillStyle).toBe('#FF8A3D');
+  });
+
+  it('no dibuja nada sin carrera o sin alfa', () => {
+    for (const [c, alfa] of [
+      [carrera, 0],
+      [null, 1],
+    ]) {
+      const ctx = crearCtxFalso();
+      dibujarNombreDeCarrera(ctx, c, disposicion, alfa);
+      expect(ctx.llamadas).toEqual([]);
+    }
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = crearCtxFalso();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
+});
+
+describe('dibujarObjetoApoyado', () => {
+  const definicion = { img: 'assets/civil/grua.png', figura: 'grua', escala: 0.2 };
+  const apoyado = { definicion, x: 240, y: 580, radio: 70, alfa: 1, giro: 0.02, halo: 0.35 };
+
+  // El halo presenta el objeto sobre cualquier fondo, foto o escena vectorial,
+  // sin pedirle a cada imagen que tenga una mesa justo ahi. Va debajo.
+  it('dibuja el halo antes que el objeto', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(ctx, apoyado, bancoCon({ 'assets/civil/grua.png': imagen() }), '#FF8A3D');
+
+    const orden = ctx.llamadas.map(([que]) => que);
+    expect(orden.indexOf('fill')).toBeGreaterThanOrEqual(0);
+    expect(orden.indexOf('fill')).toBeLessThan(orden.indexOf('drawImage'));
+  });
+
+  it('inclina el objeto con el giro pedido', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(ctx, apoyado, bancoCon({ 'assets/civil/grua.png': imagen() }), '#FF8A3D');
+    expect(soloDe(ctx, 'rotate')).toEqual([['rotate', 0.02]]);
+  });
+
+  it('sin halo dibuja solo el objeto', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(
+      ctx,
+      { ...apoyado, halo: 0 },
+      bancoCon({ 'assets/civil/grua.png': imagen() }),
+      '#FF8A3D',
+    );
+    expect(soloDe(ctx, 'fill')).toHaveLength(0);
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(1);
+  });
+
+  it('no dibuja nada invisible', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(ctx, { ...apoyado, alfa: 0 }, bancoCon(), '#FF8A3D');
+    expect(ctx.llamadas).toEqual([]);
+  });
+});
+
+describe('partirEnLineas', () => {
+  // Medida falsa: cada caracter mide 10.
+  const medir = (texto) => texto.length * 10;
+
+  it('deja el texto en una linea si ya entra', () => {
+    expect(partirEnLineas('hola mundo', 1000, medir)).toEqual(['hola mundo']);
+  });
+
+  // El texto de cada persona son dos o tres renglones: sin cortarlo se sale de
+  // la pantalla por los dos lados.
+  it('corta por palabras hasta que cada linea entre', () => {
+    const lineas = partirEnLineas('uno dos tres cuatro cinco', 100, medir);
+    expect(lineas.length).toBeGreaterThan(1);
+    for (const linea of lineas) expect(medir(linea)).toBeLessThanOrEqual(100);
+    expect(lineas.join(' ')).toBe('uno dos tres cuatro cinco');
+  });
+
+  // Cortarla por la mitad se lee peor que dejarla sobresalir, y para eso esta
+  // tamanoQueEntra.
+  it('una palabra sola mas ancha que el renglon se deja igual', () => {
+    expect(partirEnLineas('supercalifragilistico', 50, medir)).toEqual(['supercalifragilistico']);
+  });
+
+  it('no devuelve lineas vacias', () => {
+    expect(partirEnLineas('', 100, medir)).toEqual([]);
+    expect(partirEnLineas('   ', 100, medir)).toEqual([]);
+    expect(partirEnLineas(null, 100, medir)).toEqual([]);
+    expect(partirEnLineas('  hola   mundo  ', 1000, medir)).toEqual(['hola mundo']);
   });
 });
 
@@ -199,29 +572,21 @@ describe('calcularDisposicion', () => {
     expect(calcularDisposicion(1920, 1080).vertical).toBe(false);
   });
 
-  // Los objetos tienen que llegar hasta el borde de abajo: un piso mas arriba se
-  // percibe como una repisa invisible flotando en el aire (feedback de la primera
-  // prueba). El texto no se defiende con un piso sino con el orden de dibujo.
-  it('la caja de fisica llega hasta el borde inferior de la pantalla', () => {
-    const d = calcularDisposicion(1080, 1920);
-    expect(d.caja).toEqual({ x: 0, y: 0, ancho: 1080, alto: 1920 });
-  });
-
-  it('la caja llega al borde tambien en pantalla apaisada', () => {
-    const d = calcularDisposicion(1920, 1080);
-    expect(d.caja.alto).toBe(1080);
-  });
-
-  it('la caja nunca se sale de la pantalla', () => {
+  // El nombre de la ingenieria va donde iba el de la persona: al pie, que es
+  // el mismo lugar donde las tablets de MAITE ponen su texto. No puede quedar
+  // al medio, que es donde esta la cara.
+  it('el pie queda abajo, dentro de la pantalla y con margen a los costados', () => {
     for (const [ancho, alto] of [
       [1080, 1920],
       [1920, 1080],
       [800, 600],
-      [2160, 3840],
     ]) {
       const d = calcularDisposicion(ancho, alto);
-      expect(d.caja.ancho).toBeLessThanOrEqual(ancho);
-      expect(d.caja.alto).toBeLessThanOrEqual(alto);
+      expect(d.pie.base).toBeGreaterThan(alto * 0.6);
+      expect(d.pie.base).toBeLessThan(alto);
+      expect(d.pie.base).toBeGreaterThan(alto - d.pie.alto);
+      expect(d.pie.margen).toBeGreaterThan(0);
+      expect(d.pie.margen * 2).toBeLessThan(ancho);
     }
   });
 
@@ -231,12 +596,9 @@ describe('calcularDisposicion', () => {
     expect(grande.texto.tamanoNombre).toBeGreaterThan(chica.texto.tamanoNombre * 1.9);
     expect(grande.texto.tamanoNombre).toBeLessThan(chica.texto.tamanoNombre * 2.1);
     expect(grande.texto.tamanoNombre).toBeGreaterThan(grande.texto.tamanoFrase);
-  });
-
-  it('pone el nombre arriba de la frase', () => {
-    const d = calcularDisposicion(1080, 1920);
-    expect(d.texto.nombreY).toBeLessThan(d.texto.fraseY);
-    expect(d.texto.fraseY).toBeLessThan(1920);
+    // El nombre al pie es lo mas grande de la pantalla: mas que la consigna.
+    expect(grande.pie.tamano).toBeGreaterThan(chica.pie.tamano * 1.9);
+    expect(grande.pie.tamano).toBeGreaterThan(grande.texto.tamanoFrase);
   });
 
   it('da una unidad de referencia positiva en cualquier pantalla', () => {
@@ -379,5 +741,102 @@ describe('calcularRecorteVisible', () => {
   it('sobrevive a un video que todavia no reporta tamaño', () => {
     const r = calcularRecorteVisible(0, 0, { x: 0, y: 0, ancho: 1080, alto: 1920 }, 1080, 1920);
     expect(r).toBeNull();
+  });
+});
+
+// La division entre las dos tipografias es la MISMA que hacen las tablets de
+// MAITE: espejo y retratos estan a dos metros uno del otro en el stand. Si
+// alguien "unifica" las fuentes sin saberlo, las dos piezas dejan de leerse como
+// una sola instalacion y no lo va a ver hasta tener el stand montado.
+describe('las dos tipografias', () => {
+  const fuentesDe = (ctx) => ctx.llamadas.filter(([q]) => q === 'font').map(([, v]) => v);
+
+  /** Un ctx que ademas anota cada asignacion de `font`. */
+  function ctxQueAnotaFuentes() {
+    const ctx = crearCtxFalso();
+    let actual = '';
+    Object.defineProperty(ctx, 'font', {
+      get: () => actual,
+      set: (v) => {
+        actual = v;
+        ctx.llamadas.push(['font', v]);
+      },
+    });
+    return ctx;
+  }
+
+  const disposicion = calcularDisposicion(1080, 1920);
+  const carrera = { nombre: 'Ingeniería en Computación', color: '#00E5A0' };
+
+  it('el nombre de la carrera va en la tipografia de titulo', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    expect(fuentesDe(ctx).length).toBeGreaterThan(0);
+    for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(TITULO_SOLO);
+  });
+
+  it('el pie usa solo la tipografia de titulo', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(TITULO_SOLO);
+  });
+
+  // La consigna es la unica instruccion de toda la experiencia: tiene que
+  // entenderse de un vistazo, desde lejos y de costado.
+  it('la consigna del sostenido va en la sans', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarConsigna(ctx, disposicion, 1);
+    for (const fuente of fuentesDe(ctx)) expect(fuente).toContain(FAMILIA_TEXTO);
+  });
+
+  // Las nubes del reposo pasan por delante y a veces quedan blancas justo
+  // detras del texto. Sin una sombra propia debajo, la invitacion desaparecia
+  // cada vez que un jiron le pasaba por encima.
+  it('la invitacion se apoya sobre su propia sombra', () => {
+    const ctx = crearCtxFalso();
+
+    dibujarInvitacion(ctx, disposicion, 0.5);
+
+    const orden = ctx.llamadas.map(([que]) => que);
+    const primerTexto = orden.indexOf('fillText');
+    const primerFondo = orden.findIndex((que) => que === 'fill' || que === 'fillRect');
+    expect(primerFondo).toBeGreaterThanOrEqual(0);
+    expect(primerFondo).toBeLessThan(primerTexto);
+  });
+
+  // La consigna es la unica instruccion de la experiencia y no cambia: se elige
+  // una sola vez, asi que despues no queda nada que enseñar.
+  it('ensena el gesto', () => {
+    const ctx = crearCtxFalso();
+
+    dibujarConsigna(ctx, disposicion, 1);
+
+    const dichos = soloDe(ctx, 'fillText').map(([, texto]) => texto);
+    expect(dichos).toContain('Sostené la mano sobre un objeto');
+  });
+
+  // Muffaroo trae UNA sola variante. Pedirle 700 da un falso-bold que le
+  // arruina las formas — y como ya es una letra pesada, no le hace falta.
+  it('nunca se le pide negrita a la tipografia de titulo', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+    dibujarInvitacion(ctx, disposicion, 0.5);
+
+    for (const fuente of fuentesDe(ctx)) {
+      if (!fuente.includes(TITULO_SOLO)) continue;
+      expect(fuente, fuente).toMatch(new RegExp(`^${PESO_TITULO}\\s`));
+    }
+    expect(PESO_TITULO).toBe(400);
+  });
+
+  // Muffaroo es una display condensada, en versales y sin serifas. Si el
+  // archivo faltara, el cambio no puede pasar de un cambio de fuente: el
+  // respaldo tiene que ser una sans condensada, no una serif ni la sans por
+  // defecto del navegador.
+  it('la tipografia de titulo es Muffaroo con un respaldo sans', () => {
+    expect(TITULO_SOLO).toBe("'Muffaroo'");
+    expect(FAMILIA_TITULO).toContain(TITULO_SOLO);
+    expect(FAMILIA_TITULO).toMatch(/sans-serif\s*$/);
+    expect(FAMILIA_TEXTO).not.toContain(TITULO_SOLO);
   });
 });

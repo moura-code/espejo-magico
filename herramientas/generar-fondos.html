@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Generador de fondos de cada ingeniería</title>
+</head>
+<body>
+  <!-- Pagina sin interfaz: la consume herramientas/generar-fondos.mjs con Chrome
+       sin cabeza, leyendo el JSON que queda en el <pre> del final. Tambien se
+       puede abrir a mano desde `npm start` para mirar las doce escenas. -->
+  <script type="module">
+    import { dibujarEscenario, ESCENARIOS } from '../espejo/escenarios.js';
+    import { figurasDisponibles } from '../espejo/figuras.js';
+    import { cargarContenido } from '../espejo/contenido.js';
+
+    // El tamaño de la pantalla del stand. El fondo se dibuja cubriendo, asi que
+    // generarlo mas chico se notaria: es lo unico de la escena que no tiene
+    // detalle propio para disimular el escalado.
+    const ANCHO = 1080;
+    const ALTO = 1920;
+
+    const salida = { pngs: {}, avisos: [] };
+    const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
+
+    // Esta herramienta dibuja EL RESPALDO VECTORIAL, asi que genera el
+    // candidato .png de cada carrera, no el activo: hoy el activo es una
+    // fotografia, y escribir una escena vectorial en su ruta la reemplazaria
+    // por el placeholder que vino a reemplazar.
+    for (const carrera of contenido.carreras) {
+      const escenas = (carrera.fondos ?? []).filter((fondo) => fondo.img.endsWith('.png'));
+      if (escenas.length === 0) {
+        salida.avisos.push(`${carrera.id}: no declara ningún fondo .png de respaldo`);
+        continue;
+      }
+      if (!ESCENARIOS[carrera.id]) {
+        salida.avisos.push(`${carrera.id}: no tiene escena en espejo/escenarios.js`);
+        continue;
+      }
+
+      const lienzo = document.createElement('canvas');
+      lienzo.width = ANCHO;
+      lienzo.height = ALTO;
+      const ctx = lienzo.getContext('2d');
+
+      dibujarEscenario(ctx, carrera.id, ANCHO, ALTO, carrera.color);
+      const png = lienzo.toDataURL('image/png');
+      for (const escena of escenas) salida.pngs[escena.img] = png;
+    }
+
+    // Las marcas se arman por partes: si aparecieran enteras en este fuente,
+    // el volcado del DOM (que incluye el <script>) tendria dos apariciones y
+    // la herramienta leeria la del codigo en vez de la salida.
+    const pre = document.createElement('pre');
+    pre.id = 'salida';
+    pre.textContent = '@@' + 'SALIDA@@' + JSON.stringify(salida) + '@@' + 'FIN@@';
+    document.body.appendChild(pre);
+  </script>
+</body>
+</html>

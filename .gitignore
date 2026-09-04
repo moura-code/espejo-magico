@@ -3,3 +3,9 @@ vendor/mediapipe/
 .perfil-chrome/
 .DS_Store
 Thumbs.db
+
+# MAITE es OTRO repositorio git (gitlab.fing.edu.uy/maitem/MAITE), clonado acá
+# adentro para poder levantar las tablets junto al espejo. No es nuestro y no va
+# en este repo: sin esta línea, un `git add -A` se lleva sus videos y su
+# node_modules. El espejo le habla por HTTP (ver CONFIG.maite), nada más.
+MAITE/

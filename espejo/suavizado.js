@@ -68,10 +68,10 @@ export function crearFiltroRostro({ posicion, radio, angulo }) {
 }
 
 /**
- * Suavizado de manos, SOLO para el iman. El atractor cuelga el racimo de la
- * palma en forma permanente, asi que el temblor de la deteccion se traslada
- * entero a los objetos; el filtro lo corta. El modo golpe usa la palma cruda a
- * proposito: el filtro mete retardo y el manotazo necesita reflejos.
+ * Suavizado de manos. La palma que elige tiene que estar quieta: el sostenido
+ * mide que la mano se quede sobre un objeto, y el temblor crudo de la deteccion
+ * la hace entrar y salir del blanco varias veces por segundo — el anillo de
+ * progreso se llenaria a los saltos y elegir seria cuestion de suerte.
  *
  * Cada mano lleva su propio filtro y se asocia por cercania con el cuadro
  * anterior. No se confia en el orden ni en la etiqueta izquierda/derecha de
@@ -154,42 +154,6 @@ export function crearFiltroDeManos({
     reiniciar() {
       pistas.clear();
     },
-  };
-}
-
-/**
- * Velocidad de un punto que se mueve, en pixeles por segundo.
- *
- * La usan la cabeza y las manos para poder golpear los objetos en vez de solo
- * hacerlos rebotar. El tope importa: si la deteccion parpadea y el punto salta
- * media pantalla en un cuadro, sin tope eso se traduce en un objeto disparado a
- * velocidad absurda.
- */
-export function crearRastreadorDeVelocidad({ alfa = 0.4, maxima = 4000 } = {}) {
-  let anterior = null;
-  let vx = 0;
-  let vy = 0;
-
-  const acotar = (valor) => Math.max(-maxima, Math.min(maxima, valor));
-
-  return {
-    actualizar(x, y, ahora) {
-      if (anterior && ahora > anterior.ahora) {
-        const dt = (ahora - anterior.ahora) / 1000;
-        vx += alfa * (acotar((x - anterior.x) / dt) - vx);
-        vy += alfa * (acotar((y - anterior.y) / dt) - vy);
-      }
-      anterior = { x, y, ahora };
-      return { vx, vy };
-    },
-
-    reiniciar() {
-      anterior = null;
-      vx = 0;
-      vy = 0;
-    },
-
-    velocidad: () => ({ vx, vy }),
   };
 }
 

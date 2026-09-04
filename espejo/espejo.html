@@ -4,6 +4,26 @@
   <meta charset="utf-8">
   <title>Espejo Mágico</title>
   <style>
+    /*
+      La tipografía de los títulos es la que muestran las tablets de MAITE
+      (`--font-display` en sus temas `tablet-*.css`). No es decoración: espejo y
+      retratos están a dos metros uno del otro en el stand y tienen que leerse
+      como una sola instalación, no como dos proyectos que se juntaron.
+
+      Muffaroo trae una sola variante (Regular, 400): pedirle negrita da un
+      falso-bold que le arruina las formas. Es condensada, en versales y sin
+      serifas, así que el respaldo es una sans condensada: si el archivo faltara
+      el cambio no pasa de un cambio de fuente. La nota de licencia está en
+      contenido/assets/tipografias/Muffaroo-LEEME.txt.
+    */
+    @font-face {
+      font-family: 'Muffaroo';
+      src: url('/contenido/assets/tipografias/Muffaroo-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
     canvas { display: block; width: 100vw; height: 100vh; }
   </style>

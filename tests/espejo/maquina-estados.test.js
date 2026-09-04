@@ -1,43 +1,55 @@
 import { describe, it, expect } from 'vitest';
 import { crearMaquina, ESTADOS } from '../../espejo/maquina-estados.js';
 
-// La escena no tiene duracion propia: dura mientras la persona siga sentada,
-// con sesionMaxima como unico tope.
+// La exploracion no tiene duracion propia: dura mientras la persona siga
+// sentada, con sesionMaxima como unico tope. `eleccionMaxima` ya no termina
+// nada — es la red de seguridad de la fila, que le muestra una ingenieria a
+// quien no entendio el gesto.
 const TIEMPOS = {
   enganche: 2000,
-  sorteo: 3000,
-  revelacion: 2000,
+  humo: 3000,
+  eleccionMaxima: 10000,
   cierre: 4000,
   enfriamiento: 3000,
   ausenciaParaCortar: 5000,
   sesionMaxima: 75000,
 };
 
-function nueva(carreras = ['civil', 'quimica']) {
-  let i = 0;
-  return crearMaquina({ tiempos: TIEMPOS, sortear: () => carreras[i++ % carreras.length] });
+const OFRECIDAS = ['civil', 'quimica', 'naval', 'forestal', 'mecanica'];
+
+function nueva(opciones = OFRECIDAS) {
+  return crearMaquina({ tiempos: TIEMPOS, sortearOpciones: () => [...opciones] });
 }
 
 /** Avanza el reloj de a 100 ms hasta `hasta`, juntando todos los eventos. */
-function avanzar(maquina, desde, hasta, hayRostro) {
+function avanzar(maquina, desde, hasta, hayRostro, extra = {}) {
   const eventos = [];
   let ahora = desde;
   let ultimo = null;
   while (ahora <= hasta) {
-    ultimo = maquina.actualizar({ hayRostro, ahora });
+    ultimo = maquina.actualizar({ hayRostro, ...extra, ahora });
     eventos.push(...ultimo.eventos);
     ahora += 100;
   }
   return { ...ultimo, eventos, ahora: ahora - 100 };
 }
 
+/** Deja la maquina en EXPLORACION, con la persona sentada. */
+function hastaExplorar(maquina = nueva()) {
+  avanzar(maquina, 0, 6000, true);
+  return maquina;
+}
+
 const tipos = (eventos, tipo) => eventos.filter((e) => e.tipo === tipo);
+const entra = (eventos, estado) =>
+  eventos.filter((e) => e.tipo === 'entra' && e.estado === estado);
 
 describe('crearMaquina', () => {
-  it('arranca en atraccion sin carrera', () => {
+  it('arranca en atraccion sin nada ofrecido', () => {
     const maquina = nueva();
     expect(maquina.estado()).toBe(ESTADOS.ATRACCION);
     expect(maquina.carrera()).toBeNull();
+    expect(maquina.opciones()).toEqual([]);
     expect(maquina.sesion()).toBe(0);
   });
 
@@ -54,11 +66,13 @@ describe('crearMaquina', () => {
     expect(salida.estado).toBe(ESTADOS.ATRACCION);
   });
 
-  it('recorre el ciclo completo: la persona entra, vive su escena y se va', () => {
+  it('recorre el ciclo completo: la persona entra, explora y se va', () => {
     const maquina = nueva();
 
-    const conPersona = avanzar(maquina, 0, 10000, true);
-    const sinPersona = avanzar(maquina, 10100, 20000, false);
+    // 0 enganche, 2000 humo, 5000 exploracion. Se va a los 20100, el cierre
+    // llega a los 25100 y la atraccion a los 29100.
+    const conPersona = avanzar(maquina, 0, 20000, true);
+    const sinPersona = avanzar(maquina, 20100, 32000, false);
 
     const vistos = [...conPersona.eventos, ...sinPersona.eventos]
       .filter((e) => e.tipo === 'entra')
@@ -66,65 +80,270 @@ describe('crearMaquina', () => {
 
     expect(vistos).toEqual([
       ESTADOS.ENGANCHE,
-      ESTADOS.SORTEO,
-      ESTADOS.REVELACION,
-      ESTADOS.ESCENA,
+      ESTADOS.HUMO,
+      ESTADOS.EXPLORACION,
       ESTADOS.CIERRE,
       ESTADOS.ATRACCION,
     ]);
   });
 
-  // La carrera se elige tres segundos antes de que se vea: en SORTEO la niebla
-  // sigue cerrada y recien se abre en REVELACION. Ese margen le da tiempo al
-  // espejo a tener listos los PNG.
-  it('elige la carrera al entrar en sorteo y la conserva hasta la revelacion', () => {
-    const maquina = nueva(['civil']);
+  // Las carreras se sortean mientras el humo tapa la pantalla: ese margen le
+  // sirve al espejo para tener listos los PNG y los fondos, y como todavia no se
+  // ve nada tampoco se cuenta el final.
+  it('sortea lo que se ofrece al entrar en humo, no antes', () => {
+    const maquina = nueva();
 
-    avanzar(maquina, 0, 2100, true);
-    expect(maquina.estado()).toBe(ESTADOS.SORTEO);
-    expect(maquina.carrera()).toBe('civil');
+    avanzar(maquina, 0, 1900, true);
+    expect(maquina.estado()).toBe(ESTADOS.ENGANCHE);
+    expect(maquina.opciones()).toEqual([]);
 
-    const hastaRevelacion = avanzar(maquina, 2200, 5200, true);
-    expect(hastaRevelacion.estado).toBe(ESTADOS.REVELACION);
-    expect(hastaRevelacion.carrera).toBe('civil');
+    avanzar(maquina, 2000, 2100, true);
+    expect(maquina.estado()).toBe(ESTADOS.HUMO);
+    expect(maquina.opciones()).toEqual(OFRECIDAS);
+    // Todavia no hay carrera: eso lo decide la persona.
+    expect(maquina.carrera()).toBeNull();
   });
 
-  // La escena es de la persona, no del reloj: mientras siga sentada, sigue su
-  // escena (feedback de la primera prueba). Los unicos cortes son que se vaya
-  // o el tope de sesion, que queda como red de seguridad del stand.
-  it('la escena no termina sola: sigue mientras la persona siga sentada', () => {
+  it('conserva lo ofrecido durante la exploracion', () => {
     const maquina = nueva();
-    avanzar(maquina, 0, 8000, true);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
-
-    // No alcanza con mirar el estado final: el ciclo entero dura menos de un
-    // minuto, asi que podria dar la vuelta y volver a caer en ESCENA. Lo que
-    // se exige es que no haya habido ni un solo cambio de estado en el medio.
-    const salida = avanzar(maquina, 8100, 60000, true);
-    expect(salida.estado).toBe(ESTADOS.ESCENA);
-    expect(tipos(salida.eventos, 'entra')).toHaveLength(0);
+    const hastaExploracion = avanzar(maquina, 0, 6000, true);
+    expect(hastaExploracion.estado).toBe(ESTADOS.EXPLORACION);
+    expect(hastaExploracion.opciones).toEqual(OFRECIDAS);
+    expect(hastaExploracion.carrera).toBeNull();
   });
 
-  it('corta a cierre si el rostro falta mas de lo permitido durante la escena', () => {
+  it('informa desde cuando esta en el estado actual', () => {
     const maquina = nueva();
-    avanzar(maquina, 0, 8000, true);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+    maquina.actualizar({ hayRostro: true, ahora: 1500 });
+    expect(maquina.desdeCuando()).toBe(1500);
+  });
+});
 
-    const salida = avanzar(maquina, 8100, 13500, false);
+// ---------------------------------------------------------------------------
+// La exploracion: agarrar un objeto muestra su ingenieria y CIERRA LA ELECCION.
+// Se elige una sola vez; a partir de ahi la carrera no se mueve hasta que se
+// vaya la persona, y quien dibuja apaga el carrusel.
+// ---------------------------------------------------------------------------
+
+describe('mirar', () => {
+  it('muestra la carrera sin salir de la exploracion', () => {
+    const maquina = hastaExplorar();
+
+    const salida = maquina.mirar('naval', 6100);
+
+    expect(salida.estado).toBe(ESTADOS.EXPLORACION);
+    expect(salida.carrera).toBe('naval');
+  });
+
+  // SE ELIGE UNA SOLA VEZ. La guarda vive aca y no en quien dibuja: aunque en
+  // la pantalla ya no queden objetos, un `mirar` que llegara igual reiniciaria
+  // el reloj del fondo y le mandaria otro aviso a MAITE.
+  it('agarrar otro objeto ya no cambia la carrera mostrada', () => {
+    const maquina = hastaExplorar();
+    maquina.mirar('naval', 6100);
+
+    const segunda = maquina.mirar('civil', 8000);
+
+    expect(segunda.estado).toBe(ESTADOS.EXPLORACION);
+    expect(segunda.carrera).toBe('naval');
+    expect(segunda.eventos).toEqual([]);
+  });
+
+  // La sesion es la persona, no cada objeto que toca. Si contara por objeto,
+  // el numero de la jornada diria cuantas veces se estiro un brazo.
+  it('cuenta una sola sesion por persona', () => {
+    const maquina = hastaExplorar();
+
+    maquina.mirar('naval', 6100);
+    maquina.mirar('civil', 8000);
+    maquina.mirar('quimica', 9000);
+
+    expect(maquina.sesion()).toBe(1);
+  });
+
+  // Un solo aviso por persona: MAITE se entera una vez de que ese visitante es
+  // de naval y las tablets se quedan ahi mientras dure la sesion.
+  it('avisa una sola vez, y nunca mas', () => {
+    const maquina = hastaExplorar();
+
+    const primera = maquina.mirar('naval', 6100);
+    // Volver a agarrar el mismo objeto no reenvia nada: es lo que evita que
+    // las tablets de MAITE parpadeen mientras la mano tiembla sobre un blanco.
+    const repetida = maquina.mirar('naval', 7000);
+    const otra = maquina.mirar('civil', 8000);
+
+    expect(tipos(primera.eventos, 'mira')).toHaveLength(1);
+    expect(primera.eventos[0].carrera).toBe('naval');
+    expect(repetida.eventos).toEqual([]);
+    expect(otra.eventos).toEqual([]);
+  });
+
+  // Es el reloj de la aparicion, y no se puede reiniciar: si un `mirar` tardio
+  // lo moviera, el fondo volveria a entrar desde cero delante de alguien que ya
+  // lo estaba mirando.
+  it('lleva el reloj de cuando empezo a mostrarse la carrera, y no se mueve', () => {
+    const maquina = hastaExplorar();
+
+    maquina.mirar('naval', 6100);
+    expect(maquina.miraDesdeCuando()).toBe(6100);
+
+    maquina.mirar('civil', 9000);
+    expect(maquina.miraDesdeCuando()).toBe(6100);
+  });
+
+  it('no hace nada fuera de la exploracion', () => {
+    const maquina = nueva();
+
+    expect(maquina.mirar('naval', 0).estado).toBe(ESTADOS.ATRACCION);
+    expect(maquina.carrera()).toBeNull();
+  });
+});
+
+describe('el rostro sostiene la sesion', () => {
+  // Antes los hombros mantenian viva la sesion con la cara girada. Ahora el
+  // rostro es lo que manda: cuando deja de reconocerse, el espejo vuelve a su
+  // pantalla inicial y queda libre para el que sigue en la fila.
+  it('vuelve al cierre cuando se pierde el rostro, aunque siga habiendo pose', () => {
+    const maquina = hastaExplorar();
+    maquina.mirar('naval', 6100);
+
+    let salida = null;
+    for (let ahora = 6200; ahora <= 6200 + TIEMPOS.ausenciaParaCortar + 200; ahora += 100) {
+      salida = maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora });
+    }
+
     expect(salida.estado).toBe(ESTADOS.CIERRE);
   });
 
-  it('aguanta una perdida breve de rostro sin cortar', () => {
-    const maquina = nueva();
-    avanzar(maquina, 0, 8000, true);
-    avanzar(maquina, 8100, 9500, false);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+  // El colchon existe para que girar la cabeza un instante no corte la escena.
+  it('aguanta una perdida corta del rostro sin cortar', () => {
+    const maquina = hastaExplorar();
+    maquina.mirar('naval', 6100);
 
-    avanzar(maquina, 9600, 10000, true);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+    let salida = null;
+    for (let ahora = 6200; ahora <= 6200 + TIEMPOS.ausenciaParaCortar - 500; ahora += 100) {
+      salida = maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora });
+    }
+
+    expect(salida.estado).toBe(ESTADOS.EXPLORACION);
   });
 
-  it('el enganche espera cinco segundos antes de volver al reposo', () => {
+  it('vuelve a la pantalla inicial despues del cierre', () => {
+    const maquina = hastaExplorar();
+    maquina.mirar('naval', 6100);
+
+    const salida = avanzar(maquina, 6200, 20000, false);
+
+    expect(salida.estado).toBe(ESTADOS.ATRACCION);
+    expect(maquina.carrera()).toBeNull();
+    expect(maquina.opciones()).toEqual([]);
+  });
+
+  it('corta a cierre si la persona se va durante la exploracion', () => {
+    const maquina = hastaExplorar();
+
+    const salida = avanzar(maquina, 6100, 11500, false);
+    expect(salida.estado).toBe(ESTADOS.CIERRE);
+    expect(salida.carrera).toBeNull();
+  });
+
+  it('corta a cierre si la persona se va durante el humo', () => {
+    const maquina = nueva();
+    avanzar(maquina, 0, 2100, true);
+    expect(maquina.estado()).toBe(ESTADOS.HUMO);
+
+    const salida = avanzar(maquina, 2200, 7500, false);
+    expect(salida.estado).toBe(ESTADOS.CIERRE);
+  });
+
+  it('la exploracion no termina sola: sigue mientras la persona siga sentada', () => {
+    const maquina = hastaExplorar();
+    maquina.mirar('naval', 6100);
+
+    // No alcanza con mirar el estado final: el ciclo entero dura menos de un
+    // minuto, asi que podria dar la vuelta y volver a caer en EXPLORACION. Lo
+    // que se exige es que no haya habido ni un solo cambio de estado.
+    const salida = avanzar(maquina, 6200, 60000, true);
+    expect(salida.estado).toBe(ESTADOS.EXPLORACION);
+    expect(tipos(salida.eventos, 'entra')).toHaveLength(0);
+  });
+});
+
+describe('la red de seguridad de la fila', () => {
+  // Quien no entiende el gesto no puede quedarse con el espejo tomado. Al
+  // vencerse se muestra una por sorteo —lo ofrecido viene barajado, asi que
+  // tomar el primero ya es un sorteo— y nadie se va sin ingenieria.
+  it('muestra la primera ofrecida si nadie agarro nada, y sigue explorando', () => {
+    const maquina = hastaExplorar();
+
+    const vencido = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 200, true);
+
+    expect(vencido.estado).toBe(ESTADOS.EXPLORACION);
+    expect(vencido.carrera).toBe(OFRECIDAS[0]);
+    expect(maquina.sesion()).toBe(1);
+  });
+
+  // LA RED NO PUEDE ROBARLE EL GESTO A QUIEN YA ESTA ELIGIENDO. Desde que la
+  // eleccion es definitiva, vencer el plazo con la mano sostenida sobre un
+  // objeto significaria irse con una ingenieria sorteada, sin poder corregirla.
+  it('espera a que termine el sostenido en curso antes de sortear', () => {
+    const maquina = hastaExplorar();
+    const vencido = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 5000, true, {
+      eligiendo: true,
+    });
+
+    expect(vencido.estado).toBe(ESTADOS.EXPLORACION);
+    expect(vencido.carrera).toBeNull();
+  });
+
+  // Y en cuanto la mano se va —el anillo se vacia solo—, la red vuelve a valer.
+  it('sortea apenas se suelta el sostenido, si el plazo ya vencio', () => {
+    const maquina = hastaExplorar();
+    avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 5000, true, { eligiendo: true });
+
+    const suelto = maquina.actualizar({
+      hayRostro: true,
+      eligiendo: false,
+      ahora: 6100 + TIEMPOS.eleccionMaxima + 5100,
+    });
+
+    expect(suelto.carrera).toBe(OFRECIDAS[0]);
+  });
+
+  // La red de la fila cierra la eleccion igual que agarrar un objeto: si no,
+  // quedaria un carrusel apagado y una mano que ya no sirve para nada, y la
+  // persona veria cambiar su ingenieria sin haber hecho nada.
+  it('la carrera sorteada tampoco se puede cambiar', () => {
+    const maquina = hastaExplorar();
+    const vencido = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 200, true);
+
+    const despues = maquina.mirar('civil', vencido.ahora + 100);
+
+    expect(despues.carrera).toBe(OFRECIDAS[0]);
+    expect(despues.eventos).toEqual([]);
+  });
+
+  it('no pisa la carrera que la persona ya estaba mirando', () => {
+    const maquina = hastaExplorar();
+    maquina.mirar('naval', 6100);
+
+    const vencido = avanzar(maquina, 6200, 6200 + TIEMPOS.eleccionMaxima + 200, true);
+
+    expect(vencido.carrera).toBe('naval');
+  });
+
+  it('no vuelve a dispararse despues de mostrar la de la red', () => {
+    const maquina = hastaExplorar();
+
+    const primera = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 200, true);
+    const despues = avanzar(maquina, primera.ahora + 100, primera.ahora + 30000, true);
+
+    expect(tipos(despues.eventos, 'mira')).toHaveLength(0);
+  });
+});
+
+describe('el enganche', () => {
+  it('espera cinco segundos antes de volver al reposo', () => {
     const maquina = nueva();
     maquina.actualizar({ hayRostro: true, ahora: 0 });
 
@@ -132,14 +351,13 @@ describe('crearMaquina', () => {
     expect(breve.estado).toBe(ESTADOS.ENGANCHE);
 
     const salida = maquina.actualizar({ hayRostro: false, ahora: 5100 });
-
     expect(salida.estado).toBe(ESTADOS.ATRACCION);
     expect(salida.carrera).toBeNull();
   });
 
-  // `desde` es el reloj del estado y ademas alimenta la transicion visual de la
-  // escena via desdeCuando(). Medir el rostro continuo pisandolo hacia que el
-  // efecto volviera a alfa cero de golpe en cada parpadeo del detector.
+  // `desde` es el reloj del estado y ademas alimenta la transicion visual via
+  // desdeCuando(). Medir el rostro continuo pisandolo hacia que el humo volviera
+  // a alfa cero de golpe en cada parpadeo del detector.
   it('el reloj del estado no se reinicia cuando parpadea la deteccion', () => {
     const maquina = nueva();
     maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 0 });
@@ -152,7 +370,7 @@ describe('crearMaquina', () => {
     expect(maquina.desdeCuando()).toBe(0);
   });
 
-  it('exige dos segundos continuos de rostro durante el enganche', () => {
+  it('exige dos segundos continuos de rostro', () => {
     const maquina = nueva();
     maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 0 });
     maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 200 });
@@ -168,68 +386,27 @@ describe('crearMaquina', () => {
     ).toBe(ESTADOS.ENGANCHE);
     expect(
       maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 6100 }).estado,
-    ).toBe(ESTADOS.SORTEO);
+    ).toBe(ESTADOS.HUMO);
   });
 
-  it('una pose permite continuar una escena cuando se gira la cara', () => {
-    const maquina = nueva();
-    avanzar(maquina, 0, 8000, true);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
-
-    const salida = maquina.actualizar({ puedeIniciar: false, hayPersona: true, ahora: 20000 });
-    expect(salida.estado).toBe(ESTADOS.ESCENA);
-  });
-
-  it('no arranca el sorteo si la persona se fue durante el enganche', () => {
+  it('no levanta el humo si la persona se fue durante el enganche', () => {
     const maquina = nueva();
     maquina.actualizar({ hayRostro: true, ahora: 0 });
     const salida = avanzar(maquina, 100, 5500, false);
 
     expect(salida.estado).toBe(ESTADOS.ATRACCION);
-    expect(salida.carrera).toBeNull();
+    expect(salida.opciones).toEqual([]);
     expect(maquina.sesion()).toBe(0);
   });
 
-  it('no arranca otra sesion durante el enfriamiento', () => {
-    const maquina = nueva();
-    avanzar(maquina, 0, 8000, true);
-    // Se va: cierre por ausencia (13100) y vuelta a atraccion (17100).
-    const finDelCiclo = avanzar(maquina, 8100, 17500, false);
-    expect(finDelCiclo.estado).toBe(ESTADOS.ATRACCION);
-
-    // Vuelve enseguida: el enfriamiento todavia lo frena.
-    const enFrio = avanzar(maquina, 17600, 19500, true);
-    expect(enFrio.estado).toBe(ESTADOS.ATRACCION);
-
-    const yaCaliente = maquina.actualizar({ hayRostro: true, ahora: 21100 });
-    expect(yaCaliente.estado).toBe(ESTADOS.ENGANCHE);
-  });
-
-  it('numera las sesiones de forma creciente', () => {
-    const maquina = nueva();
-    avanzar(maquina, 0, 42000, true);
-    expect(maquina.sesion()).toBe(1);
-
-    const segunda = avanzar(maquina, 48000, 90000, true);
-    expect(segunda.sesion).toBe(2);
-  });
-
-  it('corta por tope de sesion aunque la persona siga ahi', () => {
-    const tiemposCortos = { ...TIEMPOS, sesionMaxima: 20000 };
-    const maquina = crearMaquina({ tiempos: tiemposCortos, sortear: () => 'civil' });
-
-    const salida = avanzar(maquina, 0, 25000, true);
-    expect([ESTADOS.CIERRE, ESTADOS.ATRACCION]).toContain(salida.estado);
-    expect(salida.eventos.filter((e) => e.tipo === 'entra' && e.estado === ESTADOS.CIERRE))
-      .toHaveLength(1);
-  });
-
-  // Un rostro que aparece y desaparece nunca junta los dos segundos continuos que
-  // pide el enganche, y la presencia impide que la ausencia lo corte. Sin un tope
-  // el espejo se queda destapado y quieto, fuera de la red de seguridad del stand.
-  it('el enganche vuelve al reposo al llegar al tope de sesion', () => {
-    const tiemposCortos = { ...TIEMPOS, sesionMaxima: 20000 };
-    const maquina = crearMaquina({ tiempos: tiemposCortos, sortear: () => 'civil' });
+  // Un rostro que aparece y desaparece nunca junta los dos segundos continuos, y
+  // como la persona esta ahi tampoco acumula la ausencia que corta. Sin un tope
+  // el espejo se queda destapado y quieto, fuera de la red de seguridad.
+  it('vuelve al reposo al llegar al tope de sesion', () => {
+    const maquina = crearMaquina({
+      tiempos: { ...TIEMPOS, sesionMaxima: 20000 },
+      sortearOpciones: () => [...OFRECIDAS],
+    });
 
     maquina.actualizar({ puedeIniciar: true, hayPersona: true, ahora: 0 });
     expect(maquina.estado()).toBe(ESTADOS.ENGANCHE);
@@ -241,19 +418,94 @@ describe('crearMaquina', () => {
       eventos.push(...maquina.actualizar({ puedeIniciar, hayPersona: true, ahora }).eventos);
     }
 
-    const vueltas = eventos.filter((e) => e.tipo === 'entra' && e.estado === ESTADOS.ATRACCION);
-    expect(vueltas).toHaveLength(1);
-    // Nunca llego a sortear: el enganche se corto antes.
+    expect(entra(eventos, ESTADOS.ATRACCION)).toHaveLength(1);
     expect(maquina.sesion()).toBe(0);
   });
+});
 
-  it('forzarCarrera salta a la revelacion con la carrera pedida', () => {
+describe('el enfriamiento y el tope de sesion', () => {
+  it('no arranca otra sesion durante el enfriamiento', () => {
+    const maquina = hastaExplorar();
+    maquina.mirar('naval', 6100);
+
+    // Se va: cierre por ausencia a los 11200 y vuelta a atraccion a los 15200,
+    // que es donde arranca el enfriamiento.
+    const finDelCiclo = avanzar(maquina, 6200, 15500, false);
+    expect(finDelCiclo.estado).toBe(ESTADOS.ATRACCION);
+    expect(entra(finDelCiclo.eventos, ESTADOS.ATRACCION)).toHaveLength(1);
+
+    // Vuelve enseguida: el enfriamiento todavia lo frena.
+    const enFrio = maquina.actualizar({ hayRostro: true, ahora: 15600 });
+    expect(enFrio.estado).toBe(ESTADOS.ATRACCION);
+
+    const yaCaliente = maquina.actualizar({ hayRostro: true, ahora: 18300 });
+    expect(yaCaliente.estado).toBe(ESTADOS.ENGANCHE);
+  });
+
+  it('corta por tope de sesion aunque la persona siga ahi', () => {
+    const maquina = crearMaquina({
+      tiempos: { ...TIEMPOS, sesionMaxima: 20000 },
+      sortearOpciones: () => [...OFRECIDAS],
+    });
+
+    const salida = avanzar(maquina, 0, 25000, true);
+    expect([ESTADOS.CIERRE, ESTADOS.ATRACCION]).toContain(salida.estado);
+    expect(entra(salida.eventos, ESTADOS.CIERRE)).toHaveLength(1);
+  });
+
+  it('numera las sesiones de forma creciente', () => {
+    const maquina = nueva();
+    avanzar(maquina, 0, 20000, true);
+    expect(maquina.sesion()).toBe(1);
+
+    // La segunda sesion recien se numera cuando vuelve a mostrar algo: el tope
+    // de sesion corta a los 75 s, el cierre y el enfriamiento se llevan otros
+    // siete, y el ciclo nuevo tarda quince mas en llegar a la red de la fila.
+    const segunda = avanzar(maquina, 20100, 110000, true);
+    expect(segunda.sesion).toBeGreaterThan(1);
+  });
+
+  // El ciclo tiene que cerrar sobre si mismo indefinidamente: en una tarde de
+  // feria da cientos de vueltas sin que nadie lo toque.
+  it('cada vuelta numera una sesion nueva, vuelta tras vuelta', () => {
+    const maquina = nueva();
+    const todos = [];
+    for (let ahora = 0; ahora <= 200000; ahora += 100) {
+      todos.push(...maquina.actualizar({ hayRostro: true, ahora }).eventos);
+    }
+
+    // Con la persona siempre presente, cada sesion muestra exactamente una
+    // carrera: la que le pone la red de seguridad de la fila.
+    const miradas = tipos(todos, 'mira');
+    expect(miradas.length).toBeGreaterThan(1);
+    expect(maquina.sesion()).toBe(miradas.length);
+
+    // Nunca hay un cierre sin su sesion. La ventana puede terminar a mitad de
+    // ciclo, asi que la ultima mirada todavia puede no tener el suyo.
+    const cierres = entra(todos, ESTADOS.CIERRE).length;
+    expect(cierres).toBeLessThanOrEqual(miradas.length);
+    expect(cierres).toBeGreaterThanOrEqual(miradas.length - 1);
+  });
+});
+
+describe('atajos del stand', () => {
+  it('forzarCarrera salta a la exploracion con la carrera pedida', () => {
     const maquina = nueva();
     const salida = maquina.forzarCarrera('quimica', 500);
 
-    expect(salida.estado).toBe(ESTADOS.REVELACION);
+    expect(salida.estado).toBe(ESTADOS.EXPLORACION);
     expect(salida.carrera).toBe('quimica');
     expect(salida.sesion).toBe(1);
+  });
+
+  // Sin pisar las opciones, forzar una carrera desde una exploracion en curso
+  // mostraria la primera de la lista anterior y no la que se pidio.
+  it('forzarCarrera manda incluso desde una exploracion en curso', () => {
+    const maquina = hastaExplorar();
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
+
+    const salida = maquina.forzarCarrera('quimica', 6100);
+    expect(salida.carrera).toBe('quimica');
   });
 
   it('reiniciar vuelve a atraccion y deja lista otra sesion', () => {
@@ -263,102 +515,107 @@ describe('crearMaquina', () => {
     const salida = maquina.reiniciar(8100);
     expect(salida.estado).toBe(ESTADOS.ATRACCION);
     expect(salida.carrera).toBeNull();
+    expect(salida.opciones).toEqual([]);
 
     expect(maquina.actualizar({ hayRostro: true, ahora: 8200 }).estado).toBe(ESTADOS.ENGANCHE);
   });
 
   it('reiniciar corta la sesion desde cualquier estado', () => {
-    const desdeEscena = nueva();
-    avanzar(desdeEscena, 0, 8000, true);
-    expect(desdeEscena.estado()).toBe(ESTADOS.ESCENA);
+    for (const estado of [ESTADOS.HUMO, ESTADOS.EXPLORACION]) {
+      const maquina = nueva();
+      avanzar(maquina, 0, 2100, true);
+      if (estado !== ESTADOS.HUMO) avanzar(maquina, 2200, 6000, true);
+      expect(maquina.estado()).toBe(estado);
 
-    const desdeCierre = nueva();
-    avanzar(desdeCierre, 0, 8000, true);
-    avanzar(desdeCierre, 8100, 13500, false);
-    expect(desdeCierre.estado()).toBe(ESTADOS.CIERRE);
-
-    for (const [maquina, ahora] of [
-      [desdeEscena, 8100],
-      [desdeCierre, 13600],
-    ]) {
-      const salida = maquina.reiniciar(ahora);
+      const salida = maquina.reiniciar(9000);
       expect(salida.estado).toBe(ESTADOS.ATRACCION);
       expect(salida.eventos).toEqual([{ tipo: 'entra', estado: ESTADOS.ATRACCION }]);
     }
   });
 
-  it('limpia la carrera al volver a atraccion', () => {
-    const maquina = nueva();
-    avanzar(maquina, 0, 8000, true);
-    avanzar(maquina, 8100, 17500, false);
-    expect(maquina.carrera()).toBeNull();
-  });
-
   it('avanzar saltea la espera y pasa al estado siguiente', () => {
     const maquina = nueva();
     expect(maquina.avanzar(0).estado).toBe(ESTADOS.ENGANCHE);
-    expect(maquina.avanzar(100).estado).toBe(ESTADOS.SORTEO);
-    expect(maquina.avanzar(200).estado).toBe(ESTADOS.REVELACION);
-    expect(maquina.avanzar(300).estado).toBe(ESTADOS.ESCENA);
-    expect(maquina.avanzar(400).estado).toBe(ESTADOS.CIERRE);
-    expect(maquina.avanzar(500).estado).toBe(ESTADOS.ATRACCION);
+    expect(maquina.avanzar(100).estado).toBe(ESTADOS.HUMO);
+    expect(maquina.avanzar(200).estado).toBe(ESTADOS.EXPLORACION);
+    expect(maquina.avanzar(300).estado).toBe(ESTADOS.CIERRE);
+    expect(maquina.avanzar(400).estado).toBe(ESTADOS.ATRACCION);
   });
 
-  it('avanzar elige la carrera y numera la sesion igual que el ciclo automatico', () => {
-    const maquina = nueva(['civil']);
+  it('avanzar sortea al llegar al humo, y la sesion la cuenta la mano', () => {
+    const maquina = nueva();
     maquina.avanzar(0);
     maquina.avanzar(100);
-    expect(maquina.carrera()).toBe('civil');
+    expect(maquina.opciones()).toEqual(OFRECIDAS);
     expect(maquina.sesion()).toBe(0);
 
-    const revelacion = maquina.avanzar(200);
-    expect(revelacion.carrera).toBe('civil');
-    expect(revelacion.sesion).toBe(1);
+    maquina.avanzar(200);
+    const mirada = maquina.mirar(OFRECIDAS[0], 300);
+    expect(mirada.carrera).toBe(OFRECIDAS[0]);
+    expect(mirada.sesion).toBe(1);
   });
 
   it('avanzar no respeta el enfriamiento: si aprieto el boton, arranca', () => {
-    const maquina = nueva();
-    avanzar(maquina, 0, 8000, true);
-    avanzar(maquina, 8100, 17500, false);
+    const maquina = hastaExplorar();
+    maquina.mirar('naval', 6100);
+    avanzar(maquina, 6200, 25000, false);
     expect(maquina.estado()).toBe(ESTADOS.ATRACCION);
 
-    // 17600 esta en pleno enfriamiento (hasta 20100): el boton manda igual.
-    expect(maquina.avanzar(17600).estado).toBe(ESTADOS.ENGANCHE);
+    expect(maquina.avanzar(25100).estado).toBe(ESTADOS.ENGANCHE);
   });
 });
 
 describe('modo manual', () => {
-  it('el reloj no cambia el estado', () => {
-    const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
+  const manual = () =>
+    crearMaquina({ tiempos: TIEMPOS, sortearOpciones: () => [...OFRECIDAS], manual: true });
 
+  /** Deja una maquina manual en EXPLORACION. */
+  function manualExplorando() {
+    const maquina = manual();
+    maquina.avanzar(0);
+    maquina.avanzar(100);
+    maquina.avanzar(200);
+    return maquina;
+  }
+
+  it('el reloj no cambia el estado', () => {
+    const maquina = manual();
     const salida = avanzar(maquina, 0, 90000, true);
     expect(salida.estado).toBe(ESTADOS.ATRACCION);
     expect(salida.eventos).toEqual([]);
   });
 
   it('no corta por ausencia de rostro', () => {
-    const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
-    maquina.avanzar(0);
-    maquina.avanzar(100);
-    maquina.avanzar(200);
-    maquina.avanzar(300);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+    const maquina = manualExplorando();
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
 
     // Se va, y pasa mucho mas que la tolerancia de cinco segundos.
-    avanzar(maquina, 400, 60000, false);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+    avanzar(maquina, 600, 60000, false);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
   });
 
-  it('la escena no se termina sola, que es para lo que sirve', () => {
-    const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
-    for (let i = 0; i < 4; i++) maquina.avanzar(i * 100);
+  // En manual la red de la fila tampoco se dispara sola: es lo que permite
+  // dejar la exploracion abierta y probar el sostenido todo lo que haga falta.
+  it('la red de la fila no se dispara sola', () => {
+    const maquina = manualExplorando();
 
-    avanzar(maquina, 1000, 300000, true);
-    expect(maquina.estado()).toBe(ESTADOS.ESCENA);
+    avanzar(maquina, 300, 90000, true);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
+    expect(maquina.carrera()).toBeNull();
+  });
+
+  // Pero agarrar con la mano tiene que seguir funcionando: es justamente el
+  // gesto que se esta probando.
+  it('mirar con la mano sigue andando', () => {
+    const maquina = manualExplorando();
+
+    const salida = maquina.mirar('forestal', 300);
+    expect(salida.estado).toBe(ESTADOS.EXPLORACION);
+    expect(salida.carrera).toBe('forestal');
   });
 
   it('se puede volver a automatico y el reloj manda de nuevo', () => {
-    const maquina = crearMaquina({ tiempos: TIEMPOS, sortear: () => 'civil', manual: true });
+    const maquina = manual();
     expect(maquina.esManual()).toBe(true);
 
     expect(maquina.alternarManual()).toBe(false);
@@ -367,37 +624,5 @@ describe('modo manual', () => {
 
   it('arranca en automatico si no se pide lo contrario', () => {
     expect(nueva().esManual()).toBe(false);
-  });
-});
-
-describe('crearMaquina (continuacion)', () => {
-  it('informa desde cuando esta en el estado actual', () => {
-    const maquina = nueva();
-    maquina.actualizar({ hayRostro: true, ahora: 1500 });
-    expect(maquina.desdeCuando()).toBe(1500);
-  });
-
-  // El ciclo tiene que cerrar sobre si mismo indefinidamente: en una tarde de
-  // feria da cientos de vueltas sin que nadie lo toque.
-  it('cada revelacion numera una sesion nueva, vuelta tras vuelta', () => {
-    const maquina = nueva();
-    const todos = [];
-    let ahora = 0;
-    while (ahora <= 200000) {
-      todos.push(...maquina.actualizar({ hayRostro: true, ahora }).eventos);
-      ahora += 100;
-    }
-
-    const entra = (estado) => todos.filter((e) => e.tipo === 'entra' && e.estado === estado);
-    const revelaciones = entra(ESTADOS.REVELACION);
-
-    expect(revelaciones.length).toBeGreaterThan(2);
-    expect(maquina.sesion()).toBe(revelaciones.length);
-
-    // Nunca hay un cierre sin su revelacion. La ventana puede terminar a mitad
-    // de ciclo, asi que la ultima revelacion todavia puede no tener el suyo.
-    const cierres = entra(ESTADOS.CIERRE).length;
-    expect(cierres).toBeLessThanOrEqual(revelaciones.length);
-    expect(cierres).toBeGreaterThanOrEqual(revelaciones.length - 1);
   });
 });

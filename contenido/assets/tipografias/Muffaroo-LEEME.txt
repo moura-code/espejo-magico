@@ -1,0 +1,17 @@
+Muffaroo — Regular (única variante)
+
+Origen: copiada de MAITE (public/fonts/Muffaroo-Regular.ttf), el proyecto de
+las tablets del stand. Sus cuatro temas (public/temas/tablet-*.css) la usan como
+--font-display: es la letra que las tablets muestran de verdad, y el espejo la
+comparte para que las dos piezas se lean como una sola instalación.
+
+Licencia que declara el archivo (tabla "name" del TTF):
+  Copyright Imagex © 2010. All Rights Reserved.
+  Diseño: IMAGEX — imagex-fonts.com
+  "Free for personal use ONLY"
+
+Un stand de facultad no es uso personal. La cátedra pidió esta letra sabiendo
+que está en MAITE; si la instalación se muestra en público, corresponde que la
+facultad tenga la licencia comercial de Imagex o cambie la letra. Es su
+decisión, no del código: cambiarla es tocar espejo/espejo.html (@font-face) y
+TITULO_SOLO / FAMILIA_TITULO en espejo/escena.js.
