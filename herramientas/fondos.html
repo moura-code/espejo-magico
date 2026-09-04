@@ -26,6 +26,8 @@
     figcaption { margin-top: 6px; font-size: 12px; color: #97a0b5; }
     b { color: #e8eaf0; font-weight: 600; }
     .activo { color: #00E5A0; }
+    .movimiento { color: #FFD23F; }
+    .falta { color: #FF6B6B; }
     .muestra {
       display: inline-block; width: 12px; height: 12px; border-radius: 3px;
       vertical-align: -1px; margin-right: 6px;
@@ -48,10 +50,10 @@
     import { figurasDisponibles } from '../espejo/figuras.js';
     import { cargarContenido, fondoActivo, objetoDeCarrera } from '../espejo/contenido.js';
     import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
+    import { cargarVideoDelNavegador, crearBancoDeVideos } from '../espejo/videos.js';
     import { lugarEnPantalla } from '../espejo/vuelo.js';
     import {
       calcularDisposicion,
-      calcularRectanguloVideo,
       dibujarFondo,
       dibujarNombreDeCarrera,
       dibujarObjetoApoyado,
@@ -77,6 +79,13 @@
       ]),
     );
 
+    // Los fondos con movimiento. Aca se los muestra andando: si un video se lee
+    // bien detras de una persona no se decide mirando un cuadro quieto.
+    const videos = crearBancoDeVideos({
+      cargar: (ruta) => cargarVideoDelNavegador(ruta, { msMaximos: CONFIG.fondo.msParaCargarVideo }),
+      raiz: '/contenido/',
+    });
+
     /** Una silueta gris, cabeza y hombros, donde se para la persona. */
     function dibujarSilueta(ctx) {
       ctx.save();
@@ -93,18 +102,27 @@
       ctx.restore();
     }
 
-    /** Dibuja un candidato como se veria en el espejo. Devuelve si habia imagen. */
+    /**
+     * Dibuja un candidato como se veria en el espejo. Devuelve si habia archivo.
+     *
+     * El mismo orden de preferencia que el espejo: el video si ya cargo, la foto
+     * si no, la escena vectorial despues y el color plano al final.
+     */
     function dibujarCandidato(lienzo, carrera, fondo, definicion) {
       const ctx = lienzo.getContext('2d');
-      const imagen = fondo ? banco.obtener(fondo.img) : null;
-      let rectangulo = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
+      const fuente =
+        (fondo?.video ? videos.obtener(fondo.video) : null) ??
+        (fondo ? banco.obtener(fondo.img) : null);
 
-      if (imagen) {
-        dibujarFondo(ctx, imagen, disposicion, 1);
-        rectangulo = calcularRectanguloVideo(imagen.width, imagen.height, ANCHO, ALTO);
-      } else if (!dibujarEscenario(ctx, carrera.id, ANCHO, ALTO, carrera.color)) {
-        ctx.fillStyle = carrera.color;
-        ctx.fillRect(0, 0, ANCHO, ALTO);
+      // El rectangulo lo devuelve quien dibujo, igual que en el espejo: el
+      // objeto se apoya normalizado a el y no puede salir de otra cuenta.
+      let rectangulo = dibujarFondo(ctx, fuente, disposicion, 1);
+      if (!rectangulo) {
+        rectangulo = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
+        if (!dibujarEscenario(ctx, carrera.id, ANCHO, ALTO, carrera.color)) {
+          ctx.fillStyle = carrera.color;
+          ctx.fillRect(0, 0, ANCHO, ALTO);
+        }
       }
 
       const puesto = lugarEnPantalla(fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto, rectangulo);
@@ -116,10 +134,13 @@
       );
       dibujarSilueta(ctx);
       dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
-      return Boolean(imagen);
+      return Boolean(fuente);
     }
 
     const raiz = document.getElementById('carreras');
+
+    // Los que hay que redibujar cuadro a cuadro. Los quietos se dibujan una vez.
+    const enMovimiento = [];
 
     for (const carrera of contenido.carreras) {
       const titulo = document.createElement('h2');
@@ -148,6 +169,11 @@
           `<br>lugar: x ${lugar.x}, y ${lugar.y}, escala ${lugar.escala}` +
           `${fondo?.lugar ? '' : ' (por defecto)'}`;
 
+        // El rotulo del video se escribe DESPUES de intentar cargarlo: decir
+        // "con movimiento" sobre un .mp4 que no llego seria mentir justo en la
+        // decision para la que existe esta pagina.
+        if (fondo?.video) enMovimiento.push({ lienzo, carrera, fondo, definicion, pie });
+
         figura.append(lienzo, pie);
         fila.append(figura);
       });
@@ -156,6 +182,34 @@
     }
 
     document.title = `${contenido.carreras.length} ingenierías, sus fondos`;
+
+    // Los videos, ya con todo dibujado. Aca SI suenan todos a la vez: es la
+    // maquina de desarrollo eligiendo, no la PC del evento, donde el espejo
+    // reproduce uno solo.
+    if (enMovimiento.length > 0) {
+      await videos.precargar(enMovimiento.map(({ fondo }) => fondo.video));
+
+      // Solo se redibujan los que de verdad se mueven. Los que no cargaron se
+      // quedan en su foto, quietos, y lo dicen: repintarlos sesenta veces por
+      // segundo seria gastar la maquina en no mover nada.
+      const andando = [];
+      for (const candidato of enMovimiento) {
+        const video = videos.obtener(candidato.fondo.video);
+        candidato.pie.innerHTML +=
+          `<br><b class="${video ? 'movimiento' : 'falta'}">` +
+          `${video ? 'con movimiento' : 'VIDEO NO DISPONIBLE, se muestra su foto'}</b>` +
+          ` · ${candidato.fondo.video}`;
+        if (!video) continue;
+        video.play?.().catch(() => {});
+        andando.push(candidato);
+      }
+
+      const animar = () => {
+        for (const c of andando) dibujarCandidato(c.lienzo, c.carrera, c.fondo, c.definicion);
+        requestAnimationFrame(animar);
+      };
+      if (andando.length > 0) requestAnimationFrame(animar);
+    }
   </script>
 </body>
 </html>

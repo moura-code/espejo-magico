@@ -2,7 +2,7 @@
 
 ## 1. Visión General
 
-El **Espejo Mágico** es una instalación interactiva para eventos y stands institucionales. Un visitante se ubica frente a un televisor montado verticalmente (enmarcado como espejo) con una cámara web superior. El sistema detecta su presencia, llena la pantalla de humo y, al disiparse, le ofrece **cinco objetos, uno por ingeniería**. La persona **sostiene la mano** sobre el que quiere y esa es su elección: aparece el fondo de esa ingeniería detrás suyo —recortado contra su silueta— con el nombre y la historia de alguien que la estudió.
+El **Espejo Mágico** es una instalación interactiva para eventos y stands institucionales. Un visitante se ubica frente a un televisor montado verticalmente (enmarcado como espejo) con una cámara web superior. El sistema detecta su presencia, llena la pantalla de humo y, al disiparse, le ofrece un **carrusel con las doce ingenierías**, un objeto por cada una, que gira lento a su alrededor. La persona **sostiene la mano** sobre el que quiere y esa es su elección, una sola: los demás objetos se apagan y aparece el fondo de esa ingeniería detrás suyo —recortado contra su silueta— con el objeto volando a su lugar dentro del fondo y el nombre de la ingeniería al pie.
 
 Toda la experiencia vive en una sola pestaña de Chrome, en una sola PC. No hay segundas pantallas ni estado compartido. La única comunicación que sale es un aviso de ida a **MAITE**, el proyecto de las tablets, para que muestren a la gente de la carrera elegida — y el espejo funciona igual si del otro lado no hay nadie.
 
@@ -82,11 +82,12 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `vuelo.js` | El viaje del objeto agarrado desde su ranura hasta su lugar en el fondo (normalizado a la imagen) y su flotación una vez apoyado. Sólo números. |
 | `silueta.js` | Traduce la máscara de MediaPipe —un byte de confianza por píxel, **sin canal alfa**— a una imagen blanca cuyo alfa es esa confianza, que es lo único que el lienzo puede usar para recortar. |
 | `maite.js` | El único puente saliente. Va y no vuelve, nunca lanza, no reintenta y corta a los 1,5 s. |
-| `humo.js` | Cuánto humo hay en cada momento (curva pura) y la carga del video. Dibujarlo es tarea de `escena.js`. |
+| `humo.js` | Cuánto humo hay en cada momento (curva pura). Cargar el video es tarea de `videos.js`; dibujarlo, de `escena.js`. |
 | `sorteo.js` | Gestor de sorteo aleatorio con **bolsa barajada sin repetición contigua**. `siguientes(n)` entrega el orden del carrusel: todas las jugables, barajadas por sesión. |
 | `niebla.js` | Animación de las nubes que cubren el espejo durante el reposo. Se apartan **hacia los costados**, no en círculo: cada jirón queda fijado a su mitad de pantalla al crearse y viaja hasta el borde exterior. La transición tiene una sola magnitud (`apertura`). |
 | `figuras.js` | Sistema de fallback vectorial en Canvas 2D (36 figuras dibujadas por código para cuando no existen archivos PNG). |
 | `imagenes.js` | Gestor y precargador de imágenes con fallback elegante (objetos y fondos). |
+| `videos.js` | Carga de videos en el navegador (con tope, para que uno que no contesta no frene el arranque) y el banco de **fondos con movimiento**: los carga de a uno después de arrancar y garantiza que **suene uno solo**, el de la ingeniería que se está mostrando. |
 | `contenido.js` | Carga y valida `contenido/carreras.json` al inicio, y decide qué objeto representa a cada carrera. |
 | `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Fondo de la carrera → Objeto apoyado → Persona recortada → Carrusel y anillo → Objeto en vuelo → Señal de manos → Nombre al pie → Humo → Niebla). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza). |
 | `operacion.js` | Atajos de teclado (incluida `TECLAS_CARRERA`, la fila de números completa: una tecla por carrera), panel HUD de métricas/FPS y recarga periódica de mantenimiento. |
@@ -110,18 +111,21 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
 │  CIERRE   │◄──────────────────┤             EXPLORACION                 │
 └───────────┘  o tope 180 s     │                                         │
       │                         │   mirar(id) ──► POST /api/carrera       │
-      │                         │        ▲                                │
-      └── POST /api/humo        │        └──── y de nuevo con otro objeto │
+      │                         │                                         │
+      └── POST /api/humo        │   y de ahí en más mirar() no mueve nada  │
                                 └─────────────────────────────────────────┘
                                   sin duración propia; a los 30 s sin que
                                   nadie agarre nada, muestra opciones[0]
 ```
 
-**EXPLORACION no es una elección.** No hay estado "ya elegiste": agarrar un
-objeto muestra su ingeniería, soltarlo la deja puesta, agarrar otro la
-reemplaza. Lo que antes hacían `REVELACION` y `ESCENA` —el fondo y el nombre
-entrando— es ahora una transición **por ingeniería**, con su propio reloj
-(`miraDesdeCuando`), no un tramo del ciclo.
+**Se elige una sola vez.** `mirar` no hace nada si ya hay `carrera`: la
+ingeniería que le tocó a la persona se queda puesta hasta que se va. No hace
+falta un estado "ya elegiste" para eso —lo dice `carrera`, que deja de ser
+null— y la guarda vive en la máquina y no en quien dibuja: aunque en pantalla ya
+no queden objetos, un `mirar` que llegara igual reiniciaría el reloj del fondo y
+le mandaría otro aviso a MAITE. Lo que antes hacían `REVELACION` y `ESCENA` —el
+fondo y el nombre entrando— es una transición **por ingeniería**, con su propio
+reloj (`miraDesdeCuando`), no un tramo del ciclo.
 
 ### El equilibrio de la presencia
 
@@ -158,15 +162,15 @@ falta.
 1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Nadie sentado. Al entrar se le pide a MAITE que vuelva a su humo.
 2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado.
 3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Ese margen le sirve al espejo para tener listos los PNG y los fondos, y como todavía no se ve nada, no se cuenta el final.
-4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. Al soltar, la información **se queda puesta**; agarrar otro objeto la reemplaza, y el carrusel sigue girando por delante del fondo. **No tiene duración propia:** dura mientras siga sentada. `tiempos.eleccionMaxima` (30 s) es la red de seguridad de la fila — si nadie agarró nada, muestra la primera de la lista, que como viene barajada ya es un sorteo, y la exploración sigue.
+4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece, junto con la consigna, la señal de las manos y el propio detector de manos. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.eleccionMaxima` (30 s) es la red de seguridad de la fila — si nadie agarró nada, muestra la primera de la lista, que como viene barajada ya es un sorteo, y cierra la elección igual que si la hubiera agarrado con la mano.
 5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
 **Lo que se muestra se le informa a la máquina desde afuera**, con
 `mirar(id, ahora)`: la máquina no sabe qué es una mano. Sólo vale durante
-`EXPLORACION`, y **volver a pedir la misma no emite nada** — con la mano quieta
-el sostenido se repite cuadro a cuadro, y sin esa guarda MAITE recibiría cien
-avisos por segundo. La sesión se cuenta una sola vez por persona, la primera vez
-que mira algo, no una por objeto.
+`EXPLORACION` y **sólo la primera vez**; además, volver a pedir la misma tampoco
+emite nada — con la mano quieta el sostenido se repite cuadro a cuadro, y sin
+esa guarda MAITE recibiría cien avisos por segundo. La sesión se cuenta una sola
+vez por persona, la primera vez que mira algo.
 
 **El rostro es lo que sostiene la sesión.** Una pose (los hombros) ya no alcanza
 para mantenerla viva con la cara girada: en cuanto la cara deja de reconocerse,
@@ -195,7 +199,12 @@ decisiones hacen que se sienta bien, y las tres se descubrieron rompiéndose:
    Con un reset instantáneo, el temblor de la detección dejaba el anillo en cero
    una y otra vez y no se llenaba nunca.
 3. **Cambiar de blanco empieza de cero.** Mover el brazo a otro objeto es
-   deliberado: heredar lo acumulado haría que el segundo se eligiera al instante.
+   deliberado: heredar lo acumulado haría que el segundo se eligiera al instante,
+   y pasar por encima de uno camino a otro valdría por una elección. Como se
+   elige una sola vez, ese roce sería la ingeniería con la que la persona se va.
+   `eleccion.js` sigue soltando el blanco cuando la mano se mueve —es lo que hace
+   que arrepentirse a mitad del sostenido funcione—; quedarse con una sola es
+   tarea de la máquina de estados, no suya.
 
 El blanco es generoso (`radioFactor`, 1,4 radios del objeto): es más fácil
 disfrutar un blanco que perdona que uno exacto que te hace errar. Con blancos
@@ -260,7 +269,37 @@ se dibuja igual, más tenue y con el espejo apagado debajo
 (`CONFIG.fondo.opacidadSinMascara`). Se pierde la profundidad; nunca queda una
 pantalla en negro con público delante.
 
-### 5.4. El puente a MAITE (`espejo/maite.js`)
+### 5.4. El fondo que se mueve (`espejo/videos.js`)
+
+Un fondo puede ser una foto o un video. **El video no reemplaza a la foto: la
+acompaña.** Cada fondo declara siempre su `img` —que en un fondo con movimiento
+es un cuadro del propio video— y opcionalmente su `video`. El orden de
+preferencia al dibujar es el mismo de siempre, con un escalón más arriba: video
+cargado → foto → escena vectorial → color plano.
+
+Tres cosas que sostienen esa promesa:
+
+- **No se esperan al arrancar.** `main.js` lanza la precarga *después* del primer
+  `requestAnimationFrame`, y no la aguarda. Un video pesa mil veces más que un
+  PNG y nada de la experiencia depende de él; hasta que llega, se ve la foto del
+  mismo fondo y no se nota el cambio.
+- **Se cargan de a uno.** Doce descargas simultáneas compiten con la cámara y con
+  MediaPipe justo mientras el espejo está arrancando.
+- **Suena uno solo.** `mostrar(ruta)` arranca el de la ingeniería que se está
+  mostrando y pausa el resto: doce videos decodificando a la vez no los aguanta
+  ninguna placa, y once de ellos no se ven. Se llama en cada cuadro con la misma
+  ruta, así que repetir la que ya suena no hace nada; volver a una ingeniería ya
+  vista la arranca desde el principio.
+
+Y una trampa que se descubre rompiéndose: **un `<video>` no tiene `width` ni
+`height` útiles** —los suyos son `videoWidth`/`videoHeight`, y valen 0 hasta el
+primer cuadro—. Por eso el fondo y el lugar del objeto se miden con `medidasDe`
+(`escena.js`) y no con `.width`: con `width` el rectángulo sale del tamaño de la
+pantalla, el fondo se dibuja estirado y el objeto se apoya en otro lado. Cuando
+`medidasDe` devuelve null —el video todavía no decodificó un cuadro— el espejo
+cae a la foto, que es exactamente lo que tiene que pasar.
+
+### 5.5. El puente a MAITE (`espejo/maite.js`)
 
 Un `POST` a `localhost:3000/api/carrera` con cada evento `mira` y otro a
 `/api/humo` al volver a `ATRACCION`. El id que viaja es **el de MAITE**, no el
@@ -277,7 +316,7 @@ Del lado de MAITE hace falta un middleware de CORS: el espejo corre en otro
 puerto de la misma máquina, así que sin él el navegador ni siquiera manda la
 petición — muere en el preflight `OPTIONS`.
 
-### 5.5. Cadena de Fallback de Objetos
+### 5.6. Cadena de Fallback de Objetos
 Para garantizar la solidez de la instalación, el dibujo de un objeto sigue una estrategia defensiva de tres niveles:
 1. **Archivo PNG:** Se dibuja la ilustración PNG recortada si el recurso existe en `contenido/assets/` y cargó correctamente.
 2. **Figura Vectorial (`espejo/figuras.js`):** Si el PNG no existe o falla, se dibuja un ícono vectorial generado por código Canvas 2D utilizando el color de la carrera. `npm run generar-pngs` puede generar rasterizaciones de respaldo sin sobrescribir las fotos reales.
@@ -286,7 +325,7 @@ Para garantizar la solidez de la instalación, el dibujo de un objeto sigue una 
 
 ---
 
-### 5.6. El objeto en su lugar (`espejo/vuelo.js`)
+### 5.7. El objeto en su lugar (`espejo/vuelo.js`)
 
 Al completarse el sostenido, el objeto **vuela de su ranura a su lugar en el
 fondo** (`tiempos.vuelo`, 1 s, con easing e interpolando el tamaño) y se queda

@@ -99,8 +99,9 @@ describe('calcularTransicionEscena', () => {
     calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, tiempos });
 
   it('en reposo y en el enganche no se ve ninguna capa', () => {
-    expect(en(ESTADOS.ATRACCION, 0)).toEqual({ objetos: 0, fondo: 0, contenido: 0, vuelo: 0 });
-    expect(en(ESTADOS.ENGANCHE, 1000)).toEqual({ objetos: 0, fondo: 0, contenido: 0, vuelo: 0 });
+    const nada = { objetos: 0, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
+    expect(en(ESTADOS.ATRACCION, 0)).toEqual(nada);
+    expect(en(ESTADOS.ENGANCHE, 1000)).toEqual(nada);
   });
 
   // Los objetos estan puestos desde el principio del humo, pero encenderlos
@@ -115,48 +116,71 @@ describe('calcularTransicionEscena', () => {
   });
 
   it('sin nada agarrado se ven los objetos y nada mas', () => {
-    expect(en(ESTADOS.EXPLORACION, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0, vuelo: 0 });
-    expect(en(ESTADOS.EXPLORACION, 20000)).toEqual({ objetos: 1, fondo: 0, contenido: 0, vuelo: 0 });
+    const soloElCarrusel = { objetos: 1, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
+    expect(en(ESTADOS.EXPLORACION, 0)).toEqual(soloElCarrusel);
+    expect(en(ESTADOS.EXPLORACION, 20000)).toEqual(soloElCarrusel);
   });
 
-  // LOS OBJETOS NO SE APAGAN AL APARECER EL FONDO. Quedan enteros y por delante,
-  // porque soltar uno y agarrar otro es justamente lo que se puede hacer: si se
-  // desvanecieran, la unica lectura posible seria "ya elegiste, se termino".
-  it('el fondo y el texto entran sin apagar los objetos', () => {
-    expect(en(ESTADOS.EXPLORACION, 5000, 0)).toEqual({ objetos: 1, fondo: 0, contenido: 0, vuelo: 0 });
-
-    const medio = en(ESTADOS.EXPLORACION, 6000, 1000);
-    expect(medio.objetos).toBe(1);
-    expect(medio.fondo).toBeCloseTo(0.5);
-    expect(medio.contenido).toBeCloseTo(0.5);
-    expect(medio.vuelo).toBe(1);
-
-    expect(en(ESTADOS.EXPLORACION, 7000, 2000)).toEqual({
+  // EL CARRUSEL SE APAGA AL ELEGIR. Se elige una sola vez, asi que dejar los
+  // objetos puestos seria ofrecer algo que ya no se puede agarrar: quien
+  // estirara la mano otra vez y no viera pasar nada creeria que se colgo.
+  it('el carrusel se apaga mientras el fondo y el texto entran', () => {
+    expect(en(ESTADOS.EXPLORACION, 5000, 0)).toEqual({
       objetos: 1,
-      fondo: 1,
-      contenido: 1,
-      vuelo: 1,
+      elegido: 1,
+      fondo: 0,
+      contenido: 0,
+      vuelo: 0,
     });
+
+    const medio = en(ESTADOS.EXPLORACION, 5500, 500);
+    expect(medio.objetos).toBeCloseTo(0.5);
+    expect(medio.elegido).toBe(1);
+
+    const despues = en(ESTADOS.EXPLORACION, 6000, 1000);
+    expect(despues.objetos).toBe(0);
+    expect(despues.fondo).toBeCloseTo(0.5);
+    expect(despues.contenido).toBeCloseTo(0.5);
+    expect(despues.vuelo).toBe(1);
   });
 
-  // La info se queda puesta: con el brazo en alto no se lee, y soltar el objeto
-  // no puede costar la ingenieria que se acaba de mostrar.
-  it('el fondo se queda entero mientras no se agarre otro objeto', () => {
+  // El carrusel se vacia con el mismo plazo que dura el vuelo: el anillo termina
+  // de apagarse justo cuando el objeto elegido aterriza en su lugar del fondo.
+  it('el carrusel termina de apagarse cuando el objeto aterriza', () => {
+    for (const t of [0, 250, 500, 750, 1000]) {
+      const capa = en(ESTADOS.EXPLORACION, 5000 + t, t);
+      expect(capa.objetos).toBeCloseTo(1 - capa.vuelo);
+    }
+  });
+
+  // EL ELEGIDO NO SE VA CON EL CARRUSEL. Vuela a su lugar justo mientras el
+  // carrusel se apaga: con el alfa del carrusel se desvaneceria en pleno vuelo,
+  // que es exactamente el cuadro en el que la persona lo esta siguiendo.
+  it('el objeto elegido se queda entero mientras el carrusel se va', () => {
+    for (const t of [0, 250, 500, 750, 1000, 5000]) {
+      expect(en(ESTADOS.EXPLORACION, 5000 + t, t).elegido).toBe(1);
+    }
+  });
+
+  // La info se queda puesta hasta que la persona se va: con el brazo en alto no
+  // se lee, y bajarlo no puede costar la ingenieria que se acaba de mostrar.
+  it('la ingenieria se queda puesta el resto de la sesion', () => {
     expect(en(ESTADOS.EXPLORACION, 90000, 88000)).toEqual({
-      objetos: 1,
+      objetos: 0,
+      elegido: 1,
       fondo: 1,
       contenido: 1,
       vuelo: 1,
     });
   });
 
-  // El reloj del fondo es el de la mirada, no el del estado: agarrar otro
-  // objeto reinicia la aparicion sin que el estado haya cambiado.
-  it('agarrar otro objeto vuelve a hacer entrar el fondo desde cero', () => {
-    const reciencambiado = en(ESTADOS.EXPLORACION, 90000, 0);
-    expect(reciencambiado.fondo).toBe(0);
-    expect(reciencambiado.objetos).toBe(1);
-    expect(reciencambiado.vuelo).toBe(0);
+  // La aparicion tiene su propio reloj, el de la mirada, y no el del estado: la
+  // ingenieria entra desde cero se haya elegido al segundo o al minuto.
+  it('la aparicion arranca de cero se elija cuando se elija', () => {
+    const recienElegida = en(ESTADOS.EXPLORACION, 90000, 0);
+    expect(recienElegida.fondo).toBe(0);
+    expect(recienElegida.objetos).toBe(1);
+    expect(recienElegida.vuelo).toBe(0);
   });
 
   // El vuelo tiene su propio plazo, mas corto que la aparicion del fondo: el
@@ -168,10 +192,28 @@ describe('calcularTransicionEscena', () => {
     expect(en(ESTADOS.EXPLORACION, 9000, 4000).vuelo).toBe(1);
   });
 
+  // Sin elegir, el carrusel es lo unico que hay en pantalla y se va con todo lo
+  // demas: es el caso de quien se levanta sin entender el gesto.
   it('desvanece todas las capas juntas durante el cierre', () => {
-    expect(en(ESTADOS.CIERRE, 0)).toEqual({ objetos: 1, fondo: 1, contenido: 1, vuelo: 1 });
-    expect(en(ESTADOS.CIERRE, 2000)).toEqual({ objetos: 0.5, fondo: 0.5, contenido: 0.5, vuelo: 1 });
-    expect(en(ESTADOS.CIERRE, 4000)).toEqual({ objetos: 0, fondo: 0, contenido: 0, vuelo: 1 });
+    expect(en(ESTADOS.CIERRE, 0)).toEqual({
+      objetos: 1,
+      elegido: 1,
+      fondo: 1,
+      contenido: 1,
+      vuelo: 1,
+    });
+    expect(en(ESTADOS.CIERRE, 2000).objetos).toBe(0.5);
+    expect(en(ESTADOS.CIERRE, 4000).objetos).toBe(0);
+  });
+
+  // Ya elegida, el carrusel hace rato que no esta: encenderlo para apagarlo
+  // otra vez seria un parpadeo en el ultimo segundo de la sesion.
+  it('el carrusel no reaparece en el cierre si ya se habia elegido', () => {
+    for (const t of [0, 1000, 2000, 4000]) {
+      expect(en(ESTADOS.CIERRE, t, 9000).objetos).toBe(0);
+    }
+    expect(en(ESTADOS.CIERRE, 2000, 9000).elegido).toBe(0.5);
+    expect(en(ESTADOS.CIERRE, 2000, 9000).fondo).toBe(0.5);
   });
 
   it('ninguna capa se sale del rango, ni con tiempos raros', () => {

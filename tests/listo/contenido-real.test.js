@@ -86,6 +86,11 @@ describe('contenido real', () => {
     expect(faltantes).toEqual([]);
   });
 
+  // El respaldo vectorial se llama exactamente como la carrera y lo genera
+  // `npm run generar-fondos`: es un placeholder, no una opcion para elegir.
+  const esRespaldoVectorial = (carrera, fondo) =>
+    fondo.img === `assets/fondos/${carrera.id}.png`;
+
   // Sin fondo, la escena cae al color plano de la carrera. Se ve, pero es lo
   // que se supone que reemplaza la foto de la ingenieria. Y todo candidato
   // declarado tiene que estar: la herramienta de eleccion los muestra todos.
@@ -99,6 +104,46 @@ describe('contenido real', () => {
       }
     }
     expect(faltantes, 'corré npm run generar-fondos o dejá las imágenes reales').toEqual([]);
+  });
+
+  // TRES OPCIONES DE VERDAD POR CARRERA, que es lo que la catedra compara en
+  // herramientas/fondos.html. El respaldo vectorial no cuenta: lo dibuja el
+  // codigo para que nada quede en negro, no para elegirlo.
+  it('cada carrera tiene tres fondos para elegir, sin contar el respaldo', async () => {
+    const flojas = [];
+    for (const carrera of (await leer()).carreras) {
+      const reales = (carrera.fondos ?? []).filter((f) => !esRespaldoVectorial(carrera, f));
+      if (reales.length < 3) flojas.push(`${carrera.id} (${reales.length})`);
+    }
+    expect(flojas, 'estas carreras no llegan a tres fondos candidatos').toEqual([]);
+  });
+
+  // El objeto agarrado vuela a `lugar` y se queda ahi, integrado a la escena.
+  // Sin declararlo cae en CONFIG.fondo.lugarPorDefecto, que es un seguro del
+  // codigo y no una decision: en una foto cualquiera termina sobre el cielo
+  // blanco o encima de la cara. Se elige mirando, en herramientas/fondos.html.
+  it('cada fondo dice donde se apoya el objeto', async () => {
+    const sinLugar = [];
+    for (const carrera of (await leer()).carreras) {
+      for (const fondo of carrera.fondos ?? []) {
+        if (!esRespaldoVectorial(carrera, fondo) && !fondo.lugar) sinLugar.push(fondo.img);
+      }
+    }
+    expect(sinLugar, 'estos fondos no declaran "lugar"').toEqual([]);
+  });
+
+  // Un fondo con movimiento declara `video` ademas de su foto. Si el archivo no
+  // esta, el espejo muestra la foto y no se rompe nada —pero el fondo quedo
+  // quieto y nadie se entera hasta que alguien lo mira de cerca en el stand.
+  it('los videos de fondo declarados estan en el disco', async () => {
+    const datos = await leer();
+    const faltantes = [];
+    for (const carrera of datos.carreras) {
+      for (const fondo of carrera.fondos ?? []) {
+        if (fondo.video && !(await existe(fondo.video))) faltantes.push(fondo.video);
+      }
+    }
+    expect(faltantes, 'un fondo declara un video que no esta: se va a ver la foto').toEqual([]);
   });
 
   // La transicion entera depende de este archivo. Es un agregado opcional en

@@ -8,10 +8,11 @@
 // El resto de lo que hace falta saber (opciones, carrera, sesion) viaja en la
 // salida, que se lee cuando se quiera.
 //
-// LA EXPLORACION NO ES UNA ELECCION. Agarrar un objeto muestra su ingenieria;
-// soltarlo deja la info puesta; agarrar otro la reemplaza. No hay un punto sin
-// retorno, y por eso no hay un estado "ya elegiste": mientras la persona este
-// sentada puede recorrer las cinco.
+// SE ELIGE UNA SOLA VEZ. Agarrar un objeto muestra su ingenieria y cierra la
+// eleccion: a partir de ahi la carrera no cambia mas hasta que se vaya la
+// persona. No hace falta un estado "ya elegiste" para eso —lo dice `carrera`,
+// que deja de ser null— pero el efecto es el mismo: `mirar` no vuelve a mover
+// nada, y quien dibuja apaga el carrusel.
 
 export const ESTADOS = {
   ATRACCION: 'ATRACCION',
@@ -127,13 +128,20 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
 
     /**
      * La persona sostuvo la mano sobre un objeto: se muestra su ingenieria.
-     * Solo vale durante la exploracion — en cualquier otro estado no hay nada
+     *
+     * Solo vale durante la exploracion —en cualquier otro estado no hay nada
      * ofrecido y un llamado tardio, con la mano todavia puesta, no puede
-     * revivir una sesion que ya termino.
+     * revivir una sesion que ya termino— y SOLO LA PRIMERA VEZ. Una vez que la
+     * persona tiene su ingenieria, la eleccion esta cerrada: los objetos
+     * desaparecen de la pantalla y cualquier llamado posterior no mueve nada.
+     *
+     * La guarda vive aca y no en quien dibuja porque es una regla de la
+     * experiencia, no del dibujo: sin ella, un `mirar` que llegara igual
+     * reiniciaria el reloj del fondo y le mandaria otro aviso a MAITE.
      */
     mirar(id, ahora) {
       const eventos = [];
-      if (estado !== ESTADOS.EXPLORACION) return salida(eventos);
+      if (estado !== ESTADOS.EXPLORACION || carrera !== null) return salida(eventos);
 
       ausenteDesde = null;
       rostroAusenteDesde = null;
@@ -141,7 +149,18 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       return salida(eventos);
     },
 
-    actualizar({ hayRostro, puedeIniciar = hayRostro, hayPersona = hayRostro, ahora }) {
+    /**
+     * `eligiendo` es "hay un sostenido en curso": la maquina no sabe que es una
+     * mano, pero si necesita saber que alguien esta en la mitad de un gesto para
+     * no cortarselo. Solo lo usa la red de la fila.
+     */
+    actualizar({
+      hayRostro,
+      puedeIniciar = hayRostro,
+      hayPersona = hayRostro,
+      eligiendo = false,
+      ahora,
+    }) {
       const eventos = [];
 
       if (hayPersona) ausenteDesde = null;
@@ -215,15 +234,25 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
           break;
 
         // La exploracion no tiene duracion propia: dura mientras la persona
-        // siga sentada. El tope es la red de seguridad de la fila — quien no
-        // entiende el gesto no puede dejar el espejo tomado sin ver nada, asi
-        // que se le muestra una por sorteo y sigue pudiendo agarrar otras.
+        // siga sentada, mirando la ingenieria que le toco. El tope es la red de
+        // seguridad de la fila — quien no entiende el gesto no puede dejar el
+        // espejo tomado sin ver nada, asi que se le muestra una por sorteo. Y
+        // como cierra la eleccion igual que agarrar un objeto, nadie se va sin
+        // ingenieria ni se queda esperando delante de un carrusel que no
+        // entiende.
         case ESTADOS.EXPLORACION:
           if (seFue || sePerdioElRostro || pasoElTope) {
             ir(ESTADOS.CIERRE, ahora, eventos);
             break;
           }
-          if (carrera === null && transcurrido >= tiempos.eleccionMaxima) {
+          // LA RED NO SE LE CAE ENCIMA A QUIEN YA ESTA ELIGIENDO. Como ahora
+          // cerrar la eleccion es definitivo, vencer el plazo con la mano
+          // sostenida sobre un objeto le robaria el gesto: se llevaria una
+          // ingenieria sorteada que no eligio y sin poder corregirlo. Se espera
+          // a que el sostenido termine o se suelte; el tope de sesion sigue
+          // vigilando por detras, y un sostenido no puede durar para siempre
+          // porque el anillo se vacia solo en cuanto la mano se va.
+          if (carrera === null && !eligiendo && transcurrido >= tiempos.eleccionMaxima) {
             mostrar(opciones[0] ?? null, ahora, eventos);
           }
           break;

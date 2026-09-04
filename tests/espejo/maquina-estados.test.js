@@ -22,12 +22,12 @@ function nueva(opciones = OFRECIDAS) {
 }
 
 /** Avanza el reloj de a 100 ms hasta `hasta`, juntando todos los eventos. */
-function avanzar(maquina, desde, hasta, hayRostro) {
+function avanzar(maquina, desde, hasta, hayRostro, extra = {}) {
   const eventos = [];
   let ahora = desde;
   let ultimo = null;
   while (ahora <= hasta) {
-    ultimo = maquina.actualizar({ hayRostro, ahora });
+    ultimo = maquina.actualizar({ hayRostro, ...extra, ahora });
     eventos.push(...ultimo.eventos);
     ahora += 100;
   }
@@ -120,8 +120,9 @@ describe('crearMaquina', () => {
 });
 
 // ---------------------------------------------------------------------------
-// La exploracion: agarrar un objeto muestra su ingenieria, soltarlo deja la
-// info puesta, y agarrar otro la reemplaza. Ya no hay un punto sin retorno.
+// La exploracion: agarrar un objeto muestra su ingenieria y CIERRA LA ELECCION.
+// Se elige una sola vez; a partir de ahi la carrera no se mueve hasta que se
+// vaya la persona, y quien dibuja apaga el carrusel.
 // ---------------------------------------------------------------------------
 
 describe('mirar', () => {
@@ -134,19 +135,23 @@ describe('mirar', () => {
     expect(salida.carrera).toBe('naval');
   });
 
-  it('agarrar otro objeto reemplaza la carrera mostrada', () => {
+  // SE ELIGE UNA SOLA VEZ. La guarda vive aca y no en quien dibuja: aunque en
+  // la pantalla ya no queden objetos, un `mirar` que llegara igual reiniciaria
+  // el reloj del fondo y le mandaria otro aviso a MAITE.
+  it('agarrar otro objeto ya no cambia la carrera mostrada', () => {
     const maquina = hastaExplorar();
     maquina.mirar('naval', 6100);
 
     const segunda = maquina.mirar('civil', 8000);
 
     expect(segunda.estado).toBe(ESTADOS.EXPLORACION);
-    expect(segunda.carrera).toBe('civil');
+    expect(segunda.carrera).toBe('naval');
+    expect(segunda.eventos).toEqual([]);
   });
 
   // La sesion es la persona, no cada objeto que toca. Si contara por objeto,
   // el numero de la jornada diria cuantas veces se estiro un brazo.
-  it('cuenta una sola sesion aunque se miren varias ingenierias', () => {
+  it('cuenta una sola sesion por persona', () => {
     const maquina = hastaExplorar();
 
     maquina.mirar('naval', 6100);
@@ -156,29 +161,34 @@ describe('mirar', () => {
     expect(maquina.sesion()).toBe(1);
   });
 
-  it('avisa con un evento cada vez que cambia la carrera mostrada', () => {
+  // Un solo aviso por persona: MAITE se entera una vez de que ese visitante es
+  // de naval y las tablets se quedan ahi mientras dure la sesion.
+  it('avisa una sola vez, y nunca mas', () => {
     const maquina = hastaExplorar();
 
     const primera = maquina.mirar('naval', 6100);
+    // Volver a agarrar el mismo objeto no reenvia nada: es lo que evita que
+    // las tablets de MAITE parpadeen mientras la mano tiembla sobre un blanco.
     const repetida = maquina.mirar('naval', 7000);
     const otra = maquina.mirar('civil', 8000);
 
     expect(tipos(primera.eventos, 'mira')).toHaveLength(1);
-    // Volver a agarrar el mismo objeto no reenvia nada: es lo que evita que
-    // las tablets de MAITE parpadeen mientras la mano tiembla sobre un blanco.
+    expect(primera.eventos[0].carrera).toBe('naval');
     expect(repetida.eventos).toEqual([]);
-    expect(tipos(otra.eventos, 'mira')).toHaveLength(1);
-    expect(otra.eventos[0].carrera).toBe('civil');
+    expect(otra.eventos).toEqual([]);
   });
 
-  it('lleva el reloj de cuando empezo a mostrarse la carrera actual', () => {
+  // Es el reloj de la aparicion, y no se puede reiniciar: si un `mirar` tardio
+  // lo moviera, el fondo volveria a entrar desde cero delante de alguien que ya
+  // lo estaba mirando.
+  it('lleva el reloj de cuando empezo a mostrarse la carrera, y no se mueve', () => {
     const maquina = hastaExplorar();
 
     maquina.mirar('naval', 6100);
     expect(maquina.miraDesdeCuando()).toBe(6100);
 
     maquina.mirar('civil', 9000);
-    expect(maquina.miraDesdeCuando()).toBe(9000);
+    expect(maquina.miraDesdeCuando()).toBe(6100);
   });
 
   it('no hace nada fuera de la exploracion', () => {
@@ -261,8 +271,8 @@ describe('el rostro sostiene la sesion', () => {
 
 describe('la red de seguridad de la fila', () => {
   // Quien no entiende el gesto no puede quedarse con el espejo tomado. Al
-  // vencerse se muestra una sola por sorteo, y la exploracion sigue: nadie se
-  // va sin ingenieria y el que agarra otro objeto despues igual la ve.
+  // vencerse se muestra una por sorteo —lo ofrecido viene barajado, asi que
+  // tomar el primero ya es un sorteo— y nadie se va sin ingenieria.
   it('muestra la primera ofrecida si nadie agarro nada, y sigue explorando', () => {
     const maquina = hastaExplorar();
 
@@ -271,9 +281,46 @@ describe('la red de seguridad de la fila', () => {
     expect(vencido.estado).toBe(ESTADOS.EXPLORACION);
     expect(vencido.carrera).toBe(OFRECIDAS[0]);
     expect(maquina.sesion()).toBe(1);
+  });
+
+  // LA RED NO PUEDE ROBARLE EL GESTO A QUIEN YA ESTA ELIGIENDO. Desde que la
+  // eleccion es definitiva, vencer el plazo con la mano sostenida sobre un
+  // objeto significaria irse con una ingenieria sorteada, sin poder corregirla.
+  it('espera a que termine el sostenido en curso antes de sortear', () => {
+    const maquina = hastaExplorar();
+    const vencido = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 5000, true, {
+      eligiendo: true,
+    });
+
+    expect(vencido.estado).toBe(ESTADOS.EXPLORACION);
+    expect(vencido.carrera).toBeNull();
+  });
+
+  // Y en cuanto la mano se va —el anillo se vacia solo—, la red vuelve a valer.
+  it('sortea apenas se suelta el sostenido, si el plazo ya vencio', () => {
+    const maquina = hastaExplorar();
+    avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 5000, true, { eligiendo: true });
+
+    const suelto = maquina.actualizar({
+      hayRostro: true,
+      eligiendo: false,
+      ahora: 6100 + TIEMPOS.eleccionMaxima + 5100,
+    });
+
+    expect(suelto.carrera).toBe(OFRECIDAS[0]);
+  });
+
+  // La red de la fila cierra la eleccion igual que agarrar un objeto: si no,
+  // quedaria un carrusel apagado y una mano que ya no sirve para nada, y la
+  // persona veria cambiar su ingenieria sin haber hecho nada.
+  it('la carrera sorteada tampoco se puede cambiar', () => {
+    const maquina = hastaExplorar();
+    const vencido = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 200, true);
 
     const despues = maquina.mirar('civil', vencido.ahora + 100);
-    expect(despues.carrera).toBe('civil');
+
+    expect(despues.carrera).toBe(OFRECIDAS[0]);
+    expect(despues.eventos).toEqual([]);
   });
 
   it('no pisa la carrera que la persona ya estaba mirando', () => {

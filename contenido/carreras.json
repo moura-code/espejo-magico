@@ -1,5 +1,5 @@
 {
-  "_nota": "Cada carrera aporta UN objeto al carrusel: 'objeto' si esta declarado, si no uno sorteado de 'objetos'. Los PNG son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. 'maite' es el id de esta carrera en el proyecto de las tablets: en null, la carrera no se ofrece. 'fondos' son los candidatos de fondo y el espejo muestra el primero: elegir es reordenar. Cada uno puede declarar 'lugar' {x, y, escala}, normalizado a la imagen, donde se apoya el objeto agarrado; sin lugar vale CONFIG.fondo.lugarPorDefecto. Se los mira todos juntos en herramientas/fondos.html.",
+  "_nota": "Cada carrera aporta UN objeto al carrusel: 'objeto' si esta declarado, si no uno sorteado de 'objetos'. Los PNG son fotografias reales con el fondo recortado; las que salieron de Wikimedia Commons llevan autor y licencia en contenido/assets/CREDITOS.md. 'figura' es el respaldo vectorial por si un PNG falta (espejo/figuras.js) y 'npm run generar-pngs' lo rasteriza sin pisar los PNG existentes. 'maite' es el id de esta carrera en el proyecto de las tablets: en null, la carrera no se ofrece. 'fondos' son los candidatos de fondo y el espejo muestra el primero: elegir es reordenar. Cada uno puede declarar 'lugar' {x, y, escala}, normalizado a la imagen, donde se apoya el objeto agarrado; sin lugar vale CONFIG.fondo.lugarPorDefecto. Un fondo puede moverse: 'video' es opcional y NO reemplaza a 'img', que en ese caso es un cuadro del propio video y es lo que se ve mientras el video carga o si falta. Se los mira todos juntos en herramientas/fondos.html.",
   "carreras": [
     {
       "id": "mecanica",
@@ -8,10 +8,28 @@
       "maite": "industrial_mecanica",
       "fondos": [
         {
-          "img": "assets/fondos/mecanica-2.jpg"
+          "img": "assets/fondos/mecanica-nave.jpg",
+          "lugar": {
+            "x": 0.25,
+            "y": 0.297,
+            "escala": 0.15
+          }
         },
         {
-          "img": "assets/fondos/mecanica-3.jpg"
+          "img": "assets/fondos/mecanica-2.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.391,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/mecanica-taller.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.391,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/mecanica.png"
@@ -57,10 +75,28 @@
       "maite": "electronica",
       "fondos": [
         {
-          "img": "assets/fondos/electrica-2.jpg"
+          "img": "assets/fondos/electrica-turbinas.jpg",
+          "lugar": {
+            "x": 0.194,
+            "y": 0.391,
+            "escala": 0.15
+          }
         },
         {
-          "img": "assets/fondos/electrica-3.jpg"
+          "img": "assets/fondos/electrica-generadores.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.391,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/electrica-2.jpg",
+          "lugar": {
+            "x": 0.25,
+            "y": 0.359,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/electrica.png"
@@ -106,14 +142,27 @@
       "maite": "sistemas",
       "fondos": [
         {
-          "img": "assets/fondos/computacion-2.jpg"
+          "img": "assets/fondos/computacion-2.jpg",
+          "lugar": {
+            "x": 0.194,
+            "y": 0.328,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/computacion-pasillo.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.172,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/computacion-3.jpg",
           "lugar": {
-            "x": 0.24,
-            "y": 0.34,
-            "escala": 0.16
+            "x": 0.75,
+            "y": 0.391,
+            "escala": 0.15
           }
         },
         {
@@ -160,10 +209,28 @@
       "maite": "fisico_matematica",
       "fondos": [
         {
-          "img": "assets/fondos/fisico-matematico-2.jpg"
+          "img": "assets/fondos/fisico-matematico-3.jpg",
+          "lugar": {
+            "x": 0.25,
+            "y": 0.203,
+            "escala": 0.15
+          }
         },
         {
-          "img": "assets/fondos/fisico-matematico-3.jpg"
+          "img": "assets/fondos/fisico-matematico-acelerador.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.391,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/fisico-matematico-anillo.jpg",
+          "lugar": {
+            "x": 0.194,
+            "y": 0.391,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/fisico-matematico.png"
@@ -209,10 +276,28 @@
       "maite": "civil",
       "fondos": [
         {
-          "img": "assets/fondos/civil-2.jpg"
+          "img": "assets/fondos/civil-dique.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.172,
+            "escala": 0.15
+          }
         },
         {
-          "img": "assets/fondos/civil-3.jpg"
+          "img": "assets/fondos/civil-embalse.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.172,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/civil-2.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.391,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/civil.png"
@@ -263,13 +348,26 @@
       "maite": "quimica",
       "fondos": [
         {
-          "img": "assets/fondos/quimica-2.jpg"
+          "img": "assets/fondos/quimica-laboratorio.jpg",
+          "lugar": {
+            "x": 0.25,
+            "y": 0.391,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/quimica-3.jpg",
           "lugar": {
-            "x": 0.24,
-            "y": 0.26,
+            "x": 0.806,
+            "y": 0.203,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/quimica-2.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.172,
             "escala": 0.15
           }
         },
@@ -317,10 +415,28 @@
       "maite": "alimentos",
       "fondos": [
         {
-          "img": "assets/fondos/alimentos-2.jpg"
+          "img": "assets/fondos/alimentos-2.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.203,
+            "escala": 0.15
+          }
         },
         {
-          "img": "assets/fondos/alimentos-3.jpg"
+          "img": "assets/fondos/alimentos-bodega.jpg",
+          "lugar": {
+            "x": 0.194,
+            "y": 0.172,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/alimentos-3.jpg",
+          "lugar": {
+            "x": 0.194,
+            "y": 0.359,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/alimentos.png"
@@ -366,10 +482,28 @@
       "maite": "produccion",
       "fondos": [
         {
-          "img": "assets/fondos/produccion-2.jpg"
+          "img": "assets/fondos/produccion-2.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.359,
+            "escala": 0.15
+          }
         },
         {
-          "img": "assets/fondos/produccion-3.jpg"
+          "img": "assets/fondos/produccion-deposito.jpg",
+          "lugar": {
+            "x": 0.25,
+            "y": 0.203,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/produccion-3.jpg",
+          "lugar": {
+            "x": 0.194,
+            "y": 0.172,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/produccion.png"
@@ -415,10 +549,28 @@
       "maite": "agrimensura",
       "fondos": [
         {
-          "img": "assets/fondos/agrimensura-3.jpg"
+          "img": "assets/fondos/agrimensura-valle.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.391,
+            "escala": 0.15
+          }
         },
         {
-          "img": "assets/fondos/agrimensura-2.jpg"
+          "img": "assets/fondos/agrimensura-aereo.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.297,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/agrimensura-terrazas.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.391,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/agrimensura.png"
@@ -464,13 +616,26 @@
       "maite": "comunicacion",
       "fondos": [
         {
-          "img": "assets/fondos/comunicacion-2.jpg"
+          "img": "assets/fondos/comunicacion-antenas.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.266,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/comunicacion-2.jpg",
+          "lugar": {
+            "x": 0.75,
+            "y": 0.172,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/comunicacion-3.jpg",
           "lugar": {
-            "x": 0.75,
-            "y": 0.22,
+            "x": 0.25,
+            "y": 0.297,
             "escala": 0.15
           }
         },
@@ -518,13 +683,26 @@
       "maite": "forestal",
       "fondos": [
         {
-          "img": "assets/fondos/forestal-2.jpg"
+          "img": "assets/fondos/forestal-niebla.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.172,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/forestal-2.jpg",
+          "lugar": {
+            "x": 0.194,
+            "y": 0.391,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/forestal-3.jpg",
           "lugar": {
-            "x": 0.76,
-            "y": 0.24,
+            "x": 0.75,
+            "y": 0.391,
             "escala": 0.15
           }
         },
@@ -572,13 +750,35 @@
       "maite": "naval",
       "fondos": [
         {
-          "img": "assets/fondos/naval-2.jpg"
+          "img": "assets/fondos/naval-2.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.328,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/naval-dique.jpg",
+          "lugar": {
+            "x": 0.806,
+            "y": 0.297,
+            "escala": 0.15
+          }
         },
         {
           "img": "assets/fondos/naval-3.jpg",
           "lugar": {
-            "x": 0.74,
-            "y": 0.2,
+            "x": 0.194,
+            "y": 0.391,
+            "escala": 0.15
+          }
+        },
+        {
+          "img": "assets/fondos/naval-canal.jpg",
+          "video": "assets/fondos/naval-canal.mp4",
+          "lugar": {
+            "x": 0.194,
+            "y": 0.328,
             "escala": 0.15
           }
         },

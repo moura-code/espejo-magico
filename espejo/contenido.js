@@ -25,9 +25,21 @@ const entreCeroYUno = (valor) => typeof valor === 'number' && valor >= 0 && valo
 /**
  * `lugar` es donde se apoya el objeto agarrado, normalizado a la imagen. Fuera
  * de 0–1 el objeto cae fuera de la pantalla.
+ *
+ * `video` es opcional y NO reemplaza a `img`: la acompaña. Un fondo con
+ * movimiento se declara con las dos cosas, y la `img` es un cuadro del propio
+ * video —lo que se ve mientras el video todavia no cargo, o si el archivo
+ * falta—. Por eso `img` sigue siendo obligatoria: sin ella un video que no
+ * llega deja la escena sin fondo.
  */
 function validarFondo(fondo, donde, errores) {
   if (!fondo || !esTextoUtil(fondo.img)) errores.push(`${donde} sin "img"`);
+  // `video: null` es "todavia no hay video para este fondo", la misma convencion
+  // que `maite: null`. Rechazarlo haria que carreras.json no valide, y un
+  // carreras.json invalido deja el espejo en "cargando..." con publico delante.
+  if (fondo?.video !== undefined && fondo.video !== null && !esTextoUtil(fondo.video)) {
+    errores.push(`${donde} "video" tiene que ser una ruta, o null`);
+  }
   if (!fondo?.lugar) return;
 
   const { x, y, escala } = fondo.lugar;
@@ -173,5 +185,11 @@ export async function cargarContenido({
         ...(carrera.objeto ? [carrera.objeto.img] : []),
         ...(fondoActivo(carrera) ? [fondoActivo(carrera).img] : []),
       ]),
+
+    // Los fondos que se mueven, y solo los activos: un video que no se va a ver
+    // no se descarga. Puede estar vacio —hoy casi todas las carreras son foto
+    // quieta— y el espejo funciona igual.
+    todosLosVideos: () =>
+      datos.carreras.map((carrera) => fondoActivo(carrera)?.video).filter(Boolean),
   };
 }

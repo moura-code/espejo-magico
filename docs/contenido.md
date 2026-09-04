@@ -40,7 +40,7 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
 | `nombre` | `string` | Nombre oficial completo. Se ve al pie, en una o dos líneas, mientras se muestra la carrera. |
 | `color` | `string` | Color hexadecimal distintivo (`#rrggbb`). Se usa en el nombre, el anillo de progreso y como acento de la escena de respaldo. |
 | `maite` | `string \| null` | El id que **esta misma carrera tiene en el proyecto MAITE**. Ver §7. |
-| `fondos` | `array` | Los fondos candidatos: `{ img, lugar? }`. El espejo muestra **el primero**; elegir es reordenar. `lugar` es dónde se apoya el objeto, normalizado a la imagen. Ver §3. |
+| `fondos` | `array` | Los fondos candidatos: `{ img, video?, lugar? }`. El espejo muestra **el primero**; elegir es reordenar. `lugar` es dónde se apoya el objeto, normalizado a la imagen. `video` es opcional y hace que el fondo se mueva. Ver §3. |
 | `objeto` | `objeto` | **Opcional.** El objeto que representa a esta carrera en el carrusel. Si no está, se sortea uno de `objetos`. |
 | `objetos` | `array` | Lista de 6 o más objetos característicos. De acá sale el representante cuando `objeto` no está declarado. |
 
@@ -72,18 +72,54 @@ ingeniería en vez de tapada por ella. Y el objeto con el que agarró la carrera
 **vuela a su lugar dentro del fondo** y se queda ahí, flotando apenas, detrás de
 la persona.
 
-Por eso conviene que sean imágenes **oscuras, con el centro y la mitad inferior
-tranquilos** —ahí van la persona y el nombre en letra grande— y con una zona
-libre a un costado para apoyar el objeto.
+### Qué hace que un fondo sirva
+
+El fondo no es una ilustración: es un **escenario** que tiene que aguantar dos
+cosas encima, una persona recortada y un objeto apoyado. De ahí salen los cinco
+criterios, y se descubrieron mirando los que no funcionaban:
+
+1. **Un lugar, no un primer plano.** Una sala, un pasillo, un valle: algo con
+   profundidad y con piso u horizonte, donde se entienda que la persona *está
+   parada ahí*. Un primer plano —un láser, una máquina, un mapa desplegado— no
+   tiene dónde pararse: la persona recortada encima se lee como un collage.
+2. **Centro y mitad inferior tranquilos.** Ahí van la cara y el nombre en letra
+   grande.
+3. **Sin gente.** Otra persona en el fondo compite con la que está sentada, y
+   desde la fila no se entiende cuál es cuál.
+4. **Un rincón oscuro arriba, a un costado**, para el objeto. No alcanza con que
+   la foto entera sea oscura: si el rincón donde aterriza es un cielo blanco, el
+   objeto y su halo se pierden. Se mide igual que el brillo general (abajo), y
+   conviene que ese rincón quede por debajo de ~58.
+5. **Oscura**, entre 25 y 70 de brillo medio sobre 255.
+
+Y si el fondo es un video, **poco movimiento**. `naval-canal.mp4` quedó en el
+repositorio como el ejemplo de lo contrario: el agua del canal de ensayos se
+mueve tanto que la persona y el objeto encima quedan compitiendo con el fondo en
+vez de integrados. Está declarado como cuarto candidato de Naval, no como el
+activo, para poder mirarlo al lado de los otros.
 
 ### Candidatos y `lugar`
 
 Cada carrera declara `fondos`, una lista de candidatos. **El espejo muestra el
-primero; elegir es reordenar.** Cada candidato puede declarar `lugar`, dónde se
+primero; elegir es reordenar.** Son **tres opciones reales por carrera** como
+mínimo, y `npm run listo` lo verifica; el `.png` que genera
+`npm run generar-fondos` no cuenta, porque es el respaldo que dibuja el código,
+no una opción para elegir. Cada candidato puede declarar `lugar`, dónde se
 apoya el objeto, **normalizado a la imagen** (`x` e `y` de 0 a 1, `escala` es el
 diámetro como fracción del ancho de la imagen): como el fondo se dibuja cubriendo
 la pantalla y recortado, un punto normalizado a la imagen cae siempre en el
-mismo sitio de la escena. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`.
+mismo sitio de la escena. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`, que es
+un seguro del código y no una decisión — por eso `npm run listo` pide que **cada
+candidato declare el suyo**.
+
+El punto de partida se mide sobre la foto, no se estima ni se elige de una lista
+de esquinas: de cada imagen se saca un mapa de brillo de 18×32 celdas, se prueba
+cada posición posible del objeto —una ventana del tamaño del objeto más su
+halo— y gana la más oscura. Quedan fuera de la búsqueda la columna del medio
+(ahí va la cara), todo lo que caiga por debajo del 40 % de la altura (ahí empieza
+el degradado del nombre) y una franja de margen a cada lado, porque un objeto
+pegado al borde se lee como que se cae de la pantalla. Después se afina mirando,
+que es para lo que está `herramientas/fondos.html`.
 
 ```json
 "fondos": [
@@ -130,6 +166,63 @@ Tres cosas que se descubren rompiéndose:
 - **Bajarle la saturación** (`eq=saturation`): un cielo azul o un modelo de
   terreno en falso color compiten con el nombre de la carrera, que va en su
   color.
+
+### Fondos con movimiento
+
+Un fondo puede moverse. Se declara agregando `video` al candidato, **sin sacarle
+la `img`**:
+
+```json
+"fondos": [
+  {
+    "img": "assets/fondos/naval-canal.jpg",
+    "video": "assets/fondos/naval-canal.mp4",
+    "lugar": { "x": 0.76, "y": 0.21, "escala": 0.15 }
+  }
+]
+```
+
+**El video no reemplaza a la foto: la acompaña.** La `img` de un fondo con
+movimiento es **un cuadro del propio video**, y es lo que se ve mientras el video
+carga —los videos se cargan después de que el espejo arrancó, de a uno— o si el
+archivo falta. Como es el mismo encuadre, el cambio no se nota. Sin `img` no hay
+a qué caer, y por eso sigue siendo obligatoria.
+
+El espejo reproduce **uno solo a la vez**, el de la ingeniería que está
+mostrando; agarrar otro objeto pausa el anterior. Volver a una ingeniería ya
+vista arranca su video desde el principio.
+
+Para preparar uno, con el ffmpeg de la máquina de desarrollo. Es la receta de la
+foto —recorte 9:16 a 1080×1920, oscurecido y con menos saturación— más un
+**cierre en fundido con el principio**, que es lo que vuelve invisible el corte
+del loop; un fondo que salta cada diez segundos detrás de una persona se nota
+enseguida. Cambiá `10` y `9.5` por la duración de tu original y esa duración
+menos medio segundo:
+
+```bash
+ffmpeg -i original.mp4 -filter_complex "[0:v]crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920:flags=lanczos,colorlevels=romax=0.45:gomax=0.45:bomax=0.45,eq=saturation=0.85,fps=24,format=yuv420p,setsar=1,split=3[h][b][t];[h]trim=0:0.5,setpts=PTS-STARTPTS,fps=24[head];[b]trim=0.5:9.5,setpts=PTS-STARTPTS,fps=24[body];[t]trim=9.5:10,setpts=PTS-STARTPTS,fps=24[tail];[tail][head]xfade=transition=fade:duration=0.5:offset=0,fps=24[cierre];[body][cierre]concat=n=2:v=1:a=0[final]" -map "[final]" -an -c:v libx264 -preset slow -crf 24 -pix_fmt yuv420p -movflags +faststart contenido/assets/fondos/<id>-<nombre>.mp4
+```
+
+Y el cuadro que hace de foto, **del video ya procesado**, para que sean el mismo
+encuadre exacto:
+
+```bash
+ffmpeg -i contenido/assets/fondos/<id>-<nombre>.mp4 -frames:v 1 -q:v 4 contenido/assets/fondos/<id>-<nombre>.jpg
+```
+
+Cuatro cosas que se descubren rompiéndose:
+
+- **`-an`, siempre.** El espejo lo reproduce mudo igual; la pista de audio es
+  peso muerto en una PC sin conexión.
+- **El brillo se mide igual que en una foto**, y con los mismos números (25 a 70
+  sobre 255). `xfade` necesita `fps=24` en cada rama: sin eso falla con
+  "the inputs needs to be a constant frame rate".
+- **Diez segundos alcanzan.** Nadie mira un fondo más que unos segundos, y cada
+  video vive en memoria mientras el espejo esté abierto.
+- **Mirarlo andando antes de decidir**, en `herramientas/fondos.html`: los
+  candidatos con `video` se reproducen ahí, con la silueta y el objeto encima.
+  Si un fondo se lee bien detrás de una persona no se decide mirando un cuadro
+  quieto.
 
 ### El respaldo vectorial
 

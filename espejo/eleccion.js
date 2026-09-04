@@ -16,7 +16,9 @@
 //      rapido, salir lento — aplicada a la mano.
 //   2. CAMBIAR DE BLANCO SI EMPIEZA DE CERO. Mover el brazo a otro objeto es
 //      deliberado: heredar lo acumulado haria que el segundo se eligiera casi
-//      instantaneamente.
+//      instantaneamente, y pasar por encima de uno camino a otro valdria por una
+//      eleccion. Como se elige UNA sola vez, ese roce seria la ingenieria con la
+//      que la persona se va.
 
 // Tope del salto de reloj entre dos llamadas. Si el navegador se traba un
 // instante, un salto grande completaria un sostenido que nadie hizo.
@@ -71,10 +73,12 @@ export function crearEleccion({ msParaElegir, msDeOlvido, msDeGracia = 0, radioF
      * `objetivos` son `{ id, x, y, radio }` y `manos` son `{ palma: {x, y} }`.
      *
      * `elegido` es "sobre cual esta la mano ahora, ya sostenida", no "cual
-     * eligio la persona para siempre". Se suelta cuando la mano se va o se
-     * mueve a otro blanco, y eso es lo que hace posible recorrer las cinco
-     * ingenierias en una sola sesion. Quien recibe el elegido tiene que
-     * aguantar que se repita cuadro a cuadro mientras la mano no se mueva.
+     * eligio la persona". Este modulo no sabe que hay una sola eleccion por
+     * persona ni le corresponde saberlo: sigue soltando el blanco cuando la mano
+     * se va o se mueve, que es lo que hace que arrepentirse a mitad del
+     * sostenido funcione. Quedarse con una sola es tarea de la maquina de
+     * estados. Quien recibe el elegido tiene que aguantar que se repita cuadro a
+     * cuadro mientras la mano no se mueva.
      */
     actualizar({ manos = [], objetivos = [], ahora }) {
       const dt = ultimoReloj === null ? 0 : acotar(ahora - ultimoReloj, 0, DT_MAXIMO);

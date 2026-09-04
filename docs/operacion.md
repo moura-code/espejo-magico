@@ -13,9 +13,8 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    (el servidor) y Chrome a pantalla completa. **No cerrar la ventana negra.**
 4. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar
    el humo, sostener la mano sobre un objeto hasta que el anillo se llene, ver
-   que las tablets cambien, **bajar el brazo y agarrar otro objeto** para
-   comprobar que la información cambia a la nueva ingeniería, levantarse y ver
-   que las nubes vuelvan.
+   que **los demás objetos se apaguen** y quede sólo la ingeniería con su fondo,
+   ver que las tablets cambien, levantarse y ver que las nubes vuelvan.
 
 El espejo no necesita internet. Sí necesita que las tablets estén en la misma
 máquina o en la red del stand, pero eso lo maneja el otro proyecto.
@@ -65,8 +64,16 @@ antes de cerrar la sesión. La regla para la fila es simple: **que el siguiente 
 siente recién cuando las nubes hayan vuelto a tapar la pantalla.** Si hay apuro,
 apretar `R` en la PC corta la sesión al instante.
 
+**Los objetos desaparecieron y la persona quiere probar otra.**
+Es como funciona: **se elige una sola vez**. La ingeniería que le tocó se queda
+puesta hasta que se levanta, y el que sigue en la fila arranca de cero con los
+objetos barajados de nuevo. Si alguien insiste, que se vuelva a sentar cuando
+las nubes hayan tapado la pantalla. Desde la PC, las teclas de números fuerzan
+cualquier ingeniería en cualquier momento.
+
 **No pasa nada al poner la mano sobre un objeto.**
-Apretar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se ve: casi
+Si los objetos ya se habían apagado, la persona ya eligió y es lo esperado (ver
+arriba). Si el carrusel está a la vista, apretar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se ve: casi
 siempre está fuera del cuadro (muy abajo o muy al costado) o hay contraluz.
 Apretar `M` para ver si aparecen los puntos sobre los dedos. La mano tiene que
 estar **abierta y de frente**, no de canto.

@@ -84,8 +84,11 @@ function correr({
       rostro: null,
       disposicion: PANTALLA,
       cantidad: OFRECIDAS.length,
-      // Igual que main.js: el anillo se congela apenas empieza un sostenido.
-      congelar: progreso > 0,
+      // Igual que main.js: el anillo se congela apenas empieza un sostenido, y
+      // TAMBIEN para siempre en cuanto hay carrera. Si esta segunda mitad no
+      // estuviera aca, borrarla de main.js dejaria el carrusel girando debajo
+      // del objeto apoyado toda la sesion y la suite seguiria en verde.
+      congelar: progreso > 0 || Boolean(maquina.carrera()),
       dt: PASO / 1000,
     });
     fases.push(puesto.fase);
@@ -153,10 +156,14 @@ describe('agarrar un objeto', () => {
     expect(transcurrido).toBeLessThan(CONFIG.eleccion.msParaElegir + 200);
   });
 
-  // ESTO ES LO QUE HACE LA EXPERIENCIA. Agarrar un objeto muestra su
-  // ingenieria; soltarlo la deja puesta; agarrar otro la reemplaza. Sin esta
-  // cadena andando, la persona ve una sola de las doce y se termina ahi.
-  it('soltar y agarrar otro objeto muestra la segunda ingenieria', () => {
+  // SE ELIGE UNA SOLA VEZ, y esta es la punta a punta de esa regla. El sostenido
+  // sobre el segundo objeto se completa igual —eleccion.js no sabe que es una
+  // carrera y sigue haciendo su trabajo— y la maquina lo descarta. Se prueba con
+  // la cadena entera y sin la guarda de main.js a proposito: si la regla
+  // dependiera de que quien dibuja deje de ofrecer objetos, cualquier camino que
+  // se saltee ese apagado —un atajo, un cuadro de mas— cambiaria la ingenieria
+  // de alguien que ya la estaba mirando.
+  it('soltar y agarrar otro objeto ya no cambia la ingenieria', () => {
     let base = null;
     const agarrados = [];
 
@@ -176,11 +183,27 @@ describe('agarrar un objeto', () => {
       pararAlMostrar: false,
     });
 
-    expect(mostradas).toEqual(agarrados);
-    expect(mostradas).toHaveLength(2);
-    expect(maquina.carrera()).toBe(agarrados[1]);
-    // Una sola persona, aunque haya mirado dos ingenierias.
+    // La mano paso por los dos objetos, pero solo el primero cuenta.
+    expect(agarrados).toHaveLength(2);
+    expect(mostradas).toEqual([agarrados[0]]);
+    expect(maquina.carrera()).toBe(agarrados[0]);
     expect(maquina.sesion()).toBe(1);
+  });
+
+  // El carrusel se para al elegir y NO vuelve a girar: se elige una sola vez, y
+  // un anillo que sigue girando detras del objeto apoyado dice lo contrario.
+  it('el carrusel se detiene al elegir y no vuelve a girar', () => {
+    const { fases, mostradas } = correr({
+      manoEn: sobreElEntero(1),
+      hasta: 8000,
+      pararAlMostrar: false,
+    });
+
+    expect(mostradas).toHaveLength(1);
+    // Antes de elegir gira; despues, la fase no se mueve mas.
+    expect(Math.max(...fases) - Math.min(...fases)).toBeGreaterThan(0);
+    const ultimas = fases.slice(-20);
+    expect(Math.max(...ultimas) - Math.min(...ultimas)).toBe(0);
   });
 
   // Con la mano quieta encima, el elegido se repite cuadro a cuadro. Si cada

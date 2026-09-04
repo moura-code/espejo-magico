@@ -18,7 +18,8 @@ import { crearTablero } from './tablero.js';
 import { crearSilueta } from './silueta.js';
 import { lugarEnPantalla, posicionEnVuelo, flotacion } from './vuelo.js';
 import { crearPuente } from './maite.js';
-import { alfaDeHumo, cargarVideoDelNavegador } from './humo.js';
+import { alfaDeHumo } from './humo.js';
+import { cargarVideoDelNavegador, crearBancoDeVideos } from './videos.js';
 import {
   crearNiebla,
   objetivoDeNiebla,
@@ -101,6 +102,14 @@ if (informe.faltantes.length > 0) {
     informe.faltantes,
   );
 }
+
+// Los fondos que se mueven. NO se esperan aca: se cargan al final, con el bucle
+// ya andando, y hasta que llegan se ve la foto del mismo fondo. Un video pesa
+// mil veces mas que un PNG y nada de la experiencia depende de el.
+const videosDeFondo = crearBancoDeVideos({
+  cargar: (ruta) => cargarVideoDelNavegador(ruta, { msMaximos: CONFIG.fondo.msParaCargarVideo }),
+  raiz: '/contenido/',
+});
 
 const jugables = contenido.idsJugables();
 if (jugables.length === 0) {
@@ -416,11 +425,17 @@ function cuadro(ahora) {
   // --- deteccion ---
   // Las manos corren en su propio reloj, mas rapido que la cara: se mueven diez
   // veces mas rapido y a 22 cuadros por segundo el blanco va siempre atras de la
-  // mano de verdad. Solo se buscan durante la eleccion, que es el unico momento
-  // en que sirven, porque es el detector mas caro del cuadro.
+  // mano de verdad. Solo se buscan mientras la eleccion sigue abierta, que es el
+  // unico momento en que sirven, porque es el detector mas caro del cuadro. Con
+  // la ingenieria ya elegida no hay nada que agarrar: se apaga y esos
+  // milisegundos se los queda la silueta, que es lo que se mira a partir de ahi.
   const poseSirve = detectorDePose && video && modo !== 'demo';
   const manosSirven =
-    detectorDeManos && video && modo !== 'demo' && estadoAnterior === ESTADOS.EXPLORACION;
+    detectorDeManos &&
+    video &&
+    modo !== 'demo' &&
+    estadoAnterior === ESTADOS.EXPLORACION &&
+    !mostrada;
 
   // La mascara ES la imagen mientras hay fondo: a 12 cuadros por segundo el
   // borde de la silueta va atras del cuerpo y se ve el fondo pegado al hombro.
@@ -492,7 +507,14 @@ function cuadro(ahora) {
 
   // --- estado ---
   const salida = atender(
-    maquina.actualizar({ puedeIniciar: hayRostroEstable, hayPersona, ahora }),
+    maquina.actualizar({
+      puedeIniciar: hayRostroEstable,
+      hayPersona,
+      // Con un sostenido en curso la red de la fila espera: cerrarle la eleccion
+      // a alguien que tiene la mano puesta seria robarle el gesto.
+      eligiendo: progresoDeEleccion > 0,
+      ahora,
+    }),
     ahora,
   );
 
@@ -500,8 +522,8 @@ function cuadro(ahora) {
   estadoAnterior = estado;
   const carrera = salida.carrera ? contenido.obtener(salida.carrera) : null;
   const enEstadoDesde = ahora - maquina.desdeCuando();
-  // El fondo tiene su propio reloj: agarrar otro objeto lo hace entrar de nuevo
-  // sin que el estado haya cambiado.
+  // El fondo tiene su propio reloj, el de la mirada: entra cuando la persona
+  // agarra su objeto, no cuando cambia el estado.
   const miraDesde = maquina.miraDesdeCuando();
   const transicion = calcularTransicionEscena({
     estado,
@@ -515,14 +537,24 @@ function cuadro(ahora) {
   // siguiera a los hombros, el gesto de estirar el brazo correria el blanco de
   // abajo de la propia mano; y si siguiera girando, elegir seria perseguir un
   // objeto que se escapa. Es la pausa del carrusel que pide la catedra.
+  // Se elige una sola vez: con la carrera ya puesta el carrusel deja de girar
+  // ahi mismo y se apaga desvaneciendose. Girando mientras se va se leeria como
+  // que todavia hay algo que agarrar.
+  const eleccionAbierta = estado === ESTADOS.EXPLORACION && !salida.carrera;
   const enEleccion = estado === ESTADOS.HUMO || estado === ESTADOS.EXPLORACION;
-  if (enEleccion && ofrecidos.length > 0) {
+
+  // Con el carrusel ya apagado no hay nada que ubicar. Seguir moviendolo son
+  // doce ubicaciones y un radio por cuadro que nadie dibuja, durante hasta tres
+  // minutos y justo cuando la pose subio a `fpsConFondo` y la silueta necesita
+  // esos milisegundos. En el humo si se mueve aunque no se vea: llega encendido.
+  const carruselALaVista = estado === ESTADOS.HUMO || transicion.objetos > 0;
+  if (enEleccion && carruselALaVista && ofrecidos.length > 0) {
     const puesto = tablero.actualizar({
       pose,
       rostro,
       disposicion,
       cantidad: ofrecidos.length,
-      congelar: progresoDeEleccion > 0,
+      congelar: progresoDeEleccion > 0 || Boolean(salida.carrera),
       dt,
     });
 
@@ -535,7 +567,7 @@ function cuadro(ahora) {
     }));
   }
 
-  if (estado === ESTADOS.EXPLORACION) {
+  if (eleccionAbierta) {
     // Solo se puede agarrar lo que esta entero dentro de la ventana: una
     // ranura a medio entrar todavia no es una opcion.
     const paso = eleccion.actualizar({
@@ -548,9 +580,15 @@ function cuadro(ahora) {
     // `elegido` se repite cuadro a cuadro mientras la mano no se mueva: la
     // maquina descarta el repetido, asi que aca no hace falta recordarlo.
     if (paso.elegido) atender(maquina.mirar(paso.elegido, ahora), ahora);
-  } else if (!enEleccion) {
+  } else if (progresoDeEleccion !== 0 || sobreQueBlanco !== null) {
+    // Tambien al cerrarse la eleccion, no solo al salir del estado: sin esto el
+    // anillo a medio llenar del ultimo cuadro se queda dibujado, apagandose
+    // junto con el carrusel encima de un objeto que ya no se puede agarrar.
+    // Una sola vez, en la transicion: repetirlo cada cuadro por el resto de la
+    // sesion es reiniciar lo que ya esta en cero.
     progresoDeEleccion = 0;
     sobreQueBlanco = null;
+    eleccion.reiniciar();
   }
 
   niebla.actualizar(dt, estado === ESTADOS.HUMO ? CONFIG.niebla.agitacionHumo : 1);
@@ -580,23 +618,45 @@ function cuadro(ahora) {
   // de la persona una vez apoyado, y por delante de todo mientras vuela.
   let apoyado = null;
 
-  if (transicion.fondo > 0 && carrera) {
-    const fondo = fondoActivo(carrera);
+  // Si hay una ingenieria a la vista y cual es su fondo: UNA sola vez, porque de
+  // aca salen tanto el video que suena como lo que se dibuja. En dos condiciones
+  // separadas, ajustar una y no la otra deja el video sonando detras de un fondo
+  // apagado. `fondo` puede ser null igual —una carrera sin candidatos—, y ahi el
+  // bloque de abajo cae al color plano.
+  const hayIngenieria = transicion.fondo > 0 && Boolean(carrera);
+  const fondo = hayIngenieria ? fondoActivo(carrera) : null;
+
+  // Solo suena el video del fondo que se esta mostrando. Doce decodificando a la
+  // vez no los aguanta ninguna placa, y once no se ven. Se llama en cada cuadro
+  // con la misma ruta: repetir la que ya suena no hace nada.
+  videosDeFondo.mostrar(fondo?.video ?? null);
+
+  if (hayIngenieria) {
+    const videoDeFondo = fondo?.video ? videosDeFondo.obtener(fondo.video) : null;
     const imagenDeFondo = fondo ? banco.obtener(fondo.img) : null;
     const hayRecorte = Boolean(video && lienzoDeSilueta);
 
-    // Orden de preferencia, el mismo que el de los objetos: la foto si esta, la
-    // escena vectorial si no, y el color plano como ultimo recurso. Un
-    // degradado del color no le dice a nadie que es Ingenieria Quimica; un
-    // laboratorio si.
+    // Orden de preferencia, el mismo que el de los objetos: el video si esta
+    // cargado, la foto si no, la escena vectorial despues, y el color plano como
+    // ultimo recurso. Un degradado del color no le dice a nadie que es
+    // Ingenieria Quimica; un laboratorio si.
+    //
+    // El video es siempre una MEJORA sobre la foto, nunca un reemplazo: la
+    // `img` de un fondo con movimiento es un cuadro del propio video, asi que
+    // mientras no cargo se ve la misma escena quieta y no se nota el cambio.
     const escena =
+      videoDeFondo ??
       imagenDeFondo ??
       escenarios.obtener(carrera.id, disposicion.ancho, disposicion.alto, carrera.color);
     const alfaDelFondo = transicion.fondo * (hayRecorte ? 1 : CONFIG.fondo.opacidadSinMascara);
 
-    if (escena) {
-      dibujarFondo(ctx, escena, disposicion, alfaDelFondo);
-    } else {
+    // EL RECTANGULO SALE DE QUIEN DIBUJO, no de una segunda cuenta: el objeto se
+    // apoya normalizado a el, y calcularlo aparte es como se separan los dos
+    // caminos. Null quiere decir que no habia nada dibujable —ni foto, ni escena,
+    // ni un video con su primer cuadro— y ahi entra el color plano.
+    const dibujado = dibujarFondo(ctx, escena, disposicion, alfaDelFondo);
+
+    if (!dibujado) {
       // Ni foto ni escena: el color de la carrera. Es feo pero es legible, y el
       // nombre sigue entrando: una carrera sin fondo no rompe nada.
       ctx.save();
@@ -607,12 +667,11 @@ function cuadro(ahora) {
     }
 
     // El lugar del objeto va normalizado a la imagen que se dibujo (o al
-    // lienzo entero si no hay imagen), asi cae siempre en el mismo sitio de la
-    // escena sin importar el recorte. El origen del vuelo se capturo al
+    // lienzo entero si no se dibujo ninguna), asi cae siempre en el mismo sitio
+    // de la escena sin importar el recorte. El origen del vuelo se capturo al
     // agarrar; sin origen, el objeto crece en su lugar.
-    const rectanguloDelFondo = escena
-      ? calcularRectanguloVideo(escena.width, escena.height, disposicion.ancho, disposicion.alto)
-      : { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
+    const rectanguloDelFondo =
+      dibujado ?? { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
     const destino = lugarEnPantalla(fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto, rectanguloDelFondo);
     const enVuelo = posicionEnVuelo({ origen: origenDelVuelo, destino, t: transicion.vuelo });
     const aterrizo = transicion.vuelo >= 1;
@@ -631,7 +690,7 @@ function cuadro(ahora) {
     if (aterrizo) {
       dibujarObjetoApoyado(
         ctx,
-        { ...apoyado, alfa: transicion.objetos, halo: CONFIG.fondo.haloDelLugar },
+        { ...apoyado, alfa: transicion.elegido, halo: CONFIG.fondo.haloDelLugar },
         banco,
         carrera.color,
       );
@@ -692,12 +751,16 @@ function cuadro(ahora) {
   }
 
   // --- el carrusel ---
-  // VA POR DELANTE DEL FONDO Y NO SE APAGA. Es la unica pista de que se puede
-  // soltar un objeto y agarrar otro; si se desvaneciera al aparecer la
-  // ingenieria, la pantalla diria "ya elegiste" y la exploracion se terminaria
-  // ahi. Cada ranura se dibuja con su alfa de ventana: las que estan detras
-  // del marco no se ven. El que se esta mostrando se queda con su anillo
-  // lleno: es la confirmacion de que lo que se ve atras salio de ese objeto.
+  // VA POR DELANTE DEL FONDO Y SE APAGA AL ELEGIR. Se elige una sola vez: una
+  // vez que la ingenieria esta puesta, dejar los objetos girando seria ofrecer
+  // algo que ya no se puede agarrar, y la primera que estire la mano y no pase
+  // nada va a creer que el espejo se colgo. Se van con el vuelo del elegido, asi
+  // que el anillo termina de vaciarse cuando el objeto aterriza en su lugar.
+  //
+  // Cada ranura se dibuja con su alfa de ventana: las que estan detras del marco
+  // no se ven. El que se esta mostrando se queda con su anillo lleno mientras
+  // dura el apagado: es la confirmacion de que lo que se ve atras salio de ese
+  // objeto.
   if (transicion.objetos > 0) {
     for (const blanco of blancos) {
       if (blanco.alfa <= 0) continue;
@@ -742,7 +805,10 @@ function cuadro(ahora) {
   }
 
   // Mientras vuela, el objeto va por delante de todo: sale de su ranura, cruza
-  // la pantalla y recien al aterrizar pasa detras de la persona.
+  // la pantalla y recien al aterrizar pasa detras de la persona. Va con
+  // `elegido` y no con `objetos` porque el carrusel se esta apagando
+  // exactamente en ese rato: con el alfa del carrusel, el objeto se
+  // desvaneceria en pleno vuelo.
   if (apoyado && !apoyado.aterrizo) {
     dibujarObjeto(
       ctx,
@@ -751,7 +817,7 @@ function cuadro(ahora) {
         x: apoyado.x,
         y: apoyado.y,
         radio: apoyado.radio,
-        alfa: transicion.objetos,
+        alfa: transicion.elegido,
       },
       banco,
       carrera.color,
@@ -760,8 +826,9 @@ function cuadro(ahora) {
 
   // La señal de las manos: donde registra el sistema tu palma. Es lo unico que
   // le enseña al publico que puede estirarlas, y sin ella el sostenido es a
-  // ciegas. Solo durante la exploracion, que es cuando las manos hacen algo.
-  if (estado === ESTADOS.EXPLORACION) {
+  // ciegas. Solo mientras la eleccion sigue abierta: despues las manos no hacen
+  // nada, y una señal que sigue encendida promete algo que ya no pasa.
+  if (eleccionAbierta) {
     dibujarManos(ctx, manosSuaves, '#ffffff', CONFIG.manos.senal);
   }
 
@@ -811,16 +878,11 @@ function cuadro(ahora) {
     // aviso de error mas que como una invitacion.
     dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 1400) + 1) / 2);
   }
-  // La consigna cambia con lo que la persona ya hizo: primero ensena el gesto,
-  // y una vez que vio una ingenieria avisa que puede seguir. Sin esa segunda
-  // linea nadie descubre que se puede agarrar otro objeto.
+  // La consigna ensena el gesto, y es lo unico que lo hace. Se apaga con el
+  // carrusel: una vez elegida la ingenieria no hay gesto que ensenar, y dejarla
+  // puesta seria pedir algo que ya no tiene efecto.
   if (estado === ESTADOS.EXPLORACION) {
-    dibujarConsigna(
-      ctx,
-      disposicion,
-      transicion.objetos,
-      carrera ? 'Agarrá otro objeto para ver otra ingeniería' : undefined,
-    );
+    dibujarConsigna(ctx, disposicion, transicion.objetos);
   }
 }
 
@@ -828,6 +890,7 @@ window.espejo = {
   maquina,
   contenido,
   banco,
+  videosDeFondo,
   detector,
   puente,
   estadoDeCamara: () => estadoDeCamara,
@@ -859,3 +922,16 @@ window.espejo = {
 const operacion = instalarOperacion({ espejo: window.espejo, tiempos: CONFIG.operacion });
 
 requestAnimationFrame(cuadro);
+
+// Los fondos con movimiento, ya con el espejo andando y de a uno. Cada video que
+// llega se usa desde el cuadro siguiente; los que no lleguen no se notan, porque
+// la foto de ese mismo fondo ya esta puesta. Es a proposito que esto no se
+// espere: un agregado opcional no puede decidir si el espejo arranca.
+videosDeFondo.precargar(contenido.todosLosVideos()).then((informeDeVideos) => {
+  if (informeDeVideos.faltantes.length > 0) {
+    console.warn(
+      `No cargaron ${informeDeVideos.faltantes.length} de ${informeDeVideos.total} fondos con movimiento. Se muestra su foto:`,
+      informeDeVideos.faltantes,
+    );
+  }
+});

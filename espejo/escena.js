@@ -107,22 +107,53 @@ export function dibujarVideoEspejado(ctx, video, rectangulo, disposicion, opcion
   ctx.restore();
 }
 
-/** Cubre el lienzo con una imagen sin deformarla. Lo que sobra se recorta. */
-export function dibujarFondo(ctx, imagen, disposicion, alfa = 1) {
-  if (!imagen || alfa <= 0) return false;
+/**
+ * Cuanto mide lo que se va a dibujar, sea una foto o un video.
+ *
+ * No es una comodidad: un <video> NO tiene `width` ni `height` utiles —los
+ * suyos son `videoWidth` y `videoHeight`, y valen 0 hasta que llega el primer
+ * cuadro—. Pasarle `width` a calcularRectanguloVideo da un rectangulo del
+ * tamaño de la pantalla, y con el el fondo se dibuja estirado y el objeto se
+ * apoya en otro lado. Devuelve null cuando todavia no hay nada que medir, que
+ * es la señal para caer a la foto.
+ */
+export function medidasDe(fuente) {
+  if (!fuente) return null;
+
+  const ancho = fuente.videoWidth || fuente.width || 0;
+  const alto = fuente.videoHeight || fuente.height || 0;
+  return ancho > 0 && alto > 0 ? { ancho, alto } : null;
+}
+
+/**
+ * Cubre el lienzo con una imagen sin deformarla. Lo que sobra se recorta.
+ *
+ * `fuente` puede ser una foto o un video: un fondo con movimiento se dibuja
+ * exactamente igual, cuadro a cuadro, y por eso el resto de la escena no se
+ * entera de cual de los dos le toco.
+ *
+ * DEVUELVE EL RECTANGULO QUE USO, o null si no habia nada que dibujar. Eso no
+ * es una comodidad: el objeto agarrado se apoya en un punto normalizado a ese
+ * mismo rectangulo, y calcularlo por segunda vez del lado del llamador es la
+ * receta conocida de que los dos caminos se separen y el objeto termine en otro
+ * lado del que se dibujo el fondo.
+ */
+export function dibujarFondo(ctx, fuente, disposicion, alfa = 1) {
+  const medidas = medidasDe(fuente);
+  if (!medidas || alfa <= 0) return null;
 
   const rectangulo = calcularRectanguloVideo(
-    imagen.width,
-    imagen.height,
+    medidas.ancho,
+    medidas.alto,
     disposicion.ancho,
     disposicion.alto,
   );
 
   ctx.save();
   ctx.globalAlpha = Math.min(1, alfa);
-  ctx.drawImage(imagen, rectangulo.x, rectangulo.y, rectangulo.ancho, rectangulo.alto);
+  ctx.drawImage(fuente, rectangulo.x, rectangulo.y, rectangulo.ancho, rectangulo.alto);
   ctx.restore();
-  return true;
+  return rectangulo;
 }
 
 /**
@@ -478,11 +509,15 @@ export function dibujarPersona(ctx, pose, rostro, rectangulo, color) {
 export function dibujarHumo(ctx, video, disposicion, alfa, opacidad = 1) {
   if (!video || alfa <= 0) return;
 
-  const ancho = video.videoWidth || video.width;
-  const alto = video.videoHeight || video.height;
-  if (!ancho || !alto) return;
+  const medidas = medidasDe(video);
+  if (!medidas) return;
 
-  const rectangulo = calcularRectanguloVideo(ancho, alto, disposicion.ancho, disposicion.alto);
+  const rectangulo = calcularRectanguloVideo(
+    medidas.ancho,
+    medidas.alto,
+    disposicion.ancho,
+    disposicion.alto,
+  );
 
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
@@ -531,13 +566,12 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
  * La consigna de la eleccion. Es lo unico que le enseña a la persona que tiene
  * que sostener la mano, y por eso nombra el gesto completo: "acercá la mano" no
  * alcanza — la gente la pasa por encima y se va sin elegir nada.
+ *
+ * Es una sola frase y no cambia: se elige una vez, asi que no hay una segunda
+ * cosa que enseñar. Quien la dibuja la apaga junto con el carrusel.
  */
-export function dibujarConsigna(
-  ctx,
-  disposicion,
-  alfa = 1,
-  frase = 'Sostené la mano sobre un objeto',
-) {
+export function dibujarConsigna(ctx, disposicion, alfa = 1) {
+  const frase = 'Sostené la mano sobre un objeto';
   if (alfa <= 0) return;
   const { ancho, alto, texto } = disposicion;
 

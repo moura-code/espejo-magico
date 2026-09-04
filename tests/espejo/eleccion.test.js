@@ -131,9 +131,10 @@ describe('crearEleccion', () => {
     expect(siguiendo.elegido).toBeNull();
   });
 
-  // El elegido es "sobre cual esta la mano ahora, sostenida", no "cual eligio
-  // la persona para siempre": soltarlo y agarrar otro tiene que volver a
-  // disparar, que es lo que hace posible recorrer las cinco ingenierias.
+  // El elegido es "sobre cual esta la mano ahora, sostenida", no "cual eligio la
+  // persona". Este modulo no sabe que hay una sola eleccion por persona —de eso
+  // se ocupa la maquina de estados— y tiene que seguir soltando el blanco: es lo
+  // que hace que arrepentirse a mitad del sostenido funcione.
   it('el elegido se suelta cuando la mano se va', () => {
     const eleccion = crearEleccion(AJUSTES);
     sostener(eleccion, objetivos, [mano(100, 100)], 0, 1600);

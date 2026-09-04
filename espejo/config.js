@@ -24,19 +24,25 @@ export const CONFIG = {
 
     // La red de seguridad de la fila, no un tope de la experiencia: la
     // exploracion no termina nunca sola. Existe porque sin ella, quien no
-    // entiende el gesto se queda mirando cinco objetos quietos hasta el tope de
+    // entiende el gesto se queda mirando los objetos girar hasta el tope de
     // sesion, tres minutos despues, con la fila esperando. Al vencerse se
-    // muestra una sola por sorteo y se puede seguir agarrando otras: nadie se
-    // va sin ingenieria.
+    // muestra una por sorteo —lo ofrecido viene barajado, asi que tomar el
+    // primero ya es un sorteo— y la eleccion queda cerrada igual que si la
+    // hubiera agarrado con la mano: nadie se va sin ingenieria.
     eleccionMaxima: 30000,
 
     // Cuanto tarda en entrar el fondo de una ingenieria con su ficha. Es el
-    // reloj de la mirada, no el de un estado: agarrar otro objeto lo reinicia.
+    // reloj de la mirada, no el de un estado: arranca cuando la persona agarra
+    // su objeto, en cualquier momento de la exploracion.
     aparicion: 2500,
 
     // Cuanto tarda el objeto agarrado en volar de su ranura a su lugar en el
     // fondo. Mas corto que la aparicion: llega mientras el fondo todavia entra,
     // y se lee como que el fondo se arma alrededor de lo que la persona eligio.
+    //
+    // Es tambien lo que tarda en apagarse el carrusel, y no por casualidad: el
+    // anillo termina de vaciarse justo cuando el objeto elegido aterriza, y eso
+    // se lee como que los demas se apartaron para dejarlo pasar.
     vuelo: 1000,
     cierre: 3000,
 
@@ -296,6 +302,13 @@ export const CONFIG = {
     // La flotacion del objeto apoyado: `amplitud` en radios del objeto. Poca a
     // proposito: tiene que leerse vivo, no competir con la persona.
     flotar: { amplitud: 0.08, periodoMs: 3200 },
+
+    // Cuanto se espera a cada fondo con movimiento antes de darlo por perdido y
+    // seguir con su foto. Los videos se cargan DESPUES de que el espejo arranco
+    // y de a uno, asi que este tope no retrasa el arranque: solo evita que un
+    // archivo que nunca contesta deje la cola de descargas trabada para siempre
+    // y las carreras siguientes sin su video.
+    msParaCargarVideo: 8000,
   },
 
   // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio

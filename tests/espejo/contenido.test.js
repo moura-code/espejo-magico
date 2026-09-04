@@ -93,6 +93,33 @@ describe('validarContenido', () => {
     conError({ carreras: [{ ...carreraValida(), fondos: [{ lugar: {} }] }] }, 'fondos[0] sin "img"');
   });
 
+  // El video acompaña a la foto, no la reemplaza: la `img` de un fondo con
+  // movimiento es un cuadro del propio video, y es lo que se ve mientras el
+  // video carga o si el archivo falta. Sin ella, un video que no llega deja la
+  // escena sin fondo.
+  it('el video de un fondo es opcional, pero no exime de la foto', () => {
+    sinErrores({
+      carreras: [{ ...carreraValida(), fondos: [{ img: 'a.jpg', video: 'a.mp4' }] }],
+    });
+    conError(
+      { carreras: [{ ...carreraValida(), fondos: [{ video: 'a.mp4' }] }] },
+      'fondos[0] sin "img"',
+    );
+    conError(
+      { carreras: [{ ...carreraValida(), fondos: [{ img: 'a.jpg', video: '' }] }] },
+      '"video" tiene que ser una ruta',
+    );
+  });
+
+  // La misma convencion que `maite: null`, y por el mismo motivo: un
+  // carreras.json que no valida deja el espejo en "cargando..." con publico
+  // delante, asi que anotar "todavia no" no puede costar eso.
+  it('acepta "video": null como "todavia no hay video"', () => {
+    sinErrores({
+      carreras: [{ ...carreraValida(), fondos: [{ img: 'a.jpg', video: null }] }],
+    });
+  });
+
   // Un lugar fuera de la imagen deja el objeto fuera de la pantalla, y nadie
   // lo nota hasta que hay alguien sentado delante.
   it('el lugar, si esta, cae dentro de la imagen y tiene tamaño', () => {
@@ -239,6 +266,26 @@ describe('cargarContenido', () => {
       'assets/civil/casco.png',
       'assets/fondos/civil.png',
     ]);
+  });
+
+  // Los videos van aparte de las imagenes porque se cargan aparte: despues de
+  // arrancar, de a uno y sin que el espejo los espere.
+  it('junta los videos de los fondos activos, y solo esos', async () => {
+    const contenido = await cargarContenido({
+      traer: traerCon({
+        carreras: [
+          {
+            ...carreraValida(),
+            fondos: [
+              { img: 'assets/fondos/civil.jpg', video: 'assets/fondos/civil.mp4' },
+              { img: 'assets/fondos/civil-2.jpg', video: 'assets/fondos/civil-2.mp4' },
+            ],
+          },
+          { ...carreraValida(), id: 'naval', maite: 'naval' },
+        ],
+      }),
+    });
+    expect(contenido.todosLosVideos()).toEqual(['assets/fondos/civil.mp4']);
   });
 
   it('falla con un mensaje que enumera todos los problemas', async () => {

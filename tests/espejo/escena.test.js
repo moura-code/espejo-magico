@@ -17,6 +17,7 @@ import {
   dibujarObjeto,
   dibujarObjetoApoyado,
   dibujarPersonaRecortada,
+  medidasDe,
   partirEnLineas,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
@@ -71,6 +72,14 @@ const soloDe = (ctx, nombre) => ctx.llamadas.filter(([que]) => que === nombre);
 
 const bancoCon = (mapa = {}) => ({ obtener: (ruta) => mapa[ruta] ?? null });
 const imagen = (ancho = 100, alto = 100) => ({ width: ancho, height: alto });
+// Un <video>: sus medidas NO estan en width/height, que valen 0 hasta el primer
+// cuadro. Es la trampa que medidasDe existe para tapar.
+const videoDe = (ancho = 1080, alto = 1920) => ({
+  width: 0,
+  height: 0,
+  videoWidth: ancho,
+  videoHeight: alto,
+});
 
 describe('dibujarObjeto', () => {
   const definicion = { img: 'assets/civil/grua.png', figura: 'grua', escala: 0.2 };
@@ -211,16 +220,26 @@ describe('dibujarFondo', () => {
 
   it('no dibuja nada sin imagen o sin alfa', () => {
     const ctx = crearCtxFalso();
-    expect(dibujarFondo(ctx, null, disposicion, 1)).toBe(false);
-    expect(dibujarFondo(ctx, imagen(), disposicion, 0)).toBe(false);
+    expect(dibujarFondo(ctx, null, disposicion, 1)).toBeNull();
+    expect(dibujarFondo(ctx, imagen(), disposicion, 0)).toBeNull();
     expect(ctx.llamadas).toEqual([]);
+  });
+
+  // El objeto agarrado se apoya normalizado a ESTE rectangulo. Devolverlo es lo
+  // que evita que el llamador lo calcule por su cuenta y los dos se separen.
+  it('devuelve el rectangulo que uso, el mismo con el que dibujo', () => {
+    const ctx = crearCtxFalso();
+    const rectangulo = dibujarFondo(ctx, imagen(1920, 1080), disposicion, 1);
+
+    const [, , x, y, ancho, alto] = soloDe(ctx, 'drawImage')[0];
+    expect(rectangulo).toEqual({ x, y, ancho, alto });
   });
 
   // El fondo se dibuja cubriendo, no estirado: una foto apaisada deformada para
   // entrar en una pantalla vertical se nota de lejos.
   it('cubre la pantalla conservando la relacion de la imagen', () => {
     const ctx = crearCtxFalso();
-    expect(dibujarFondo(ctx, imagen(1920, 1080), disposicion, 1)).toBe(true);
+    expect(dibujarFondo(ctx, imagen(1920, 1080), disposicion, 1)).not.toBeNull();
 
     const [, , x, y, ancho, alto] = soloDe(ctx, 'drawImage')[0];
     expect(ancho / alto).toBeCloseTo(1920 / 1080, 3);
@@ -228,6 +247,41 @@ describe('dibujarFondo', () => {
     expect(y).toBeLessThanOrEqual(0.001);
     expect(x + ancho).toBeGreaterThanOrEqual(1080 - 0.001);
     expect(y + alto).toBeGreaterThanOrEqual(1920 - 0.001);
+  });
+
+  // Un fondo con movimiento se dibuja igual que una foto. Si midiera por
+  // `width` —que en un video es 0— el rectangulo saldria del tamaño de la
+  // pantalla y el fondo quedaria estirado.
+  it('un video se dibuja igual que una foto, por sus medidas de video', () => {
+    const ctx = crearCtxFalso();
+    expect(dibujarFondo(ctx, videoDe(1920, 1080), disposicion, 1)).not.toBeNull();
+
+    const [, , , , ancho, alto] = soloDe(ctx, 'drawImage')[0];
+    expect(ancho / alto).toBeCloseTo(1920 / 1080, 3);
+  });
+
+  // Sin cuadro decodificado, drawImage no dibuja nada y no avisa: el fondo
+  // quedaria vacio. Diciendo que no, el que llama cae a la foto.
+  it('no dibuja un video que todavia no tiene medidas', () => {
+    const ctx = crearCtxFalso();
+    expect(dibujarFondo(ctx, videoDe(0, 0), disposicion, 1)).toBeNull();
+    expect(ctx.llamadas).toEqual([]);
+  });
+});
+
+describe('medidasDe', () => {
+  it('mide una foto por width y height', () => {
+    expect(medidasDe(imagen(800, 600))).toEqual({ ancho: 800, alto: 600 });
+  });
+
+  it('mide un video por videoWidth y videoHeight', () => {
+    expect(medidasDe(videoDe(1080, 1920))).toEqual({ ancho: 1080, alto: 1920 });
+  });
+
+  it('devuelve null cuando no hay nada que medir', () => {
+    expect(medidasDe(null)).toBeNull();
+    expect(medidasDe(videoDe(0, 0))).toBeNull();
+    expect(medidasDe(imagen(0, 0))).toBeNull();
   });
 });
 
@@ -750,19 +804,9 @@ describe('las dos tipografias', () => {
     expect(primerFondo).toBeLessThan(primerTexto);
   });
 
-  // La consigna es la unica instruccion de la experiencia, y cambia segun lo
-  // que la persona ya hizo: primero ensena el gesto, despues avisa que se puede
-  // repetir. Si el texto estuviera fijo adentro, la segunda mitad no existiria.
-  it('la consigna dice el texto que se le pide', () => {
-    const ctx = crearCtxFalso();
-
-    dibujarConsigna(ctx, disposicion, 1, 'Agarrá otro objeto');
-
-    const dichos = soloDe(ctx, 'fillText').map(([, texto]) => texto);
-    expect(dichos).toContain('Agarrá otro objeto');
-  });
-
-  it('sin texto propio ensena el gesto', () => {
+  // La consigna es la unica instruccion de la experiencia y no cambia: se elige
+  // una sola vez, asi que despues no queda nada que enseñar.
+  it('ensena el gesto', () => {
     const ctx = crearCtxFalso();
 
     dibujarConsigna(ctx, disposicion, 1);

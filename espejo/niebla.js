@@ -45,21 +45,25 @@ export function posicionLateralNube(xNormalizada, radio, ancho, apertura, lado) 
  * Cuanto se ve de cada capa en cada momento, sin tocar la apertura lateral de
  * las nubes:
  *
- *   objetos   los cinco que se ofrecen. Aparecen tapados por el humo y se
- *             quedan puestos, por delante del fondo, toda la exploracion.
+ *   objetos   el carrusel de los que se ofrecen. Aparecen tapados por el humo
+ *             y se apagan en cuanto la persona agarra el suyo.
+ *   elegido   el objeto agarrado: el que vuela y despues se queda apoyado en
+ *             el fondo. Va aparte de `objetos` justamente porque sobrevive al
+ *             carrusel — es lo unico que queda de el.
  *   fondo     la imagen de la ingenieria detras de la persona.
  *   contenido el nombre de la ingenieria, al pie.
  *   vuelo     el objeto agarrado, de su ranura (0) a su lugar en el fondo (1).
  *
- * `desdeLaMirada` es hace cuanto se muestra la ingenieria actual, o null si no
- * hay ninguna. Es un reloj propio, distinto del del estado: agarrar otro objeto
- * vuelve a hacer entrar el fondo desde cero sin que el estado haya cambiado.
+ * `desdeLaMirada` es hace cuanto se muestra la ingenieria, o null si todavia no
+ * hay ninguna. Es un reloj propio, distinto del del estado: la ingenieria
+ * aparece sin que el estado haya cambiado. Como se elige una sola vez, tambien
+ * es lo que dice si la eleccion sigue abierta.
  */
 export function calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, tiempos }) {
   switch (estado) {
     case ESTADOS.ATRACCION:
     case ESTADOS.ENGANCHE:
-      return { objetos: 0, fondo: 0, contenido: 0, vuelo: 0 };
+      return { objetos: 0, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
 
     // Los objetos se encienden en la segunda mitad del humo. Estan puestos
     // desde el principio del estado, pero encenderlos antes de que el humo
@@ -67,31 +71,47 @@ export function calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, 
     case ESTADOS.HUMO:
       return {
         objetos: progreso(transcurrido - tiempos.humo / 2, tiempos.humo / 2),
+        elegido: 0,
         fondo: 0,
         contenido: 0,
         vuelo: 0,
       };
 
-    // LOS OBJETOS NO SE APAGAN AL APARECER EL FONDO: quedan enteros y por
-    // delante. Soltar uno y agarrar otro es justamente lo que se puede hacer, y
-    // si se desvanecieran la unica lectura posible seria "ya elegiste, se
-    // termino". El fondo y el nombre se quedan puestos hasta que se agarre
-    // otro: con el brazo en alto no se lee. El objeto agarrado vuela a su
-    // lugar con su propio plazo, mas corto: llega mientras el fondo entra.
+    // EL CARRUSEL SE APAGA AL ELEGIR, y es lo que dice que la eleccion se
+    // termino: se elige una sola vez, asi que dejar los objetos puestos seria
+    // ofrecer algo que ya no se puede agarrar. Se van con el mismo plazo que
+    // dura el vuelo, de manera que el carrusel termina de vaciarse justo cuando
+    // el objeto elegido aterriza en su lugar: se lee como que todo lo demas se
+    // aparto para dejarlo pasar.
+    //
+    // El elegido no se va con ellos: vuela a su lugar y se queda ahi, entero,
+    // hasta el final de la sesion.
     case ESTADOS.EXPLORACION: {
-      const t = desdeLaMirada === null ? 0 : progreso(desdeLaMirada, tiempos.aparicion);
-      const vuelo = desdeLaMirada === null ? 0 : progreso(desdeLaMirada, tiempos.vuelo);
-      return { objetos: 1, fondo: t, contenido: t, vuelo };
+      if (desdeLaMirada === null) {
+        return { objetos: 1, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
+      }
+      const t = progreso(desdeLaMirada, tiempos.aparicion);
+      const vuelo = progreso(desdeLaMirada, tiempos.vuelo);
+      return { objetos: 1 - vuelo, elegido: 1, fondo: t, contenido: t, vuelo };
     }
 
-    // En el cierre el objeto ya esta apoyado: se desvanece con todo lo demas.
+    // En el cierre el objeto elegido ya esta apoyado: se desvanece con todo lo
+    // demas. El carrusel solo tiene algo que desvanecer si la persona se fue
+    // sin elegir; si ya habia elegido estaba apagado, y encenderlo para
+    // apagarlo otra vez seria un parpadeo en el ultimo segundo.
     case ESTADOS.CIERRE: {
       const salida = 1 - progreso(transcurrido, tiempos.cierre);
-      return { objetos: salida, fondo: salida, contenido: salida, vuelo: 1 };
+      return {
+        objetos: desdeLaMirada === null ? salida : 0,
+        elegido: salida,
+        fondo: salida,
+        contenido: salida,
+        vuelo: 1,
+      };
     }
 
     default:
-      return { objetos: 0, fondo: 0, contenido: 0, vuelo: 0 };
+      return { objetos: 0, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
   }
 }
 
