@@ -10,6 +10,12 @@
 
 const esTextoUtil = (valor) => typeof valor === 'string' && valor.trim().length > 0;
 
+/**
+ * `nombre` y `descripcion` son lo que se lee en la ficha del objeto al pasar la
+ * mano por encima. Pueden faltar mientras se escribe el contenido —la ficha
+ * muestra lo que haya, y `npm run listo` es el que exige que esten—, pero si
+ * estan tienen que ser texto.
+ */
 function validarObjeto(objeto, donde, figurasValidas, errores) {
   if (!objeto.img) errores.push(`${donde} sin "img"`);
   if (typeof objeto.escala !== 'number' || objeto.escala <= 0) {
@@ -18,13 +24,30 @@ function validarObjeto(objeto, donde, figurasValidas, errores) {
   if (figurasValidas && objeto.figura && !figurasValidas.includes(objeto.figura)) {
     errores.push(`${donde} usa la figura "${objeto.figura}", que no existe`);
   }
+  for (const campo of ['nombre', 'descripcion']) {
+    if (objeto[campo] !== undefined && typeof objeto[campo] !== 'string') {
+      errores.push(`${donde} "${campo}" tiene que ser un texto`);
+    }
+  }
 }
 
 const entreCeroYUno = (valor) => typeof valor === 'number' && valor >= 0 && valor <= 1;
 
+/** Un lugar de la imagen: `x` e `y` de 0 a 1 y un tamaño. Fuera de 0–1 el objeto cae fuera de la pantalla. */
+function validarLugar(lugar, donde, errores) {
+  const { x, y, escala } = lugar ?? {};
+  if (!entreCeroYUno(x) || !entreCeroYUno(y)) {
+    errores.push(`${donde} necesita "x" e "y" entre 0 y 1`);
+  }
+  if (typeof escala !== 'number' || escala <= 0) {
+    errores.push(`${donde} "escala" tiene que ser un numero mayor que cero`);
+  }
+}
+
 /**
- * `lugar` es donde se apoya el objeto agarrado, normalizado a la imagen. Fuera
- * de 0–1 el objeto cae fuera de la pantalla.
+ * `lugar` es donde se apoya el objeto agarrado, normalizado a la imagen, y
+ * `escondites` donde esperan los otros objetos de la carrera, integrados al
+ * fondo: el primero de los escondidos va al primer escondite, y asi.
  *
  * `video` es opcional y NO reemplaza a `img`: la acompaña. Un fondo con
  * movimiento se declara con las dos cosas, y la `img` es un cuadro del propio
@@ -40,15 +63,16 @@ function validarFondo(fondo, donde, errores) {
   if (fondo?.video !== undefined && fondo.video !== null && !esTextoUtil(fondo.video)) {
     errores.push(`${donde} "video" tiene que ser una ruta, o null`);
   }
-  if (!fondo?.lugar) return;
+  if (fondo?.lugar) validarLugar(fondo.lugar, `${donde} "lugar"`, errores);
 
-  const { x, y, escala } = fondo.lugar;
-  if (!entreCeroYUno(x) || !entreCeroYUno(y)) {
-    errores.push(`${donde} "lugar" necesita "x" e "y" entre 0 y 1`);
+  if (fondo?.escondites === undefined) return;
+  if (!Array.isArray(fondo.escondites)) {
+    errores.push(`${donde} "escondites" tiene que ser una lista de { x, y, escala }`);
+    return;
   }
-  if (typeof escala !== 'number' || escala <= 0) {
-    errores.push(`${donde} "lugar.escala" tiene que ser un numero mayor que cero`);
-  }
+  fondo.escondites.forEach((escondite, k) =>
+    validarLugar(escondite, `${donde} escondites[${k}]`, errores),
+  );
 }
 
 /**
@@ -118,28 +142,32 @@ export function validarContenido(datos, { figurasValidas = null } = {}) {
       });
     }
 
-    // `objeto` es opcional y manda sobre `objetos`: es el representante fijo de
-    // la carrera cuando importa cual se ve. Sin el, se sortea de la lista.
-    if (carrera.objeto) validarObjeto(carrera.objeto, `${donde}: objeto`, figurasValidas, errores);
+    // El representante fijo de antes. Ahora es el primero de `objetos`, y un
+    // JSON sin migrar dejaria de mostrar el que alguien eligio a mano sin que
+    // nada fallara: se rechaza con la receta, igual que el viejo `fondo`.
+    if (carrera.objeto !== undefined) {
+      errores.push(`${donde}: "objeto" ya no existe: el del carrusel es el primero de "objetos"`);
+    }
   });
 
   return errores;
 }
 
 /**
- * Que objeto representa a esta carrera entre los cinco que se ofrecen.
+ * El objeto que representa a esta carrera en el carrusel, y el que vuela a su
+ * lugar en el fondo cuando la persona lo agarra: el primero de `objetos`.
  *
- * Con `objeto` declarado, siempre ese: hay carreras donde un solo PNG se
- * entiende de lejos y el resto no. Sin el, uno al azar de la lista, para que dos
- * visitantes seguidos no vean exactamente la misma pantalla.
+ * Ya no se sortea. Los demas objetos de la carrera se esconden en el fondo, y
+ * cual va al carrusel y cuales esperan escondidos es una decision de contenido,
+ * no de la suerte. Elegirlo es reordenar la lista, igual que con los fondos.
  */
-export function objetoDeCarrera(carrera, azar = Math.random) {
-  if (!carrera) return null;
-  if (carrera.objeto) return carrera.objeto;
+export function objetoDeCarrera(carrera) {
+  return carrera?.objetos?.[0] ?? null;
+}
 
-  const lista = carrera.objetos ?? [];
-  if (lista.length === 0) return null;
-  return lista[Math.floor(azar() * lista.length)] ?? lista[0];
+/** Los objetos que no van al carrusel: los que se esconden en el fondo, en su orden. */
+export function escondidosDeCarrera(carrera) {
+  return carrera?.objetos?.slice(1) ?? [];
 }
 
 /**
@@ -177,12 +205,12 @@ export async function cargarContenido({
 
     obtener: (id) => porId.get(id) ?? null,
 
-    // Solo el fondo activo: los otros candidatos se miran en la herramienta,
+    // Todos los objetos —el del carrusel y los que se esconden en el fondo— y
+    // solo el fondo activo: los otros candidatos se miran en la herramienta,
     // no en el espejo.
     todasLasImagenes: () =>
       datos.carreras.flatMap((carrera) => [
         ...carrera.objetos.map((objeto) => objeto.img),
-        ...(carrera.objeto ? [carrera.objeto.img] : []),
         ...(fondoActivo(carrera) ? [fondoActivo(carrera).img] : []),
       ]),
 

@@ -58,11 +58,25 @@ describe('contenido real', () => {
     expect(datos.carreras.map((c) => c.id).sort()).toEqual([...IDS_ESPERADOS].sort());
   });
 
-  it('cada carrera tiene al menos seis objetos', async () => {
-    const datos = await leer();
-    for (const carrera of datos.carreras) {
-      expect(carrera.objetos.length, `${carrera.id} tiene pocos objetos`).toBeGreaterThanOrEqual(6);
+  // CUATRO OBJETOS POR INGENIERIA, CADA UNO CON SU FICHA: uno para el carrusel
+  // y tres escondidos en el fondo, como pidio la catedra. Sin nombre o sin
+  // descripcion, pasar la mano por encima no dice nada; y una descripcion larga
+  // no entra en la ficha sin taparle media pantalla a la persona.
+  it('cada carrera tiene cuatro objetos, cada uno con su nombre y una descripcion corta', async () => {
+    const flojos = [];
+    for (const carrera of (await leer()).carreras) {
+      if (carrera.objetos.length !== 4) {
+        flojos.push(`${carrera.id} tiene ${carrera.objetos.length} objetos, no cuatro`);
+      }
+      for (const objeto of carrera.objetos) {
+        if (!objeto.nombre?.trim()) flojos.push(`${objeto.img} sin "nombre"`);
+        if (!objeto.descripcion?.trim()) flojos.push(`${objeto.img} sin "descripcion"`);
+        else if (objeto.descripcion.length > 130) {
+          flojos.push(`${objeto.img}: ${objeto.descripcion.length} caracteres (130 como mucho)`);
+        }
+      }
     }
+    expect(flojos).toEqual([]);
   });
 
   it('todos los colores son distintos entre si', async () => {
@@ -75,11 +89,7 @@ describe('contenido real', () => {
     const datos = await leer();
     const faltantes = [];
     for (const carrera of datos.carreras) {
-      const rutas = [
-        ...carrera.objetos.map((o) => o.img),
-        ...(carrera.objeto ? [carrera.objeto.img] : []),
-      ];
-      for (const ruta of rutas) {
+      for (const ruta of carrera.objetos.map((o) => o.img)) {
         if (!(await existe(ruta))) faltantes.push(ruta);
       }
     }
@@ -130,6 +140,23 @@ describe('contenido real', () => {
       }
     }
     expect(sinLugar, 'estos fondos no declaran "lugar"').toEqual([]);
+  });
+
+  // Y donde esconde a los otros tres. Sin escondites caen en los de config,
+  // que son un seguro del codigo y no una decision: en una foto cualquiera
+  // terminan sobre algo que no corresponde. Que caigan en la periferia lo
+  // vigila tests/integracion/fondos.test.js.
+  it('cada fondo declara donde esconde los otros objetos de la carrera', async () => {
+    const faltan = [];
+    for (const carrera of (await leer()).carreras) {
+      const necesarios = carrera.objetos.length - 1;
+      for (const fondo of carrera.fondos ?? []) {
+        if (esRespaldoVectorial(carrera, fondo)) continue;
+        const declarados = (fondo.escondites ?? []).length;
+        if (declarados < necesarios) faltan.push(`${fondo.img} (${declarados} de ${necesarios})`);
+      }
+    }
+    expect(faltan, 'estos fondos no tienen donde esconder todos los objetos').toEqual([]);
   });
 
   // Un fondo con movimiento declara `video` ademas de su foto. Si el archivo no
