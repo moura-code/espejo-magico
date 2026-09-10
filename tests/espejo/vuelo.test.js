@@ -1,16 +1,68 @@
 import { describe, it, expect } from 'vitest';
 import { lugarEnPantalla, posicionEnVuelo, flotacion } from '../../espejo/vuelo.js';
+import { calcularRectanguloVideo } from '../../espejo/escena.js';
 
 describe('lugarEnPantalla', () => {
+  const ESPEJO = { ancho: 1080, alto: 1920 };
+
   // El fondo se dibuja cubriendo y recortado: un lugar normalizado a la IMAGEN
   // cae siempre en el mismo sitio de la escena, en cualquier resolucion.
   it('mapea el lugar sobre el rectangulo donde se dibujo el fondo', () => {
     const rectangulo = { x: -200, y: 0, ancho: 1480, alto: 1920 };
-    const puesto = lugarEnPantalla({ x: 0.5, y: 0.25, escala: 0.2 }, rectangulo);
+    const puesto = lugarEnPantalla({ x: 0.5, y: 0.25, escala: 0.2 }, rectangulo, ESPEJO);
     expect(puesto.x).toBeCloseTo(-200 + 740);
     expect(puesto.y).toBeCloseTo(480);
     // La escala es el diametro como fraccion del ancho dibujado.
     expect(puesto.radio).toBeCloseTo(148);
+  });
+
+  // Los fondos se preparan en 1080x1920, para el espejo vertical. En un monitor
+  // apaisado —desarrollo— la foto se dibuja al ancho de la pantalla y solo se
+  // ve su franja del medio: el rincon de arriba elegido para el objeto queda
+  // recortado, y el objeto aterrizaba arriba del borde, donde nadie lo ve.
+  it('si el recorte deja el lugar fuera de la pantalla, lo corre lo justo para que entre entero', () => {
+    const apaisada = { ancho: 1920, alto: 1080 };
+    const rectangulo = calcularRectanguloVideo(1080, 1920, apaisada.ancho, apaisada.alto);
+    const lugar = { x: 0.25, y: 0.297, escala: 0.15 };
+    const crudo = {
+      x: rectangulo.x + lugar.x * rectangulo.ancho,
+      y: rectangulo.y + lugar.y * rectangulo.alto,
+    };
+    expect(crudo.y).toBeLessThan(0); // el bug: el lugar cae arriba del borde
+
+    const puesto = lugarEnPantalla(lugar, rectangulo, apaisada);
+    expect(puesto.y - puesto.radio).toBeGreaterThanOrEqual(0);
+    expect(puesto.y + puesto.radio).toBeLessThanOrEqual(apaisada.alto);
+    // Se mueve solo lo que hace falta: el lado que eligio la catedra y el
+    // tamaño quedan como estaban.
+    expect(puesto.x).toBeCloseTo(crudo.x);
+    expect(puesto.radio).toBeCloseTo(144);
+  });
+
+  // `margen` es en radios, medido desde el centro: 1 es tocar el borde, y un
+  // poco mas deja aire para que no se lea como que se cae de la pantalla.
+  it('con margen, deja aire entre el objeto y el borde', () => {
+    const apaisada = { ancho: 1920, alto: 1080 };
+    const rectangulo = calcularRectanguloVideo(1080, 1920, apaisada.ancho, apaisada.alto);
+    const puesto = lugarEnPantalla({ x: 0.25, y: 0.297, escala: 0.15 }, rectangulo, apaisada, 1.25);
+    expect(puesto.y).toBeCloseTo(puesto.radio * 1.25);
+  });
+
+  it('tambien de costado: una foto apaisada en el espejo vertical', () => {
+    const rectangulo = calcularRectanguloVideo(1920, 1080, ESPEJO.ancho, ESPEJO.alto);
+    const puesto = lugarEnPantalla({ x: 0.1, y: 0.5, escala: 0.05 }, rectangulo, ESPEJO);
+    expect(puesto.x - puesto.radio).toBeGreaterThanOrEqual(0);
+    expect(puesto.y).toBeCloseTo(960);
+  });
+
+  // En la pantalla para la que se preparo la foto, el lugar es el que se eligio
+  // mirando en herramientas/fondos.html: no se toca.
+  it('en la pantalla de la foto no mueve nada', () => {
+    const rectangulo = { x: 0, y: 0, ancho: 1080, alto: 1920 };
+    const puesto = lugarEnPantalla({ x: 0.25, y: 0.297, escala: 0.15 }, rectangulo, ESPEJO, 1.25);
+    expect(puesto.x).toBeCloseTo(270);
+    expect(puesto.y).toBeCloseTo(570.24);
+    expect(puesto.radio).toBeCloseTo(81);
   });
 });
 

@@ -294,6 +294,13 @@ export const CONFIG = {
     // de la imagen.
     lugarPorDefecto: { x: 0.2, y: 0.22, escala: 0.16 },
 
+    // Margen minimo del objeto apoyado al borde del lienzo, en radios y desde
+    // el centro (1 es tocar el borde). Solo actua cuando el recorte del fondo
+    // deja el lugar fuera de la pantalla: las fotos se preparan para el espejo
+    // vertical, y en un monitor apaisado —desarrollo— la franja de arriba,
+    // donde van los lugares, queda recortada. En el espejo no mueve nada.
+    margenDelLugar: 1.25,
+
     // El halo del color de la carrera debajo del objeto apoyado. Lo presenta
     // sobre cualquier fondo, foto o escena vectorial, sin pedirle a cada imagen
     // que tenga una mesa justo ahi.

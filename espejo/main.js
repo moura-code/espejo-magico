@@ -668,11 +668,18 @@ function cuadro(ahora) {
 
     // El lugar del objeto va normalizado a la imagen que se dibujo (o al
     // lienzo entero si no se dibujo ninguna), asi cae siempre en el mismo sitio
-    // de la escena sin importar el recorte. El origen del vuelo se capturo al
-    // agarrar; sin origen, el objeto crece en su lugar.
+    // de la escena sin importar el recorte. Y si el recorte lo deja fuera de la
+    // pantalla —un monitor apaisado con fotos preparadas para el espejo
+    // vertical— lugarEnPantalla lo corre lo justo para que se vea. El origen
+    // del vuelo se capturo al agarrar; sin origen, el objeto crece en su lugar.
     const rectanguloDelFondo =
       dibujado ?? { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
-    const destino = lugarEnPantalla(fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto, rectanguloDelFondo);
+    const destino = lugarEnPantalla(
+      fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto,
+      rectanguloDelFondo,
+      disposicion,
+      CONFIG.fondo.margenDelLugar,
+    );
     const enVuelo = posicionEnVuelo({ origen: origenDelVuelo, destino, t: transicion.vuelo });
     const aterrizo = transicion.vuelo >= 1;
     const flota = aterrizo ? flotacion(ahora, enVuelo.radio, CONFIG.fondo.flotar) : { dy: 0, giro: 0 };

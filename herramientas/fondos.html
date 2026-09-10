@@ -125,7 +125,12 @@
         }
       }
 
-      const puesto = lugarEnPantalla(fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto, rectangulo);
+      const puesto = lugarEnPantalla(
+        fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto,
+        rectangulo,
+        disposicion,
+        CONFIG.fondo.margenDelLugar,
+      );
       dibujarObjetoApoyado(
         ctx,
         { definicion, ...puesto, alfa: 1, halo: CONFIG.fondo.haloDelLugar },

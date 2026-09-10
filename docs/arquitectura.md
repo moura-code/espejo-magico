@@ -335,6 +335,17 @@ a la imagen**: como el fondo se dibuja cubriendo la pantalla y recortado, un
 punto normalizado a la imagen cae siempre en el mismo sitio de la escena, en
 cualquier resolución. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`.
 
+**El objeto aterriza siempre a la vista.** Las fotos se preparan en 1080×1920,
+para el espejo vertical; en un lienzo de otra proporción —un monitor apaisado
+mientras se desarrolla— la foto entra al ancho y sólo se ve su franja del
+medio, y el rincón de arriba elegido para el objeto queda recortado: el objeto
+volaba a un punto arriba del borde y desaparecía en las doce ingenierías.
+`lugarEnPantalla` recibe también la pantalla y, si el lugar cae fuera, lo corre
+lo justo para que el objeto entre entero, con `fondo.margenDelLugar` radios de
+margen al borde. En el espejo vertical no mueve nada, y
+`tests/integracion/fondos.test.js` lo fija con el catálogo real en las dos
+orientaciones.
+
 El origen se captura en el evento `mira` —la ranura en ese cuadro— porque el
 carrusel sigue girando mientras el objeto vuela. Sin ranura a la vista (la red
 de la fila, una carrera forzada por teclado) el objeto crece en su lugar desde

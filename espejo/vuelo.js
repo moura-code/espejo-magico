@@ -18,14 +18,28 @@ const suavizar = (valor) => {
 };
 
 /**
- * Donde cae el lugar en pantalla. `rectangulo` es donde se dibujo el fondo
- * (el de calcularRectanguloVideo, que puede sobresalir del lienzo).
+ * Donde cae el lugar en pantalla. `rectangulo` es donde se dibujo el fondo (el
+ * de calcularRectanguloVideo, que puede sobresalir del lienzo) y `pantalla` es
+ * el lienzo, `{ancho, alto}`.
+ *
+ * El objeto tiene que aterrizar donde se lo vea, y eso el lugar solo no lo
+ * garantiza: esta normalizado a la foto, y la foto se dibuja recortada. Las
+ * fotos se preparan para el espejo vertical (1080x1920); en un lienzo de otra
+ * proporcion —un monitor apaisado en desarrollo— la foto entra al ancho y solo
+ * se ve su franja del medio, con el rincon de arriba elegido para el objeto
+ * recortado: el objeto aterrizaba arriba del borde y "desaparecia" en las doce
+ * ingenierias. Si el lugar cae fuera, se corre lo justo para que el objeto
+ * entre entero, con `margen` radios del centro al borde (1 es tocarlo; menos
+ * no vale, porque dejaria el objeto cortado). En la pantalla para la que se
+ * preparo la foto no se mueve nada.
  */
-export function lugarEnPantalla(lugar, rectangulo) {
+export function lugarEnPantalla(lugar, rectangulo, pantalla, margen = 1) {
+  const radio = (lugar.escala * rectangulo.ancho) / 2;
+  const aire = radio * Math.max(1, margen);
   return {
-    x: rectangulo.x + lugar.x * rectangulo.ancho,
-    y: rectangulo.y + lugar.y * rectangulo.alto,
-    radio: (lugar.escala * rectangulo.ancho) / 2,
+    x: acotar(rectangulo.x + lugar.x * rectangulo.ancho, aire, pantalla.ancho - aire),
+    y: acotar(rectangulo.y + lugar.y * rectangulo.alto, aire, pantalla.alto - aire),
+    radio,
   };
 }
 

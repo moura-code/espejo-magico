@@ -112,6 +112,13 @@ mismo sitio de la escena. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`, que e
 un seguro del código y no una decisión — por eso `npm run listo` pide que **cada
 candidato declare el suyo**.
 
+Ese `lugar` se elige para el espejo vertical, que es la medida en que se
+preparan las fotos. Si el espejo corre en una pantalla de otra proporción —un
+monitor apaisado mientras se desarrolla— la foto se ve recortada a su franja del
+medio y el rincón elegido puede quedar afuera: ahí el espejo corre el objeto lo
+justo para que entre entero en pantalla (`CONFIG.fondo.margenDelLugar`). En el
+espejo vertical se ve exactamente donde se eligió.
+
 El punto de partida se mide sobre la foto, no se estima ni se elige de una lista
 de esquinas: de cada imagen se saca un mapa de brillo de 18×32 celdas, se prueba
 cada posición posible del objeto —una ventana del tamaño del objeto más su
