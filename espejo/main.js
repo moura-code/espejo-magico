@@ -344,6 +344,10 @@ function atender(salida, ahora) {
       const ranura = blancos.find((blanco) => blanco.id === evento.carrera);
       origenDelVuelo =
         ranura && ranura.alfa > 0 ? { x: ranura.x, y: ranura.y, radio: ranura.radio } : null;
+      // Una ingenieria nueva se descubre de cero. En el uso normal no hay nada
+      // que cerrar —antes de elegir no hay fondo—, pero una carrera forzada con
+      // el teclado encima de otra traeria las fichas y la consigna de la anterior.
+      cerrarFichas();
       puente.carrera(carrera?.maite ?? null);
       continue;
     }
