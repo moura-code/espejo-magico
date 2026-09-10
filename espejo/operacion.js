@@ -116,6 +116,7 @@ export function instalarOperacion({
         `manos       ${espejo.manosCrudas()} vistas / ${espejo.manos().length} usadas`,
         `radio mano  ${espejo.manos().map((m) => m.radio.toFixed(0)).join('  ') || '-'}`,
         `eleccion    ${(espejo.progresoDeEleccion() * 100).toFixed(0)}%`,
+        `ficha       ${espejo.fichaActiva?.() ?? '-'}`,
         `pose        ${espejo.poseCrudas()} / silueta ${espejo.pose()?.mascara ? 'si' : 'no'}`,
         `humo        ${espejo.hayFondo() ? 'ok' : 'sin video'}`,
         // Si las tablets no acompañan, esto dice de un vistazo si el espejo

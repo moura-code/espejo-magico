@@ -9,6 +9,8 @@ import {
   calcularRectanguloVideo,
   dibujarAnilloDeProgreso,
   dibujarConsigna,
+  dibujarDiscoDeCarga,
+  dibujarFicha,
   dibujarFondo,
   dibujarHumo,
   dibujarInvitacion,
@@ -17,6 +19,7 @@ import {
   dibujarObjeto,
   dibujarObjetoApoyado,
   dibujarPersonaRecortada,
+  disponerFicha,
   medidasDe,
   partirEnLineas,
   tamanoQueEntra,
@@ -25,6 +28,9 @@ import {
 // Lienzo falso: registra las llamadas para poder afirmar sobre lo dibujado.
 function crearCtxFalso() {
   const llamadas = [];
+  // Un degradado es un objeto nuevo en cada llamada: se anota por su tipo, no
+  // por su identidad, para que dos dibujos iguales sigan comparando iguales.
+  const estilo = (valor) => (typeof valor === 'string' ? valor : 'degradado');
   const ctx = {
     llamadas,
     strokeStyle: '',
@@ -53,13 +59,18 @@ function crearCtxFalso() {
     strokeText: (...args) => llamadas.push(['strokeText', ...args]),
     quadraticCurveTo: (...args) => llamadas.push(['quadraticCurveTo', ...args]),
     clearRect: (...args) => llamadas.push(['clearRect', ...args]),
-    stroke: () => llamadas.push(['stroke']),
-    fill: () => llamadas.push(['fill']),
+    // Trazo y relleno anotan con que color, que opacidad y que resplandor se
+    // dibujaron: el color unico de la carga y su transparencia son lo que se
+    // prueba.
+    stroke: () =>
+      llamadas.push(['stroke', estilo(ctx.strokeStyle), ctx.globalAlpha, ctx.shadowBlur]),
+    fill: () => llamadas.push(['fill', estilo(ctx.fillStyle), ctx.globalAlpha]),
+    roundRect: (...args) => llamadas.push(['roundRect', ...args]),
     clip: (...args) => llamadas.push(['clip', ...args]),
     translate: (x, y) => llamadas.push(['translate', x, y]),
     scale: (x, y) => llamadas.push(['scale', x, y]),
     rotate: (a) => llamadas.push(['rotate', a]),
-    fillText: (texto, x, y) => llamadas.push(['fillText', texto, x, y]),
+    fillText: (texto, x, y) => llamadas.push(['fillText', texto, x, y, ctx.globalAlpha]),
     measureText: (texto) => ({ width: texto.length * 10 }),
     drawImage: (...args) => llamadas.push(['drawImage', ...args]),
     createRadialGradient: () => ({ addColorStop: () => {} }),
@@ -174,6 +185,79 @@ describe('dibujarAnilloDeProgreso', () => {
       expect(radio).toBeGreaterThan(base.radio);
     }
   });
+
+  // Un solo color de carga para las doce, con la transparencia que se le pida:
+  // la pista de atras tenue y el trazo que avanza, mas firme.
+  it('dibuja con el color y las opacidades que se le piden', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, color: '#f0dca0', progreso: 0.5, pista: 0.2, trazo: 0.8 });
+    const trazos = soloDe(ctx, 'stroke');
+    expect(trazos.map(([, color]) => color)).toEqual(['#f0dca0', '#f0dca0']);
+    expect(trazos[0][2]).toBeCloseTo(0.2);
+    expect(trazos[1][2]).toBeCloseTo(0.8);
+  });
+
+  // EL ANILLO SE APAGA CON QUIEN LO DIBUJA. La opacidad del carrusel que se
+  // desvanece multiplica la del anillo. Si la pisara, el anillo del objeto
+  // elegido se quedaba entero mientras el carrusel se apagaba y desaparecia de
+  // golpe al final: un parpadeo en el momento mas mirado de la experiencia.
+  it('su opacidad se multiplica por la de quien lo dibuja', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 1, pista: 0.2, trazo: 0.8, alfa: 0.5 });
+    const [pista, trazo] = soloDe(ctx, 'stroke');
+    expect(pista[2]).toBeCloseTo(0.1);
+    expect(trazo[2]).toBeCloseTo(0.4);
+  });
+
+  it('sin brillo no hay resplandor', () => {
+    const ctx = crearCtxFalso();
+    dibujarAnilloDeProgreso(ctx, { ...base, progreso: 0.5, brillo: 0 });
+    expect(soloDe(ctx, 'stroke').map(([, , , desenfoque]) => desenfoque)).toEqual([0, 0]);
+  });
+});
+
+describe('dibujarDiscoDeCarga', () => {
+  const base = { x: 300, y: 400, radio: 60, color: '#f0dca0', opacidad: 0.3 };
+
+  it('sin progreso, sin opacidad o invisible no dibuja nada', () => {
+    for (const caso of [{ progreso: 0 }, { progreso: 0.5, opacidad: 0 }, { progreso: 0.5, alfa: 0 }]) {
+      const ctx = crearCtxFalso();
+      dibujarDiscoDeCarga(ctx, { ...base, ...caso });
+      expect(ctx.llamadas).toEqual([]);
+    }
+  });
+
+  // Es un reloj que se llena detras del objeto: arranca arriba y barre en el
+  // sentido de las agujas, igual que el anillo, y un poco mas grande que el
+  // objeto para que se vea alrededor.
+  it('es un sector que arranca arriba y crece con el progreso', () => {
+    const barrido = (progreso) => {
+      const ctx = crearCtxFalso();
+      dibujarDiscoDeCarga(ctx, { ...base, progreso });
+      const [, x, y, radio, desde, hasta] = soloDe(ctx, 'arc')[0];
+      expect([x, y]).toEqual([300, 400]);
+      expect(radio).toBeGreaterThan(60);
+      expect(desde).toBeCloseTo(-Math.PI / 2);
+      return hasta - desde;
+    };
+    expect(barrido(0.25)).toBeCloseTo(Math.PI / 2);
+    expect(barrido(1)).toBeCloseTo(Math.PI * 2);
+  });
+
+  it('se rellena con el color pedido y su transparencia', () => {
+    const ctx = crearCtxFalso();
+    dibujarDiscoDeCarga(ctx, { ...base, progreso: 0.5, alfa: 0.5 });
+    const [[, color, opacidad]] = soloDe(ctx, 'fill');
+    expect(color).toBe('#f0dca0');
+    expect(opacidad).toBeCloseTo(0.15);
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = crearCtxFalso();
+    dibujarDiscoDeCarga(ctx, { ...base, progreso: 0.5 });
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
 });
 
 describe('dibujarManos', () => {
@@ -205,6 +289,28 @@ describe('dibujarManos', () => {
     dibujarManos(ctx, [], '#ffffff');
     dibujarManos(ctx, null, '#ffffff');
     expect(ctx.llamadas).toEqual([]);
+  });
+
+  // La señal no aparece ni desaparece de golpe: cada mano trae su alfa —el de
+  // su desvanecedor— y quien dibuja pone el suyo, y los dos multiplican. Una
+  // señal que se prende y se apaga con cada deteccion perdida es un parpadeo.
+  it('se enciende con su alfa y con el de cada mano', () => {
+    const ctx = crearCtxFalso();
+    dibujarManos(ctx, [{ ...mano, alfa: 0.5 }], '#ffffff', {}, 0.5);
+    const opacidades = soloDe(ctx, 'fill').map(([, , opacidad]) => opacidad);
+    expect(opacidades).toHaveLength(2);
+    expect(opacidades[0]).toBeCloseTo(0.35 * 0.25);
+    expect(opacidades[1]).toBeCloseTo(0.85 * 0.25);
+  });
+
+  it('no dibuja una mano apagada ni una señal sin alfa', () => {
+    const apagada = crearCtxFalso();
+    dibujarManos(apagada, [{ ...mano, alfa: 0 }], '#ffffff');
+    expect(soloDe(apagada, 'fill')).toEqual([]);
+
+    const sinAlfa = crearCtxFalso();
+    dibujarManos(sinAlfa, [mano], '#ffffff', {}, 0);
+    expect(sinAlfa.llamadas).toEqual([]);
   });
 
   it('deja el lienzo como estaba', () => {
@@ -441,10 +547,13 @@ describe('dibujarNombreDeCarrera', () => {
     expect(soloDe(ctx, 'fillRect')).toHaveLength(1);
   });
 
-  it('usa el color de la carrera', () => {
+  // La catedra pidio no distinguir las ingenierias por color: el nombre va en
+  // el que se le pide —el de los nombres en las tablets de MAITE—, nunca en el
+  // de la carrera.
+  it('usa el color que se le pide, no el de la carrera', () => {
     const ctx = crearCtxFalso();
-    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
-    expect(ctx.fillStyle).toBe('#FF8A3D');
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, '#f0dca0');
+    expect(ctx.fillStyle).toBe('#f0dca0');
   });
 
   it('no dibuja nada sin carrera o sin alfa', () => {
@@ -804,6 +913,21 @@ describe('las dos tipografias', () => {
     expect(primerFondo).toBeLessThan(primerTexto);
   });
 
+  // La invitacion entra y sale con su alfa: aparecer de golpe encima de las
+  // nubes que se cierran, o irse de golpe cuando alguien se sienta, era un
+  // golpe de luz.
+  it('la invitacion se enciende con su alfa', () => {
+    const apagada = crearCtxFalso();
+    dibujarInvitacion(apagada, disposicion, 0.5, 0);
+    expect(apagada.llamadas).toEqual([]);
+
+    const ctx = crearCtxFalso();
+    dibujarInvitacion(ctx, disposicion, 1, 0.5);
+    const textos = soloDe(ctx, 'fillText');
+    expect(textos.length).toBeGreaterThan(0);
+    for (const [, , , , opacidad] of textos) expect(opacidad).toBeCloseTo(0.5);
+  });
+
   // La consigna es la unica instruccion de la experiencia y no cambia: se elige
   // una sola vez, asi que despues no queda nada que enseñar.
   it('ensena el gesto', () => {
@@ -813,6 +937,34 @@ describe('las dos tipografias', () => {
 
     const dichos = soloDe(ctx, 'fillText').map(([, texto]) => texto);
     expect(dichos).toContain('Sostené la mano sobre un objeto');
+  });
+
+  // Despues de elegir, el gesto es otro: ya no se agarra, se explora. La frase
+  // la decide quien dibuja.
+  it('la consigna dice la frase que se le pide', () => {
+    const ctx = crearCtxFalso();
+    dibujarConsigna(ctx, disposicion, 1, 'Pasá la mano sobre los objetos del fondo');
+    expect(soloDe(ctx, 'fillText').map(([, texto]) => texto)).toEqual([
+      'Pasá la mano sobre los objetos del fondo',
+    ]);
+  });
+
+  it('la ficha escribe el nombre en la de titulo y la descripcion en la sans', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarFicha(
+      ctx,
+      { x: 170, y: 330, radio: 59, alfa: 1, nombre: 'Rodamiento', descripcion: 'Gira sin rozar.' },
+      disposicion,
+      { columna: 324, colores: { titulo: '#f0dca0', texto: '#cdbfa0', panel: '#05050a', borde: '#8a7038' } },
+    );
+    const fuentes = fuentesDe(ctx);
+    expect(fuentes.some((fuente) => fuente.includes(TITULO_SOLO))).toBe(true);
+    expect(
+      fuentes.some((fuente) => !fuente.includes(TITULO_SOLO) && fuente.includes(FAMILIA_TEXTO)),
+    ).toBe(true);
+    for (const fuente of fuentes) {
+      if (fuente.includes(TITULO_SOLO)) expect(fuente).toMatch(new RegExp('^' + PESO_TITULO + '\\s'));
+    }
   });
 
   // Muffaroo trae UNA sola variante. Pedirle 700 da un falso-bold que le
@@ -838,5 +990,154 @@ describe('las dos tipografias', () => {
     expect(FAMILIA_TITULO).toContain(TITULO_SOLO);
     expect(FAMILIA_TITULO).toMatch(/sans-serif\s*$/);
     expect(FAMILIA_TEXTO).not.toContain(TITULO_SOLO);
+  });
+});
+
+describe('disponerFicha', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  // Medida falsa: cada caracter mide medio tamaño de letra.
+  const medir = (texto, fuente) => texto.length * Number(fuente.match(/([\d.]+)px/)[1]) * 0.5;
+  const textos = {
+    nombre: 'Rodamiento',
+    descripcion: 'Bolillas de acero entre dos anillos: dejan girar un eje casi sin rozamiento.',
+  };
+  // El 30 % del ancho de cada costado: hasta ahi no llega la persona.
+  const COLUMNA = 324;
+  const disponer = (objeto, conTextos = textos) =>
+    disponerFicha(objeto, conTextos, disposicion, medir, { columna: COLUMNA });
+
+  // LA FICHA NO LE PUEDE TAPAR LA CARA A LA PERSONA. Va en la columna del
+  // costado de su objeto: la misma periferia donde la catedra pidio que vayan
+  // los objetos, y por el mismo motivo.
+  it('queda en la columna del costado de su objeto', () => {
+    const izquierda = disponer({ x: 170, y: 330, radio: 59 }).caja;
+    expect(izquierda.x).toBeGreaterThanOrEqual(0);
+    expect(izquierda.x + izquierda.ancho).toBeLessThanOrEqual(COLUMNA);
+
+    const derecha = disponer({ x: 910, y: 330, radio: 59 }).caja;
+    expect(derecha.x).toBeGreaterThanOrEqual(1080 - COLUMNA);
+    expect(derecha.x + derecha.ancho).toBeLessThanOrEqual(1080);
+  });
+
+  // Nunca encima del objeto que describe: arriba de todo va debajo de el, y
+  // abajo va arriba.
+  it('no tapa el objeto que describe', () => {
+    for (const y of [150, 330, 830, 1250]) {
+      const objeto = { x: 170, y, radio: 59 };
+      const { caja } = disponer(objeto);
+      const tapa = caja.y < objeto.y + objeto.radio && caja.y + caja.alto > objeto.y - objeto.radio;
+      expect(tapa, 'con el objeto a ' + y).toBe(false);
+    }
+  });
+
+  // El pie es del nombre de la ingenieria.
+  it('entra entera en la pantalla y no baja hasta el pie', () => {
+    for (const [x, y] of [
+      [170, 150],
+      [170, 1250],
+      [910, 150],
+      [910, 1250],
+    ]) {
+      const { caja } = disponer({ x, y, radio: 59 });
+      expect(caja.y).toBeGreaterThanOrEqual(0);
+      expect(caja.y + caja.alto).toBeLessThanOrEqual(1920 - disposicion.pie.alto);
+    }
+  });
+
+  it('parte la descripcion en renglones que entran en la ficha', () => {
+    const ficha = disponer({ x: 170, y: 330, radio: 59 });
+    expect(ficha.lineas.length).toBeGreaterThan(1);
+    expect(ficha.lineas.map((linea) => linea.texto).join(' ')).toBe(textos.descripcion);
+    for (const linea of ficha.lineas) {
+      expect(medir(linea.texto, ficha.fuenteTexto)).toBeLessThanOrEqual(
+        ficha.caja.ancho - 2 * ficha.relleno,
+      );
+    }
+  });
+
+  // Si del lado que le toca taparia a otro objeto del fondo, va del otro: la
+  // persona tiene que poder ir de un objeto al siguiente sin que la ficha del
+  // primero le esconda el que sigue.
+  it('si del lado que le toca taparia a otro objeto, va del otro lado', () => {
+    const objeto = { x: 170, y: 830, radio: 59 };
+    const vecino = { x: 180, y: 560, radio: 59 };
+    expect(disponer(objeto).lado).toBe('arriba');
+
+    const ficha = disponerFicha(objeto, textos, disposicion, medir, {
+      columna: COLUMNA,
+      evitar: [vecino],
+    });
+    expect(ficha.lado).toBe('abajo');
+    const { caja } = ficha;
+    const cercaX = Math.max(caja.x, Math.min(vecino.x, caja.x + caja.ancho));
+    const cercaY = Math.max(caja.y, Math.min(vecino.y, caja.y + caja.alto));
+    expect(Math.hypot(vecino.x - cercaX, vecino.y - cercaY)).toBeGreaterThanOrEqual(vecino.radio);
+  });
+
+  it('sin descripcion va solo el nombre, y sin nada no hay ficha', () => {
+    const soloNombre = disponer({ x: 170, y: 330, radio: 59 }, { nombre: 'Casco' });
+    expect(soloNombre.titulo.texto).toBe('Casco');
+    expect(soloNombre.lineas).toEqual([]);
+    expect(disponer({ x: 170, y: 330, radio: 59 }, {})).toBeNull();
+  });
+});
+
+describe('dibujarFicha', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const colores = {
+    titulo: '#f0dca0',
+    texto: '#cdbfa0',
+    panel: 'rgba(5, 5, 10, 0.78)',
+    borde: 'rgba(240, 220, 160, 0.3)',
+  };
+  const objeto = {
+    x: 170,
+    y: 330,
+    radio: 59,
+    nombre: 'Rodamiento',
+    descripcion: 'Bolillas de acero entre dos anillos.',
+  };
+  const dibujar = (ctx, extra) =>
+    dibujarFicha(ctx, { ...objeto, ...extra }, disposicion, { columna: 324, colores });
+
+  it('no dibuja nada invisible ni sin textos', () => {
+    for (const extra of [{ alfa: 0 }, { alfa: 1, nombre: undefined, descripcion: undefined }]) {
+      const ctx = crearCtxFalso();
+      dibujar(ctx, extra);
+      expect(ctx.llamadas).toEqual([]);
+    }
+  });
+
+  it('escribe el nombre y despues la descripcion', () => {
+    const ctx = crearCtxFalso();
+    dibujar(ctx, { alfa: 1 });
+    const dichos = soloDe(ctx, 'fillText').map(([, texto]) => texto);
+    expect(dichos[0]).toBe('Rodamiento');
+    expect(dichos.slice(1).join(' ')).toBe('Bolillas de acero entre dos anillos.');
+  });
+
+  // Sin un panel oscuro debajo, un texto claro sobre una zona clara de la foto
+  // no se lee.
+  it('el panel va debajo del texto', () => {
+    const ctx = crearCtxFalso();
+    dibujar(ctx, { alfa: 1 });
+    const orden = ctx.llamadas.map(([que]) => que);
+    expect(orden.indexOf('fill')).toBeGreaterThanOrEqual(0);
+    expect(orden.indexOf('fill')).toBeLessThan(orden.indexOf('fillText'));
+  });
+
+  it('se enciende con su alfa', () => {
+    const ctx = crearCtxFalso();
+    dibujar(ctx, { alfa: 0.5 });
+    const rellenos = soloDe(ctx, 'fill');
+    expect(rellenos.length).toBeGreaterThan(0);
+    for (const [, , opacidad] of rellenos) expect(opacidad).toBeLessThanOrEqual(0.5 + 1e-9);
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = crearCtxFalso();
+    dibujar(ctx, { alfa: 1 });
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
   });
 });

@@ -4,6 +4,7 @@ import {
   crearFiltroRostro,
   crearFiltroDeManos,
   crearHisteresis,
+  crearDesvanecedorDeManos,
 } from '../../espejo/suavizado.js';
 
 const rostroEn = (x) => ({
@@ -325,5 +326,59 @@ describe('crearHisteresis', () => {
     // Cinco cuadros seguidos sin rostro. El reloj de salida arranca en el primero.
     for (const t of [100, 200, 300, 400]) expect(h.actualizar(false, t)).toBe(true);
     expect(h.actualizar(false, 505)).toBe(false);
+  });
+});
+
+describe('crearDesvanecedorDeManos', () => {
+  const AJUSTE = { msDeEntrada: 150, msDeSalida: 450 };
+  const PASO = 1000 / 60;
+  const mano = (id, x = 100) => ({ idSeguimiento: id, palma: { x, y: 200 }, radio: 80 });
+
+  // La señal de una mano que aparece no se prende de golpe.
+  it('una mano nueva se enciende de a poco', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    desvanecedor.actualizar([mano(1)], 0);
+    expect(desvanecedor.actualizar([mano(1)], 50)[0].alfa).toBeCloseTo(50 / 150);
+    expect(desvanecedor.actualizar([mano(1)], 200)[0].alfa).toBe(1);
+  });
+
+  // EL FILTRO SUELTA UNA MANO PERDIDA DE GOLPE, y la señal que la seguia
+  // desaparecia con el: con la mano de costado, a los saltos. La que se pierde
+  // se sigue viendo donde estaba mientras se apaga.
+  it('una mano que se pierde se apaga despacio donde estaba', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    for (let t = 0; t <= 300; t += PASO) desvanecedor.actualizar([mano(1, 100)], t);
+    const t0 = 300 + PASO;
+    const saliendo = desvanecedor.actualizar([], t0 + 225);
+    expect(saliendo).toHaveLength(1);
+    expect(saliendo[0].palma).toEqual({ x: 100, y: 200 });
+    expect(saliendo[0].alfa).toBeCloseTo(0.5, 1);
+    expect(desvanecedor.actualizar([], t0 + 1000)).toEqual([]);
+  });
+
+  it('cada mano lleva su propio alfa', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    for (let t = 0; t <= 300; t += PASO) desvanecedor.actualizar([mano(1, 100), mano(2, 600)], t);
+    const [queda, seVa] = desvanecedor.actualizar([mano(1, 100)], 300 + PASO + 100);
+    expect(queda.idSeguimiento).toBe(1);
+    expect(queda.alfa).toBe(1);
+    expect(seVa.idSeguimiento).toBe(2);
+    expect(seVa.alfa).toBeLessThan(1);
+    expect(seVa.alfa).toBeGreaterThan(0);
+  });
+
+  // La mano que sigue vista se dibuja con los datos de este cuadro.
+  it('devuelve cada mano tal como vino, con su alfa agregado', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    desvanecedor.actualizar([mano(7, 300)], 0);
+    const [vista] = desvanecedor.actualizar([mano(7, 320)], 100);
+    expect(vista).toMatchObject({ idSeguimiento: 7, palma: { x: 320, y: 200 }, radio: 80 });
+  });
+
+  it('reiniciar las olvida', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    for (let t = 0; t <= 300; t += PASO) desvanecedor.actualizar([mano(1)], t);
+    desvanecedor.reiniciar();
+    expect(desvanecedor.actualizar([], 400)).toEqual([]);
   });
 });

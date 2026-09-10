@@ -94,14 +94,53 @@ describe('posicionLateralNube', () => {
 });
 
 describe('calcularTransicionEscena', () => {
-  const tiempos = { enganche: 2000, humo: 3000, aparicion: 2000, vuelo: 1000, cierre: 4000 };
-  const en = (estado, transcurrido, desdeLaMirada = null) =>
-    calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, tiempos });
+  const tiempos = {
+    enganche: 2000,
+    humo: 3000,
+    aparicion: 2000,
+    vuelo: 1000,
+    escondidos: 1500,
+    invitacion: 1200,
+    cierre: 4000,
+  };
+  const en = (estado, transcurrido, desdeLaMirada = null, desdeElDescubrimiento = null) =>
+    calcularTransicionEscena({
+      estado,
+      transcurrido,
+      desdeLaMirada,
+      desdeElDescubrimiento,
+      tiempos,
+    });
 
   it('en reposo y en el enganche no se ve ninguna capa', () => {
-    const nada = { objetos: 0, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
+    const nada = {
+      objetos: 0,
+      elegido: 0,
+      fondo: 0,
+      contenido: 0,
+      vuelo: 0,
+      escondidos: 0,
+      explorar: 0,
+      invitacion: 0,
+    };
     expect(en(ESTADOS.ATRACCION, 0)).toEqual(nada);
     expect(en(ESTADOS.ENGANCHE, 1000)).toEqual(nada);
+  });
+
+  // La invitacion aparecia de golpe encima de las nubes que se estaban
+  // cerrando, y desaparecia de golpe cuando alguien se sentaba. Entra despacio
+  // en el reposo y se va rapido en el enganche, sin saltos.
+  it('la invitacion entra despacio en el reposo y se va rapido al sentarse alguien', () => {
+    expect(en(ESTADOS.ATRACCION, 0).invitacion).toBe(0);
+    expect(en(ESTADOS.ATRACCION, 600).invitacion).toBeCloseTo(0.5);
+    expect(en(ESTADOS.ATRACCION, 1200).invitacion).toBe(1);
+    expect(en(ESTADOS.ATRACCION, 60000).invitacion).toBe(1);
+    expect(en(ESTADOS.ENGANCHE, 0).invitacion).toBe(1);
+    expect(en(ESTADOS.ENGANCHE, 300).invitacion).toBeCloseTo(0.5);
+    expect(en(ESTADOS.ENGANCHE, 600).invitacion).toBe(0);
+    for (const estado of [ESTADOS.HUMO, ESTADOS.EXPLORACION, ESTADOS.CIERRE]) {
+      expect(en(estado, 500).invitacion, estado).toBe(0);
+    }
   });
 
   // Los objetos estan puestos desde el principio del humo, pero encenderlos
@@ -116,7 +155,16 @@ describe('calcularTransicionEscena', () => {
   });
 
   it('sin nada agarrado se ven los objetos y nada mas', () => {
-    const soloElCarrusel = { objetos: 1, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
+    const soloElCarrusel = {
+      objetos: 1,
+      elegido: 0,
+      fondo: 0,
+      contenido: 0,
+      vuelo: 0,
+      escondidos: 0,
+      explorar: 0,
+      invitacion: 0,
+    };
     expect(en(ESTADOS.EXPLORACION, 0)).toEqual(soloElCarrusel);
     expect(en(ESTADOS.EXPLORACION, 20000)).toEqual(soloElCarrusel);
   });
@@ -131,6 +179,9 @@ describe('calcularTransicionEscena', () => {
       fondo: 0,
       contenido: 0,
       vuelo: 0,
+      escondidos: 0,
+      explorar: 0,
+      invitacion: 0,
     });
 
     const medio = en(ESTADOS.EXPLORACION, 5500, 500);
@@ -171,6 +222,9 @@ describe('calcularTransicionEscena', () => {
       fondo: 1,
       contenido: 1,
       vuelo: 1,
+      escondidos: 1,
+      explorar: 1,
+      invitacion: 0,
     });
   });
 
@@ -192,6 +246,35 @@ describe('calcularTransicionEscena', () => {
     expect(en(ESTADOS.EXPLORACION, 9000, 4000).vuelo).toBe(1);
   });
 
+  // Primero se sigue el vuelo del elegido; recien cuando aterriza, el fondo se
+  // puebla con los otros objetos de la carrera, y de a poco: aparecer todos de
+  // golpe junto con el fondo le robaria la mirada al que llega volando.
+  it('los objetos escondidos entran cuando el elegido ya aterrizo', () => {
+    expect(en(ESTADOS.EXPLORACION, 5000, 0).escondidos).toBe(0);
+    expect(en(ESTADOS.EXPLORACION, 5900, 900).escondidos).toBe(0);
+    expect(en(ESTADOS.EXPLORACION, 6750, 1750).escondidos).toBeCloseTo(0.5);
+    expect(en(ESTADOS.EXPLORACION, 7500, 2500).escondidos).toBe(1);
+    expect(en(ESTADOS.EXPLORACION, 90000, 88000).escondidos).toBe(1);
+  });
+
+  // La consigna que enseña a pasar la mano espera a que la escena este entera,
+  // y se va para siempre la primera vez que alguien abre una ficha: el gesto ya
+  // se aprendio, y repetirlo seria ruido encima de la persona.
+  it('la consigna de explorar espera la escena entera y se va al abrir la primera ficha', () => {
+    expect(en(ESTADOS.EXPLORACION, 20000, 1900).explorar).toBe(0);
+    expect(en(ESTADOS.EXPLORACION, 20000, 2750).explorar).toBeCloseTo(0.5);
+    expect(en(ESTADOS.EXPLORACION, 20000, 9000).explorar).toBe(1);
+    expect(en(ESTADOS.EXPLORACION, 20000, 9000, 750).explorar).toBeCloseTo(0.5);
+    expect(en(ESTADOS.EXPLORACION, 20000, 9000, 5000).explorar).toBe(0);
+  });
+
+  it('sin nada elegido no hay escondidos ni consigna de explorar', () => {
+    for (const estado of Object.values(ESTADOS)) {
+      expect(en(estado, 5000).escondidos, estado).toBe(0);
+      expect(en(estado, 5000).explorar, estado).toBe(0);
+    }
+  });
+
   // Sin elegir, el carrusel es lo unico que hay en pantalla y se va con todo lo
   // demas: es el caso de quien se levanta sin entender el gesto.
   it('desvanece todas las capas juntas durante el cierre', () => {
@@ -201,6 +284,9 @@ describe('calcularTransicionEscena', () => {
       fondo: 1,
       contenido: 1,
       vuelo: 1,
+      escondidos: 0,
+      explorar: 0,
+      invitacion: 0,
     });
     expect(en(ESTADOS.CIERRE, 2000).objetos).toBe(0.5);
     expect(en(ESTADOS.CIERRE, 4000).objetos).toBe(0);
@@ -216,12 +302,29 @@ describe('calcularTransicionEscena', () => {
     expect(en(ESTADOS.CIERRE, 2000, 9000).fondo).toBe(0.5);
   });
 
+  // En el cierre se van con todo lo demas, desde donde estaban: si la consigna
+  // ya se habia ido, no vuelve para despedirse.
+  it('en el cierre los escondidos y la consigna se desvanecen con todo lo demas', () => {
+    expect(en(ESTADOS.CIERRE, 0, 20000).escondidos).toBe(1);
+    expect(en(ESTADOS.CIERRE, 2000, 20000).escondidos).toBe(0.5);
+    expect(en(ESTADOS.CIERRE, 4000, 20000).escondidos).toBe(0);
+    expect(en(ESTADOS.CIERRE, 2000, 20000).explorar).toBe(0.5);
+    expect(en(ESTADOS.CIERRE, 0, 20000, 9000).explorar).toBe(0);
+  });
+
   it('ninguna capa se sale del rango, ni con tiempos raros', () => {
     for (const estado of Object.values(ESTADOS)) {
       for (const t of [-9000, -1, 0, 1, 999999]) {
-        for (const valor of Object.values(en(estado, t))) {
-          expect(valor).toBeGreaterThanOrEqual(0);
-          expect(valor).toBeLessThanOrEqual(1);
+        for (const [mirada, descubierta] of [
+          [null, null],
+          [t, null],
+          [t, t],
+          [500, 9000],
+        ]) {
+          for (const valor of Object.values(en(estado, t, mirada, descubierta))) {
+            expect(valor).toBeGreaterThanOrEqual(0);
+            expect(valor).toBeLessThanOrEqual(1);
+          }
         }
       }
     }

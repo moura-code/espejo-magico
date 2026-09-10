@@ -158,6 +158,50 @@ export function crearFiltroDeManos({
 }
 
 /**
+ * Cuanto se ve la señal de cada mano.
+ *
+ * El filtro retiene una mano perdida un rato y despues la suelta de golpe, y la
+ * deteccion la vuelve a encontrar de golpe: la señal que la seguia aparecia y
+ * desaparecia con ella, que con la mano de costado es un parpadeo. Aca cada mano
+ * (por su `idSeguimiento`) tiene su alfa: entra en `msDeEntrada`, sale en
+ * `msDeSalida`, y la que se fue se sigue devolviendo donde estaba hasta
+ * apagarse. Solo decide cuanto se ve: la eleccion y las fichas miran las manos
+ * del filtro, sin esto.
+ */
+export function crearDesvanecedorDeManos({ msDeEntrada, msDeSalida }) {
+  const pistas = new Map();
+  let ultimoReloj = null;
+
+  return {
+    actualizar(manos, ahora) {
+      const dt = ultimoReloj === null ? 0 : Math.min(250, Math.max(0, ahora - ultimoReloj));
+      ultimoReloj = ahora;
+
+      const vistas = new Set();
+      for (const mano of manos) {
+        const id = mano.idSeguimiento ?? 'sin-seguimiento';
+        vistas.add(id);
+        const alfa = Math.min(1, (pistas.get(id)?.alfa ?? 0) + dt / Math.max(1, msDeEntrada));
+        pistas.set(id, { mano, alfa });
+      }
+
+      for (const [id, pista] of pistas) {
+        if (vistas.has(id)) continue;
+        pista.alfa = Math.max(0, pista.alfa - dt / Math.max(1, msDeSalida));
+        if (pista.alfa === 0) pistas.delete(id);
+      }
+
+      return [...pistas.values()].map(({ mano, alfa }) => ({ ...mano, alfa }));
+    },
+
+    reiniciar() {
+      pistas.clear();
+      ultimoReloj = null;
+    },
+  };
+}
+
+/**
  * Entrar es rapido, salir es lento. La asimetria es deliberada: unos pocos
  * cuadros bastan para reconocer que alguien se sento, pero hace falta bastante
  * mas rato sin rostro para dar por hecho que se fue (los dos plazos salen de

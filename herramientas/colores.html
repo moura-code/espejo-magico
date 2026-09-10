@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Colores y carga del espejo</title>
+  <style>
+    @font-face {
+      font-family: 'Muffaroo';
+      src: url('/contenido/assets/tipografias/Muffaroo-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #0b0e13;
+      color: #e8eaf0;
+      font: 14px/1.45 system-ui, sans-serif;
+    }
+    h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+    h2 { font-size: 16px; font-weight: 600; margin: 32px 0 6px; }
+    h3 { font-size: 14px; font-weight: 600; margin: 18px 0 6px; }
+    p { margin: 0 0 8px; color: #97a0b5; max-width: 900px; }
+    .fila { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+    figure { margin: 0; }
+    canvas { display: block; border-radius: 6px; background: #000; }
+    .retrato { width: 216px; height: 384px; }
+    .carga { width: 240px; height: 240px; }
+    figcaption { margin-top: 6px; font-size: 12px; color: #97a0b5; max-width: 240px; }
+    b { color: #e8eaf0; font-weight: 600; }
+    .en-uso { color: #00E5A0; }
+    .muestra {
+      display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+      vertical-align: -1px; margin-right: 6px; border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <!-- Hermana de fondos.html y figuras.html: se abre desde `npm start`. Muestra,
+       con las mismas funciones que usa el espejo, las opciones que se miraron
+       para los dos pedidos de la catedra sobre el color: el nombre de cada
+       ingenieria en un solo color, y la carga del sostenido igual para todas y
+       con transparencia. La opcion en uso es la de espejo/config.js. -->
+  <h1>Colores y carga del espejo</h1>
+  <p>Las opciones que se miraron para dos pedidos de la cátedra: que el color <b>no distinga a las ingenierías</b> y que la carga del sostenido sea <b>la misma para todas, con transparencia</b>. Todos los colores salen de la paleta de las tablets de MAITE (<b>public/style.css</b>), que están a dos metros en el mismo stand. La opción <b class="en-uso">en uso</b> es la de <b>espejo/config.js</b> (<b>paleta</b> y <b>carga</b>); para cambiarla se cambia ahí.</p>
+
+  <h2>El nombre de la ingeniería</h2>
+  <p>Sobre el fondo activo de cuatro ingenierías, con la persona delante y el degradado del pie.</p>
+  <div id="nombres"></div>
+
+  <h2>La carga del sostenido</h2>
+  <p>El anillo se llena en lo que dura el sostenido (<b id="plazo"></b>) y se vacía como cuando se saca la mano. El disco, si la opción lo tiene, se llena detrás del objeto.</p>
+  <div id="cargas" class="fila"></div>
+
+  <script type="module">
+    import { CONFIG } from '../espejo/config.js';
+    import { figurasDisponibles } from '../espejo/figuras.js';
+    import { dibujarEscenario } from '../espejo/escenarios.js';
+    import { cargarContenido, fondoActivo, objetoDeCarrera } from '../espejo/contenido.js';
+    import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
+    import {
+      calcularDisposicion,
+      dibujarFondo,
+      dibujarNombreDeCarrera,
+      dibujarObjeto,
+      dibujarAnilloDeProgreso,
+      dibujarDiscoDeCarga,
+      TITULO_SOLO,
+      PESO_TITULO,
+    } from '../espejo/escena.js';
+
+    // Los colores de la paleta de MAITE que podian ir en el nombre.
+    const NOMBRES = [
+      { color: '#f0dca0', que: 'Acento fuerte de MAITE (--color-accent-strong): el de los nombres en las cuatro tablets.' },
+      { color: '#f2ead9', que: 'Texto de MAITE (--color-text): casi blanco, cálido.' },
+      { color: '#d8b768', que: 'Acento de MAITE (--color-accent): dorado.' },
+      { color: '#7fb0d8', que: 'Azul de los temas de las tablets 1 y 3.' },
+      { color: '#ffffff', que: 'Blanco.' },
+    ];
+
+    // Las opciones de carga, todas con transparencia. La primera es la de config.
+    const CARGAS = [
+      { nombre: 'Anillo y disco dorados, translúcidos', ...CONFIG.carga },
+      { nombre: 'Sólo el anillo dorado', color: '#f0dca0', pista: 0.25, trazo: 0.9, brillo: 0.7, relleno: 0 },
+      { nombre: 'Anillo blanco translúcido', color: '#ffffff', pista: 0.16, trazo: 0.7, brillo: 0.4, relleno: 0 },
+      { nombre: 'Disco blanco, anillo tenue', color: '#ffffff', pista: 0.12, trazo: 0.55, brillo: 0.3, relleno: 0.3 },
+      { nombre: 'Dorado muy translúcido', color: '#d8b768', pista: 0.12, trazo: 0.6, brillo: 0.3, relleno: 0.18 },
+    ];
+
+    const igual = (a, b) => ['color', 'pista', 'trazo', 'brillo', 'relleno'].every((k) => a[k] === b[k]);
+
+    await document.fonts.load(`${PESO_TITULO} 32px ${TITULO_SOLO}`).catch(() => {});
+    const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
+    const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
+    await banco.precargar(contenido.todasLasImagenes());
+
+    // --- el nombre ---
+    const ANCHO = 540;
+    const ALTO = 960;
+    const disposicion = calcularDisposicion(ANCHO, ALTO);
+    const muestras = ['comunicacion', 'forestal', 'quimica', 'civil']
+      .map((id) => contenido.obtener(id))
+      .filter(Boolean);
+
+    function dibujarSilueta(ctx) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(180, 190, 205, 0.55)';
+      ctx.beginPath();
+      ctx.ellipse(ANCHO / 2, ALTO * 0.42, ANCHO * 0.11, ANCHO * 0.14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(ANCHO * 0.22, ALTO);
+      ctx.quadraticCurveTo(ANCHO * 0.24, ALTO * 0.56, ANCHO / 2, ALTO * 0.55);
+      ctx.quadraticCurveTo(ANCHO * 0.76, ALTO * 0.56, ANCHO * 0.78, ALTO);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    const nombres = document.getElementById('nombres');
+    for (const { color, que } of NOMBRES) {
+      const titulo = document.createElement('h3');
+      titulo.innerHTML =
+        `<span class="muestra" style="background:${color}"></span>${color} — ${que}` +
+        (color.toLowerCase() === CONFIG.paleta.nombre.toLowerCase() ? ' <b class="en-uso">en uso</b>' : '');
+      const fila = document.createElement('div');
+      fila.className = 'fila';
+      for (const carrera of muestras) {
+        const lienzo = document.createElement('canvas');
+        lienzo.className = 'retrato';
+        lienzo.width = ANCHO;
+        lienzo.height = ALTO;
+        const ctx = lienzo.getContext('2d');
+        const fondo = fondoActivo(carrera);
+        if (!dibujarFondo(ctx, fondo ? banco.obtener(fondo.img) : null, disposicion, 1)) {
+          dibujarEscenario(ctx, carrera.id, ANCHO, ALTO, carrera.color);
+        }
+        dibujarSilueta(ctx);
+        dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, color);
+        fila.append(lienzo);
+      }
+      nombres.append(titulo, fila);
+    }
+
+    // --- la carga ---
+    document.getElementById('plazo').textContent =
+      `${(CONFIG.eleccion.msParaElegir / 1000).toLocaleString('es')} s`;
+    const LADO = 480;
+    const conCarga = [contenido.obtener('quimica'), contenido.obtener('agrimensura')].filter(Boolean);
+    const cargas = document.getElementById('cargas');
+    const animadas = [];
+
+    CARGAS.forEach((opcion, i) => {
+      for (const carrera of conCarga) {
+        const figura = document.createElement('figure');
+        const lienzo = document.createElement('canvas');
+        lienzo.className = 'carga';
+        lienzo.width = LADO;
+        lienzo.height = LADO;
+        const pie = document.createElement('figcaption');
+        const enUso = i === 0 || igual(opcion, CONFIG.carga);
+        pie.innerHTML =
+          `<b>${opcion.nombre}</b>${enUso && carrera === conCarga[0] ? ' <b class="en-uso">en uso</b>' : ''}` +
+          `<br>pista ${opcion.pista} · trazo ${opcion.trazo} · brillo ${opcion.brillo} · disco ${opcion.relleno}`;
+        figura.append(lienzo, pie);
+        cargas.append(figura);
+        animadas.push({ lienzo, opcion, carrera });
+      }
+    });
+
+    // Un ciclo: se llena en msParaElegir, queda lleno un momento y se vacia como
+    // cuando se saca la mano, pasada la gracia.
+    const { msParaElegir, msDeGracia, msDeOlvido } = CONFIG.eleccion;
+    const CICLO = msParaElegir + 700 + msDeGracia + msDeOlvido + 600;
+    const progresoEn = (t) => {
+      const u = t % CICLO;
+      if (u < msParaElegir) return u / msParaElegir;
+      if (u < msParaElegir + 700 + msDeGracia) return 1;
+      return Math.max(0, 1 - (u - msParaElegir - 700 - msDeGracia) / msDeOlvido);
+    };
+
+    function dibujarCarga({ lienzo, opcion, carrera }, ahora) {
+      const ctx = lienzo.getContext('2d');
+      const fondo = fondoActivo(carrera);
+      const foto = fondo ? banco.obtener(fondo.img) : null;
+      ctx.clearRect(0, 0, LADO, LADO);
+      if (foto) {
+        // El rincon de arriba de la foto, donde pasa el carrusel.
+        ctx.drawImage(foto, foto.width * 0.1, foto.height * 0.12, foto.width * 0.8, foto.width * 0.8, 0, 0, LADO, LADO);
+      }
+      const objeto = { x: LADO / 2, y: LADO / 2, radio: LADO * 0.22 };
+      const progreso = progresoEn(ahora);
+      dibujarDiscoDeCarga(ctx, { ...objeto, progreso, color: opcion.color, opacidad: opcion.relleno });
+      dibujarObjeto(ctx, { definicion: objetoDeCarrera(carrera), ...objeto }, banco, CONFIG.paleta.nombre);
+      dibujarAnilloDeProgreso(ctx, {
+        ...objeto,
+        progreso,
+        color: opcion.color,
+        pista: opcion.pista,
+        trazo: opcion.trazo,
+        brillo: opcion.brillo,
+      });
+    }
+
+    const animar = (ahora) => {
+      for (const animada of animadas) dibujarCarga(animada, ahora);
+      requestAnimationFrame(animar);
+    };
+    requestAnimationFrame(animar);
+  </script>
+</body>
+</html>

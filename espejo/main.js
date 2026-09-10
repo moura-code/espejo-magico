@@ -4,19 +4,26 @@
 // que orden se dibuja. Todo lo que se puede probar vive en otro lado.
 
 import { CONFIG } from './config.js';
-import { cargarContenido, objetoDeCarrera, fondoActivo } from './contenido.js';
+import { cargarContenido, objetoDeCarrera, escondidosDeCarrera, fondoActivo } from './contenido.js';
 import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
 import { crearDetectorDeManosMediaPipe } from './manos.js';
 import { crearDetectorDePoseMediaPipe } from './pose.js';
-import { crearFiltroRostro, crearFiltroDeManos, crearHisteresis } from './suavizado.js';
+import {
+  crearFiltroRostro,
+  crearFiltroDeManos,
+  crearHisteresis,
+  crearDesvanecedorDeManos,
+} from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearEleccion } from './eleccion.js';
 import { crearTablero } from './tablero.js';
 import { crearSilueta } from './silueta.js';
 import { lugarEnPantalla, posicionEnVuelo, flotacion } from './vuelo.js';
+import { lugaresDelFondo, esconder, balanceo } from './escondites.js';
+import { crearFichas } from './fichas.js';
 import { crearPuente } from './maite.js';
 import { alfaDeHumo } from './humo.js';
 import { cargarVideoDelNavegador, crearBancoDeVideos } from './videos.js';
@@ -38,6 +45,8 @@ import {
   dibujarObjeto,
   dibujarObjetoApoyado,
   dibujarAnilloDeProgreso,
+  dibujarDiscoDeCarga,
+  dibujarFicha,
   dibujarManos,
   dibujarPersona,
   dibujarNombreDeCarrera,
@@ -71,6 +80,26 @@ function ajustar() {
 }
 ajustar();
 window.addEventListener('resize', ajustar);
+
+// En modo demo (tecla D) el puntero hace de mano: sin camara se puede elegir
+// sosteniendo el mouse sobre un objeto y abrir las fichas pasandolo por encima.
+// El lienzo mide exactamente lo mismo que la ventana, asi que el punto del
+// puntero ya esta en pixeles de pantalla.
+let puntero = null;
+lienzo.addEventListener('pointermove', (evento) => {
+  puntero = { x: evento.clientX, y: evento.clientY };
+});
+lienzo.addEventListener('pointerleave', () => {
+  puntero = null;
+});
+
+// La ficha va en los colores de MAITE, los mismos para las doce ingenierias.
+const COLORES_DE_FICHA = {
+  titulo: CONFIG.paleta.nombre,
+  texto: CONFIG.paleta.texto,
+  panel: CONFIG.paleta.panel,
+  borde: CONFIG.paleta.borde,
+};
 
 // Lienzo de analisis. Los detectores NO miran el cuadro completo de la camara:
 // miran exactamente el pedazo que se ve en pantalla, redibujado aca. Con una
@@ -213,6 +242,8 @@ try {
 const sintetica = crearFuenteSintetica();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
 const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizado);
+// Cuanto se ve la señal de cada mano: se prende y se apaga de a poco.
+const desvanecedorDeManos = crearDesvanecedorDeManos(CONFIG.manos.senal);
 // Dos histeresis sobre dos señales distintas. `histeresis` mira rostro O pose:
 // es lo que SOSTIENE una sesion, y por eso los hombros alcanzan cuando la cara
 // gira. `histeresisDeRostro` mira solo la cara: es lo que ARRANCA una sesion, y
@@ -236,6 +267,9 @@ const maquina = crearMaquina({
 });
 const eleccion = crearEleccion(CONFIG.eleccion);
 const tablero = crearTablero(CONFIG.tablero);
+// Las fichas de los objetos del fondo: cual se esta describiendo y cuanto se
+// ve cada una. Es el hermano tranquilo del sostenido: pregunta, no elige.
+const fichas = crearFichas(CONFIG.fichas);
 const silueta = crearSilueta({ crearLienzo: () => document.createElement('canvas') });
 
 // Las escenas vectoriales de cada ingenieria, el respaldo cuando falta el PNG
@@ -256,24 +290,36 @@ const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
 // maquina salte de estado, y solo desplaza nubes hacia los lados.
 let nieblaActual = { apertura: 0 };
 
-// Las que se ofrecen, con el objeto que representa a cada carrera ya
-// sorteado. Se arman una sola vez por sesion: sortear el objeto por cuadro haria
-// que la imagen cambiara sola mientras la persona la mira.
+// Las que se ofrecen, con el objeto que representa a cada carrera en el
+// carrusel. Se arman una sola vez por sesion, cuando el sorteo reparte el orden.
 let ofrecidos = [];
 let blancos = [];
 // La ingenieria que se esta mostrando ahora. La fija el evento `mira` de la
-// maquina y no se recalcula por cuadro: `objetoDeCarrera` sortea cuando la
-// carrera no declara representante, asi que resolverla en cada cuadro hacia
-// parpadear el objeto entre PNG distintos.
+// maquina y no se recalcula por cuadro.
 let mostrada = null;
-// El objeto con el que se agarro la carrera mostrada. Sale de `ofrecidos`, que
-// ya sorteo uno por sesion: resolverlo por cuadro haria parpadear el PNG.
+// El objeto con el que se agarro la carrera mostrada: el primero de sus
+// objetos, el mismo que giraba en el carrusel. Los otros esperan escondidos en
+// el fondo.
 let objetoMostrado = null;
 // De donde salio ese objeto: la posicion de su ranura en el cuadro en que se
 // agarro. Se captura una vez, porque el carrusel sigue girando mientras el
 // objeto vuela y el origen no puede irse con el. Null cuando no habia ranura a
 // la vista: la red de la fila, o una carrera forzada por teclado.
 let origenDelVuelo = null;
+// Lo que dijo el ultimo cuadro sobre las fichas: la activa, el alfa de cada una
+// y cuando se abrio la primera de la sesion, que es desde donde se apaga la
+// consigna de explorar.
+const FICHAS_CERRADAS = { activa: null, alfas: {}, primera: null };
+let estadoFichas = FICHAS_CERRADAS;
+// Los objetos del fondo que tienen ficha, en su lugar quieto: el que llego
+// volando y los escondidos. Se arman en cada cuadro, y las fichas se dibujan al
+// final, encima de todo.
+let delFondo = [];
+
+function cerrarFichas() {
+  fichas.reiniciar();
+  estadoFichas = FICHAS_CERRADAS;
+}
 
 function prepararOfrecidos(opciones) {
   ofrecidos = opciones
@@ -308,11 +354,11 @@ function atender(salida, ahora) {
       prepararOfrecidos(salida.opciones);
       eleccion.reiniciar();
       tablero.reiniciar();
+      cerrarFichas();
       mostrada = null;
       objetoMostrado = null;
       origenDelVuelo = null;
     }
-
 
     if (evento.estado === ESTADOS.ATRACCION) {
       ofrecidos = [];
@@ -322,6 +368,8 @@ function atender(salida, ahora) {
       origenDelVuelo = null;
       eleccion.reiniciar();
       tablero.reiniciar();
+      cerrarFichas();
+      desvanecedorDeManos.reiniciar();
       puente.humo();
     }
   }
@@ -425,17 +473,15 @@ function cuadro(ahora) {
   // --- deteccion ---
   // Las manos corren en su propio reloj, mas rapido que la cara: se mueven diez
   // veces mas rapido y a 22 cuadros por segundo el blanco va siempre atras de la
-  // mano de verdad. Solo se buscan mientras la eleccion sigue abierta, que es el
-  // unico momento en que sirven, porque es el detector mas caro del cuadro. Con
-  // la ingenieria ya elegida no hay nada que agarrar: se apaga y esos
-  // milisegundos se los queda la silueta, que es lo que se mira a partir de ahi.
+  // mano de verdad. Solo se buscan durante la exploracion, que es cuando sirven,
+  // porque es el detector mas caro del cuadro: antes de elegir, para el
+  // sostenido; despues, para abrir las fichas de los objetos del fondo, que se
+  // conforman con menos cuadros —el resto se lo queda la silueta, que es lo que
+  // mas se mira a partir de ahi—.
   const poseSirve = detectorDePose && video && modo !== 'demo';
   const manosSirven =
-    detectorDeManos &&
-    video &&
-    modo !== 'demo' &&
-    estadoAnterior === ESTADOS.EXPLORACION &&
-    !mostrada;
+    detectorDeManos && video && modo !== 'demo' && estadoAnterior === ESTADOS.EXPLORACION;
+  const intervaloDeManos = mostrada ? 1000 / CONFIG.manos.fpsExplorando : intervaloManos;
 
   // La mascara ES la imagen mientras hay fondo: a 12 cuadros por segundo el
   // borde de la silueta va atras del cuerpo y se ve el fondo pegado al hombro.
@@ -444,7 +490,7 @@ function cuadro(ahora) {
 
   const tocaRostro = ahora - ultimaDeteccion >= intervaloDeteccion;
   const tocaPose = poseSirve && ahora - ultimaDeteccionPose >= intervaloPose;
-  const tocaManos = manosSirven && ahora - ultimaDeteccionManos >= intervaloManos;
+  const tocaManos = manosSirven && ahora - ultimaDeteccionManos >= intervaloDeManos;
 
   // El recorte se prepara UNA vez por cuadro y solo si alguno de los tres va a
   // correr: el drawImage no es gratis. Como contiene exactamente lo que se ve en
@@ -501,7 +547,12 @@ function cuadro(ahora) {
     manosSuaves = filtroDeManos.filtrar(manos, ahora);
   } else if (!manosSirven) {
     manos = [];
-    manosSuaves = [];
+    // En modo demo el puntero hace de mano, y solo cuando hay algo que agarrar
+    // o que explorar: lo mismo que la mano de verdad.
+    manosSuaves =
+      modo === 'demo' && puntero && estadoAnterior === ESTADOS.EXPLORACION
+        ? [{ palma: puntero, radio: CONFIG.operacion.radioDelPuntero }]
+        : [];
     filtroDeManos.reiniciar();
   }
 
@@ -529,6 +580,9 @@ function cuadro(ahora) {
     estado,
     transcurrido: enEstadoDesde,
     desdeLaMirada: miraDesde === null ? null : ahora - miraDesde,
+    // Hace cuanto se abrio la primera ficha: la consigna de explorar se va desde
+    // ahi. Es la del cuadro anterior, que es cuando se leyo por ultima vez.
+    desdeElDescubrimiento: estadoFichas.primera === null ? null : ahora - estadoFichas.primera,
     tiempos: CONFIG.tiempos,
   });
 
@@ -617,6 +671,7 @@ function cuadro(ahora) {
   // Donde esta el objeto agarrado en este cuadro. Se usa en dos capas: detras
   // de la persona una vez apoyado, y por delante de todo mientras vuela.
   let apoyado = null;
+  delFondo = [];
 
   // Si hay una ingenieria a la vista y cual es su fondo: UNA sola vez, porque de
   // aca salen tanto el video que suena como lo que se dibuja. En dos condiciones
@@ -666,28 +721,82 @@ function cuadro(ahora) {
       ctx.restore();
     }
 
-    // El lugar del objeto va normalizado a la imagen que se dibujo (o al
-    // lienzo entero si no se dibujo ninguna), asi cae siempre en el mismo sitio
-    // de la escena sin importar el recorte. Y si el recorte lo deja fuera de la
-    // pantalla —un monitor apaisado con fotos preparadas para el espejo
-    // vertical— lugarEnPantalla lo corre lo justo para que se vea. El origen
-    // del vuelo se capturo al agarrar; sin origen, el objeto crece en su lugar.
+    // Los cuatro objetos del fondo: el que llega volando del carrusel a su
+    // lugar y los otros tres en sus escondites. Los lugares van normalizados a
+    // la foto que se dibujo (o al lienzo entero si no se dibujo ninguna), y
+    // lugarEnPantalla los mide contra lo que se ve de ella: en el espejo, el
+    // sitio exacto que se eligio; en un monitor apaisado, la misma composicion
+    // achicada, sin que nada se pise. El origen del vuelo se capturo al agarrar;
+    // sin origen, el objeto crece en su lugar.
     const rectanguloDelFondo =
       dibujado ?? { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
-    const destino = lugarEnPantalla(
-      fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto,
-      rectanguloDelFondo,
-      disposicion,
-      CONFIG.fondo.margenDelLugar,
+    const aPantalla = (lugar) =>
+      lugarEnPantalla(lugar, rectanguloDelFondo, disposicion, CONFIG.fondo.margenDelLugar);
+    const [lugarDelElegido, ...escondites] = lugaresDelFondo(fondo, {
+      lugar: CONFIG.fondo.lugarPorDefecto,
+      escondites: CONFIG.fondo.esconditesPorDefecto,
+    });
+    const destino = aPantalla(lugarDelElegido);
+    const escondidos = esconder(escondidosDeCarrera(carrera), escondites).map(
+      ({ definicion, lugar }, indice) => ({ id: definicion.img, definicion, indice, ...aPantalla(lugar) }),
     );
     const enVuelo = posicionEnVuelo({ origen: origenDelVuelo, destino, t: transicion.vuelo });
     const aterrizo = transicion.vuelo >= 1;
+
+    // Las fichas se leen sobre los objetos QUIETOS, no sobre su vaiven: si el
+    // blanco se meciera con el objeto, la ficha se abriria y cerraria sola con
+    // la mano quieta en el borde. El que llego volando tiene ficha apenas
+    // aterriza, los escondidos cuando ya se ven, y ninguno fuera de la
+    // exploracion: en el cierre se apagan con todo lo demas.
+    delFondo = [
+      ...(aterrizo && objetoMostrado
+        ? [{ id: objetoMostrado.img, definicion: objetoMostrado, ...destino }]
+        : []),
+      ...escondidos,
+    ];
+    const leibles = delFondo.filter(
+      (objeto) => objeto.id === objetoMostrado?.img || transicion.escondidos >= 0.5,
+    );
+    const explorando = estado === ESTADOS.EXPLORACION;
+    estadoFichas = fichas.actualizar({
+      manos: explorando ? manosSuaves : [],
+      objetivos: explorando ? leibles : [],
+      ahora,
+    });
+    const leido = (id) => estadoFichas.alfas[id] ?? 0;
+
+    // Los escondidos van DETRAS de la persona, integrados a la escena, y se
+    // mecen apenas: es lo unico que los delata. El que se esta leyendo crece
+    // un poco, se calma y le sube el halo, que es como se sabe de cual habla la
+    // ficha.
+    for (const escondido of escondidos) {
+      const leyendo = leido(escondido.id);
+      const vaiven = balanceo(ahora, escondido.indice, escondido.radio, CONFIG.escondidos.balanceo);
+      const calma = 1 - CONFIG.escondidos.calmaAlLeer * leyendo;
+      dibujarObjetoApoyado(
+        ctx,
+        {
+          definicion: escondido.definicion,
+          x: escondido.x,
+          y: escondido.y + vaiven.dy * calma,
+          radio: escondido.radio * (1 + CONFIG.escondidos.resalte * leyendo),
+          giro: vaiven.giro * calma,
+          alfa: transicion.escondidos,
+          halo:
+            CONFIG.escondidos.halo + (CONFIG.fondo.haloDelLugar - CONFIG.escondidos.halo) * leyendo,
+        },
+        banco,
+        CONFIG.paleta.nombre,
+      );
+    }
+
     const flota = aterrizo ? flotacion(ahora, enVuelo.radio, CONFIG.fondo.flotar) : { dy: 0, giro: 0 };
+    const leyendoElElegido = objetoMostrado ? leido(objetoMostrado.img) : 0;
     apoyado = {
       definicion: objetoMostrado,
       x: enVuelo.x,
       y: enVuelo.y + flota.dy,
-      radio: enVuelo.radio,
+      radio: enVuelo.radio * (1 + CONFIG.escondidos.resalte * leyendoElElegido),
       giro: flota.giro,
       aterrizo,
     };
@@ -697,9 +806,13 @@ function cuadro(ahora) {
     if (aterrizo) {
       dibujarObjetoApoyado(
         ctx,
-        { ...apoyado, alfa: transicion.elegido, halo: CONFIG.fondo.haloDelLugar },
+        {
+          ...apoyado,
+          alfa: transicion.elegido,
+          halo: CONFIG.fondo.haloDelLugar * (1 + 0.5 * leyendoElElegido),
+        },
         banco,
-        carrera.color,
+        CONFIG.paleta.nombre,
       );
     }
 
@@ -772,42 +885,47 @@ function cuadro(ahora) {
     for (const blanco of blancos) {
       if (blanco.alfa <= 0) continue;
       const esElMostrado = blanco.id === salida.carrera;
-
-      // La ranura del objeto mostrado queda vacia con su anillo lleno: el
-      // objeto se fue a vivir al fondo, y la marca dice cual fue.
-      if (!esElMostrado) {
-        dibujarObjeto(
-          ctx,
-          {
-            definicion: blanco.definicion,
-            x: blanco.x,
-            y: blanco.y,
-            radio: blanco.radio,
-            alfa: transicion.objetos * blanco.alfa,
-          },
-          banco,
-          blanco.carrera.color,
-        );
-      }
-
+      const alfaDelBlanco = transicion.objetos * blanco.alfa;
+      const donde = { x: blanco.x, y: blanco.y, radio: blanco.radio };
       const progresoDelAnillo = esElMostrado
         ? 1
         : blanco.id === sobreQueBlanco
           ? progresoDeEleccion
           : 0;
 
-      if (progresoDelAnillo > 0) {
-        ctx.save();
-        ctx.globalAlpha = transicion.objetos * blanco.alfa;
-        dibujarAnilloDeProgreso(ctx, {
-          x: blanco.x,
-          y: blanco.y,
-          radio: blanco.radio,
-          progreso: progresoDelAnillo,
-          color: blanco.carrera.color,
-        });
-        ctx.restore();
+      // La ranura del objeto mostrado queda vacia con su anillo lleno: el
+      // objeto se fue a vivir al fondo, y la marca dice cual fue.
+      // El disco de la carga se llena DEBAJO del objeto: encima le teñiria la
+      // foto. En la ranura del elegido queda lleno y se apaga con el carrusel:
+      // cortarlo en el cuadro en que se completa era un parpadeo.
+      dibujarDiscoDeCarga(ctx, {
+        ...donde,
+        progreso: progresoDelAnillo,
+        color: CONFIG.carga.color,
+        opacidad: CONFIG.carga.relleno,
+        alfa: alfaDelBlanco,
+      });
+      if (!esElMostrado) {
+        dibujarObjeto(
+          ctx,
+          { definicion: blanco.definicion, ...donde, alfa: alfaDelBlanco },
+          banco,
+          CONFIG.paleta.nombre,
+        );
       }
+
+      // Un solo color de carga para las doce ingenierias. La opacidad del
+      // carrusel multiplica la del anillo: se apaga con el en vez de quedarse
+      // entero y cortarse de golpe al final.
+      dibujarAnilloDeProgreso(ctx, {
+        ...donde,
+        progreso: progresoDelAnillo,
+        color: CONFIG.carga.color,
+        pista: CONFIG.carga.pista,
+        trazo: CONFIG.carga.trazo,
+        brillo: CONFIG.carga.brillo,
+        alfa: alfaDelBlanco,
+      });
     }
   }
 
@@ -827,29 +945,63 @@ function cuadro(ahora) {
         alfa: transicion.elegido,
       },
       banco,
-      carrera.color,
+      CONFIG.paleta.nombre,
     );
   }
 
   // La señal de las manos: donde registra el sistema tu palma. Es lo unico que
-  // le enseña al publico que puede estirarlas, y sin ella el sostenido es a
-  // ciegas. Solo mientras la eleccion sigue abierta: despues las manos no hacen
-  // nada, y una señal que sigue encendida promete algo que ya no pasa.
-  if (eleccionAbierta) {
-    dibujarManos(ctx, manosSuaves, '#ffffff', CONFIG.manos.senal);
+  // le enseña al publico que puede estirarlas, y sin ella el gesto es a
+  // ciegas. Cada mano se prende y se apaga de a poco, y la señal entera vive
+  // con lo que las manos pueden hacer: el carrusel antes de elegir, los objetos
+  // del fondo despues. Durante el vuelo se apaga con el carrusel y vuelve con
+  // los escondidos, sin cortes: encendida mientras las manos no hacen nada
+  // prometeria algo que no pasa.
+  dibujarManos(
+    ctx,
+    desvanecedorDeManos.actualizar(manosSuaves, ahora),
+    '#ffffff',
+    CONFIG.manos.senal,
+    Math.max(transicion.objetos, transicion.escondidos),
+  );
+
+  // Las fichas, encima de todo lo de la escena: el texto se tiene que leer.
+  // Cada una en la franja del costado de su objeto, para no taparle la cara a
+  // nadie, y se apaga con el fondo en el cierre. Se miden contra el objeto ya
+  // crecido, asi la ficha no se corre mientras el objeto se agranda.
+  for (const objeto of delFondo) {
+    const alfa = (estadoFichas.alfas[objeto.id] ?? 0) * transicion.fondo;
+    if (alfa <= 0) continue;
+    dibujarFicha(
+      ctx,
+      {
+        x: objeto.x,
+        y: objeto.y,
+        radio: objeto.radio * (1 + CONFIG.escondidos.resalte),
+        nombre: objeto.definicion.nombre,
+        descripcion: objeto.definicion.descripcion,
+        alfa,
+      },
+      disposicion,
+      {
+        columna: disposicion.ancho * CONFIG.fichas.columna,
+        colores: COLORES_DE_FICHA,
+        evitar: delFondo.filter((otro) => otro.id !== objeto.id),
+      },
+    );
   }
 
-  dibujarNombreDeCarrera(ctx, carrera, disposicion, transicion.contenido);
+  // Un solo color para el nombre de las doce: el de los nombres de MAITE.
+  dibujarNombreDeCarrera(ctx, carrera, disposicion, transicion.contenido, CONFIG.paleta.nombre);
 
   // El humo va encima de todo: su trabajo es justamente tapar el momento en que
   // las nubes se abren y los objetos se ponen en su lugar.
-  dibujarHumo(
-    ctx,
-    videoDeHumo,
-    disposicion,
-    alfaDeHumo({ estado, transcurrido: enEstadoDesde, tiempos: CONFIG.tiempos, humo: CONFIG.humo }),
-    CONFIG.humo.opacidad,
-  );
+  const humo = alfaDeHumo({
+    estado,
+    transcurrido: enEstadoDesde,
+    tiempos: CONFIG.tiempos,
+    humo: CONFIG.humo,
+  });
+  dibujarHumo(ctx, videoDeHumo, disposicion, humo, CONFIG.humo.opacidad);
 
   nieblaActual = acercarNiebla(
     nieblaActual,
@@ -879,18 +1031,20 @@ function cuadro(ahora) {
     ctx.restore();
   }
 
-  if (estado === ESTADOS.ATRACCION) {
-    // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
-    // 700 ms era un parpadeo, no una respiracion: apurado, se leia como un
-    // aviso de error mas que como una invitacion.
-    dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 1400) + 1) / 2);
-  }
-  // La consigna ensena el gesto, y es lo unico que lo hace. Se apaga con el
-  // carrusel: una vez elegida la ingenieria no hay gesto que ensenar, y dejarla
-  // puesta seria pedir algo que ya no tiene efecto.
+  // Tambien cuando no hay camara: el publico ve la invitacion, nunca un error.
+  // 700 ms era un parpadeo, no una respiracion: apurado, se leia como un aviso
+  // de error mas que como una invitacion. Entra despacio en el reposo y se va
+  // rapido cuando alguien se sienta.
+  dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 1400) + 1) / 2, transicion.invitacion);
+  // La consigna ensena el gesto, y es lo unico que lo hace. La de la eleccion
+  // sale de abajo del humo —encendida de golpe encima del humo espeso era un
+  // golpe de luz— y se apaga con el carrusel: elegida la ingenieria, ya no hay
+  // nada que agarrar. La de explorar entra con la escena entera y se va para
+  // siempre la primera vez que alguien abre una ficha: el gesto ya se aprendio.
   if (estado === ESTADOS.EXPLORACION) {
-    dibujarConsigna(ctx, disposicion, transicion.objetos);
+    dibujarConsigna(ctx, disposicion, transicion.objetos * (1 - humo));
   }
+  dibujarConsigna(ctx, disposicion, transicion.explorar, 'Pasá la mano sobre los objetos del fondo');
 }
 
 window.espejo = {
@@ -909,6 +1063,9 @@ window.espejo = {
   mostrada: () => mostrada,
   origenDelVuelo: () => origenDelVuelo,
   progresoDeEleccion: () => progresoDeEleccion,
+  fichaActiva: () => estadoFichas.activa,
+  // Donde estan, en este cuadro, los objetos del fondo que tienen ficha.
+  objetosDelFondo: () => delFondo.map(({ id, x, y, radio }) => ({ id, x, y, radio })),
   hayFondo: () => Boolean(videoDeHumo),
   modo: () => modo,
   cambiarModo: (nuevo) => {
