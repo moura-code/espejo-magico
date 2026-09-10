@@ -17,6 +17,11 @@ ingeniería que le tocó se queda puesta. El espejo le avisa a **MAITE**, el
 proyecto de las tablets, para que los retratos del stand muestren a la gente de
 esa carrera.
 
+Y en ese fondo hay más: los otros **tres objetos** de la ingeniería están
+escondidos a los costados, meciéndose apenas. Pasando la mano sobre cualquiera de
+los cuatro se abre su **ficha**, con el nombre del objeto y una descripción
+corta de qué tiene que ver con la carrera.
+
 Dura mientras la persona siga sentada; en cuanto el espejo deja de reconocer su
 cara, vuelve a cubrirse y queda libre para el que sigue en la fila.
 
@@ -67,7 +72,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | Comando | Para qué |
 |---|---|
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
-| `npm run listo` | ¿Se puede montar el stand? Verifica los PNG, los tres fondos candidatos de cada carrera —con su `lugar`, y el video de los que se mueven—, el video de humo, que los nombres y textos de las personas estén escritos, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
+| `npm run listo` | ¿Se puede montar el stand? Verifica los PNG, los cuatro objetos de cada carrera con su nombre y su descripción, los tres fondos candidatos —con su `lugar`, los escondites de los otros tres objetos y el video de los que se mueven—, el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose. |
 | `npm run generar-pngs` | Genera el PNG de respaldo de los objetos que no tengan imagen (no pisa existentes). Necesita Chrome; no usa red. |
 | `npm run generar-fondos` | Genera el fondo de respaldo de cada carrera que no tenga imagen, dibujando con el Chrome local (sin red) el lugar donde se trabaja esa ingeniería. No pisa existentes. `herramientas/fondos.html` las muestra las doce juntas. |
@@ -81,12 +86,15 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | `A` | Alterna avance manual / automático |
 | `1`–`9`, `0`, `-`, `=` | Fuerza una carrera y salta a la revelación (la fila de números entera: doce teclas, doce carreras) |
 | `R` | Corta la sesión y vuelve a la invitación |
-| `D` | Modo demo: funciona sin cámara |
+| `D` | Modo demo: funciona sin cámara, y el mouse hace de mano (se elige sosteniéndolo sobre un objeto y se abren las fichas pasándolo por encima) |
 | `M` | Muestra los puntos que el sistema detecta en cara y manos |
 | `P` | Panel de estado y FPS |
 
 `herramientas/figuras.html` muestra las treinta y seis figuras de los objetos en
-una grilla, sobre fondo oscuro, claro o tono de piel.
+una grilla, sobre fondo oscuro, claro o tono de piel. `herramientas/fondos.html`
+muestra cada fondo candidato con sus cuatro objetos y sus fichas, tal como se
+vería en el espejo, y `herramientas/colores.html` las opciones de color del
+nombre y de la carga que se miraron. Las tres se abren desde `npm start`.
 
 ## Cómo está armado
 
@@ -105,9 +113,12 @@ estados y el sostenido se prueban enteros sin cámara ni pantalla. `main.js` es
 sólo cableado: decide qué módulo habla con cuál y en qué orden se dibuja.
 
 **Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:**
-nombre, color, objetos, los fondos candidatos con el lugar donde se apoya el
-objeto, y el id que esa carrera tiene en MAITE. Agregar o cambiar una carrera no
-toca una línea de código. Las personas no están acá: las muestran las tablets.
+nombre, sus cuatro objetos con su nombre y su descripción (el primero es el del
+carrusel), los fondos candidatos con el lugar de cada objeto, y el id que esa
+carrera tiene en MAITE. Agregar o cambiar una carrera no toca una línea de
+código. Las personas no están acá: las muestran las tablets. El color no
+distingue a las ingenierías: nombres, carga y fichas van en los colores de
+MAITE, en `espejo/config.js`.
 
 Los objetos son fotografías reales con el fondo recortado; las que salieron de
 Wikimedia Commons llevan autor, origen y licencia en
@@ -156,5 +167,6 @@ manos, silueta y puntos de pose ocurre íntegramente en el navegador local. Lo
 - `docs/arquitectura.md` — arquitectura del sistema, módulos, máquina de estados, física y MediaPipe.
 - `docs/contenido.md` — guía para agregar o modificar carreras, objetos PNG, figuras vectoriales y efectos.
 - `docs/despliegue.md` — guía completa de puesta en marcha del stand y solución de problemas.
-- `docs/superpowers/specs/` — especificación original de diseño y decisiones arquitectónicas.
+- `docs/superpowers/specs/` — las especificaciones de diseño de cada etapa y sus decisiones; la última, `2026-09-10-devolucion-de-la-catedra-design.md`, cuenta qué se hizo con cada punto de la segunda devolución de la cátedra.
 - `docs/superpowers/plans/` — plan detallado de implementación tarea por tarea.
+- `docs/planilla-de-tareas.md` y `.csv` — la planilla de tareas y horas de cada integrante: un borrador estimado desde el historial de git, para completar con las horas reales.

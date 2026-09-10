@@ -12,8 +12,10 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
 3. **Doble clic en `herramientas\arrancar.bat`.** Aparecen una ventana negra chica
    (el servidor) y Chrome a pantalla completa. **No cerrar la ventana negra.**
 4. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar
-   el humo, sostener la mano sobre un objeto hasta que el anillo se llene, ver
-   que **los demás objetos se apaguen** y quede sólo la ingeniería con su fondo,
+   el humo, sostener la mano sobre un objeto hasta que la carga se complete (son
+   unos tres segundos), ver que **los demás objetos se apaguen** y quede la
+   ingeniería con su fondo, esperar a que aparezcan **los otros tres objetos
+   escondidos** a los costados y pasar la mano sobre cada uno para ver su ficha,
    ver que las tablets cambien, levantarse y ver que las nubes vuelvan.
 
 El espejo no necesita internet. Sí necesita que las tablets estén en la misma
@@ -32,7 +34,7 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 | `1` a `9`, `0`, `-` y `=` | Fuerza una carrera y la muestra directo |
 | `ESPACIO` / `Enter` / `➔` | Avanza manualmente al siguiente estado |
 | `A` | Alterna entre avance automático (reloj) y avance manual |
-| `D` | Modo demo: funciona sin cámara, con un rostro simulado |
+| `D` | Modo demo: funciona sin cámara, con un rostro simulado, y el mouse hace de mano |
 | `M` | Muestra los puntos que el sistema detecta en la cara |
 | `P` | Muestra u oculta el panel de estado |
 | `R` | Corta la sesión y vuelve a la invitación |
@@ -69,11 +71,13 @@ Es como funciona: **se elige una sola vez**. La ingeniería que le tocó se qued
 puesta hasta que se levanta, y el que sigue en la fila arranca de cero con los
 objetos barajados de nuevo. Si alguien insiste, que se vuelva a sentar cuando
 las nubes hayan tapado la pantalla. Desde la PC, las teclas de números fuerzan
-cualquier ingeniería en cualquier momento.
+cualquier ingeniería en cualquier momento. Mientras tanto hay algo para hacer:
+en el fondo de su ingeniería esperan cuatro objetos, y pasando la mano sobre
+cada uno se abre su ficha.
 
 **No pasa nada al poner la mano sobre un objeto.**
-Si los objetos ya se habían apagado, la persona ya eligió y es lo esperado (ver
-arriba). Si el carrusel está a la vista, apretar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se ve: casi
+Si el carrusel ya se había apagado, la persona ya eligió y la mano ahora abre las
+fichas de los objetos del fondo (ver abajo). Si el carrusel está a la vista, apretar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se ve: casi
 siempre está fuera del cuadro (muy abajo o muy al costado) o hay contraluz.
 Apretar `M` para ver si aparecen los puntos sobre los dedos. La mano tiene que
 estar **abierta y de frente**, no de canto.
@@ -82,6 +86,13 @@ estar **abierta y de frente**, no de canto.
 La detección de la mano está entrecortada. Suele ser luz o distancia. Si pasa
 seguido con mucha gente, avisar al equipo técnico: se sube
 `eleccion.msDeGracia` en `espejo/config.js`.
+
+**Las fichas de los objetos del fondo no se abren.**
+Los objetos del fondo van en los costados de la pantalla, a propósito, para no
+taparle la cara a nadie: a veces hay que estirar un poco el brazo. Apretar `P`:
+la línea `manos` tiene que mostrar la mano y la línea `ficha`, el objeto que se
+está describiendo. Si la mano se ve y la ficha no se abre, avisar al equipo
+técnico: se agranda el blanco con `fichas.radioFactor` en `espejo/config.js`.
 
 **Las tablets no cambian cuando alguien elige.**
 Apretar `P` y mirar la línea `maite`. Si dice `ok`, el espejo avisó bien y el
@@ -130,10 +141,11 @@ matices.
 |---|---|
 | Dibujos de cada carrera | `contenido/assets/<carrera>/` |
 | Fondos de cada ingeniería | `contenido/assets/fondos/` |
-| Nombres, colores, objetos y fondos | `contenido/carreras.json` |
-| Duraciones y ajustes finos | `espejo/config.js` |
+| Nombres, objetos con sus descripciones y fondos | `contenido/carreras.json` |
+| Duraciones, colores y ajustes finos | `espejo/config.js` |
 
-Para corregir el nombre de una carrera, su color, o cuál de sus fondos se muestra
+Para corregir el nombre de una carrera, la descripción de un objeto, cuál de sus
+objetos va al carrusel (el primero de `objetos`) o cuál de sus fondos se muestra
 (el primero de `fondos`), se edita `contenido/carreras.json` y listo: no hay que
 tocar una línea de código.
 

@@ -19,16 +19,36 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
   "color": "#00E5A0",
   "maite": "sistemas",
   "fondos": [
-    { "img": "assets/fondos/computacion.png" },
-    { "img": "assets/fondos/computacion-2.jpg", "lugar": { "x": 0.2, "y": 0.28, "escala": 0.15 } }
+    {
+      "img": "assets/fondos/computacion-2.jpg",
+      "lugar": { "x": 0.175, "y": 0.27, "escala": 0.16 },
+      "escondites": [
+        { "x": 0.825, "y": 0.12, "escala": 0.14 },
+        { "x": 0.22, "y": 0.435, "escala": 0.14 },
+        { "x": 0.875, "y": 0.47, "escala": 0.14 }
+      ]
+    },
+    { "img": "assets/fondos/computacion.png" }
   ],
-  "objeto": { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2 },
   "objetos": [
-    { "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2 },
-    { "img": "assets/computacion/procesador.png", "figura": "chip", "escala": 0.18 }
+    {
+      "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2,
+      "nombre": "Computadora",
+      "descripcion": "Hardware y software trabajando juntos. En Computación se aprende a programarla para resolver problemas reales."
+    },
+    {
+      "img": "assets/computacion/procesador.png", "figura": "chip", "escala": 0.16,
+      "nombre": "Procesador",
+      "descripcion": "Ejecuta miles de millones de instrucciones por segundo con transistores más chicos que un virus."
+    },
+    { "img": "assets/computacion/placa.png", "figura": "servidor", "escala": 0.2, "nombre": "Placa madre", "descripcion": "…" },
+    { "img": "assets/computacion/mouse.png", "figura": "chip", "escala": 0.14, "nombre": "Mouse", "descripcion": "…" }
   ]
 }
 ```
+
+La computadora es la que gira en el carrusel y vuela a `lugar`; el procesador,
+la placa y el mouse esperan escondidos en los tres `escondites`, en ese orden.
 
 ---
 
@@ -38,29 +58,48 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
 |---|---|---|
 | `id` | `string` | Identificador único sin acentos ni espacios (`mecanica`, `forestal`, `quimica`). |
 | `nombre` | `string` | Nombre oficial completo. Se ve al pie, en una o dos líneas, mientras se muestra la carrera. |
-| `color` | `string` | Color hexadecimal distintivo (`#rrggbb`). Se usa en el nombre, el anillo de progreso y como acento de la escena de respaldo. |
+| `color` | `string` | Color hexadecimal (`#rrggbb`), distinto para cada carrera. **Ya no tiñe el nombre ni la carga**: la cátedra pidió que el color no distinga a las ingenierías, y los dos van en el dorado de MAITE (`CONFIG.paleta`, ver §6). Queda para la escena vectorial de respaldo. |
 | `maite` | `string \| null` | El id que **esta misma carrera tiene en el proyecto MAITE**. Ver §7. |
-| `fondos` | `array` | Los fondos candidatos: `{ img, video?, lugar? }`. El espejo muestra **el primero**; elegir es reordenar. `lugar` es dónde se apoya el objeto, normalizado a la imagen. `video` es opcional y hace que el fondo se mueva. Ver §3. |
-| `objeto` | `objeto` | **Opcional.** El objeto que representa a esta carrera en el carrusel. Si no está, se sortea uno de `objetos`. |
-| `objetos` | `array` | Lista de 6 o más objetos característicos. De acá sale el representante cuando `objeto` no está declarado. |
+| `fondos` | `array` | Los fondos candidatos: `{ img, video?, lugar, escondites }`. El espejo muestra **el primero**; elegir es reordenar. `lugar` es dónde se apoya el objeto del carrusel y `escondites` dónde esperan los otros tres, normalizados a la imagen. `video` es opcional y hace que el fondo se mueva. Ver §3. |
+| `objetos` | `array` | Los **cuatro** objetos que identifican a la carrera, cada uno con su `nombre` y su `descripcion`. El primero va al carrusel; los otros tres se esconden en el fondo. |
 
 No hay `persona`: las personas de cada ingeniería las muestran las tablets de
-MAITE, y el espejo muestra la ingeniería.
+MAITE, y el espejo muestra la ingeniería. Tampoco hay `objeto` —el representante
+fijo de antes—: el espejo lo rechaza con la receta, porque ahora el representante
+es el primero de `objetos`.
 
 ### Los objetos
 
-Cada carrera aporta **un solo objeto** al carrusel que gira alrededor de la
-persona, y es el que vuela a su lugar en el fondo cuando lo agarra.
+Cada carrera tiene **cuatro objetos** que la identifican. **El primero** es el que
+la representa en el carrusel que gira alrededor de la persona, y el que vuela a
+su lugar en el fondo cuando lo agarra; **los otros tres** ya están en el fondo,
+escondidos en sus `escondites`, meciéndose apenas para que se los pueda
+encontrar. Elegir cuál va al carrusel es reordenar la lista, igual que con los
+fondos.
 
 - **`img`**: ruta al PNG con fondo transparente (`assets/mecanica/engranaje.png`).
+- **`nombre`**: cómo se llama el objeto. Es el título de su ficha.
+- **`descripcion`**: una o dos oraciones, **hasta 130 caracteres**, que dicen qué
+  es y qué tiene que ver con la ingeniería. Es lo que se lee al pasar la mano por
+  encima, de pie o sentado a un metro y medio: corta, concreta y para alguien
+  que todavía está en el liceo. `npm run listo` exige el nombre y la descripción
+  de los cuatro.
 - **`figura`**: nombre de la figura vectorial de reserva en `espejo/figuras.js`.
-- **`escala`**: se conserva del catálogo anterior; hoy el tamaño del objeto en la
-  elección lo fija `CONFIG.tablero.radioObjetoFactor`, proporcional a la
-  distancia a la que está sentada la persona.
+- **`escala`**: se conserva del catálogo anterior; el tamaño del objeto en el
+  carrusel lo fija `CONFIG.tablero.radioObjetoFactor` —proporcional a la
+  distancia a la que está sentada la persona— y en el fondo, la `escala` del
+  lugar o del escondite.
 
-Declarar `objeto` fija cuál se muestra siempre. Sirve para las carreras donde un
-solo PNG se entiende de lejos y el resto no. Sin declararlo, se sortea uno de la
-lista y dos visitantes seguidos no ven exactamente la misma pantalla.
+Los objetos que se eligieron salen de los 73 PNG del proyecto, mirando cuáles se
+entienden de lejos y cuáles identifican de verdad a cada carrera (un casco de
+obra dice Civil; un martillo no dice nada). Los PNG que no se usan quedan en su
+carpeta como banco para reemplazar: cambiar un objeto es cambiar su `img`, su
+`nombre` y su `descripcion`.
+
+> **Ojo con los objetos finos o alargados** —una probeta, un compás, una
+> maqueta de barco—: se dibujan dentro del círculo de su escala, así que se ven
+> más chicos que uno redondo. Si alguno no se encuentra, se agranda la `escala`
+> de su escondite.
 
 ---
 
@@ -98,41 +137,67 @@ mueve tanto que la persona y el objeto encima quedan compitiendo con el fondo en
 vez de integrados. Está declarado como cuarto candidato de Naval, no como el
 activo, para poder mirarlo al lado de los otros.
 
-### Candidatos y `lugar`
+### Candidatos, `lugar` y `escondites`
 
 Cada carrera declara `fondos`, una lista de candidatos. **El espejo muestra el
 primero; elegir es reordenar.** Son **tres opciones reales por carrera** como
 mínimo, y `npm run listo` lo verifica; el `.png` que genera
 `npm run generar-fondos` no cuenta, porque es el respaldo que dibuja el código,
-no una opción para elegir. Cada candidato puede declarar `lugar`, dónde se
-apoya el objeto, **normalizado a la imagen** (`x` e `y` de 0 a 1, `escala` es el
-diámetro como fracción del ancho de la imagen): como el fondo se dibuja cubriendo
-la pantalla y recortado, un punto normalizado a la imagen cae siempre en el
-mismo sitio de la escena. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`, que es
-un seguro del código y no una decisión — por eso `npm run listo` pide que **cada
-candidato declare el suyo**.
+no una opción para elegir.
 
-Ese `lugar` se elige para el espejo vertical, que es la medida en que se
-preparan las fotos. Si el espejo corre en una pantalla de otra proporción —un
-monitor apaisado mientras se desarrolla— la foto se ve recortada a su franja del
-medio y el rincón elegido puede quedar afuera: ahí el espejo corre el objeto lo
-justo para que entre entero en pantalla (`CONFIG.fondo.margenDelLugar`). En el
-espejo vertical se ve exactamente donde se eligió.
+Cada candidato **esconde los cuatro objetos** de su ingeniería:
 
-El punto de partida se mide sobre la foto, no se estima ni se elige de una lista
-de esquinas: de cada imagen se saca un mapa de brillo de 18×32 celdas, se prueba
-cada posición posible del objeto —una ventana del tamaño del objeto más su
-halo— y gana la más oscura. Quedan fuera de la búsqueda la columna del medio
-(ahí va la cara), todo lo que caiga por debajo del 40 % de la altura (ahí empieza
-el degradado del nombre) y una franja de margen a cada lado, porque un objeto
-pegado al borde se lee como que se cae de la pantalla. Después se afina mirando,
-que es para lo que está `herramientas/fondos.html`.
+- **`lugar`**: dónde se apoya el objeto del carrusel, el que llega volando.
+- **`escondites`**: dónde esperan los otros tres, **en el mismo orden que
+  `objetos`**: el segundo objeto va al primer escondite, y así.
+
+Todos van **normalizados a la imagen** (`x` e `y` de 0 a 1, `escala` es el
+diámetro como fracción del ancho de la imagen): las fotos se preparan en
+1080×1920, la medida del espejo, y ahí un punto normalizado a la imagen cae
+exactamente en el sitio de la escena que se eligió. Sin declararlos valen
+`CONFIG.fondo.lugarPorDefecto` y `CONFIG.fondo.esconditesPorDefecto`, que son un
+seguro del código y no una decisión — por eso `npm run listo` pide que **cada
+candidato declare los suyos**.
+
+**Todos en la periferia.** La cátedra pidió que los objetos no coincidan con la
+zona central, donde está la imagen de la persona: un objeto ahí le taparía la
+cara o quedaría tapado por ella. La zona prohibida es
+`CONFIG.fondo.zonaDeLaPersona` —la cabeza, del 30 % al 70 % del ancho entre el
+14 % y el 50 % de la altura, y los hombros, del 18 % al 82 % desde la mitad para
+abajo— más el pie, donde va el nombre (el 30 % de abajo).
+`tests/integracion/fondos.test.js` lo verifica para cada fondo del catálogo, y
+también que los cuatro objetos de un fondo no se pisen. En
+`herramientas/fondos.html` hay una casilla para ver la zona dibujada encima.
+
+El punto de partida se mide sobre la foto, no se estima: de cada imagen se saca
+un mapa de brillo de 108×192 celdas y se buscan **cuatro rincones, dos por
+costado** —uno alto, al lado de la cabeza o por encima, y uno medio, al lado de
+la cara—, fuera de la zona de la persona, con margen al borde de la pantalla y
+separados entre sí. En cada rincón gana la ventana más oscura y más pareja (el
+objeto más su halo) cerca de una composición de referencia, para que no terminen
+todos pegados a los bordes. El objeto del carrusel va al rincón alto más oscuro
+—el "rincón oscuro arriba" de los criterios— con `escala` 0.16, y los otros tres
+a los tres rincones que quedan con 0.14. Después se afina mirando, que es para
+lo que está `herramientas/fondos.html`.
+
+Si el espejo corre en una pantalla de otra proporción —un monitor apaisado
+mientras se desarrolla—, la foto se ve recortada a su franja del medio. Ahí el
+espejo mide los lugares contra lo que se ve de la foto: la composición entera se
+conserva, a la escala de la persona, y nada se pisa que no se pisara en el
+espejo vertical.
 
 ```json
 "fondos": [
-  { "img": "assets/fondos/quimica.png" },
-  { "img": "assets/fondos/quimica-2.jpg", "lugar": { "x": 0.2, "y": 0.28, "escala": 0.15 } },
-  { "img": "assets/fondos/quimica-3.jpg", "lugar": { "x": 0.78, "y": 0.33, "escala": 0.16 } }
+  {
+    "img": "assets/fondos/quimica-laboratorio.jpg",
+    "lugar": { "x": 0.895, "y": 0.12, "escala": 0.16 },
+    "escondites": [
+      { "x": 0.18, "y": 0.215, "escala": 0.14 },
+      { "x": 0.9, "y": 0.34, "escala": 0.14 },
+      { "x": 0.22, "y": 0.395, "escala": 0.14 }
+    ]
+  },
+  { "img": "assets/fondos/quimica.png" }
 ]
 ```
 
@@ -143,8 +208,10 @@ http://localhost:8080/herramientas/fondos.html
 ```
 
 muestra los candidatos de cada carrera **tal como se verían**: la imagen, una
-silueta donde va la persona, el halo y el objeto apoyados en su lugar y el
-nombre al pie, con las mismas funciones que usa el espejo.
+silueta donde va la persona, el objeto del carrusel apoyado en su lugar con su
+halo, los otros tres meciéndose en sus escondites, la ficha de cada uno
+abriéndose por turno y el nombre al pie, con las mismas funciones que usa el
+espejo.
 
 Los candidatos `-2` y `-3` son fotografías de Wikimedia Commons con licencia
 libre, **recortadas a 9:16, escaladas a 1080×1920 y oscurecidas** para que la
@@ -304,9 +371,26 @@ los cuatro temas de tablet (`temas/tablet-*.css`) la pisan con Muffaroo. El
 espejo y los retratos están a dos metros uno del otro en el stand: comparten la
 letra para que se lean como una sola instalación.
 
-La consigna del sostenido va en la sans del sistema. No es una concesión: es la
-única instrucción de la experiencia y tiene que entenderse de un vistazo. MAITE
-hace la misma división.
+Las consignas y la descripción de cada ficha van en la sans del sistema. No es
+una concesión: tienen que entenderse de un vistazo, y a tamaño de párrafo la
+display cuesta leerla. MAITE hace la misma división.
+
+### Los colores
+
+La cátedra pidió que **el color no distinga a las ingenierías**. Los nombres, la
+carga del sostenido, los halos y las fichas van en los colores de las tablets de
+MAITE (`public/style.css`), iguales para las doce, y viven en `CONFIG.paleta`:
+
+| Uso | Color | En MAITE |
+|---|---|---|
+| El nombre de la ingeniería, el título de la ficha, la carga y los halos | `#f0dca0` | `--color-accent-strong`, el de los nombres en las cuatro tablets |
+| La descripción de la ficha | `#cdbfa0` | `--color-text-muted`, el de los textos de las tablets |
+| El panel de la ficha | `rgba(5, 5, 10, 0.8)` | `--color-bg` |
+
+Las opciones que se miraron —los cinco colores de la paleta de MAITE que podían
+ir en el nombre y cinco maneras de dibujar la carga con transparencia— están
+lado a lado, andando, en `http://localhost:8080/herramientas/colores.html`. Para
+cambiar la elegida se cambia `CONFIG.paleta` o `CONFIG.carga`.
 
 Para reemplazarla hay que tocar tres lugares: el archivo en
 `contenido/assets/tipografias/`, el `@font-face` de `espejo/espejo.html` y las
@@ -373,11 +457,14 @@ npm run listo
 ```
 
 Verifica que estén los PNG de objetos declarados, el fondo activo y todos los
-candidatos declarados de cada carrera, el video de humo, las doce carreras con
-sus colores distintos y al menos seis objetos cada una, la tipografía Muffaroo
-con su nota de licencia, que cada `maite` declarado exista del otro lado, que
-haya al menos cinco carreras jugables para que el carrusel sea un carrusel, y
-que MediaPipe esté vendorizado.
+candidatos declarados de cada carrera —cada uno con su `lugar` y los escondites
+de los otros tres objetos—, el video de humo, las doce carreras con sus colores
+distintos y **cuatro objetos cada una, con su nombre y una descripción de hasta
+130 caracteres**, la tipografía Muffaroo con su nota de licencia, que cada
+`maite` declarado exista del otro lado, que haya al menos cinco carreras
+jugables para que el carrusel sea un carrusel, y que MediaPipe esté vendorizado.
+Que los objetos caigan en la periferia lo verifica `npm test`
+(`tests/integracion/fondos.test.js`).
 
 El cotejo contra MAITE busca su `data/carreras.json` en `MAITE/` (dentro del
 proyecto) y en `../maite/` (al lado, que es como suelen quedar los dos repos al

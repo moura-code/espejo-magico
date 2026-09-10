@@ -77,10 +77,11 @@ Antes de abrir el stand al público:
 2. **Desconectar la PC de cualquier red externa / Internet.** En la pestaña *Red* de las herramientas de desarrollo (F12) sólo pueden aparecer `localhost:8080` y `localhost:3000`.
 3. Sentarse en el sillón del visitante frente al espejo.
 4. Verificar que **entre el humo** al sentarse y que al disiparse quede el **carrusel de objetos** girando despacio alrededor de los hombros: uno por ingeniería, cinco o seis a la vista.
-5. **Probar el sostenido:** poner la mano sobre un objeto y mantenerla. El carrusel tiene que **detenerse** y el anillo llenarse en un segundo y medio largo; al completarse, el objeto vuela a su lugar en el fondo, aparece el nombre de la ingeniería al pie y **el resto de los objetos se apaga** — se elige una sola vez, y de ahí en más la mano ya no hace nada. Si se saca la mano antes de que el anillo se llene, el carrusel sigue girando. Si el anillo va y viene sin llenarse, subir `CONFIG.eleccion.msDeGracia`; si se dispara sin querer al pasar la mano, subir `msParaElegir`.
+5. **Probar el sostenido:** poner la mano sobre un objeto y mantenerla. El carrusel tiene que **detenerse** y la carga —un anillo dorado y un disco translúcido que se llena detrás del objeto— completarse en **tres segundos**; al completarse, el objeto vuela a su lugar en el fondo, aparece el nombre de la ingeniería al pie y **el resto del carrusel se apaga** — se elige una sola vez. Si se saca la mano antes, la carga se vacía en un segundo y el carrusel sigue girando. Si la carga va y viene sin completarse, subir `CONFIG.eleccion.msDeGracia`; si se dispara sin querer al pasar la mano, subir `msParaElegir`.
 6. **Probar desde el fondo del stand, no sólo de cerca.** Los objetos se acomodan solos según el ancho de hombros, pero es acá donde se calibra a qué distancia poner el sillón: tienen que quedar cómodos de alcanzar sin estirar el brazo del todo.
 7. Al agarrar un objeto, verificar que **las cuatro tablets cambien** a la gente de esa carrera. Es un aviso por persona: no vuelven a cambiar hasta que se siente el siguiente. Para probar otra carrera sin levantarse, forzarla con las teclas de números. Si no cambian, abrir el panel (`P`) y mirar la línea `maite`: dice si el espejo llegó a avisar o si el problema está del otro lado.
 8. Confirmar que aparezca el **fondo de la ingeniería detrás de la persona**, no encima. Si se ve la persona lavada bajo el fondo, la máscara de silueta no está: mirar la línea `pose` del panel.
+   Al rato de aterrizar el objeto tienen que aparecer, a los costados, los **otros tres objetos** de la carrera, escondidos en el fondo y meciéndose apenas, y abajo la consigna *"Pasá la mano sobre los objetos del fondo"*. Pasar la mano sobre cada uno de los cuatro: se tiene que abrir su **ficha** —el nombre y una descripción corta— en el costado de ese objeto, sin taparle la cara a la persona; al sacar la mano, la ficha espera un momento y se apaga despacio. La línea `ficha` del panel dice cuál está abierta.
 9. **Sentarse quieto un par de minutos.** La escena tiene que seguir siendo suya: si se corta sola, revisar `CONFIG.tiempos.sesionMaxima` y `CONFIG.presencia.msParaSalir`.
 10. **Sentarse y no elegir nada.** A los 30 segundos el espejo tiene que resolver solo y revelar una carrera: nadie se va sin ingeniería y la fila no se traba.
 11. Levantarse del sillón y verificar que la escena se cierre, que las nubes vuelvan a cubrir el espejo y que **las tablets vuelvan a su humo**. Son unos **nueve segundos** desde que uno se levanta: seis de ausencia (`ausenciaParaCortar` más `presencia.msParaSalir`) y tres de cierre.
@@ -94,11 +95,11 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 
 | Tecla | Acción | Descripción |
 |---|---|---|
-| `P` | **Panel HUD de Estado** | Muestra u oculta métricas en vivo: FPS, estado, carreras ofrecidas, carrera elegida, cámara, manos, progreso del sostenido, silueta, humo, **último envío a MAITE** y PNG faltantes. |
+| `P` | **Panel HUD de Estado** | Muestra u oculta métricas en vivo: FPS, estado, carreras ofrecidas, carrera elegida, cámara, manos, progreso del sostenido, ficha abierta, silueta, humo, **último envío a MAITE** y PNG faltantes. |
 | `1`–`9`, `0`, `-`, `=` | **Forzar Carrera** | Salta directamente a la revelación de la ingeniería correspondiente, y le avisa a MAITE. Es la fila de números entera: una tecla por carrera, en el orden de `carreras.json`. |
 | `A` | **Modo Auto / Manual** | Alterna entre avance automático por reloj y avance manual por teclado. |
 | `ESPACIO` / `Enter` | **Avanzar Estado** | Avanza manualmente al siguiente estado (útil en pruebas o demostraciones). |
-| `D` | **Modo Demo** | Simula un rostro en movimiento sin requerir cámara real. |
+| `D` | **Modo Demo** | Simula un rostro en movimiento sin requerir cámara real, y **el puntero del mouse hace de mano**: se elige sosteniéndolo sobre un objeto del carrusel y se abren las fichas pasándolo sobre los objetos del fondo. |
 | `M` | **Malla Facial** | Muestra los puntos (landmarks) de detección de cara y manos sobre el video. |
 | `R` | **Reiniciar Sesión** | Corta la escena actual y retorna al estado de atracción en reposo. |
 | `Ctrl` + `R` | **Recargar Página** | Recarga la aplicación del espejo por completo. |
@@ -130,6 +131,11 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 1. Presionar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se está detectando: revisar luz y encuadre (`M` muestra los puntos sobre los dedos).
 2. Si el `progreso` de la línea `eleccion` sube y baja sin llegar a 100 %, la detección está entrecortada: subir `CONFIG.eleccion.msDeGracia`.
 3. Si los objetos quedan fuera del alcance del brazo, ajustar `CONFIG.tablero.radioFactor` (más chico = más cerca del cuerpo).
+
+### Las fichas de los objetos del fondo no se abren, o se abren solas
+1. Presionar `P`: la línea `manos` tiene que mostrar la mano vista, y la línea `ficha` el objeto que se está describiendo.
+2. Si la mano se ve pero la ficha no se abre, la mano no llega al objeto: los objetos del fondo van en los costados, y a veces hay que estirar el brazo. Se agranda el blanco con `CONFIG.fichas.radioFactor`.
+3. Si se abren al pasar la mano camino a otro lado, subir `CONFIG.fichas.msParaMostrar`; si se cierran mientras alguien lee, subir `CONFIG.fichas.msDeGracia`.
 
 ### Las tablets no acompañan al espejo
 1. Presionar `P` y mirar la línea `maite`.
