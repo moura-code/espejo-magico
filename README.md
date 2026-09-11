@@ -77,6 +77,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | `npm run generar-pngs` | Genera el PNG de respaldo de los objetos que no tengan imagen (no pisa existentes). Necesita Chrome; no usa red. |
 | `npm run generar-fondos` | Genera el fondo de respaldo de cada carrera que no tenga imagen, dibujando con el Chrome local (sin red) el lugar donde se trabaja esa ingeniería. No pisa existentes. `herramientas/fondos.html` las muestra las doce juntas. |
 | `npm start` | Levanta el servidor local. |
+| `npm run planilla` | Rearma `docs/planilla-de-tareas.csv` y `.md` desde el historial de git del espejo y de MAITE: las tareas de cada integrante con horas estimadas. Conserva las horas reales ya cargadas. |
 
 ## Atajos, en la PC del espejo
 
