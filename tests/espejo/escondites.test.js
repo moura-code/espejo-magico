@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { lugaresDelFondo, esconder, balanceo, aspectoDelObjeto } from '../../espejo/escondites.js';
+import {
+  lugaresDelFondo,
+  esconder,
+  balanceo,
+  aspectoDelObjeto,
+  objetosDelFondo,
+  fichaDelObjeto,
+} from '../../espejo/escondites.js';
 
 const POR_DEFECTO = {
   lugar: { x: 0.2, y: 0.22, escala: 0.16 },
@@ -73,7 +80,7 @@ describe('esconder', () => {
 });
 
 describe('balanceo', () => {
-  const ajuste = { grados: 6, amplitud: 0.06, periodoMs: 4000 };
+  const ajuste = { grados: 6, amplitud: 0.06, periodoMs: 4000, variacion: 0.17 };
   const GRADO = Math.PI / 180;
 
   it('se mece dentro de lo pedido', () => {
@@ -193,5 +200,89 @@ describe('aspectoDelObjeto', () => {
       expect(Math.abs(despues.dy - antes.dy)).toBeLessThan(0.02 * 60);
       expect(Math.abs(despues.halo - antes.halo)).toBeLessThan(0.05);
     }
+  });
+});
+
+describe('objetosDelFondo', () => {
+  const pantalla = { ancho: 1080, alto: 1920 };
+  const rectangulo = { x: 0, y: 0, ancho: 1080, alto: 1920 };
+  const CONFIG_FALSA = {
+    fondo: {
+      margenDelLugar: 1.25,
+      lugarPorDefecto: POR_DEFECTO.lugar,
+      esconditesPorDefecto: POR_DEFECTO.escondites,
+    },
+  };
+  const [a, b, c, d] = ['a.png', 'b.png', 'c.png', 'd.png'].map((img) => ({ img }));
+  const fondo = {
+    img: 'f.jpg',
+    lugar: { x: 0.2, y: 0.3, escala: 0.16 },
+    escondites: [
+      { x: 0.8, y: 0.3, escala: 0.14 },
+      { x: 0.15, y: 0.45, escala: 0.14 },
+      { x: 0.85, y: 0.45, escala: 0.14 },
+    ],
+  };
+  const armar = (extra) =>
+    objetosDelFondo({ objetos: [a, b, c, d], fondo, rectangulo, pantalla, config: CONFIG_FALSA, ...extra });
+
+  // El 0 es el que llega volando y los escondidos son los que siguen: cada uno
+  // se identifica por su lugar en `objetos`, no por su PNG.
+  it('pone cada objeto en su lugar de la pantalla, con su id y su definicion', () => {
+    const objetos = armar();
+    expect(objetos.map((objeto) => [objeto.id, objeto.definicion])).toEqual([
+      [0, a],
+      [1, b],
+      [2, c],
+      [3, d],
+    ]);
+    expect(objetos[0].x).toBeCloseTo(0.2 * 1080);
+    expect(objetos[0].y).toBeCloseTo(0.3 * 1920);
+    expect(objetos[0].radio).toBeCloseTo((0.16 * 1080) / 2);
+    expect(objetos[3].x).toBeCloseTo(0.85 * 1080);
+    expect(objetos[3].y).toBeCloseTo(0.45 * 1920);
+    expect(objetos[3].radio).toBeCloseTo((0.14 * 1080) / 2);
+  });
+
+  // Cada escondido se mece a su ritmo, y el ritmo sale de su indice.
+  it('los escondidos llevan el indice de su vaiven', () => {
+    expect(armar().slice(1).map((objeto) => objeto.indice)).toEqual([0, 1, 2]);
+  });
+
+  it('sin fondo, los lugares de config', () => {
+    const [primero, segundo] = armar({ fondo: null });
+    expect(primero.x).toBeCloseTo(POR_DEFECTO.lugar.x * 1080);
+    expect(primero.y).toBeCloseTo(POR_DEFECTO.lugar.y * 1920);
+    expect(segundo.x).toBeCloseTo(POR_DEFECTO.escondites[0].x * 1080);
+    expect(segundo.y).toBeCloseTo(POR_DEFECTO.escondites[0].y * 1920);
+  });
+
+  it('un objeto sin escondite no se muestra', () => {
+    const conUno = armar({ fondo: { ...fondo, escondites: fondo.escondites.slice(0, 1) } });
+    expect(conUno.map((objeto) => objeto.definicion)).toEqual([a, b]);
+  });
+});
+
+describe('fichaDelObjeto', () => {
+  const CONFIG_FALSA = {
+    escondidos: { resalte: 0.14 },
+    fichas: { columna: 0.3, tipografia: { texto: 0.8, titulo: 1.2, anchoEnLetras: 14 } },
+  };
+  const delFondo = [
+    { id: 0, x: 200, y: 560, radio: 86 },
+    { id: 1, x: 880, y: 590, radio: 76 },
+    { id: 2, x: 190, y: 830, radio: 76 },
+  ];
+
+  // Contra el objeto ya crecido: asi la ficha no se corre mientras el objeto se
+  // agranda al leerse. Y sin tapar a ninguno de los otros del fondo.
+  it('se dispone contra el objeto ya crecido, en su franja, evitando a los demas', () => {
+    const { circulo, opciones } = fichaDelObjeto(delFondo[2], delFondo, 1080, CONFIG_FALSA);
+    expect(circulo.x).toBe(190);
+    expect(circulo.y).toBe(830);
+    expect(circulo.radio).toBeCloseTo(76 * 1.14);
+    expect(opciones.evitar).toEqual([delFondo[0], delFondo[1]]);
+    expect(opciones.columna).toBeCloseTo(324);
+    expect(opciones.tipografia).toBe(CONFIG_FALSA.fichas.tipografia);
   });
 });

@@ -18,12 +18,17 @@ import {
   dibujarNombreDeCarrera,
   dibujarObjeto,
   dibujarObjetoApoyado,
+  dibujarObjetosDelante,
   dibujarPersonaRecortada,
   disponerFicha,
   medidasDe,
   partirEnLineas,
   tamanoQueEntra,
 } from '../../espejo/escena.js';
+
+// La letra de las fichas en estas pruebas. En el espejo sale de
+// CONFIG.fichas.tipografia, y disponerFicha no la inventa si falta.
+const TIPOGRAFIA_DE_FICHA = { texto: 0.82, titulo: 1.25, anchoEnLetras: 15 };
 
 // Lienzo falso: registra las llamadas para poder afirmar sobre lo dibujado.
 function crearCtxFalso() {
@@ -218,7 +223,7 @@ describe('dibujarAnilloDeProgreso', () => {
 });
 
 describe('dibujarDiscoDeCarga', () => {
-  const base = { x: 300, y: 400, radio: 60, color: '#f0dca0', opacidad: 0.3 };
+  const base = { x: 300, y: 400, radio: 60, color: '#f0dca0', opacidad: 0.3, radioFactor: 1.12 };
 
   it('sin progreso, sin opacidad o invisible no dibuja nada', () => {
     for (const caso of [{ progreso: 0 }, { progreso: 0.5, opacidad: 0 }, { progreso: 0.5, alfa: 0 }]) {
@@ -476,6 +481,52 @@ describe('dibujarPersonaRecortada', () => {
       disposicion,
     });
     expect(soloDe(lienzoAparte.ctx, 'scale').filter(([, x]) => x === -1)).toHaveLength(2);
+  });
+});
+
+describe('dibujarObjetosDelante', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const imagen = { width: 100, height: 100 };
+  const banco = { obtener: () => imagen };
+  const persona = { canvas: { es: 'persona' } };
+  const leido = { definicion: { img: 'probeta.png' }, x: 900, y: 600, radio: 60, giro: 0, alfa: 0.8 };
+  // Una capa que anota tambien con que composicion se dibuja: el recorte contra
+  // la persona es un destination-in.
+  const capaQueAnota = () => {
+    const ctx = crearCtxFalso();
+    let compuesto = 'source-over';
+    Object.defineProperty(ctx, 'globalCompositeOperation', {
+      get: () => compuesto,
+      set: (valor) => {
+        compuesto = valor;
+        ctx.llamadas.push(['compuesto', valor]);
+      },
+    });
+    return { canvas: { es: 'capa' }, ctx };
+  };
+
+  it('sin nada que mostrar no dibuja nada', () => {
+    const ctx = crearCtxFalso();
+    const capa = capaQueAnota();
+    dibujarObjetosDelante(ctx, { capa, persona, disposicion, objetos: [], banco, color: '#f0dca0' });
+    expect(ctx.llamadas).toEqual([]);
+    expect(capa.ctx.llamadas).toEqual([]);
+  });
+
+  // DONDE NADA LO TAPA NO CAMBIA NADA. Dibujado entero encima de si mismo, el
+  // objeto duplicaba su sombra y engrosaba los bordes del PNG justo cuando se
+  // lo estaba leyendo. Recortado contra la persona, aparece solo donde la mano
+  // lo tapaba.
+  it('dibuja los objetos en su capa, los recorta contra la persona y recien ahi los pega', () => {
+    const ctx = crearCtxFalso();
+    const capa = capaQueAnota();
+    dibujarObjetosDelante(ctx, { capa, persona, disposicion, objetos: [leido], banco, color: '#f0dca0' });
+
+    const pasos = capa.ctx.llamadas
+      .filter(([que]) => que === 'clearRect' || que === 'drawImage' || que === 'compuesto')
+      .map(([que, primero]) => (que === 'clearRect' ? 'limpia' : primero));
+    expect(pasos).toEqual(['limpia', imagen, 'destination-in', persona.canvas]);
+    expect(soloDe(ctx, 'drawImage').map(([, fuente]) => fuente)).toEqual([capa.canvas]);
   });
 });
 
@@ -965,7 +1016,11 @@ describe('las dos tipografias', () => {
       ctx,
       { x: 170, y: 330, radio: 59, alfa: 1, nombre: 'Rodamiento', descripcion: 'Gira sin rozar.' },
       disposicion,
-      { columna: 324, colores: { titulo: '#f0dca0', texto: '#cdbfa0', panel: '#05050a', borde: '#8a7038' } },
+      {
+        columna: 324,
+        colores: { titulo: '#f0dca0', texto: '#cdbfa0', panel: '#05050a', borde: '#8a7038' },
+        tipografia: TIPOGRAFIA_DE_FICHA,
+      },
     );
     const orden = ctx.llamadas.map(([que]) => que);
     expect(orden.indexOf('font')).toBeGreaterThan(orden.indexOf('save'));
@@ -978,7 +1033,11 @@ describe('las dos tipografias', () => {
       ctx,
       { x: 170, y: 330, radio: 59, alfa: 1, nombre: 'Rodamiento', descripcion: 'Gira sin rozar.' },
       disposicion,
-      { columna: 324, colores: { titulo: '#f0dca0', texto: '#cdbfa0', panel: '#05050a', borde: '#8a7038' } },
+      {
+        columna: 324,
+        colores: { titulo: '#f0dca0', texto: '#cdbfa0', panel: '#05050a', borde: '#8a7038' },
+        tipografia: TIPOGRAFIA_DE_FICHA,
+      },
     );
     const fuentes = fuentesDe(ctx);
     expect(fuentes.some((fuente) => fuente.includes(TITULO_SOLO))).toBe(true);
@@ -1026,8 +1085,17 @@ describe('disponerFicha', () => {
   };
   // El 30 % del ancho de cada costado: hasta ahi no llega la persona.
   const COLUMNA = 324;
-  const disponer = (objeto, conTextos = textos) =>
-    disponerFicha(objeto, conTextos, disposicion, medir, { columna: COLUMNA });
+  const disponer = (objeto, conTextos = textos, evitar = []) =>
+    disponerFicha(objeto, conTextos, disposicion, medir, {
+      columna: COLUMNA,
+      evitar,
+      tipografia: TIPOGRAFIA_DE_FICHA,
+    });
+  const tapa = (caja, { x, y, radio }) => {
+    const cercaX = Math.max(caja.x, Math.min(x, caja.x + caja.ancho));
+    const cercaY = Math.max(caja.y, Math.min(y, caja.y + caja.alto));
+    return Math.hypot(x - cercaX, y - cercaY) < radio;
+  };
 
   // LA FICHA NO LE PUEDE TAPAR LA CARA A LA PERSONA. Va en la columna del
   // costado de su objeto: la misma periferia donde la catedra pidio que vayan
@@ -1086,15 +1154,51 @@ describe('disponerFicha', () => {
     const vecino = { x: 180, y: 560, radio: 59 };
     expect(disponer(objeto).lado).toBe('arriba');
 
-    const ficha = disponerFicha(objeto, textos, disposicion, medir, {
-      columna: COLUMNA,
-      evitar: [vecino],
-    });
+    const ficha = disponer(objeto, textos, [vecino]);
     expect(ficha.lado).toBe('abajo');
-    const { caja } = ficha;
-    const cercaX = Math.max(caja.x, Math.min(vecino.x, caja.x + caja.ancho));
-    const cercaY = Math.max(caja.y, Math.min(vecino.y, caja.y + caja.alto));
-    expect(Math.hypot(vecino.x - cercaX, vecino.y - cercaY)).toBeGreaterThanOrEqual(vecino.radio);
+    expect(tapa(ficha.caja, vecino)).toBe(false);
+  });
+
+  // Una ficha a la que del lado libre le faltan unos pixeles no se puede ir del
+  // otro lado a taparle un objeto a la persona: se corre lo justo hacia su
+  // objeto, que tiene aire de sobra. Sin esto, medio pixel de redondeo —o una
+  // letra apenas mas ancha que la de la prueba— daba vuelta la decision, y
+  // herramientas/fondos.html le mostraba a la catedra otra ficha que el espejo.
+  it('si del lado libre le faltan unos pixeles, se corre hacia su objeto en vez de tapar a otro', () => {
+    const radio = 59;
+    const piso = 1920 - disposicion.pie.alto;
+    // Cuanto mide la ficha, y cuanto aire deja con su objeto cuando entra sin
+    // correrse: debajo de un objeto de arriba de todo.
+    const muestra = disponer({ x: 170, y: 150, radio });
+    const alto = muestra.caja.alto;
+    const aire = muestra.caja.y - 150 - radio;
+
+    // Un objeto de la mitad de abajo, con un vecino arriba: su ficha va abajo,
+    // y abajo le faltan `faltan` pixeles para llegar sin correrse.
+    const conFalta = (faltan) => {
+      const y = piso + faltan - alto - aire - radio;
+      const objeto = { x: 170, y, radio };
+      const vecino = { x: 170, y: y - radio - aire - alto / 2, radio: 40 };
+      return { objeto, vecino, ficha: disponer(objeto, textos, [vecino]) };
+    };
+
+    const { objeto, vecino, ficha } = conFalta(5);
+    expect(ficha.lado).toBe('abajo');
+    expect(ficha.caja.y + ficha.caja.alto).toBeLessThanOrEqual(piso);
+    expect(tapa(ficha.caja, objeto)).toBe(false);
+    expect(tapa(ficha.caja, vecino)).toBe(false);
+
+    // Si correrla le taparia su propio objeto, eso no: nunca encima del que
+    // describe. Va del lado que entra.
+    expect(conFalta(aire + 20).ficha.lado).toBe('arriba');
+  });
+
+  // La letra de la ficha vive en CONFIG.fichas.tipografia: quien no la pasa se
+  // entera en el acto, en vez de dibujar con una copia vieja de esos numeros.
+  it('sin tipografia no inventa una letra', () => {
+    expect(() =>
+      disponerFicha({ x: 170, y: 330, radio: 59 }, textos, disposicion, medir, { columna: COLUMNA }),
+    ).toThrow();
   });
 
   // "Lector de código de barras" o "Vaso de precipitados" no entran en la
@@ -1183,7 +1287,11 @@ describe('dibujarFicha', () => {
     descripcion: 'Bolillas de acero entre dos anillos.',
   };
   const dibujar = (ctx, extra) =>
-    dibujarFicha(ctx, { ...objeto, ...extra }, disposicion, { columna: 324, colores });
+    dibujarFicha(ctx, { ...objeto, ...extra }, disposicion, {
+      columna: 324,
+      colores,
+      tipografia: TIPOGRAFIA_DE_FICHA,
+    });
 
   it('no dibuja nada invisible ni sin textos', () => {
     for (const extra of [{ alfa: 0 }, { alfa: 1, nombre: undefined, descripcion: undefined }]) {

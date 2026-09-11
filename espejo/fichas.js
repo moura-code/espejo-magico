@@ -18,10 +18,9 @@
 //      parpadean; esto es lo que lo garantiza.
 
 import { blancoBajoLaMano } from './eleccion.js';
-
-// Tope del salto de reloj entre dos llamadas. Si el navegador se traba un
-// instante, un salto grande encenderia una ficha de golpe.
-const DT_MAXIMO = 250;
+// Lo mas que cuenta un cuadro: si el navegador se traba, una ficha se frena en
+// vez de encenderse o apagarse de golpe.
+import { DT_MAXIMO } from './suavizado.js';
 
 const acotar = (valor, minimo, maximo) => Math.min(maximo, Math.max(minimo, valor));
 

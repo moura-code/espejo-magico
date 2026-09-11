@@ -340,7 +340,9 @@ describe('crearDesvanecedorDeManos', () => {
     const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
     desvanecedor.actualizar([mano(1)], 0);
     expect(desvanecedor.actualizar([mano(1)], 50)[0].alfa).toBeCloseTo(50 / 150);
-    expect(desvanecedor.actualizar([mano(1)], 200)[0].alfa).toBe(1);
+    let alfa;
+    for (let t = 50 + PASO; t <= 200; t += PASO) alfa = desvanecedor.actualizar([mano(1)], t)[0].alfa;
+    expect(alfa).toBe(1);
   });
 
   // EL FILTRO SUELTA UNA MANO PERDIDA DE GOLPE, y la señal que la seguia
@@ -350,11 +352,14 @@ describe('crearDesvanecedorDeManos', () => {
     const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
     for (let t = 0; t <= 300; t += PASO) desvanecedor.actualizar([mano(1, 100)], t);
     const t0 = 300 + PASO;
-    const saliendo = desvanecedor.actualizar([], t0 + 225);
+    let saliendo;
+    for (let t = t0; t <= t0 + 225; t += PASO) saliendo = desvanecedor.actualizar([], t);
     expect(saliendo).toHaveLength(1);
     expect(saliendo[0].palma).toEqual({ x: 100, y: 200 });
     expect(saliendo[0].alfa).toBeCloseTo(0.5, 1);
-    expect(desvanecedor.actualizar([], t0 + 1000)).toEqual([]);
+    let alFinal;
+    for (let t = t0 + 225 + PASO; t <= t0 + 1000; t += PASO) alFinal = desvanecedor.actualizar([], t);
+    expect(alFinal).toEqual([]);
   });
 
   it('cada mano lleva su propio alfa', () => {
@@ -385,12 +390,12 @@ describe('crearDesvanecedorDeManos', () => {
 });
 
 describe('crearDesvanecedor', () => {
-  const AJUSTE = { msDeEntrada: 1000, msDeSalida: 500 };
+  const AJUSTE = { msDeEntrada: 800, msDeSalida: 400 };
   const PASO = 1000 / 60;
 
   // Cuadro a cuadro, como en el espejo: de `desde` a `hasta`, cada `paso` ms.
-  // 125 ms dan fracciones exactas de los dos plazos.
-  const avanzar = (desvanecedor, encendido, desde, hasta, paso = 125) => {
+  // 50 ms dan fracciones exactas de los dos plazos.
+  const avanzar = (desvanecedor, encendido, desde, hasta, paso = 50) => {
     let alfa;
     for (let t = desde; t <= hasta; t += paso) alfa = desvanecedor.actualizar(encendido, t);
     return alfa;
@@ -399,16 +404,26 @@ describe('crearDesvanecedor', () => {
   it('arranca apagado y se enciende en msDeEntrada', () => {
     const desvanecedor = crearDesvanecedor(AJUSTE);
     expect(desvanecedor.actualizar(true, 0)).toBe(0);
-    expect(avanzar(desvanecedor, true, 125, 500)).toBe(0.5);
-    expect(avanzar(desvanecedor, true, 625, 1000)).toBe(1);
-    expect(avanzar(desvanecedor, true, 1125, 3000)).toBe(1);
+    expect(avanzar(desvanecedor, true, 50, 400)).toBe(0.5);
+    expect(avanzar(desvanecedor, true, 450, 800)).toBe(1);
+    expect(avanzar(desvanecedor, true, 850, 3000)).toBe(1);
   });
 
   it('se apaga en msDeSalida', () => {
     const desvanecedor = crearDesvanecedor(AJUSTE);
-    avanzar(desvanecedor, true, 0, 1000);
-    expect(avanzar(desvanecedor, false, 1125, 1250)).toBe(0.5);
-    expect(avanzar(desvanecedor, false, 1375, 1500)).toBe(0);
+    avanzar(desvanecedor, true, 0, 800);
+    expect(avanzar(desvanecedor, false, 850, 1000)).toBe(0.5);
+    expect(avanzar(desvanecedor, false, 1050, 1200)).toBe(0);
+  });
+
+  // Un tiron del navegador —un detector que tarda, una pestaña que se tapa—
+  // no la apaga de golpe: un cuadro cuenta, como mucho, lo que cuenta un cuadro
+  // de 20 por segundo. Con un tope de 250 ms, un solo tiron se comia media
+  // salida.
+  it('un tiron del navegador no la apaga de golpe', () => {
+    const desvanecedor = crearDesvanecedor(AJUSTE);
+    avanzar(desvanecedor, true, 0, 800);
+    expect(desvanecedor.actualizar(false, 800 + 250)).toBeGreaterThan(0.9);
   });
 
   // LO QUE HACE FALTA DE ESTO. Con un alfa por estado, la invitacion arrancaba
@@ -423,12 +438,15 @@ describe('crearDesvanecedor', () => {
     expect(alfa).toBeGreaterThan(0);
     expect(alfa).toBeLessThan(0.5);
 
+    // Lo mas que puede cambiar en un cuadro: la pendiente de la curva suave
+    // (1,5) por lo que avanza en linea recta.
+    const maximo = (1.5 * PASO) / AJUSTE.msDeSalida + 1e-9;
     let anterior = alfa;
     let t = 300;
     for (; anterior > 0; t += PASO) {
       const siguiente = desvanecedor.actualizar(false, t + PASO);
       expect(siguiente).toBeLessThanOrEqual(anterior);
-      expect(anterior - siguiente).toBeLessThan(0.05);
+      expect(anterior - siguiente).toBeLessThanOrEqual(maximo);
       anterior = siguiente;
     }
     // Se va en lo que le queda, no en la salida entera.
@@ -443,7 +461,7 @@ describe('crearDesvanecedor', () => {
 
   it('reiniciar la apaga', () => {
     const desvanecedor = crearDesvanecedor(AJUSTE);
-    avanzar(desvanecedor, true, 0, 1000);
+    avanzar(desvanecedor, true, 0, 800);
     desvanecedor.reiniciar();
     expect(desvanecedor.actualizar(true, 1300)).toBe(0);
   });

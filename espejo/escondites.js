@@ -14,7 +14,7 @@
 // tests/integracion/fondos.test.js vigila que ninguno caiga en la zona de la
 // persona ni en la del nombre.
 
-import { flotacion } from './vuelo.js';
+import { flotacion, lugarEnPantalla } from './vuelo.js';
 
 const GRADO = Math.PI / 180;
 
@@ -59,7 +59,7 @@ export function esconder(objetos, escondites) {
  * animacion pegada encima del fondo, no como cosas que estan ahi. Y siempre
  * continuo: un movimiento a los saltos se lee como un parpadeo.
  */
-export function balanceo(ahora, indice, radio, { grados, amplitud, periodoMs, variacion = 0.17 }) {
+export function balanceo(ahora, indice, radio, { grados, amplitud, periodoMs, variacion }) {
   const periodo = Math.max(1, periodoMs) * (1 + variacion * indice);
   const fase = (ahora / periodo) * Math.PI * 2 + indice * DESFASE;
   return {
@@ -104,5 +104,55 @@ export function aspectoDelObjeto(
     giro: movimiento.giro * calma,
     radio: radio * (1 + escondidos.resalte * lectura),
     halo: (haloEnReposo + (escondidos.haloAlLeer - haloEnReposo) * lectura) * entrada,
+  };
+}
+
+/**
+ * Los objetos del fondo en la pantalla, en el orden de `objetos`: el primero
+ * —el que llega volando del carrusel— en el `lugar` del fondo, y los otros en
+ * sus escondites. `rectangulo` es donde quedo dibujada la foto (lo devuelve
+ * quien la dibujo) y `pantalla`, la medida del lienzo: lugarEnPantalla los
+ * mide contra lo que se ve de la foto. Cada uno lleva su `id` —su lugar en
+ * `objetos`: con la ruta del PNG, dos objetos con la misma imagen compartirian
+ * la ficha—, su `definicion` y, los escondidos, el `indice` de su vaiven.
+ *
+ * El primero va siempre, aunque le falte la definicion: su lugar es tambien el
+ * destino del vuelo. La usan el espejo, herramientas/fondos.html y las pruebas
+ * de integracion; armada en cada lado, el espejo podia cambiar y las pruebas
+ * seguir en verde.
+ */
+export function objetosDelFondo({ objetos, fondo, rectangulo, pantalla, config }) {
+  const aPantalla = (lugar) =>
+    lugarEnPantalla(lugar, rectangulo, pantalla, config.fondo.margenDelLugar);
+  const [lugar, ...escondites] = lugaresDelFondo(fondo, {
+    lugar: config.fondo.lugarPorDefecto,
+    escondites: config.fondo.esconditesPorDefecto,
+  });
+  const [primero, ...resto] = objetos;
+  return [
+    { id: 0, definicion: primero, ...aPantalla(lugar) },
+    ...esconder(resto, escondites).map(({ definicion, lugar: escondite }, indice) => ({
+      id: indice + 1,
+      definicion,
+      indice,
+      ...aPantalla(escondite),
+    })),
+  ];
+}
+
+/**
+ * Contra que se dispone la ficha de un objeto del fondo, para disponerFicha y
+ * dibujarFicha: el objeto ya crecido —asi la ficha no se corre mientras el
+ * objeto se agranda al leerse—, la franja del costado en pixeles de esa
+ * pantalla, los otros objetos del fondo, que no puede tapar, y la letra.
+ */
+export function fichaDelObjeto(objeto, delFondo, anchoDePantalla, config) {
+  return {
+    circulo: { x: objeto.x, y: objeto.y, radio: objeto.radio * (1 + config.escondidos.resalte) },
+    opciones: {
+      columna: anchoDePantalla * config.fichas.columna,
+      evitar: delFondo.filter((otro) => otro.id !== objeto.id),
+      tipografia: config.fichas.tipografia,
+    },
   };
 }

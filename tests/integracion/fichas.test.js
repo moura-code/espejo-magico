@@ -6,6 +6,11 @@
 // cada renglon adentro del panel, y sin tapar al objeto que describen ni a los
 // otros objetos del fondo. Asi aparecio que "Lector de código de barras" se
 // salia de la pantalla y que una de cada seis fichas tapaba a un vecino.
+//
+// Los objetos y lo que se le pasa a la ficha salen de las mismas funciones que
+// usa el espejo (objetosDelFondo y fichaDelObjeto): armados aca por separado,
+// el espejo podia cambiar el margen o el radio de la ficha y esto seguia en
+// verde.
 
 import { describe, it, expect } from 'vitest';
 import { readFile } from 'node:fs/promises';
@@ -14,9 +19,7 @@ import { fileURLToPath } from 'node:url';
 
 import { CONFIG } from '../../espejo/config.js';
 import { calcularDisposicion, calcularRectanguloVideo, disponerFicha } from '../../espejo/escena.js';
-import { lugarEnPantalla } from '../../espejo/vuelo.js';
-import { lugaresDelFondo, esconder } from '../../espejo/escondites.js';
-import { objetoDeCarrera, escondidosDeCarrera } from '../../espejo/contenido.js';
+import { objetosDelFondo, fichaDelObjeto } from '../../espejo/escondites.js';
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const ESPEJO = { ancho: 1080, alto: 1920 };
@@ -47,38 +50,26 @@ async function fichasDelCatalogo(pantalla = ESPEJO) {
   );
   const rectangulo = calcularRectanguloVideo(1080, 1920, pantalla.ancho, pantalla.alto);
   const enPantalla = calcularDisposicion(pantalla.ancho, pantalla.alto);
-  const porDefecto = {
-    lugar: CONFIG.fondo.lugarPorDefecto,
-    escondites: CONFIG.fondo.esconditesPorDefecto,
-  };
 
   const casos = [];
   for (const carrera of carreras) {
     for (const fondo of carrera.fondos ?? []) {
-      const [lugar, ...escondites] = lugaresDelFondo(fondo, porDefecto);
-      const objetos = [
-        { definicion: objetoDeCarrera(carrera), lugar },
-        ...esconder(escondidosDeCarrera(carrera), escondites),
-      ].map(({ definicion, lugar: donde }) => ({
-        definicion,
-        ...lugarEnPantalla(donde, rectangulo, pantalla, CONFIG.fondo.margenDelLugar),
-      }));
-
-      objetos.forEach((objeto, i) => {
-        const otros = objetos.filter((_, j) => j !== i);
-        // Se dispone contra el objeto ya crecido, como en el espejo.
-        const leido = { x: objeto.x, y: objeto.y, radio: objeto.radio * (1 + CONFIG.escondidos.resalte) };
+      const delFondo = objetosDelFondo({
+        objetos: carrera.objetos,
+        fondo,
+        rectangulo,
+        pantalla,
+        config: CONFIG,
+      });
+      for (const objeto of delFondo) {
+        const { circulo, opciones } = fichaDelObjeto(objeto, delFondo, pantalla.ancho, CONFIG);
         casos.push({
           nombre: `${fondo.img} · ${objeto.definicion.nombre}`,
-          objeto: leido,
-          otros,
-          ficha: disponerFicha(leido, objeto.definicion, enPantalla, medir, {
-            columna: pantalla.ancho * CONFIG.fichas.columna,
-            evitar: otros,
-            tipografia: CONFIG.fichas.tipografia,
-          }),
+          objeto: circulo,
+          otros: opciones.evitar,
+          ficha: disponerFicha(circulo, objeto.definicion, enPantalla, medir, opciones),
         });
-      });
+      }
     }
   }
   return casos;

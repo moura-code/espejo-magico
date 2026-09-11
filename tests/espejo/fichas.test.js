@@ -156,6 +156,19 @@ describe('crearFichas', () => {
     expect(alfa(salida, 'a')).toBeLessThan(0.7);
   });
 
+  // Y un tiron tampoco la apaga de golpe mientras alguien la lee: un cuadro
+  // cuenta, como mucho, lo que cuenta un cuadro de 20 por segundo. Con un tope
+  // de 250 ms, un solo tiron se comia un tercio del fundido.
+  it('un tiron del navegador no apaga una ficha de golpe', () => {
+    const fichas = crearFichas(AJUSTE);
+    correr(fichas, 0, 1000, () => sobre(A));
+    // Pasa la gracia y empieza a apagarse.
+    const antes = alfa(correr(fichas, 1000, 2000, nada).at(-1), 'a');
+    expect(antes).toBeGreaterThan(0.5);
+    const despues = alfa(fichas.actualizar({ manos: [], objetivos: OBJETOS, ahora: 2250 }), 'a');
+    expect(antes - despues).toBeLessThanOrEqual(50 / AJUSTE.msDeSalida + 1e-9);
+  });
+
   // La consigna que enseña a pasar la mano se apaga la primera vez que alguien
   // abre una ficha: para eso tiene que saberse cuando fue.
   it('recuerda cuando se abrio la primera ficha', () => {

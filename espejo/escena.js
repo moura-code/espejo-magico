@@ -188,6 +188,32 @@ export function dibujarPersonaRecortada(ctx, { capa, video, rectangulo, silueta,
   return true;
 }
 
+/**
+ * Lo que va delante de la persona, y solo donde esta la persona: el objeto del
+ * fondo que se esta leyendo. Detras, la mano que lo fue a buscar lo tapaba
+ * justo cuando crece y se ilumina, y la ficha quedaba hablando de algo que no
+ * se ve.
+ *
+ * Se dibuja en `capa` y se recorta contra `persona` —la capa con la persona ya
+ * recortada que dejo dibujarPersonaRecortada— antes de pegarlo: donde nada lo
+ * tapa no se dibuja dos veces, ni su sombra ni los bordes del PNG, y donde la
+ * mano lo tapaba aparece encima de ella. `objetos` son como los de
+ * dibujarObjeto, cada uno con su alfa.
+ */
+export function dibujarObjetosDelante(ctx, { capa, persona, disposicion, objetos, banco, color }) {
+  if (objetos.length === 0) return;
+  const { ancho, alto } = disposicion;
+  capa.ctx.clearRect(0, 0, ancho, alto);
+  for (const objeto of objetos) dibujarObjeto(capa.ctx, objeto, banco, color);
+
+  capa.ctx.save();
+  capa.ctx.globalCompositeOperation = 'destination-in';
+  capa.ctx.drawImage(persona.canvas, 0, 0);
+  capa.ctx.restore();
+
+  ctx.drawImage(capa.canvas, 0, 0);
+}
+
 function dibujarSustituto(ctx, radio, color) {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -292,7 +318,7 @@ export function dibujarAnilloDeProgreso(
  */
 export function dibujarDiscoDeCarga(
   ctx,
-  { x, y, radio, progreso, color, opacidad, alfa = 1, radioFactor = 1.12 },
+  { x, y, radio, progreso, color, opacidad, alfa = 1, radioFactor },
 ) {
   if (progreso <= 0 || opacidad <= 0 || alfa <= 0) return;
 
@@ -673,14 +699,15 @@ export function disponerFicha(
   { nombre, descripcion } = {},
   disposicion,
   medir,
-  { columna, evitar = [], tipografia = {} } = {},
+  { columna, evitar = [], tipografia } = {},
 ) {
   const hayNombre = esTexto(nombre);
   const hayDescripcion = esTexto(descripcion);
   if (!hayNombre && !hayDescripcion) return null;
 
-  const { texto: letraDelTexto = 0.82, titulo: letraDelTitulo = 1.25, anchoEnLetras = 15 } =
-    tipografia;
+  // La letra vive en CONFIG.fichas.tipografia y no tiene copia aca: sin ella
+  // esto falla en el acto, en vez de dibujar con numeros viejos.
+  const { texto: letraDelTexto, titulo: letraDelTitulo, anchoEnLetras } = tipografia;
   const { ancho, alto, pie, texto, unidad } = disposicion;
   // La letra acompaña a la composicion, como los objetos (lugarEnPantalla): en
   // el espejo es la de la pantalla, y en un monitor apaisado, donde la
@@ -742,23 +769,30 @@ export function disponerFicha(
   const arriba = y - radio - separacion - altoCaja;
   const entraDebajo = debajo + altoCaja <= piso;
   const entraArriba = arriba >= techo;
-  // Del lado que le toca si entra y no tapa a otro objeto del fondo (`evitar`):
-  // la persona tiene que poder ir de un objeto al siguiente sin que la ficha del
-  // primero le esconda el que sigue. Si no, del otro lado; y si en ninguno se
-  // puede todo, del que por lo menos entra.
+  // Del lado que le toca si ahi la ficha —corrida hacia su objeto lo que haga
+  // falta para entrar en la pantalla— no tapa a su objeto ni a otro del fondo
+  // (`evitar`): la persona tiene que poder ir de un objeto al siguiente sin que
+  // la ficha del primero le esconda el que sigue. Correrla unos pixeles hacia
+  // su objeto le come parte del aire que los separa, que sobra; irse del otro
+  // lado por medio pixel de redondeo, en cambio, tapaba a un vecino. Si no, del
+  // otro lado; y si en ninguno se puede todo, del que entra sin correrse.
   const yDe = (lado) =>
     acotar(lado === 'abajo' ? debajo : arriba, techo, Math.max(techo, piso - altoCaja));
   const entra = (lado) => (lado === 'abajo' ? entraDebajo : entraArriba);
-  const libre = (lado) => {
+  const tapa = (arribaDeLaCaja, otro) => {
+    const cercaX = acotar(otro.x, cajaX, cajaX + anchoCaja);
+    const cercaY = acotar(otro.y, arribaDeLaCaja, arribaDeLaCaja + altoCaja);
+    return Math.hypot(otro.x - cercaX, otro.y - cercaY) < otro.radio;
+  };
+  const sirve = (lado) => {
     const arribaDeLaCaja = yDe(lado);
-    return evitar.every((otro) => {
-      const cercaX = acotar(otro.x, cajaX, cajaX + anchoCaja);
-      const cercaY = acotar(otro.y, arribaDeLaCaja, arribaDeLaCaja + altoCaja);
-      return Math.hypot(otro.x - cercaX, otro.y - cercaY) >= otro.radio;
-    });
+    return (
+      !tapa(arribaDeLaCaja, { x, y, radio }) &&
+      !evitar.some((otro) => tapa(arribaDeLaCaja, otro))
+    );
   };
   const orden = y < (techo + piso) / 2 ? ['abajo', 'arriba'] : ['arriba', 'abajo'];
-  const lado = orden.find((l) => entra(l) && libre(l)) ?? orden.find(entra) ?? orden[0];
+  const lado = orden.find(sirve) ?? orden.find(entra) ?? orden[0];
   const cajaY = yDe(lado);
 
   const esquina = Math.round(tamanoTexto * 0.55);

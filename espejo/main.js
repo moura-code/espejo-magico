@@ -4,7 +4,7 @@
 // que orden se dibuja. Todo lo que se puede probar vive en otro lado.
 
 import { CONFIG } from './config.js';
-import { cargarContenido, objetoDeCarrera, escondidosDeCarrera, fondoActivo } from './contenido.js';
+import { cargarContenido, objetoDeCarrera, fondoActivo } from './contenido.js';
 import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
@@ -16,14 +16,15 @@ import {
   crearHisteresis,
   crearDesvanecedorDeManos,
   crearDesvanecedor,
+  DT_MAXIMO,
 } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearEleccion } from './eleccion.js';
 import { crearTablero } from './tablero.js';
 import { crearSilueta } from './silueta.js';
-import { lugarEnPantalla, posicionEnVuelo } from './vuelo.js';
-import { lugaresDelFondo, esconder, aspectoDelObjeto } from './escondites.js';
+import { posicionEnVuelo } from './vuelo.js';
+import { aspectoDelObjeto, objetosDelFondo, fichaDelObjeto } from './escondites.js';
 import { crearFichas } from './fichas.js';
 import { crearPuente } from './maite.js';
 import { alfaDeHumo } from './humo.js';
@@ -45,6 +46,7 @@ import {
   dibujarPersonaRecortada,
   dibujarObjeto,
   dibujarObjetoApoyado,
+  dibujarObjetosDelante,
   dibujarAnilloDeProgreso,
   dibujarDiscoDeCarga,
   dibujarFicha,
@@ -71,12 +73,16 @@ const ctxNiebla = capaNiebla.getContext('2d');
 const capaPersona = document.createElement('canvas');
 const ctxPersona = capaPersona.getContext('2d');
 const persona = { canvas: capaPersona, ctx: ctxPersona };
+// Y otra para lo que va delante de la persona, solo donde esta ella: el objeto
+// que se esta leyendo, que detras le tapaba la mano.
+const capaDelante = document.createElement('canvas');
+const delante = { canvas: capaDelante, ctx: capaDelante.getContext('2d') };
 
 let disposicion = calcularDisposicion(1, 1);
 
 function ajustar() {
-  lienzo.width = capaNiebla.width = capaPersona.width = window.innerWidth;
-  lienzo.height = capaNiebla.height = capaPersona.height = window.innerHeight;
+  lienzo.width = capaNiebla.width = capaPersona.width = capaDelante.width = window.innerWidth;
+  lienzo.height = capaNiebla.height = capaPersona.height = capaDelante.height = window.innerHeight;
   disposicion = calcularDisposicion(lienzo.width, lienzo.height);
 }
 ajustar();
@@ -128,7 +134,7 @@ const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/'
 const informe = await banco.precargar(contenido.todasLasImagenes());
 if (informe.faltantes.length > 0) {
   console.warn(
-    `Faltan ${informe.faltantes.length} de ${informe.total} imagenes. Se dibujan figuras del color de la carrera:`,
+    `Faltan ${informe.faltantes.length} de ${informe.total} imagenes. Se dibujan sus figuras vectoriales:`,
     informe.faltantes,
   );
 }
@@ -250,7 +256,7 @@ const desvanecedorDeManos = crearDesvanecedorDeManos(CONFIG.manos.senal);
 // reposo hubiera durado menos que su entrada.
 const invitacion = crearDesvanecedor({
   msDeEntrada: CONFIG.tiempos.invitacion,
-  msDeSalida: CONFIG.tiempos.invitacion / 2,
+  msDeSalida: CONFIG.tiempos.salidaDeLaInvitacion,
 });
 // Dos histeresis sobre dos señales distintas. `histeresis` mira rostro O pose:
 // es lo que SOSTIENE una sesion, y por eso los hombros alcanzan cuando la cara
@@ -462,8 +468,8 @@ function cuadro(ahora) {
   operacion.registrarCuadro(ahora);
 
   // Se acota el dt: si el navegador se traba un instante, un salto grande
-  // haria saltar la niebla de golpe.
-  const dt = Math.min(0.05, (ahora - anterior) / 1000);
+  // haria saltar la niebla de golpe. Es el mismo tope que el de los fundidos.
+  const dt = Math.min(DT_MAXIMO, ahora - anterior) / 1000;
   anterior = ahora;
 
   const camaraLista = camara.obtener();
@@ -734,28 +740,24 @@ function cuadro(ahora) {
     }
 
     // Los cuatro objetos del fondo: el que llega volando del carrusel a su
-    // lugar y los otros tres en sus escondites. Los lugares van normalizados a
-    // la foto que se dibujo (o al lienzo entero si no se dibujo ninguna), y
-    // lugarEnPantalla los mide contra lo que se ve de ella: en el espejo, el
-    // sitio exacto que se eligio; en un monitor apaisado, la misma composicion
-    // achicada, sin que nada se pise. El origen del vuelo se capturo al agarrar;
-    // sin origen, el objeto crece en su lugar.
+    // lugar y los otros tres en sus escondites, cada uno con su id —su lugar en
+    // `objetos`—. Los lugares van normalizados a la foto que se dibujo (o al
+    // lienzo entero si no se dibujo ninguna), y objetosDelFondo los mide contra
+    // lo que se ve de ella, con la misma cuenta que usan
+    // herramientas/fondos.html y las pruebas: en el espejo, el sitio exacto que
+    // se eligio; en un monitor apaisado, la misma composicion achicada, sin que
+    // nada se pise. El origen del vuelo se capturo al agarrar; sin origen, el
+    // objeto crece en su lugar.
     const rectanguloDelFondo =
       dibujado ?? { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
-    const aPantalla = (lugar) =>
-      lugarEnPantalla(lugar, rectanguloDelFondo, disposicion, CONFIG.fondo.margenDelLugar);
-    const [lugarDelElegido, ...escondites] = lugaresDelFondo(fondo, {
-      lugar: CONFIG.fondo.lugarPorDefecto,
-      escondites: CONFIG.fondo.esconditesPorDefecto,
+    const [quieto, ...escondidos] = objetosDelFondo({
+      objetos: carrera.objetos,
+      fondo,
+      rectangulo: rectanguloDelFondo,
+      pantalla: disposicion,
+      config: CONFIG,
     });
-    const destino = aPantalla(lugarDelElegido);
-    // Cada objeto del fondo se identifica por su lugar en `objetos`: el 0 es el
-    // que llego volando y los escondidos son los que siguen. Con la ruta del
-    // PNG, dos objetos con la misma imagen compartirian la ficha.
-    const escondidos = esconder(escondidosDeCarrera(carrera), escondites).map(
-      ({ definicion, lugar }, indice) => ({ id: indice + 1, definicion, indice, ...aPantalla(lugar) }),
-    );
-    const enVuelo = posicionEnVuelo({ origen: origenDelVuelo, destino, t: transicion.vuelo });
+    const enVuelo = posicionEnVuelo({ origen: origenDelVuelo, destino: quieto, t: transicion.vuelo });
     const aterrizo = transicion.vuelo >= 1;
 
     // Las fichas se leen sobre los objetos QUIETOS, no sobre su vaiven: si el
@@ -764,7 +766,7 @@ function cuadro(ahora) {
     // aterriza, los escondidos cuando ya se ven a medias, y ninguno fuera de la
     // exploracion: en el cierre se apagan con todo lo demas.
     delFondo = [
-      ...(aterrizo && objetoMostrado ? [{ id: 0, definicion: objetoMostrado, ...destino }] : []),
+      ...(aterrizo && objetoMostrado ? [quieto] : []),
       ...escondidos,
     ];
     const leibles = delFondo.filter(
@@ -844,15 +846,21 @@ function cuadro(ahora) {
       });
       ctx.restore();
 
-      // EL QUE SE ESTA LEYENDO VA TAMBIEN DELANTE DE LA PERSONA. Detras, la
-      // mano que fue a buscarlo lo tapa justo cuando crece y se ilumina, y la
-      // ficha quedaria hablando de algo que no se ve. Es el mismo objeto en el
-      // mismo lugar, sin halo, y entra y sale con su ficha: donde nada lo tapa
-      // no cambia nada, y donde la mano lo tapaba aparece de a poco.
-      for (const dibujo of detras) {
-        if (dibujo.leyendo <= 0) continue;
-        dibujarObjeto(ctx, { ...dibujo, alfa: dibujo.alfa * dibujo.leyendo }, banco, CONFIG.paleta.nombre);
-      }
+      // EL QUE SE ESTA LEYENDO VA TAMBIEN DELANTE DE LA PERSONA, y solo donde
+      // esta ella. Detras, la mano que fue a buscarlo lo tapa justo cuando
+      // crece y se ilumina, y la ficha quedaria hablando de algo que no se ve.
+      // Recortado contra la silueta, donde nada lo tapa no se dibuja dos veces
+      // y donde la mano lo tapaba aparece encima, con el alfa de su ficha.
+      dibujarObjetosDelante(ctx, {
+        capa: delante,
+        persona,
+        disposicion,
+        objetos: detras
+          .filter((dibujo) => dibujo.leyendo > 0)
+          .map((dibujo) => ({ ...dibujo, alfa: dibujo.alfa * dibujo.leyendo })),
+        banco,
+        color: CONFIG.paleta.nombre,
+      });
     }
   }
 
@@ -993,28 +1001,23 @@ function cuadro(ahora) {
 
   // Las fichas, encima de todo lo de la escena: el texto se tiene que leer.
   // Cada una en la franja del costado de su objeto, para no taparle la cara a
-  // nadie, y se apaga con el fondo en el cierre. Se miden contra el objeto ya
-  // crecido, asi la ficha no se corre mientras el objeto se agranda.
+  // nadie, y se apaga con el fondo en el cierre. Contra que se dispone —el
+  // objeto ya crecido, los otros del fondo— lo dice fichaDelObjeto, la misma
+  // cuenta que la herramienta y las pruebas.
   for (const objeto of delFondo) {
     const alfa = (estadoFichas.alfas[objeto.id] ?? 0) * transicion.fondo;
     if (alfa <= 0) continue;
+    const { circulo, opciones } = fichaDelObjeto(objeto, delFondo, disposicion.ancho, CONFIG);
     dibujarFicha(
       ctx,
       {
-        x: objeto.x,
-        y: objeto.y,
-        radio: objeto.radio * (1 + CONFIG.escondidos.resalte),
+        ...circulo,
         nombre: objeto.definicion.nombre,
         descripcion: objeto.definicion.descripcion,
         alfa,
       },
       disposicion,
-      {
-        columna: disposicion.ancho * CONFIG.fichas.columna,
-        colores: COLORES_DE_FICHA,
-        evitar: delFondo.filter((otro) => otro.id !== objeto.id),
-        tipografia: CONFIG.fichas.tipografia,
-      },
+      { ...opciones, colores: COLORES_DE_FICHA },
     );
   }
 

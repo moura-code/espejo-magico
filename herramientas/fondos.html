@@ -52,27 +52,27 @@
     import { cargarContenido, objetoDeCarrera, escondidosDeCarrera } from '../espejo/contenido.js';
     import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
     import { cargarVideoDelNavegador, crearBancoDeVideos } from '../espejo/videos.js';
-    import { lugarEnPantalla } from '../espejo/vuelo.js';
-    import { lugaresDelFondo, esconder, aspectoDelObjeto } from '../espejo/escondites.js';
+    import { aspectoDelObjeto, objetosDelFondo, fichaDelObjeto } from '../espejo/escondites.js';
     import {
       calcularDisposicion,
       dibujarFondo,
       dibujarFicha,
       dibujarNombreDeCarrera,
-      dibujarObjeto,
       dibujarObjetoApoyado,
       TITULO_SOLO,
       PESO_TITULO,
     } from '../espejo/escena.js';
 
-    // A escala: el espejo es 1080x1920 y aca se dibuja a la mitad.
-    const ANCHO = 540;
-    const ALTO = 960;
-    const disposicion = calcularDisposicion(ANCHO, ALTO);
-    const POR_DEFECTO = {
-      lugar: CONFIG.fondo.lugarPorDefecto,
-      escondites: CONFIG.fondo.esconditesPorDefecto,
-    };
+    // Cada candidato se dibuja a la medida del espejo, 1080x1920, en un lienzo
+    // aparte, y se muestra achicado a la mitad. Dispuesto a media escala, el
+    // redondeo de la ficha podia decidir otra cosa que el espejo —de que lado
+    // va y a quien tapa—, y esta es la pagina con la que la catedra elige.
+    const ESPEJO = { ancho: 1080, alto: 1920 };
+    const VISTA = { ancho: 540, alto: 960 };
+    const disposicion = calcularDisposicion(ESPEJO.ancho, ESPEJO.alto);
+    const completo = document.createElement('canvas');
+    completo.width = ESPEJO.ancho;
+    completo.height = ESPEJO.alto;
     const COLORES_DE_FICHA = {
       titulo: CONFIG.paleta.nombre,
       texto: CONFIG.paleta.texto,
@@ -109,15 +109,16 @@
 
     /** Una silueta gris, cabeza y hombros, donde se para la persona. */
     function dibujarSilueta(ctx) {
+      const { ancho, alto } = ESPEJO;
       ctx.save();
       ctx.fillStyle = 'rgba(180, 190, 205, 0.55)';
       ctx.beginPath();
-      ctx.ellipse(ANCHO / 2, ALTO * 0.42, ANCHO * 0.11, ANCHO * 0.14, 0, 0, Math.PI * 2);
+      ctx.ellipse(ancho / 2, alto * 0.42, ancho * 0.11, ancho * 0.14, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(ANCHO * 0.22, ALTO);
-      ctx.quadraticCurveTo(ANCHO * 0.24, ALTO * 0.56, ANCHO / 2, ALTO * 0.55);
-      ctx.quadraticCurveTo(ANCHO * 0.76, ALTO * 0.56, ANCHO * 0.78, ALTO);
+      ctx.moveTo(ancho * 0.22, alto);
+      ctx.quadraticCurveTo(ancho * 0.24, alto * 0.56, ancho / 2, alto * 0.55);
+      ctx.quadraticCurveTo(ancho * 0.76, alto * 0.56, ancho * 0.78, alto);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
@@ -125,13 +126,14 @@
 
     /** La zona de la persona (CONFIG) y la del nombre (el pie), en rojo tenue. */
     function dibujarZonas(ctx) {
+      const { ancho, alto } = ESPEJO;
       ctx.save();
       ctx.fillStyle = 'rgba(255, 70, 70, 0.22)';
       for (const zona of CONFIG.fondo.zonaDeLaPersona) {
-        ctx.fillRect(zona.x0 * ANCHO, zona.y0 * ALTO, (zona.x1 - zona.x0) * ANCHO, (zona.y1 - zona.y0) * ALTO);
+        ctx.fillRect(zona.x0 * ancho, zona.y0 * alto, (zona.x1 - zona.x0) * ancho, (zona.y1 - zona.y0) * alto);
       }
       ctx.fillStyle = 'rgba(255, 200, 70, 0.16)';
-      ctx.fillRect(0, ALTO - disposicion.pie.alto, ANCHO, disposicion.pie.alto);
+      ctx.fillRect(0, alto - disposicion.pie.alto, ancho, disposicion.pie.alto);
       ctx.restore();
     }
 
@@ -152,8 +154,8 @@
      * si no, la escena vectorial despues y el color plano al final.
      */
     function dibujarCandidato(lienzo, carrera, fondo, ahora) {
-      const ctx = lienzo.getContext('2d');
-      ctx.clearRect(0, 0, ANCHO, ALTO);
+      const ctx = completo.getContext('2d');
+      ctx.clearRect(0, 0, ESPEJO.ancho, ESPEJO.alto);
       const fuente =
         (fondo?.video ? videos.obtener(fondo.video) : null) ??
         (fondo ? banco.obtener(fondo.img) : null);
@@ -162,68 +164,75 @@
       // objetos se apoyan normalizados a el y no pueden salir de otra cuenta.
       let rectangulo = dibujarFondo(ctx, fuente, disposicion, 1);
       if (!rectangulo) {
-        rectangulo = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
-        if (!dibujarEscenario(ctx, carrera.id, ANCHO, ALTO, carrera.color)) {
+        rectangulo = { x: 0, y: 0, ancho: ESPEJO.ancho, alto: ESPEJO.alto };
+        if (!dibujarEscenario(ctx, carrera.id, ESPEJO.ancho, ESPEJO.alto, carrera.color)) {
           ctx.fillStyle = carrera.color;
-          ctx.fillRect(0, 0, ANCHO, ALTO);
+          ctx.fillRect(0, 0, ESPEJO.ancho, ESPEJO.alto);
         }
       }
 
-      const aPantalla = (lugar) =>
-        lugarEnPantalla(lugar, rectangulo, disposicion, CONFIG.fondo.margenDelLugar);
-      const [lugarDelElegido, ...escondites] = lugaresDelFondo(fondo, POR_DEFECTO);
-      const elegido = { definicion: objetoDeCarrera(carrera), ...aPantalla(lugarDelElegido) };
-      const escondidos = esconder(escondidosDeCarrera(carrera), escondites).map(
-        ({ definicion, lugar }, indice) => ({ definicion, indice, ...aPantalla(lugar) }),
-      );
-      const todos = [elegido, ...escondidos];
+      // Los cuatro objetos y sus fichas salen de las mismas funciones que usa
+      // el espejo (objetosDelFondo, fichaDelObjeto, aspectoDelObjeto), no de una
+      // copia: ajustar un lado solo separaria en silencio lo que se ve aca de
+      // lo que hace el espejo.
+      const todos = objetosDelFondo({
+        objetos: carrera.objetos,
+        fondo,
+        rectangulo,
+        pantalla: ESPEJO,
+        config: CONFIG,
+      });
       const turno = turnoDeFicha(ahora, todos.length);
-      const leido = (objeto) => (todos[turno.indice] === objeto ? turno.alfa : 0);
+      const deTurno = todos[turno.indice];
 
       // Como en el espejo: los escondidos se mecen, el del carrusel flota, y el
-      // de la ficha abierta crece, se calma y se ilumina. La cuenta es la del
-      // espejo (aspectoDelObjeto), no una copia: ajustarla en un lado solo
-      // separaria en silencio lo que se ve aca de lo que hace el espejo.
-      const dibujados = [...escondidos, elegido].map((objeto) => {
-        const leyendo = leido(objeto);
+      // de la ficha abierta crece, se calma y se ilumina.
+      for (const objeto of [...todos.slice(1), todos[0]]) {
         const { dy, giro, radio, halo } = aspectoDelObjeto(
-          { ahora, indice: objeto.indice, radio: objeto.radio, esElegido: objeto === elegido, leyendo },
+          {
+            ahora,
+            indice: objeto.indice,
+            radio: objeto.radio,
+            esElegido: objeto.id === 0,
+            leyendo: objeto === deTurno ? turno.alfa : 0,
+          },
           CONFIG,
         );
-        return { definicion: objeto.definicion, x: objeto.x, y: objeto.y + dy, radio, giro, halo, leyendo };
-      });
-      for (const dibujo of dibujados) dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre);
-
-      dibujarSilueta(ctx);
-      // El de la ficha abierta va tambien delante de la persona, como en el
-      // espejo: detras, la mano que lo fue a buscar lo taparia.
-      for (const dibujo of dibujados) {
-        if (dibujo.leyendo > 0) {
-          dibujarObjeto(ctx, { ...dibujo, alfa: dibujo.leyendo }, banco, CONFIG.paleta.nombre);
-        }
+        dibujarObjetoApoyado(
+          ctx,
+          { definicion: objeto.definicion, x: objeto.x, y: objeto.y + dy, radio, giro, halo },
+          banco,
+          CONFIG.paleta.nombre,
+        );
       }
+
+      // La persona va delante de los objetos. En el espejo, el que se esta
+      // leyendo se dibuja otra vez encima de ella, recortado contra su silueta
+      // (dibujarObjetosDelante): aca esa copia no tendria nada que mostrar,
+      // porque esta silueta nunca pisa un objeto —estan fuera de la zona de la
+      // persona—, asi que no se dibuja.
+      dibujarSilueta(ctx);
       if (conZona) dibujarZonas(ctx);
 
-      const deTurno = todos[turno.indice];
+      const { circulo, opciones } = fichaDelObjeto(deTurno, todos, ESPEJO.ancho, CONFIG);
       dibujarFicha(
         ctx,
         {
-          x: deTurno.x,
-          y: deTurno.y,
-          radio: deTurno.radio * (1 + CONFIG.escondidos.resalte),
+          ...circulo,
           nombre: deTurno.definicion?.nombre,
           descripcion: deTurno.definicion?.descripcion,
           alfa: turno.alfa,
         },
         disposicion,
-        {
-          columna: ANCHO * CONFIG.fichas.columna,
-          colores: COLORES_DE_FICHA,
-          evitar: todos.filter((otro) => otro !== deTurno),
-          tipografia: CONFIG.fichas.tipografia,
-        },
+        { ...opciones, colores: COLORES_DE_FICHA },
       );
       dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, CONFIG.paleta.nombre);
+
+      // Y se muestra achicado.
+      const vista = lienzo.getContext('2d');
+      vista.imageSmoothingQuality = 'high';
+      vista.clearRect(0, 0, lienzo.width, lienzo.height);
+      vista.drawImage(completo, 0, 0, lienzo.width, lienzo.height);
       return Boolean(fuente);
     }
 
@@ -246,8 +255,8 @@
       candidatos.forEach((fondo, i) => {
         const figura = document.createElement('figure');
         const lienzo = document.createElement('canvas');
-        lienzo.width = ANCHO;
-        lienzo.height = ALTO;
+        lienzo.width = VISTA.ancho;
+        lienzo.height = VISTA.alto;
         const hayImagen = dibujarCandidato(lienzo, carrera, fondo, performance.now());
 
         const pie = document.createElement('figcaption');

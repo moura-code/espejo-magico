@@ -157,10 +157,12 @@ export function crearFiltroDeManos({
   };
 }
 
-// Tope del salto de reloj entre dos llamadas de los desvanecedores. Si el
-// navegador se traba un instante, un salto grande prenderia o apagaria de golpe
-// lo que existe para no hacerlo nunca.
-const DT_MAXIMO = 250;
+// Lo mas que cuenta un cuadro en los fundidos, el mismo tope que main.js le
+// pone a su propio paso de reloj. Si el navegador se traba —un detector que
+// tarda, una pestaña que se tapa—, los fundidos se frenan en vez de saltar: con
+// 250 ms, un solo tiron se comia media salida de la invitacion. No es un numero
+// a calibrar: es lo que dura un cuadro de 20 por segundo.
+export const DT_MAXIMO = 50;
 
 /**
  * Cuanto se ve la señal de cada mano.

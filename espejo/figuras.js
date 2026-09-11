@@ -6,7 +6,8 @@
 //
 // CONTRATO DE CADA FIGURA
 //   - Dibuja centrada en el origen, dentro de un circulo de radio `r`.
-//   - Recibe el color de la carrera y lo usa como relleno principal.
+//   - Recibe un color y lo usa como relleno principal: el espejo le pasa el
+//     dorado de la paleta, el mismo para las doce.
 //   - No deja transformaciones ni estilos pegados al contexto: siempre entre
 //     save() y restore(), que hace dibujarFigura().
 //

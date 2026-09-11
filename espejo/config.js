@@ -73,11 +73,13 @@ export const CONFIG = {
     escondidos: 1500,
     cierre: 3000,
 
-    // Lo que tarda en entrar la invitacion del reposo; se va en la mitad,
-    // cuando alguien se sienta. Aparecer y desaparecer de golpe se leia como un
-    // parpadeo encima de las nubes. Sigue al estado desde donde este, como las
-    // nubes: si el reposo dura menos que esto, se va desde donde habia llegado.
+    // Lo que tarda en entrar la invitacion del reposo, y lo que tarda en irse
+    // cuando alguien se sienta: rapido, mientras las nubes se abren. Aparecer y
+    // desaparecer de golpe se leia como un parpadeo encima de las nubes. Sigue
+    // al estado desde donde este, como las nubes: si el reposo dura menos que
+    // su entrada, se va desde donde habia llegado.
     invitacion: 1200,
+    salidaDeLaInvitacion: 600,
 
     // Corto: quien llega despues de que el espejo volvio al reposo no tiene por
     // que esperar. Existe solo para que la persona que se esta yendo no dispare
