@@ -124,7 +124,7 @@ MAITE, en `espejo/config.js`.
 Los objetos son fotografías reales con el fondo recortado; las que salieron de
 Wikimedia Commons llevan autor, origen y licencia en
 `contenido/assets/CREDITOS.md`. El orden de preferencia al dibujar es **PNG →
-figura → círculo del color**: si un PNG falta, `npm run generar-pngs` rasteriza
+figura → círculo dorado**: si un PNG falta, `npm run generar-pngs` rasteriza
 la figura vectorial de respaldo (`espejo/figuras.js`) sin pisar los existentes,
 y los definitivos de diseño reemplazan a cualquiera en la misma ruta, sin tocar
 código. Lo mismo para los fondos, con `npm run generar-fondos`, que dibuja la escena de

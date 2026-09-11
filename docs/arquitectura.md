@@ -334,7 +334,7 @@ petición — muere en el preflight `OPTIONS`.
 Para garantizar la solidez de la instalación, el dibujo de un objeto sigue una estrategia defensiva de tres niveles:
 1. **Archivo PNG:** Se dibuja la ilustración PNG recortada si el recurso existe en `contenido/assets/` y cargó correctamente.
 2. **Figura Vectorial (`espejo/figuras.js`):** Si el PNG no existe o falla, se dibuja un ícono vectorial generado por código Canvas 2D, en el color de la paleta (`CONFIG.paleta.nombre`). `npm run generar-pngs` puede generar rasterizaciones de respaldo sin sobrescribir las fotos reales.
-3. **Círculo Genérico:** Si no existe ni el PNG ni la figura vectorial, se dibuja un círculo coloreado.
+3. **Círculo Genérico:** Si no existe ni el PNG ni la figura vectorial, se dibuja un círculo en el dorado de la paleta.
 *Resultado:* El sistema nunca muestra errores en pantalla ni rompe la escena por falta de assets de diseño.
 
 ---
@@ -344,7 +344,9 @@ Para garantizar la solidez de la instalación, el dibujo de un objeto sigue una 
 Al completarse el sostenido, el objeto **vuela de su ranura a su lugar en el
 fondo** (`tiempos.vuelo`, 1 s, con easing e interpolando el tamaño) y se queda
 ahí, flotando apenas (`fondo.flotar`), sobre un halo en el color de la paleta
-(`fondo.haloDelLugar`). Cada fondo declara `lugar: {x, y, escala}` **normalizado
+(`fondo.haloDelLugar`). La flotación y el halo entran de a poco al aterrizar
+(`fondo.msDeAterrizaje`): aparecer enteros en un cuadro era un salto justo en
+el momento más mirado. Cada fondo declara `lugar: {x, y, escala}` **normalizado
 a la imagen**: las fotos se preparan en 1080×1920, la medida del espejo, y ahí
 un punto normalizado a la imagen cae exactamente en el sitio de la escena que
 se eligió mirando. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`.
@@ -387,14 +389,31 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   y `tests/integracion/fondos.test.js` lo vigila para cada fondo del catálogo, el
   respaldo vectorial y los lugares por defecto incluidos. También vigila que los
   cuatro objetos de un fondo no se pisen.
-- **Se mecen apenas, cada uno a su ritmo** (`balanceo`, `CONFIG.escondidos`): es
-  el "pequeño movimiento para que la persona los pueda identificar" que pidió la
-  cátedra. Cada objeto tiene otro período y otra fase —tres meciéndose al
-  unísono se leen como una animación pegada encima del fondo— y el movimiento es
+- **Se mecen apenas, cada uno a su ritmo** (`balanceo`,
+  `CONFIG.escondidos.balanceo`): es el "pequeño movimiento para que la persona
+  los pueda identificar" que pidió la cátedra. Cada objeto tiene otro período
+  —`variacion` más lento que el anterior— y otra fase: tres meciéndose al
+  unísono se leen como una animación pegada encima del fondo. Y el movimiento es
   continuo: uno a los saltos se lee como un parpadeo.
+- **Cómo se ve cada uno, en una sola cuenta** (`aspectoDelObjeto`): cuánto se
+  mece el escondido o flota el que llegó volando, y cuánto crece
+  (`escondidos.resalte`), se calma (`escondidos.calmaAlLeer`) y se ilumina
+  (`escondidos.haloAlLeer`) el que se está leyendo. La usan el espejo y
+  `herramientas/fondos.html`, que tiene que mostrarle a la cátedra exactamente
+  lo que hace el espejo: con la cuenta copiada en los dos, ajustar uno solo los
+  separaba en silencio.
+- **El que se está leyendo va también delante de la persona.** Los objetos del
+  fondo van detrás de la persona recortada, y la mano que va a buscar uno lo tapa
+  justo cuando crece y se ilumina. Mientras su ficha está abierta se dibuja otra
+  vez encima de la persona —el mismo objeto en el mismo lugar, sin halo— con el
+  alfa de la ficha: donde nada lo tapa no cambia nada, y donde la mano lo tapaba
+  aparece de a poco.
 - **La ficha.** Pasar la mano sobre cualquiera de los cuatro abre su ficha: el
   nombre en Muffaroo y la descripción en la sans, sobre un panel del negro de
-  MAITE. `fichas.js` decide cuál está abierta y cuánto se ve cada una. Abrir pide
+  MAITE. `fichas.js` decide cuál está abierta y cuánto se ve cada una. Cada
+  objeto se identifica por su lugar en `objetos` —con la ruta del PNG, dos
+  objetos con la misma imagen compartirían la ficha— y los escondidos se pueden
+  leer recién cuando se ven a medias (`fichas.alfaParaLeer`). Abrir pide
   `fichas.msParaMostrar` (300 ms) con la mano encima —si no, cada mano que pasa
   camino a otro lado abriría fichas en cadena— y cerrar pide `fichas.msDeGracia`
   (900 ms) sin ella, que absorbe los huecos de la detección y deja terminar de
@@ -409,11 +428,27 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   lado del objeto: al lado sería encima de la cara. Va debajo del objeto si está
   arriba y arriba si está abajo, nunca encima del que describe, y si del lado que
   le toca taparía a otro objeto del fondo, va del otro. Tampoco baja hasta el
-  pie, que es del nombre de la ingeniería.
+  pie, que es del nombre de la ingeniería. El nombre se mide: si no entra en un
+  renglón va en dos, y si una palabra sola no entra se achica —"Lector de código
+  de barras" se salía de la pantalla—. La letra (`fichas.tipografia`) es
+  legibilidad a dos metros y se calibra en el stand.
+  `tests/integracion/fichas.test.js` dispone todas las fichas del catálogo real,
+  con una medida proporcional a la letra, y exige que entren enteras, en su
+  franja, sin tapar a su objeto ni a los otros.
+- **Al alcance de la mano.** La periferia tira hacia arriba y hacia los costados,
+  y el brazo de alguien sentado lejos no llega a todos lados: el carrusel se
+  calibró para eso (`tablero.radioFactor`, en anchos de hombros).
+  `tests/integracion/fondos.test.js` usa ese mismo brazo, desde cada hombro, con
+  la persona sentada de la prueba del sostenido a 2 m —40 cm de hombros son unos
+  420 px con una cámara de 78° recortada al espejo— y exige que la mano llegue a
+  los cuatro objetos de cada fondo, con la tolerancia de la ficha. Es un modelo,
+  no una medición: en el stand se prueba con gente de verdad a 1,5 y 2 m.
 - **Las manos siguen sirviendo.** Antes, elegida la ingeniería, se apagaba el
-  detector de manos. Ahora sigue, a `manos.fpsExplorando` (20 FPS): para abrir
-  una ficha alcanza con menos cuadros que para llenar un sostenido, y el resto se
-  lo queda la silueta. Una consigna enseña el gesto nuevo (*"Pasá la mano sobre
+  detector de manos. Ahora sigue, a `manos.fpsExplorando` (12 FPS): con 300 ms
+  para abrir y 900 de gracia, una ficha se conforma con pocos cuadros, y el resto
+  se lo queda la silueta. Rostro, pose y manos corren en el mismo hilo y pueden
+  coincidir en un cuadro: el costo real se mide con el panel (`P`) en la PC del
+  evento. Una consigna enseña el gesto nuevo (*"Pasá la mano sobre
   los objetos del fondo"*): entra con la escena entera (capa `explorar`) y se va
   para siempre la primera vez que alguien abre una ficha.
 
@@ -426,13 +461,26 @@ cuadro:
 - La consigna de la elección salía encendida de golpe encima del humo espeso: se
   multiplica por lo que ya se disipó.
 - La invitación del reposo aparecía de golpe encima de las nubes que se cerraban
-  y se iba de golpe cuando alguien se sentaba: capa `invitacion`, que entra en
-  `tiempos.invitacion` y sale en la mitad.
+  y se iba de golpe cuando alguien se sentaba: entra en `tiempos.invitacion` y
+  sale en la mitad. No es una capa de `calcularTransicionEscena` sino un
+  desvanecedor que sigue al estado desde donde esté (`crearDesvanecedor`), como
+  las nubes: calculada por estado, arrancaba entera en el enganche aunque el
+  reposo hubiera durado menos que su entrada —alguien ya sentado al prender el
+  espejo, o que se sienta apenas vuelven las nubes— y se prendía de golpe justo
+  para irse.
 - La señal de cada mano seguía al filtro, que suelta una mano perdida de golpe:
   `crearDesvanecedorDeManos` la prende y la apaga de a poco, y la señal entera se
   apaga con el carrusel y vuelve con los objetos escondidos.
 - El anillo y el disco del objeto elegido se cortaban en el cuadro en que se
   completaba el sostenido: ahora se apagan con el carrusel.
+- El objeto elegido aterrizaba y en el mismo cuadro aparecían el halo entero y
+  la flotación en una fase cualquiera: los dos entran en `fondo.msDeAterrizaje`.
+- Si el cierre llegaba en pleno vuelo —el tope de sesión, un `ESPACIO` en
+  manual—, el objeto saltaba a su lugar con el fondo entero antes de apagarse: el
+  cierre arranca desde donde quedó la exploración, cada capa con su reloj
+  multiplicada por la salida, y el objeto termina de volar mientras se apaga.
+- El borde de la ficha le dibujaba una raya a la base del pico, como si
+  estuviera pegado con cinta: el panel y el pico son un solo trazo.
 
 ## 6. Garantías de Rendimiento y Presupuesto
 
@@ -450,7 +498,7 @@ Por eso `main.js` mantiene un lienzo de análisis con exactamente el recorte vis
 El recorte se prepara **una vez por cuadro** y sólo si algún detector va a correr.
 
 ### Presupuestos
-- Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**, que sube a **20** mientras hay fondo. Las manos además sólo se buscan durante `EXPLORACION`, que es cuando hacen algo, porque es el detector más caro del cuadro; y con la ingeniería ya elegida bajan a **20 FPS** (`manos.fpsExplorando`): abrir una ficha no pide la precisión de un sostenido.
+- Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**, que sube a **20** mientras hay fondo. Las manos además sólo se buscan durante `EXPLORACION`, que es cuando hacen algo, porque es el detector más caro del cuadro; y con la ingeniería ya elegida bajan a **12 FPS** (`manos.fpsExplorando`): abrir una ficha no pide la precisión de un sostenido. Los tres corren en el mismo hilo y pueden coincidir en un cuadro: el costo real se mide con el panel (`P`) en la PC del evento.
 - La lectura de la máscara de segmentación cuesta un viaje de la GPU a la CPU, así que **sólo se arma cuando hay fondo** que meterle atrás a la persona.
 - Renderizado con tope de **60 FPS** (`CONFIG.render.fpsMaximo`). En una pantalla de 144 o 240 Hz, dibujar todos los cuadros es calor y consumo sin beneficio visible.
 - Los objetos en pantalla son a lo sumo **seis** en el carrusel, girando a 8°/s, y **cuatro** en el fondo: el rendimiento no depende de cuánto tiempo lleve alguien sentado. Las fichas miden su texto sólo mientras se ven.

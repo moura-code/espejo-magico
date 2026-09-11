@@ -16,7 +16,10 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    unos tres segundos), ver que **los demás objetos se apaguen** y quede la
    ingeniería con su fondo, esperar a que aparezcan **los otros tres objetos
    escondidos** a los costados y pasar la mano sobre cada uno para ver su ficha,
-   ver que las tablets cambien, levantarse y ver que las nubes vuelvan.
+   ver que las tablets cambien, levantarse y ver que las nubes vuelvan. Sentarse
+   **donde se va a sentar la gente**: desde ahí la mano tiene que llegar a los
+   cuatro objetos del fondo sin pararse. Si no llega a los de arriba, avisar al
+   equipo técnico.
 
 El espejo no necesita internet. Sí necesita que las tablets estén en la misma
 máquina o en la red del stand, pero eso lo maneja el otro proyecto.
@@ -93,6 +96,9 @@ taparle la cara a nadie: a veces hay que estirar un poco el brazo. Apretar `P`:
 la línea `manos` tiene que mostrar la mano y la línea `ficha`, el objeto que se
 está describiendo. Si la mano se ve y la ficha no se abre, avisar al equipo
 técnico: se agranda el blanco con `fichas.radioFactor` en `espejo/config.js`.
+Si la mano no llega —pasa con gente sentada lejos y los objetos de arriba—, el
+equipo técnico los baja: son los lugares de cada fondo en
+`contenido/carreras.json`, y se eligen mirando `herramientas/fondos.html`.
 
 **Las tablets no cambian cuando alguien elige.**
 Apretar `P` y mirar la línea `maite`. Si dice `ok`, el espejo avisó bien y el
@@ -112,9 +118,11 @@ Se cerró la ventana negra del servidor. Cerrar Chrome y volver a correr
 **Todo va lento.**
 Apretar `P` y mirar `fps`. Por debajo de 25 se nota. Cerrar cualquier otro programa
 de la PC. Si sigue lento, avisar al equipo técnico: hay que bajar
-`pose.fpsConFondo` en `espejo/config.js`.
+`pose.fpsConFondo` o `manos.fpsExplorando` en `espejo/config.js` (con la
+ingeniería ya elegida siguen corriendo la silueta y las manos, que abren las
+fichas).
 
-**Aparecen círculos de colores en vez de dibujos.**
+**Aparecen íconos o círculos dorados en vez de las fotos de los objetos.**
 Falta ese PNG. Apretar `P` y mirar `png faltan`. No rompe nada: es el
 comportamiento previsto para que el sistema nunca quede en negro.
 

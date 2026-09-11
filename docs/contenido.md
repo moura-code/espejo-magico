@@ -21,11 +21,11 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
   "fondos": [
     {
       "img": "assets/fondos/computacion-2.jpg",
-      "lugar": { "x": 0.175, "y": 0.27, "escala": 0.16 },
+      "lugar": { "x": 0.79, "y": 0.358, "escala": 0.16 },
       "escondites": [
-        { "x": 0.825, "y": 0.12, "escala": 0.14 },
-        { "x": 0.22, "y": 0.435, "escala": 0.14 },
-        { "x": 0.875, "y": 0.47, "escala": 0.14 }
+        { "x": 0.13, "y": 0.317, "escala": 0.14 },
+        { "x": 0.885, "y": 0.475, "escala": 0.14 },
+        { "x": 0.22, "y": 0.435, "escala": 0.14 }
       ]
     },
     { "img": "assets/fondos/computacion.png" }
@@ -169,13 +169,26 @@ abajo— más el pie, donde va el nombre (el 30 % de abajo).
 también que los cuatro objetos de un fondo no se pisen. En
 `herramientas/fondos.html` hay una casilla para ver la zona dibujada encima.
 
+**Al alcance de la mano, y sin que una ficha tape a otro objeto.** La periferia
+no puede quedar tan arriba que haya que pararse para llegar:
+`tests/integracion/fondos.test.js` supone a alguien sentado a 2 m —con los
+hombros donde los pone la prueba del sostenido y el brazo que supone el
+carrusel— y exige que la mano llegue a los cuatro objetos. Por eso el rincón
+alto no sube mucho más allá del 28 % de la altura: más arriba, a esa distancia,
+no llega nadie. Y `tests/integracion/fichas.test.js` dispone la ficha de cada
+objeto de cada fondo como lo hace el espejo y exige que entre entera, en su
+franja, sin tapar a su objeto ni a los otros. Es un modelo, no una medición: en
+el stand se prueba con gente de verdad, y si la persona queda más abajo que en
+la prueba, se bajan los lugares.
+
 El punto de partida se mide sobre la foto, no se estima: de cada imagen se saca
 un mapa de brillo de 108×192 celdas y se buscan **cuatro rincones, dos por
-costado** —uno alto, al lado de la cabeza o por encima, y uno medio, al lado de
-la cara—, fuera de la zona de la persona, con margen al borde de la pantalla y
-separados entre sí. En cada rincón gana la ventana más oscura y más pareja (el
-objeto más su halo) cerca de una composición de referencia, para que no terminen
-todos pegados a los bordes. El objeto del carrusel va al rincón alto más oscuro
+costado** —uno alto, al lado de la cabeza, con su ficha por encima, y uno a la
+altura de la cara, con su ficha por debajo—, fuera de la zona de la persona, al
+alcance de la mano, con margen al borde de la pantalla y tan separados que la
+ficha de uno no tapa al otro. En cada rincón gana la ventana más oscura y más
+pareja (el objeto más su halo) cerca de una composición de referencia, para que
+no terminen todos pegados a los bordes. El objeto del carrusel va al rincón alto más oscuro
 —el "rincón oscuro arriba" de los criterios— con `escala` 0.16, y los otros tres
 a los tres rincones que quedan con 0.14. Después se afina mirando, que es para
 lo que está `herramientas/fondos.html`.
@@ -190,11 +203,11 @@ espejo vertical.
 "fondos": [
   {
     "img": "assets/fondos/quimica-laboratorio.jpg",
-    "lugar": { "x": 0.895, "y": 0.12, "escala": 0.16 },
+    "lugar": { "x": 0.18, "y": 0.295, "escala": 0.16 },
     "escondites": [
-      { "x": 0.18, "y": 0.215, "escala": 0.14 },
-      { "x": 0.9, "y": 0.34, "escala": 0.14 },
-      { "x": 0.22, "y": 0.395, "escala": 0.14 }
+      { "x": 0.905, "y": 0.312, "escala": 0.14 },
+      { "x": 0.215, "y": 0.42, "escala": 0.14 },
+      { "x": 0.82, "y": 0.42, "escala": 0.14 }
     ]
   },
   { "img": "assets/fondos/quimica.png" }
@@ -344,7 +357,7 @@ Para previsualizarlas todas:
 http://localhost:8080/herramientas/figuras.html
 ```
 
-El orden de preferencia al dibujar es **PNG → figura → círculo del color**. Un
+El orden de preferencia al dibujar es **PNG → figura → círculo dorado**. Un
 objeto que no se dibuja es una opción que no se puede agarrar: la persona ve un
 hueco en el carrusel y no entiende por qué ahí no pasa nada.
 
@@ -472,6 +485,6 @@ clonarlos juntos). Si no lo encuentra en ninguno de los dos, ese chequeo se
 saltea en silencio — y ahí es donde un id equivocado pasa de largo.
 
 - **En rojo:** falta algo que el stand necesita. El espejo igual funciona
-  —los objetos sin PNG caen a la figura vectorial y de ahí al círculo del color,
+  —los objetos sin PNG caen a la figura vectorial y de ahí al círculo dorado,
   el fondo cae al color plano— pero no está listo para montarse.
 - **En verde:** el contenido está completo.

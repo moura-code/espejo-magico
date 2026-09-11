@@ -118,13 +118,13 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 - El servidor de Node.js se cerró o nunca levantó. Cerrar Chrome y volver a correr `arrancar.bat`. **No cerrar la ventana negra del servidor mientras el stand esté abierto.**
 - Si dice "MediaPipe no cargó", falta `npm run vendorizar` (el único paso que necesita Internet). Abrir la consola con F12 para ver el detalle.
 
-### Aparecen círculos de colores en lugar de imágenes de objetos
+### Aparecen íconos o círculos dorados en lugar de las fotos de los objetos
 - Presionar `P` y observar la línea `png faltan`. Significa que los archivos PNG aún no se han subido a `contenido/assets/`. Es un comportamiento previsto de reserva (*fallback*); el espejo funcionará normalmente utilizando figuras vectoriales de código.
 
 ### La experiencia se siente lenta o con tirones
 1. Presionar `P` y revisar los `fps`.
 2. Si el valor es inferior a 30 FPS, cerrar otras aplicaciones abiertas en la PC.
-3. Si continúa lento, bajar `CONFIG.pose.fpsConFondo` en `espejo/config.js`: es lo más caro del cuadro, porque cada lectura de la silueta cuesta un viaje de la GPU a la CPU. El borde del recorte se va a ver un poco más atrasado, nada más.
+3. Si continúa lento, bajar `CONFIG.pose.fpsConFondo` en `espejo/config.js`: es lo más caro del cuadro, porque cada lectura de la silueta cuesta un viaje de la GPU a la CPU. El borde del recorte se va a ver un poco más atrasado, nada más. Con la ingeniería elegida también siguen corriendo las manos, que abren las fichas, a `CONFIG.manos.fpsExplorando` (12): se puede bajar un poco más, porque con 300 ms para abrir una ficha, 8 cuadros por segundo todavía la abren. Rostro, pose y manos corren en el mismo hilo: si el panel muestra tirones con la ingeniería puesta y no antes, empezar por estos dos.
 4. Como último recurso, `CONFIG.pose.segmentacion: false` apaga el recorte entero: el fondo se dibuja semitransparente encima del espejo y el espejo vuelve a ir sobrado.
 
 ### Nadie consigue elegir un objeto
@@ -134,7 +134,7 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 
 ### Las fichas de los objetos del fondo no se abren, o se abren solas
 1. Presionar `P`: la línea `manos` tiene que mostrar la mano vista, y la línea `ficha` el objeto que se está describiendo.
-2. Si la mano se ve pero la ficha no se abre, la mano no llega al objeto: los objetos del fondo van en los costados, y a veces hay que estirar el brazo. Se agranda el blanco con `CONFIG.fichas.radioFactor`.
+2. Si la mano se ve pero la ficha no se abre, la mano no llega al objeto: los objetos del fondo van en los costados, y a veces hay que estirar el brazo. Se agranda el blanco con `CONFIG.fichas.radioFactor`. Si no llega a los de arriba, se bajan sus lugares en `contenido/carreras.json`, mirando `herramientas/fondos.html`: `tests/integracion/fondos.test.js` supone a alguien sentado a 2 m con los hombros en y = 1300 (de 1920), y si en el stand la gente queda más abajo, se ajusta también ahí.
 3. Si se abren al pasar la mano camino a otro lado, subir `CONFIG.fichas.msParaMostrar`; si se cierran mientras alguien lee, subir `CONFIG.fichas.msDeGracia`.
 
 ### Las tablets no acompañan al espejo
