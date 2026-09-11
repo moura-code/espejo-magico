@@ -108,11 +108,19 @@ const TAREAS = [
   {
     nombre: 'Segunda devolución de la cátedra: objetos escondidos, fichas y un solo color',
     detalle:
-      'Cuatro objetos por ingeniería con su nombre y su descripción (el del carrusel y tres escondidos en la periferia del fondo, meciéndose), fichas que se abren al pasar la mano, un solo color de MAITE para los nombres y la carga, un sostenido de tres segundos, fundidos en todo lo que aparecía de golpe, herramientas para comparar fondos y colores en la reunión, la documentación y esta planilla.',
+      'Cuatro objetos por ingeniería con su nombre y su descripción (el del carrusel y tres escondidos en la periferia del fondo, meciéndose), fichas que se abren al pasar la mano, un solo color de MAITE para los nombres y la carga, un sostenido de tres segundos, fundidos en todo lo que aparecía de golpe, herramientas para comparar fondos y colores en la reunión, la documentación y esta planilla. Después, los arreglos de dos revisiones de código: nombres de ficha medidos, objetos al alcance de la mano y sin que una ficha tape a otro, nada que salte al aterrizar ni en el cierre, la copia del objeto leído delante de la persona y la herramienta de fondos decidiendo igual que el espejo.',
     commits: [
       'fea3b81', // feat: cuatro objetos por ingenieria, cada uno con su nombre y su descripcion
       '3b5765a', // feat: objetos escondidos en el fondo con su ficha, un solo color y una carga mas lenta
       'beeeb4d', // docs: la devolucion de la catedra, en CLAUDE.md, el README y las guias
+      'd2759e7', // fix: una ingenieria forzada con el teclado arranca sus fichas de cero
+      'd8fe772', // docs: el LEEME de cada carpeta de objetos cuenta los cuatro que se usan
+      'fa9c374', // fix: las fichas se miden, los objetos quedan al alcance de la mano y nada salta
+      'f49b2ba', // feat: npm run planilla arma la planilla de tareas y horas del equipo
+      'd28a1a9', // docs: las fichas, el alcance de la mano y la revision en CLAUDE.md, el README y las guias
+      '527f5e3', // fix: en un monitor apaisado la letra de las fichas se achica con la composicion
+      '7aadc5f', // fix: la segunda revision: una sola persona para el alcance, la copia recortada y la herramienta decide como el espejo
+      'f43d6c0', // docs: el alcance de la mano, la copia recortada y la herramienta a la medida del espejo
     ],
     proyecto: 'Espejo',
     asuntos: [/escondid|ficha|planilla|devoluci|revision de la rama/i],
