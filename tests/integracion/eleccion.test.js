@@ -166,20 +166,24 @@ describe('agarrar un objeto', () => {
   it('soltar y agarrar otro objeto ya no cambia la ingenieria', () => {
     let base = null;
     const agarrados = [];
+    const { msParaElegir, msDeGracia, msDeOlvido } = CONFIG.eleccion;
+    // Mas que el sostenido sobre el primero; despues la mano baja mas que la
+    // gracia y el olvido juntos —o sea que suelta de verdad— y el resto va
+    // sobre otro, tanto como para completarlo.
+    const primero = msParaElegir + 1000;
+    const suelta = primero + msDeGracia + msDeOlvido + 500;
 
     const { maquina, mostradas } = correr({
-      // Dos segundos y medio sobre el primero, uno con la mano baja —mas que la
-      // gracia y el olvido juntos, o sea soltar de verdad— y el resto sobre otro.
       manoEn: (ahora, blancos) => {
         base ??= ahora;
         const t = ahora - base;
-        const cual = t < 2500 ? 0 : t < 3500 ? null : 2;
+        const cual = t < primero ? 0 : t < suelta ? null : 2;
         if (cual === null) return null;
         const b = enteros(blancos)[cual];
         if (!agarrados.includes(b.id)) agarrados.push(b.id);
         return { x: b.x, y: b.y };
       },
-      hasta: 8000,
+      hasta: suelta + msParaElegir + 1500,
       pararAlMostrar: false,
     });
 
@@ -339,25 +343,27 @@ describe('el carrusel', () => {
     expect((fases.at(-1) - fases[0] + 360) % 360).toBeGreaterThan(5);
   });
 
-  // Con doce objetos a 30 grados, un objeto que gira despacio se sigue con la
-  // mano quieta: cruza el radio del blanco en mas de un segundo.
-  it('un objeto tarda mas que el sostenido en salirse de abajo de una mano quieta', () => {
-    const tablero = crearTablero(CONFIG.tablero);
-    let puesto = null;
-    for (let i = 0; i < 400; i++) {
-      puesto = tablero.actualizar({
-        pose: poseEn(540, 1400),
-        rostro: null,
-        disposicion: PANTALLA,
-        cantidad: OFRECIDAS.length,
-      });
-    }
-    const [a] = puesto.ubicaciones;
-    const radio = Math.hypot(a.x - puesto.ancla.x, a.y - puesto.ancla.y);
-    const pixelesPorSegundo = (radio * (CONFIG.tablero.gradosPorSegundo * Math.PI)) / 180;
-    const alcance = puesto.radioObjeto * CONFIG.eleccion.radioFactor;
+  // Con la carga larga, un objeto que gira cruza el blanco de una mano quieta
+  // bastante antes de que el anillo se llene. No importa, y es a proposito:
+  // apenas la mano esta encima el carrusel se detiene, asi que sostener mas
+  // tiempo nunca obliga a perseguir nada.
+  it('con la mano quieta, el sostenido largo se completa porque el carrusel se detiene', () => {
+    let palmaFija = null;
+    let agarrado = null;
 
-    expect((alcance / pixelesPorSegundo) * 1000).toBeGreaterThan(CONFIG.eleccion.msParaElegir);
+    const { maquina } = correr({
+      manoEn: (_ahora, blancos) => {
+        if (!palmaFija) {
+          const b = enteros(blancos)[2];
+          palmaFija = { x: b.x, y: b.y };
+          agarrado = b.id;
+        }
+        return palmaFija;
+      },
+      hasta: CONFIG.eleccion.msParaElegir + 2000,
+    });
+
+    expect(maquina.carrera()).toBe(agarrado);
   });
 });
 
@@ -375,6 +381,15 @@ describe('la calibracion del sostenido', () => {
   it('se vacia mas rapido de lo que se llena, pero no de golpe', () => {
     expect(CONFIG.eleccion.msDeOlvido).toBeLessThan(CONFIG.eleccion.msParaElegir);
     expect(CONFIG.eleccion.msDeOlvido).toBeGreaterThan(200);
+  });
+
+  // LO QUE PIDIO LA CATEDRA: mas "tiempo de carga". Una eleccion que se cierra
+  // en un segundo y medio se siente apurada, y como se elige una sola vez, un
+  // gesto apurado es una ingenieria que no se eligio del todo.
+  it('la carga es pausada: con la mano quieta, el anillo tarda al menos dos segundos y medio', () => {
+    const { mostradas, transcurrido } = correr({ manoEn: sobreElEntero(1), hasta: 8000 });
+    expect(mostradas).toHaveLength(1);
+    expect(transcurrido).toBeGreaterThanOrEqual(2500);
   });
 
   // Doce objetos en el anillo y un blanco generoso no pueden dar dos blancos

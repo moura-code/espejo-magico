@@ -188,6 +188,32 @@ export function dibujarPersonaRecortada(ctx, { capa, video, rectangulo, silueta,
   return true;
 }
 
+/**
+ * Lo que va delante de la persona, y solo donde esta la persona: el objeto del
+ * fondo que se esta leyendo. Detras, la mano que lo fue a buscar lo tapaba
+ * justo cuando crece y se ilumina, y la ficha quedaba hablando de algo que no
+ * se ve.
+ *
+ * Se dibuja en `capa` y se recorta contra `persona` —la capa con la persona ya
+ * recortada que dejo dibujarPersonaRecortada— antes de pegarlo: donde nada lo
+ * tapa no se dibuja dos veces, ni su sombra ni los bordes del PNG, y donde la
+ * mano lo tapaba aparece encima de ella. `objetos` son como los de
+ * dibujarObjeto, cada uno con su alfa.
+ */
+export function dibujarObjetosDelante(ctx, { capa, persona, disposicion, objetos, banco, color }) {
+  if (objetos.length === 0) return;
+  const { ancho, alto } = disposicion;
+  capa.ctx.clearRect(0, 0, ancho, alto);
+  for (const objeto of objetos) dibujarObjeto(capa.ctx, objeto, banco, color);
+
+  capa.ctx.save();
+  capa.ctx.globalCompositeOperation = 'destination-in';
+  capa.ctx.drawImage(persona.canvas, 0, 0);
+  capa.ctx.restore();
+
+  ctx.drawImage(capa.canvas, 0, 0);
+}
+
 function dibujarSustituto(ctx, radio, color) {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -200,8 +226,9 @@ function dibujarSustituto(ctx, radio, color) {
 
 /**
  * Un objeto de los que se ofrecen. Orden de preferencia: el PNG si existe, la
- * figura vectorial si no, y un circulo del color de la carrera como ultimo
- * recurso. Un objeto que no se dibuja es una opcion que no se puede elegir.
+ * figura vectorial si no, y un circulo de `color` como ultimo recurso —el
+ * espejo le pasa el dorado de la paleta, el mismo para las doce—. Un objeto
+ * que no se dibuja es una opcion que no se puede elegir.
  */
 export function dibujarObjeto(ctx, { definicion, x, y, radio, alfa = 1, giro = 0 }, banco, color) {
   if (!definicion || alfa <= 0 || radio <= 0) return;
@@ -239,31 +266,70 @@ const TAU = Math.PI * 2;
  * Es la unica señal de que el sostenido esta pasando, y por eso arranca arriba y
  * gira como un reloj: cualquiera entiende un reloj sin que nadie se lo explique.
  * La pista tenue de atras existe para que el blanco activo se distinga de los
- * otros cuatro incluso con el anillo casi vacio.
+ * otros incluso con el anillo casi vacio.
+ *
+ * Un solo `color` para las doce ingenierias —el color no las distingue— con la
+ * transparencia de cada parte: `pista` es la opacidad del anillo completo de
+ * atras, `trazo` la del que avanza y `brillo` cuanto resplandece.
+ *
+ * `alfa` es la opacidad de quien lo dibuja y MULTIPLICA la del anillo, no la
+ * reemplaza: el carrusel se apaga desvaneciendose y su anillo tiene que irse
+ * con el. Pisandola, el anillo del elegido quedaba entero hasta el ultimo
+ * cuadro del apagado y desaparecia de golpe.
  */
-export function dibujarAnilloDeProgreso(ctx, { x, y, radio, progreso, color }) {
-  if (progreso <= 0) return;
+export function dibujarAnilloDeProgreso(
+  ctx,
+  { x, y, radio, progreso, color, alfa = 1, pista = 0.28, trazo = 0.95, brillo = 1 },
+) {
+  if (progreso <= 0 || alfa <= 0) return;
 
   const anillo = radio * 1.25;
   const grosor = Math.max(3, radio * 0.14);
 
   ctx.save();
   ctx.lineCap = 'round';
-
-  ctx.globalAlpha = 0.28;
   ctx.strokeStyle = color;
   ctx.lineWidth = grosor;
+
+  ctx.globalAlpha = alfa * pista;
+  ctx.shadowBlur = 0;
   ctx.beginPath();
   ctx.arc(x, y, anillo, 0, TAU);
   ctx.stroke();
 
-  ctx.globalAlpha = 0.95;
+  ctx.globalAlpha = alfa * trazo;
   ctx.shadowColor = color;
-  ctx.shadowBlur = grosor * 2;
+  ctx.shadowBlur = grosor * 2 * brillo;
   ctx.beginPath();
   ctx.arc(x, y, anillo, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, progreso));
   ctx.stroke();
 
+  ctx.restore();
+}
+
+/**
+ * El disco que se llena detras del objeto mientras se sostiene la mano: el
+ * mismo reloj que el anillo, pero relleno y transparente, un poco mas grande
+ * que el objeto para que se vea alrededor. Va DEBAJO del objeto —quien lo
+ * llama lo dibuja antes—: encima le teñiria la foto.
+ *
+ * Es una de las opciones de carga con transparencia que pidio explorar la
+ * catedra; con `opacidad` en cero no se dibuja y queda solo el anillo.
+ */
+export function dibujarDiscoDeCarga(
+  ctx,
+  { x, y, radio, progreso, color, opacidad, alfa = 1, radioFactor },
+) {
+  if (progreso <= 0 || opacidad <= 0 || alfa <= 0) return;
+
+  ctx.save();
+  ctx.globalAlpha = alfa * opacidad;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.arc(x, y, radio * radioFactor, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, progreso));
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
@@ -341,8 +407,12 @@ export const PESO_TITULO = 400;
  * encima del fondo de la carrera y se vuelve ilegible en cuanto el fondo tiene
  * una zona clara. Un nombre largo va en dos renglones antes que achicarse hasta
  * lo ilegible; y si aun asi no entra, se achica.
+ *
+ * `color` es el mismo para las doce: la catedra pidio no distinguir las
+ * ingenierias por color, y el que se usa es el de los nombres en las tablets
+ * de MAITE, que estan a dos metros en el mismo stand.
  */
-export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
+export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, color = '#ffffff') {
   if (!carrera || alfa <= 0) return;
 
   const { pie, ancho, alto } = disposicion;
@@ -377,7 +447,7 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
     ...lineas.map((linea) => tamanoQueEntra(linea, pie.tamano, disponible, medir)),
   );
 
-  ctx.fillStyle = carrera.color;
+  ctx.fillStyle = color;
   ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
   const paso = tamano * pie.interlinea;
   lineas.forEach((linea, i) => {
@@ -390,9 +460,9 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1) {
 /**
  * El objeto agarrado, apoyado en su lugar del fondo.
  *
- * Debajo lleva un halo del color de la carrera: lo presenta sobre cualquier
- * fondo, foto o escena vectorial, sin pedirle a cada imagen que tenga una mesa
- * justo ahi. `giro` es la inclinacion de la flotacion.
+ * Debajo lleva un halo de `color` —el dorado de la paleta—: lo presenta sobre
+ * cualquier fondo, foto o escena vectorial, sin pedirle a cada imagen que tenga
+ * una mesa justo ahi. `giro` es la inclinacion de la flotacion o del vaiven.
  */
 export function dibujarObjetoApoyado(
   ctx,
@@ -433,8 +503,8 @@ function resplandor(ctx, x, y, radio, color) {
  * elige. Sin esto el sostenido es a ciegas: apoyas la mano y no sabes por que no
  * pasa nada.
  */
-export function dibujarManos(ctx, manos, color, opciones = {}) {
-  if (!manos || manos.length === 0) return;
+export function dibujarManos(ctx, manos, color, opciones = {}, alfa = 1) {
+  if (!manos || manos.length === 0 || alfa <= 0) return;
 
   const { resplandorFactor = 2.2, nucleoFactor = 0.22 } = opciones;
 
@@ -444,13 +514,17 @@ export function dibujarManos(ctx, manos, color, opciones = {}) {
   ctx.globalCompositeOperation = 'screen';
 
   for (const mano of manos) {
+    // Cada mano trae su alfa —el del desvanecedor, que la prende y la apaga de
+    // a poco— y el de quien dibuja multiplica: nunca se prende de golpe.
+    const presencia = (mano.alfa ?? 1) * Math.min(1, alfa);
+    if (presencia <= 0) continue;
     const { x, y } = mano.palma;
     const nucleo = mano.radio * nucleoFactor;
 
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.35 * presencia;
     resplandor(ctx, x, y, mano.radio * resplandorFactor, color);
 
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 0.85 * presencia;
     resplandor(ctx, x, y, nucleo * 2.4, '#ffffff');
   }
 
@@ -526,7 +600,14 @@ export function dibujarHumo(ctx, video, disposicion, alfa, opacidad = 1) {
   ctx.restore();
 }
 
-export function dibujarInvitacion(ctx, disposicion, pulso) {
+/**
+ * La invitacion del reposo. `pulso` es la respiracion del texto y `alfa` su
+ * entrada y su salida: aparecer de golpe encima de las nubes que se cierran, o
+ * irse de golpe cuando alguien se sienta, era un golpe de luz.
+ */
+export function dibujarInvitacion(ctx, disposicion, pulso, alfa = 1) {
+  if (alfa <= 0) return;
+  const visible = Math.min(1, alfa);
   const { ancho, alto, texto } = disposicion;
   const centro = alto * 0.5;
 
@@ -545,12 +626,13 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
   halo.addColorStop(0.55, 'rgba(4,7,12,0.28)');
   halo.addColorStop(1, 'rgba(4,7,12,0)');
   ctx.save();
+  ctx.globalAlpha = visible;
   ctx.fillStyle = halo;
   ctx.fillRect(0, 0, ancho, alto);
   ctx.restore();
 
   ctx.save();
-  ctx.globalAlpha = 0.65 + 0.35 * pulso;
+  ctx.globalAlpha = (0.65 + 0.35 * pulso) * visible;
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.8)';
@@ -563,15 +645,15 @@ export function dibujarInvitacion(ctx, disposicion, pulso) {
 }
 
 /**
- * La consigna de la eleccion. Es lo unico que le enseña a la persona que tiene
- * que sostener la mano, y por eso nombra el gesto completo: "acercá la mano" no
- * alcanza — la gente la pasa por encima y se va sin elegir nada.
+ * La consigna: la unica instruccion de cada momento de la experiencia. Nombra
+ * el gesto completo: "acercá la mano" no alcanza — la gente la pasa por encima
+ * y se va sin elegir nada.
  *
- * Es una sola frase y no cambia: se elige una vez, asi que no hay una segunda
- * cosa que enseñar. Quien la dibuja la apaga junto con el carrusel.
+ * Hay dos, y la frase la decide quien dibuja: la de la eleccion (la de por
+ * defecto), que se apaga con el carrusel, y la de explorar el fondo, que se va
+ * la primera vez que alguien abre una ficha.
  */
-export function dibujarConsigna(ctx, disposicion, alfa = 1) {
-  const frase = 'Sostené la mano sobre un objeto';
+export function dibujarConsigna(ctx, disposicion, alfa = 1, frase = 'Sostené la mano sobre un objeto') {
   if (alfa <= 0) return;
   const { ancho, alto, texto } = disposicion;
 
@@ -586,4 +668,256 @@ export function dibujarConsigna(ctx, disposicion, alfa = 1) {
   ctx.font = `600 ${Math.round(texto.tamanoFrase * 1.15)}px ${FAMILIA_TEXTO}`;
   ctx.fillText(frase, ancho / 2, alto * 0.93);
   ctx.restore();
+}
+
+const esTexto = (valor) => typeof valor === 'string' && valor.trim().length > 0;
+const acotar = (valor, minimo, maximo) => Math.min(maximo, Math.max(minimo, valor));
+
+/**
+ * Donde va la ficha de un objeto del fondo y como se reparte adentro. Solo
+ * numeros: `medir(texto, fuente)` se inyecta para poder probarla sin lienzo.
+ * Devuelve null si no hay nada que decir.
+ *
+ * LA FICHA NO LE TAPA LA CARA A LA PERSONA. Va en la columna del costado de su
+ * objeto —`columna` es cuanto mide, en pixeles, la franja de cada costado a la
+ * que no llega la persona—: la misma periferia donde la catedra pidio que
+ * vayan los objetos, y por el mismo motivo. Por eso es angosta y alta, y no un
+ * cartel al lado del objeto: al lado seria encima de la cara.
+ *
+ * Nunca encima del objeto que describe: va debajo si el objeto esta arriba y
+ * arriba si esta abajo, y si del lado que le toca no entra, del otro. Tampoco
+ * baja hasta el pie, que es del nombre de la ingenieria.
+ *
+ * `tipografia` es el tamaño de la letra en fraccion de `texto.tamanoFrase`
+ * —`texto` la descripcion, `titulo` el nombre— y `anchoEnLetras` el ancho
+ * maximo del panel, en tamaños de letra. Se calibra en el stand, leyendo a dos
+ * metros: vive en CONFIG.fichas.tipografia. En una pantalla mas ancha que el
+ * espejo, la letra se achica como la composicion (`unidad`).
+ */
+export function disponerFicha(
+  { x, y, radio },
+  { nombre, descripcion } = {},
+  disposicion,
+  medir,
+  { columna, evitar = [], tipografia } = {},
+) {
+  const hayNombre = esTexto(nombre);
+  const hayDescripcion = esTexto(descripcion);
+  if (!hayNombre && !hayDescripcion) return null;
+
+  // La letra vive en CONFIG.fichas.tipografia y no tiene copia aca: sin ella
+  // esto falla en el acto, en vez de dibujar con numeros viejos.
+  const { texto: letraDelTexto, titulo: letraDelTitulo, anchoEnLetras } = tipografia;
+  const { ancho, alto, pie, texto, unidad } = disposicion;
+  // La letra acompaña a la composicion, como los objetos (lugarEnPantalla): en
+  // el espejo es la de la pantalla, y en un monitor apaisado, donde la
+  // composicion vertical entra a la altura de la pantalla, se achica con ella.
+  // Con la letra de la pantalla, la ficha de cada objeto tapaba a su vecino.
+  const escala = unidad / Math.min(ancho, alto);
+  const tamanoTexto = Math.max(10, Math.round(texto.tamanoFrase * escala * letraDelTexto));
+  const tamanoTituloPedido = Math.max(12, Math.round(texto.tamanoFrase * escala * letraDelTitulo));
+  const relleno = Math.round(tamanoTexto * 0.75);
+  const margen = Math.round(tamanoTexto * 0.6);
+  const separacion = Math.round(tamanoTexto * 0.5);
+  const interlinea = tamanoTexto * 1.3;
+  const fuenteDelTitulo = (tamano) => `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
+  const fuenteTexto = `400 ${tamanoTexto}px ${FAMILIA_TEXTO}`;
+
+  const anchoColumna = columna ?? ancho * 0.3;
+  const anchoCaja = Math.max(
+    tamanoTexto * 6,
+    Math.min(tamanoTexto * anchoEnLetras, anchoColumna - margen * 2),
+  );
+  const util = anchoCaja - relleno * 2;
+
+  // El nombre va entero si entra; si no, en dos renglones —"Lector de código
+  // de barras" no entra en la columna a tamaño de titulo—, y si aun asi un
+  // renglon no entra (una palabra sola muy larga), se achica lo justo. Sin
+  // medirlo, se salia del panel y de la pantalla.
+  let renglonesDelTitulo = [];
+  let tamanoTitulo = tamanoTituloPedido;
+  if (hayNombre) {
+    const medirTitulo = (linea, tamano = tamanoTituloPedido) => medir(linea, fuenteDelTitulo(tamano));
+    renglonesDelTitulo = [nombre.trim()];
+    if (medirTitulo(renglonesDelTitulo[0]) > util) {
+      const partes = partirEnLineas(nombre, util, (linea) => medirTitulo(linea));
+      renglonesDelTitulo = partes.length <= 2 ? partes : [partes[0], partes.slice(1).join(' ')];
+    }
+    tamanoTitulo = Math.min(
+      ...renglonesDelTitulo.map((linea) => tamanoQueEntra(linea, tamanoTituloPedido, util, medirTitulo)),
+    );
+  }
+
+  const lineas = hayDescripcion
+    ? partirEnLineas(descripcion, util, (linea) => medir(linea, fuenteTexto))
+    : [];
+  const pasoDelTitulo = tamanoTitulo * 1.05;
+  const altoTitulo = renglonesDelTitulo.length * pasoDelTitulo;
+  const hueco = hayNombre && lineas.length > 0 ? tamanoTexto * 0.4 : 0;
+  const altoCaja = relleno * 2 + altoTitulo + hueco + lineas.length * interlinea;
+
+  // De costado: centrada en su objeto, sin salirse de la columna de ese lado.
+  const aLaIzquierda = x < ancho / 2;
+  const desdeX = aLaIzquierda ? margen : ancho - anchoColumna + margen;
+  const hastaX = aLaIzquierda ? anchoColumna - margen - anchoCaja : ancho - margen - anchoCaja;
+  const cajaX = acotar(x - anchoCaja / 2, desdeX, Math.max(desdeX, hastaX));
+
+  // De alto: del lado del objeto donde haya lugar, sin llegar al pie.
+  const techo = margen;
+  const piso = alto - pie.alto;
+  const debajo = y + radio + separacion;
+  const arriba = y - radio - separacion - altoCaja;
+  const entraDebajo = debajo + altoCaja <= piso;
+  const entraArriba = arriba >= techo;
+  // Del lado que le toca si ahi la ficha —corrida hacia su objeto lo que haga
+  // falta para entrar en la pantalla— no tapa a su objeto ni a otro del fondo
+  // (`evitar`): la persona tiene que poder ir de un objeto al siguiente sin que
+  // la ficha del primero le esconda el que sigue. Correrla unos pixeles hacia
+  // su objeto le come parte del aire que los separa, que sobra; irse del otro
+  // lado por medio pixel de redondeo, en cambio, tapaba a un vecino. Si no, del
+  // otro lado; y si en ninguno se puede todo, del que entra sin correrse.
+  const yDe = (lado) =>
+    acotar(lado === 'abajo' ? debajo : arriba, techo, Math.max(techo, piso - altoCaja));
+  const entra = (lado) => (lado === 'abajo' ? entraDebajo : entraArriba);
+  const tapa = (arribaDeLaCaja, otro) => {
+    const cercaX = acotar(otro.x, cajaX, cajaX + anchoCaja);
+    const cercaY = acotar(otro.y, arribaDeLaCaja, arribaDeLaCaja + altoCaja);
+    return Math.hypot(otro.x - cercaX, otro.y - cercaY) < otro.radio;
+  };
+  const sirve = (lado) => {
+    const arribaDeLaCaja = yDe(lado);
+    return (
+      !tapa(arribaDeLaCaja, { x, y, radio }) &&
+      !evitar.some((otro) => tapa(arribaDeLaCaja, otro))
+    );
+  };
+  const orden = y < (techo + piso) / 2 ? ['abajo', 'arriba'] : ['arriba', 'abajo'];
+  const lado = orden.find(sirve) ?? orden.find(entra) ?? orden[0];
+  const cajaY = yDe(lado);
+
+  const esquina = Math.round(tamanoTexto * 0.55);
+  const punta = Math.round(tamanoTexto * 0.45);
+  const caja = { x: cajaX, y: cajaY, ancho: anchoCaja, alto: altoCaja, radio: esquina };
+  const alTexto = cajaX + relleno;
+  const primeraLinea = cajaY + relleno + altoTitulo + hueco;
+
+  return {
+    lado,
+    caja,
+    relleno,
+    fuenteTexto,
+    titulo: hayNombre
+      ? {
+          fuente: fuenteDelTitulo(tamanoTitulo),
+          lineas: renglonesDelTitulo.map((renglon, i) => ({
+            texto: renglon,
+            x: alTexto,
+            y: cajaY + relleno + i * pasoDelTitulo,
+          })),
+        }
+      : null,
+    lineas: lineas.map((linea, i) => ({
+      texto: linea,
+      x: alTexto,
+      y: primeraLinea + i * interlinea + (interlinea - tamanoTexto) / 2,
+    })),
+    // El pico que apunta al objeto, sobre el borde de la caja que lo mira.
+    pico: {
+      x: acotar(x, cajaX + esquina + punta, cajaX + anchoCaja - esquina - punta),
+      y: lado === 'abajo' ? cajaY : cajaY + altoCaja,
+      alto: lado === 'abajo' ? -punta : punta,
+      ancho: punta,
+    },
+  };
+}
+
+/**
+ * La ficha de un objeto del fondo: su nombre y una descripcion corta, en un
+ * panel oscuro con el pico apuntando al objeto. Se enciende con `alfa` y entra
+ * deslizandose desde el objeto, apenas, como si saliera de el.
+ *
+ * Los colores son los de MAITE: el titulo en el de los nombres y el texto en el
+ * de los textos de las tablets, sobre un panel del mismo negro. El titulo va en
+ * la tipografia de titulo y la descripcion en la sans, que es la division que
+ * hacen las tablets.
+ */
+export function dibujarFicha(
+  ctx,
+  { x, y, radio, nombre, descripcion, alfa = 1 },
+  disposicion,
+  { columna, colores, evitar, tipografia },
+) {
+  if (alfa <= 0 || (!esTexto(nombre) && !esTexto(descripcion))) return;
+
+  // Se mide adentro del save: medir cambia la letra del lienzo, y afuera la
+  // dejaria cambiada para todo lo que se dibuja despues.
+  ctx.save();
+  const medir = (texto, fuente) => {
+    ctx.font = fuente;
+    return ctx.measureText(texto).width;
+  };
+  const ficha = disponerFicha({ x, y, radio }, { nombre, descripcion }, disposicion, medir, {
+    columna,
+    evitar,
+    tipografia,
+  });
+
+  const visible = Math.min(1, alfa);
+  const suave = visible * visible * (3 - 2 * visible);
+  const hacia = ficha.lado === 'abajo' ? -1 : 1;
+  ctx.translate(0, (1 - suave) * ficha.relleno * 0.8 * hacia);
+  ctx.globalAlpha = visible;
+
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = ficha.relleno * 1.4;
+  ctx.fillStyle = colores.panel;
+  ctx.beginPath();
+  trazarPanel(ctx, ficha.caja, ficha.pico);
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = colores.borde;
+  ctx.lineWidth = Math.max(1, ficha.relleno * 0.07);
+  ctx.stroke();
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  if (ficha.titulo) {
+    ctx.fillStyle = colores.titulo;
+    ctx.font = ficha.titulo.fuente;
+    for (const renglon of ficha.titulo.lineas) ctx.fillText(renglon.texto, renglon.x, renglon.y);
+  }
+  ctx.fillStyle = colores.texto;
+  ctx.font = ficha.fuenteTexto;
+  for (const linea of ficha.lineas) ctx.fillText(linea.texto, linea.x, linea.y);
+
+  ctx.restore();
+}
+
+/**
+ * El contorno del panel con su pico, en un solo trazo. Con el pico como una
+ * figura aparte, el borde le dibujaba una raya en la base, como si estuviera
+ * pegado con cinta. El pico va en el borde de arriba si apunta hacia arriba
+ * (`pico.alto` negativo) y en el de abajo si apunta hacia abajo.
+ */
+function trazarPanel(ctx, { x, y, ancho, alto, radio }, pico) {
+  const derecha = x + ancho;
+  const abajo = y + alto;
+
+  ctx.moveTo(x + radio, y);
+  if (pico.alto < 0) {
+    ctx.lineTo(pico.x - pico.ancho, y);
+    ctx.lineTo(pico.x, y + pico.alto);
+    ctx.lineTo(pico.x + pico.ancho, y);
+  }
+  ctx.arcTo(derecha, y, derecha, abajo, radio);
+  ctx.arcTo(derecha, abajo, x, abajo, radio);
+  if (pico.alto > 0) {
+    ctx.lineTo(pico.x + pico.ancho, abajo);
+    ctx.lineTo(pico.x, abajo + pico.alto);
+    ctx.lineTo(pico.x - pico.ancho, abajo);
+  }
+  ctx.arcTo(x, abajo, x, y, radio);
+  ctx.arcTo(x, y, derecha, y, radio);
+  ctx.closePath();
 }

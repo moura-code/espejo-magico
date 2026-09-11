@@ -157,6 +157,88 @@ export function crearFiltroDeManos({
   };
 }
 
+// Lo mas que cuenta un cuadro en los fundidos, el mismo tope que main.js le
+// pone a su propio paso de reloj. Si el navegador se traba —un detector que
+// tarda, una pestaña que se tapa—, los fundidos se frenan en vez de saltar: con
+// 250 ms, un solo tiron se comia media salida de la invitacion. No es un numero
+// a calibrar: es lo que dura un cuadro de 20 por segundo.
+export const DT_MAXIMO = 50;
+
+/**
+ * Cuanto se ve la señal de cada mano.
+ *
+ * El filtro retiene una mano perdida un rato y despues la suelta de golpe, y la
+ * deteccion la vuelve a encontrar de golpe: la señal que la seguia aparecia y
+ * desaparecia con ella, que con la mano de costado es un parpadeo. Aca cada mano
+ * (por su `idSeguimiento`) tiene su alfa: entra en `msDeEntrada`, sale en
+ * `msDeSalida`, y la que se fue se sigue devolviendo donde estaba hasta
+ * apagarse. Solo decide cuanto se ve: la eleccion y las fichas miran las manos
+ * del filtro, sin esto.
+ */
+export function crearDesvanecedorDeManos({ msDeEntrada, msDeSalida }) {
+  const pistas = new Map();
+  let ultimoReloj = null;
+
+  return {
+    actualizar(manos, ahora) {
+      const dt = ultimoReloj === null ? 0 : Math.min(DT_MAXIMO, Math.max(0, ahora - ultimoReloj));
+      ultimoReloj = ahora;
+
+      const vistas = new Set();
+      for (const mano of manos) {
+        const id = mano.idSeguimiento ?? 'sin-seguimiento';
+        vistas.add(id);
+        const alfa = Math.min(1, (pistas.get(id)?.alfa ?? 0) + dt / Math.max(1, msDeEntrada));
+        pistas.set(id, { mano, alfa });
+      }
+
+      for (const [id, pista] of pistas) {
+        if (vistas.has(id)) continue;
+        pista.alfa = Math.max(0, pista.alfa - dt / Math.max(1, msDeSalida));
+        if (pista.alfa === 0) pistas.delete(id);
+      }
+
+      return [...pistas.values()].map(({ mano, alfa }) => ({ ...mano, alfa }));
+    },
+
+    reiniciar() {
+      pistas.clear();
+      ultimoReloj = null;
+    },
+  };
+}
+
+/**
+ * Un alfa que se enciende en `msDeEntrada` y se apaga en `msDeSalida`, siempre
+ * desde donde esta. Es el de la invitacion del reposo: calculada por estado,
+ * arrancaba entera en el enganche aunque el reposo hubiera durado menos que su
+ * entrada, y se prendia de golpe justo para irse. Aca, si la señal se da vuelta
+ * a mitad de camino, sigue desde ahi —como las nubes—, y rebotar entre el
+ * reposo y el enganche no la hace parpadear.
+ *
+ * Avanza en linea recta y devuelve la curva suave: entra y sale sin tirones.
+ */
+export function crearDesvanecedor({ msDeEntrada, msDeSalida }) {
+  let lineal = 0;
+  let ultimoReloj = null;
+
+  return {
+    actualizar(encendido, ahora) {
+      const dt = ultimoReloj === null ? 0 : Math.min(DT_MAXIMO, Math.max(0, ahora - ultimoReloj));
+      ultimoReloj = ahora;
+      lineal = encendido
+        ? Math.min(1, lineal + dt / Math.max(1, msDeEntrada))
+        : Math.max(0, lineal - dt / Math.max(1, msDeSalida));
+      return lineal * lineal * (3 - 2 * lineal);
+    },
+
+    reiniciar() {
+      lineal = 0;
+      ultimoReloj = null;
+    },
+  };
+}
+
 /**
  * Entrar es rapido, salir es lento. La asimetria es deliberada: unos pocos
  * cuadros bastan para reconocer que alguien se sento, pero hace falta bastante

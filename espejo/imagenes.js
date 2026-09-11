@@ -1,7 +1,7 @@
 // Banco de imagenes con caida elegante.
 //
-// Si un PNG no esta, se guarda null y la escena dibuja una figura del color de
-// la carrera. Eso permite tener el sistema entero andando y probado antes de que
+// Si un PNG no esta, se guarda null y la escena dibuja su figura vectorial.
+// Eso permite tener el sistema entero andando y probado antes de que
 // diseño entregue el primer archivo, y evita que un nombre mal escrito deje la
 // pantalla en negro con publico delante.
 

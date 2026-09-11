@@ -45,37 +45,74 @@ export function posicionLateralNube(xNormalizada, radio, ancho, apertura, lado) 
  * Cuanto se ve de cada capa en cada momento, sin tocar la apertura lateral de
  * las nubes:
  *
- *   objetos   el carrusel de los que se ofrecen. Aparecen tapados por el humo
- *             y se apagan en cuanto la persona agarra el suyo.
- *   elegido   el objeto agarrado: el que vuela y despues se queda apoyado en
- *             el fondo. Va aparte de `objetos` justamente porque sobrevive al
- *             carrusel — es lo unico que queda de el.
- *   fondo     la imagen de la ingenieria detras de la persona.
- *   contenido el nombre de la ingenieria, al pie.
- *   vuelo     el objeto agarrado, de su ranura (0) a su lugar en el fondo (1).
+ *   objetos    el carrusel de los que se ofrecen. Aparecen tapados por el humo
+ *              y se apagan en cuanto la persona agarra el suyo.
+ *   elegido    el objeto agarrado: el que vuela y despues se queda apoyado en
+ *              el fondo. Va aparte de `objetos` justamente porque sobrevive al
+ *              carrusel — es lo unico que queda de el.
+ *   fondo      la imagen de la ingenieria detras de la persona.
+ *   contenido  el nombre de la ingenieria, al pie.
+ *   vuelo      el objeto agarrado, de su ranura (0) a su lugar en el fondo (1).
+ *   escondidos los otros objetos de la carrera, integrados al fondo. Entran
+ *              cuando el elegido ya aterrizo: primero se sigue el vuelo.
+ *   explorar   la consigna que enseña a pasar la mano sobre ellos. Espera a la
+ *              escena entera y se va para siempre al abrirse la primera ficha.
  *
  * `desdeLaMirada` es hace cuanto se muestra la ingenieria, o null si todavia no
  * hay ninguna. Es un reloj propio, distinto del del estado: la ingenieria
  * aparece sin que el estado haya cambiado. Como se elige una sola vez, tambien
- * es lo que dice si la eleccion sigue abierta.
+ * es lo que dice si la eleccion sigue abierta. `desdeElDescubrimiento` es hace
+ * cuanto se abrio la primera ficha de la sesion, o null si todavia ninguna.
  */
-export function calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, tiempos }) {
-  switch (estado) {
-    case ESTADOS.ATRACCION:
-    case ESTADOS.ENGANCHE:
-      return { objetos: 0, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
+export function calcularTransicionEscena({
+  estado,
+  transcurrido,
+  desdeLaMirada,
+  desdeElDescubrimiento = null,
+  tiempos,
+}) {
+  // Lo que vive en el fondo de la ingenieria ya elegida. Tiene sus propios
+  // relojes, los dos de la mirada: por eso se calcula aparte y el cierre lo
+  // reusa tal como estaba, para apagarlo desde ahi y no desde otro lado.
+  const delFondo = () => {
+    if (desdeLaMirada === null) return { escondidos: 0, explorar: 0 };
+    const entra = progreso(desdeLaMirada - tiempos.aparicion, tiempos.escondidos);
+    const sale =
+      desdeElDescubrimiento === null ? 0 : progreso(desdeElDescubrimiento, tiempos.escondidos);
+    return {
+      escondidos: progreso(desdeLaMirada - tiempos.vuelo, tiempos.escondidos),
+      explorar: entra * (1 - sale),
+    };
+  };
 
+  // Las capas de la exploracion con la ingenieria ya elegida, en este momento.
+  const conLaMirada = () => {
+    const t = progreso(desdeLaMirada, tiempos.aparicion);
+    const vuelo = progreso(desdeLaMirada, tiempos.vuelo);
+    return { objetos: 1 - vuelo, elegido: 1, fondo: t, contenido: t, vuelo, ...delFondo() };
+  };
+
+  // Todas las capas, apagadas salvo las que se pidan. En el reposo y en el
+  // enganche no se ve ninguna: la invitacion no es una capa de la escena, la
+  // sigue un desvanecedor (suavizado.js), como a las nubes, para que siga desde
+  // donde este aunque el estado rebote entre los dos.
+  const capas = (encendidas) => ({
+    objetos: 0,
+    elegido: 0,
+    fondo: 0,
+    contenido: 0,
+    vuelo: 0,
+    escondidos: 0,
+    explorar: 0,
+    ...encendidas,
+  });
+
+  switch (estado) {
     // Los objetos se encienden en la segunda mitad del humo. Estan puestos
     // desde el principio del estado, pero encenderlos antes de que el humo
     // este espeso los deja verse a traves y arruina la aparicion.
     case ESTADOS.HUMO:
-      return {
-        objetos: progreso(transcurrido - tiempos.humo / 2, tiempos.humo / 2),
-        elegido: 0,
-        fondo: 0,
-        contenido: 0,
-        vuelo: 0,
-      };
+      return capas({ objetos: progreso(transcurrido - tiempos.humo / 2, tiempos.humo / 2) });
 
     // EL CARRUSEL SE APAGA AL ELEGIR, y es lo que dice que la eleccion se
     // termino: se elige una sola vez, asi que dejar los objetos puestos seria
@@ -86,32 +123,33 @@ export function calcularTransicionEscena({ estado, transcurrido, desdeLaMirada, 
     //
     // El elegido no se va con ellos: vuela a su lugar y se queda ahi, entero,
     // hasta el final de la sesion.
-    case ESTADOS.EXPLORACION: {
-      if (desdeLaMirada === null) {
-        return { objetos: 1, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
-      }
-      const t = progreso(desdeLaMirada, tiempos.aparicion);
-      const vuelo = progreso(desdeLaMirada, tiempos.vuelo);
-      return { objetos: 1 - vuelo, elegido: 1, fondo: t, contenido: t, vuelo };
-    }
+    case ESTADOS.EXPLORACION:
+      return desdeLaMirada === null ? capas({ objetos: 1 }) : capas(conLaMirada());
 
-    // En el cierre el objeto elegido ya esta apoyado: se desvanece con todo lo
-    // demas. El carrusel solo tiene algo que desvanecer si la persona se fue
-    // sin elegir; si ya habia elegido estaba apagado, y encenderlo para
-    // apagarlo otra vez seria un parpadeo en el ultimo segundo.
+    // EL CIERRE ARRANCA DESDE DONDE QUEDO LA EXPLORACION y se apaga desde ahi.
+    // Sin eleccion, lo unico que habia era el carrusel. Con eleccion, cada capa
+    // sigue su propio reloj multiplicada por la salida: si el cierre llega en
+    // pleno vuelo —el tope de sesion, un ESPACIO en manual— el objeto termina
+    // de volar mientras se apaga, en vez de saltar a su lugar con el fondo
+    // entero; y el carrusel, si ya estaba apagado, no se enciende para
+    // apagarse otra vez, ni la consigna de explorar vuelve para despedirse.
     case ESTADOS.CIERRE: {
       const salida = 1 - progreso(transcurrido, tiempos.cierre);
-      return {
-        objetos: desdeLaMirada === null ? salida : 0,
-        elegido: salida,
-        fondo: salida,
-        contenido: salida,
-        vuelo: 1,
-      };
+      if (desdeLaMirada === null) return capas({ objetos: salida });
+      const quedo = conLaMirada();
+      return capas({
+        objetos: quedo.objetos * salida,
+        elegido: quedo.elegido * salida,
+        fondo: quedo.fondo * salida,
+        contenido: quedo.contenido * salida,
+        vuelo: quedo.vuelo,
+        escondidos: quedo.escondidos * salida,
+        explorar: quedo.explorar * salida,
+      });
     }
 
     default:
-      return { objetos: 0, elegido: 0, fondo: 0, contenido: 0, vuelo: 0 };
+      return capas({});
   }
 }
 

@@ -11,7 +11,8 @@
     "vendorizar": "node herramientas/vendorizar.mjs",
     "generar-pngs": "node herramientas/generar-pngs.mjs",
     "generar-fondos": "node herramientas/generar-fondos.mjs",
-    "prepare": "sh scripts/setup-git-hooks.sh || echo hooks no activados"
+    "prepare": "sh scripts/setup-git-hooks.sh || echo hooks no activados",
+    "planilla": "node herramientas/planilla.mjs"
   },
   "devDependencies": {
     "@mediapipe/tasks-vision": "^1.0.0",

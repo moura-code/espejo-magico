@@ -19,7 +19,8 @@
     }
     h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
     h2 { font-size: 15px; font-weight: 600; margin: 28px 0 8px; }
-    p { margin: 0 0 8px; color: #97a0b5; }
+    p { margin: 0 0 8px; color: #97a0b5; max-width: 980px; }
+    label { color: #c6ccda; cursor: pointer; }
     .fila { display: flex; gap: 18px; flex-wrap: wrap; }
     figure { margin: 0; width: 270px; }
     canvas { width: 270px; height: 480px; display: block; border-radius: 6px; background: #000; }
@@ -28,43 +29,59 @@
     .activo { color: #00E5A0; }
     .movimiento { color: #FFD23F; }
     .falta { color: #FF6B6B; }
-    .muestra {
-      display: inline-block; width: 12px; height: 12px; border-radius: 3px;
-      vertical-align: -1px; margin-right: 6px;
-    }
+    .objetos { margin: 0 0 8px; font-size: 12px; color: #97a0b5; }
   </style>
 </head>
 <body>
-  <!-- Hermana de figuras.html: se abre desde `npm start`. Muestra los fondos
-       candidatos de cada carrera TAL COMO SE VERIAN en el espejo: la imagen (o
-       la escena vectorial si el archivo no esta), una silueta donde va la
-       persona, el halo y el objeto apoyados en su lugar, y el nombre al pie con
-       las mismas funciones de escena.js. La catedra elige mirando. -->
+  <!-- Hermana de figuras.html y colores.html: se abre desde `npm start`. Muestra
+       los fondos candidatos de cada carrera TAL COMO SE VERIAN en el espejo: la
+       imagen (o la escena vectorial si el archivo no esta), los cuatro objetos
+       —el del carrusel apoyado en su lugar y los otros tres en sus escondites,
+       meciendose—, una silueta donde va la persona, la ficha de cada objeto
+       abriendose por turno y el nombre al pie, con las mismas funciones que usa
+       el espejo. La catedra elige mirando. -->
   <h1>Los fondos de cada ingeniería</h1>
-  <p>El primero de cada fila es el <b class="activo">activo</b>: el espejo muestra ese. Para elegir otro, reordená <b>fondos</b> en <b>contenido/carreras.json</b>. El objeto se apoya en <b>lugar</b>; sin declararlo vale <b>CONFIG.fondo.lugarPorDefecto</b>.</p>
+  <p>El primero de cada fila es el <b class="activo">activo</b>: el espejo muestra ese. Para elegir otro, reordená <b>fondos</b> en <b>contenido/carreras.json</b>. Cada fondo esconde los <b>cuatro objetos</b> de su ingeniería: el del carrusel se apoya en <b>lugar</b> y los otros tres en <b>escondites</b>, en el mismo orden que <b>objetos</b>, todos en la periferia. Las fichas se abren por turno, como cuando alguien pasa la mano por encima.</p>
+  <p><label><input type="checkbox" id="zona"> Mostrar la zona de la persona y la del nombre, donde no puede ir ningún objeto</label></p>
   <div id="carreras"></div>
 
   <script type="module">
     import { CONFIG } from '../espejo/config.js';
     import { dibujarEscenario } from '../espejo/escenarios.js';
     import { figurasDisponibles } from '../espejo/figuras.js';
-    import { cargarContenido, fondoActivo, objetoDeCarrera } from '../espejo/contenido.js';
+    import { cargarContenido, objetoDeCarrera, escondidosDeCarrera } from '../espejo/contenido.js';
     import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
     import { cargarVideoDelNavegador, crearBancoDeVideos } from '../espejo/videos.js';
-    import { lugarEnPantalla } from '../espejo/vuelo.js';
+    import { aspectoDelObjeto, objetosDelFondo, fichaDelObjeto } from '../espejo/escondites.js';
     import {
       calcularDisposicion,
       dibujarFondo,
+      dibujarFicha,
       dibujarNombreDeCarrera,
       dibujarObjetoApoyado,
       TITULO_SOLO,
       PESO_TITULO,
     } from '../espejo/escena.js';
 
-    // A escala: el espejo es 1080x1920 y aca se dibuja a la mitad.
-    const ANCHO = 540;
-    const ALTO = 960;
-    const disposicion = calcularDisposicion(ANCHO, ALTO);
+    // Cada candidato se dibuja a la medida del espejo, 1080x1920, en un lienzo
+    // aparte, y se muestra achicado a la mitad. Dispuesto a media escala, el
+    // redondeo de la ficha podia decidir otra cosa que el espejo —de que lado
+    // va y a quien tapa—, y esta es la pagina con la que la catedra elige.
+    const ESPEJO = { ancho: 1080, alto: 1920 };
+    const VISTA = { ancho: 540, alto: 960 };
+    const disposicion = calcularDisposicion(ESPEJO.ancho, ESPEJO.alto);
+    const completo = document.createElement('canvas');
+    completo.width = ESPEJO.ancho;
+    completo.height = ESPEJO.alto;
+    const COLORES_DE_FICHA = {
+      titulo: CONFIG.paleta.nombre,
+      texto: CONFIG.paleta.texto,
+      panel: CONFIG.paleta.panel,
+      borde: CONFIG.paleta.borde,
+    };
+
+    // Cada ficha se abre por turno, como si alguien pasara la mano por encima.
+    const TURNO = 3200;
 
     // El canvas no dispara la carga de la fuente: se espera antes de dibujar.
     await document.fonts.load(`${PESO_TITULO} 32px ${TITULO_SOLO}`).catch(() => {});
@@ -75,7 +92,6 @@
       contenido.carreras.flatMap((c) => [
         ...(c.fondos ?? []).map((f) => f.img),
         ...c.objetos.map((o) => o.img),
-        ...(c.objeto ? [c.objeto.img] : []),
       ]),
     );
 
@@ -86,20 +102,49 @@
       raiz: '/contenido/',
     });
 
+    let conZona = false;
+    document.getElementById('zona').addEventListener('change', (evento) => {
+      conZona = evento.target.checked;
+    });
+
     /** Una silueta gris, cabeza y hombros, donde se para la persona. */
     function dibujarSilueta(ctx) {
+      const { ancho, alto } = ESPEJO;
       ctx.save();
       ctx.fillStyle = 'rgba(180, 190, 205, 0.55)';
       ctx.beginPath();
-      ctx.ellipse(ANCHO / 2, ALTO * 0.42, ANCHO * 0.11, ANCHO * 0.14, 0, 0, Math.PI * 2);
+      ctx.ellipse(ancho / 2, alto * 0.42, ancho * 0.11, ancho * 0.14, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(ANCHO * 0.22, ALTO);
-      ctx.quadraticCurveTo(ANCHO * 0.24, ALTO * 0.56, ANCHO / 2, ALTO * 0.55);
-      ctx.quadraticCurveTo(ANCHO * 0.76, ALTO * 0.56, ANCHO * 0.78, ALTO);
+      ctx.moveTo(ancho * 0.22, alto);
+      ctx.quadraticCurveTo(ancho * 0.24, alto * 0.56, ancho / 2, alto * 0.55);
+      ctx.quadraticCurveTo(ancho * 0.76, alto * 0.56, ancho * 0.78, alto);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
+    }
+
+    /** La zona de la persona (CONFIG) y la del nombre (el pie), en rojo tenue. */
+    function dibujarZonas(ctx) {
+      const { ancho, alto } = ESPEJO;
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 70, 70, 0.22)';
+      for (const zona of CONFIG.fondo.zonaDeLaPersona) {
+        ctx.fillRect(zona.x0 * ancho, zona.y0 * alto, (zona.x1 - zona.x0) * ancho, (zona.y1 - zona.y0) * alto);
+      }
+      ctx.fillStyle = 'rgba(255, 200, 70, 0.16)';
+      ctx.fillRect(0, alto - disposicion.pie.alto, ancho, disposicion.pie.alto);
+      ctx.restore();
+    }
+
+    /** Cuanto se ve la ficha de turno: entra, se queda y sale, sin saltos. */
+    function turnoDeFicha(ahora, cuantos) {
+      const vuelta = ahora % (TURNO * cuantos);
+      const indice = Math.floor(vuelta / TURNO);
+      const t = vuelta - indice * TURNO;
+      const entra = Math.min(1, t / CONFIG.fichas.msDeEntrada);
+      const sale = Math.min(1, Math.max(0, (TURNO - t) / CONFIG.fichas.msDeSalida));
+      return { indice, alfa: Math.min(entra, sale) };
     }
 
     /**
@@ -108,57 +153,111 @@
      * El mismo orden de preferencia que el espejo: el video si ya cargo, la foto
      * si no, la escena vectorial despues y el color plano al final.
      */
-    function dibujarCandidato(lienzo, carrera, fondo, definicion) {
-      const ctx = lienzo.getContext('2d');
+    function dibujarCandidato(lienzo, carrera, fondo, ahora) {
+      const ctx = completo.getContext('2d');
+      ctx.clearRect(0, 0, ESPEJO.ancho, ESPEJO.alto);
       const fuente =
         (fondo?.video ? videos.obtener(fondo.video) : null) ??
         (fondo ? banco.obtener(fondo.img) : null);
 
-      // El rectangulo lo devuelve quien dibujo, igual que en el espejo: el
-      // objeto se apoya normalizado a el y no puede salir de otra cuenta.
+      // El rectangulo lo devuelve quien dibujo, igual que en el espejo: los
+      // objetos se apoyan normalizados a el y no pueden salir de otra cuenta.
       let rectangulo = dibujarFondo(ctx, fuente, disposicion, 1);
       if (!rectangulo) {
-        rectangulo = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
-        if (!dibujarEscenario(ctx, carrera.id, ANCHO, ALTO, carrera.color)) {
+        rectangulo = { x: 0, y: 0, ancho: ESPEJO.ancho, alto: ESPEJO.alto };
+        if (!dibujarEscenario(ctx, carrera.id, ESPEJO.ancho, ESPEJO.alto, carrera.color)) {
           ctx.fillStyle = carrera.color;
-          ctx.fillRect(0, 0, ANCHO, ALTO);
+          ctx.fillRect(0, 0, ESPEJO.ancho, ESPEJO.alto);
         }
       }
 
-      const puesto = lugarEnPantalla(fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto, rectangulo);
-      dibujarObjetoApoyado(
-        ctx,
-        { definicion, ...puesto, alfa: 1, halo: CONFIG.fondo.haloDelLugar },
-        banco,
-        carrera.color,
-      );
+      // Los cuatro objetos y sus fichas salen de las mismas funciones que usa
+      // el espejo (objetosDelFondo, fichaDelObjeto, aspectoDelObjeto), no de una
+      // copia: ajustar un lado solo separaria en silencio lo que se ve aca de
+      // lo que hace el espejo.
+      const todos = objetosDelFondo({
+        objetos: carrera.objetos,
+        fondo,
+        rectangulo,
+        pantalla: ESPEJO,
+        config: CONFIG,
+      });
+      const turno = turnoDeFicha(ahora, todos.length);
+      const deTurno = todos[turno.indice];
+
+      // Como en el espejo: los escondidos se mecen, el del carrusel flota, y el
+      // de la ficha abierta crece, se calma y se ilumina.
+      for (const objeto of [...todos.slice(1), todos[0]]) {
+        const { dy, giro, radio, halo } = aspectoDelObjeto(
+          {
+            ahora,
+            indice: objeto.indice,
+            radio: objeto.radio,
+            esElegido: objeto.id === 0,
+            leyendo: objeto === deTurno ? turno.alfa : 0,
+          },
+          CONFIG,
+        );
+        dibujarObjetoApoyado(
+          ctx,
+          { definicion: objeto.definicion, x: objeto.x, y: objeto.y + dy, radio, giro, halo },
+          banco,
+          CONFIG.paleta.nombre,
+        );
+      }
+
+      // La persona va delante de los objetos. En el espejo, el que se esta
+      // leyendo se dibuja otra vez encima de ella, recortado contra su silueta
+      // (dibujarObjetosDelante): aca esa copia no tendria nada que mostrar,
+      // porque esta silueta nunca pisa un objeto —estan fuera de la zona de la
+      // persona—, asi que no se dibuja.
       dibujarSilueta(ctx);
-      dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
+      if (conZona) dibujarZonas(ctx);
+
+      const { circulo, opciones } = fichaDelObjeto(deTurno, todos, ESPEJO.ancho, CONFIG);
+      dibujarFicha(
+        ctx,
+        {
+          ...circulo,
+          nombre: deTurno.definicion?.nombre,
+          descripcion: deTurno.definicion?.descripcion,
+          alfa: turno.alfa,
+        },
+        disposicion,
+        { ...opciones, colores: COLORES_DE_FICHA },
+      );
+      dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, CONFIG.paleta.nombre);
+
+      // Y se muestra achicado.
+      const vista = lienzo.getContext('2d');
+      vista.imageSmoothingQuality = 'high';
+      vista.clearRect(0, 0, lienzo.width, lienzo.height);
+      vista.drawImage(completo, 0, 0, lienzo.width, lienzo.height);
       return Boolean(fuente);
     }
 
     const raiz = document.getElementById('carreras');
-
-    // Los que hay que redibujar cuadro a cuadro. Los quietos se dibujan una vez.
-    const enMovimiento = [];
+    const lienzos = [];
 
     for (const carrera of contenido.carreras) {
       const titulo = document.createElement('h2');
-      titulo.innerHTML =
-        `<span class="muestra" style="background:${carrera.color}"></span>` +
-        `${carrera.nombre} <span style="color:#97a0b5">(${carrera.id})</span>`;
+      titulo.innerHTML = `${carrera.nombre} <span style="color:#97a0b5">(${carrera.id})</span>`;
+      const objetos = document.createElement('p');
+      objetos.className = 'objetos';
+      objetos.innerHTML =
+        `En el carrusel: <b>${objetoDeCarrera(carrera)?.nombre ?? '—'}</b>. Escondidos: ` +
+        escondidosDeCarrera(carrera).map((o) => `<b>${o.nombre ?? o.img}</b>`).join(', ') + '.';
       const fila = document.createElement('div');
       fila.className = 'fila';
 
       const candidatos = carrera.fondos?.length ? carrera.fondos : [null];
-      const definicion = objetoDeCarrera(carrera);
 
       candidatos.forEach((fondo, i) => {
         const figura = document.createElement('figure');
         const lienzo = document.createElement('canvas');
-        lienzo.width = ANCHO;
-        lienzo.height = ALTO;
-        const hayImagen = dibujarCandidato(lienzo, carrera, fondo, definicion);
+        lienzo.width = VISTA.ancho;
+        lienzo.height = VISTA.alto;
+        const hayImagen = dibujarCandidato(lienzo, carrera, fondo, performance.now());
 
         const pie = document.createElement('figcaption');
         const lugar = fondo?.lugar ?? CONFIG.fondo.lugarPorDefecto;
@@ -167,49 +266,46 @@
           `<b>${fondo?.img ?? 'sin fondos declarados'}</b>` +
           `${fondo && !hayImagen ? ' — ARCHIVO NO ENCONTRADO, se muestra la escena vectorial' : ''}` +
           `<br>lugar: x ${lugar.x}, y ${lugar.y}, escala ${lugar.escala}` +
-          `${fondo?.lugar ? '' : ' (por defecto)'}`;
+          `${fondo?.lugar ? '' : ' (por defecto)'}` +
+          `<br>escondites: ${fondo?.escondites ? fondo.escondites.length : 'los de config'}`;
 
         // El rotulo del video se escribe DESPUES de intentar cargarlo: decir
         // "con movimiento" sobre un .mp4 que no llego seria mentir justo en la
         // decision para la que existe esta pagina.
-        if (fondo?.video) enMovimiento.push({ lienzo, carrera, fondo, definicion, pie });
+        if (fondo?.video) {
+          videos.precargar([fondo.video]).then(() => {
+            const video = videos.obtener(fondo.video);
+            pie.innerHTML +=
+              `<br><b class="${video ? 'movimiento' : 'falta'}">` +
+              `${video ? 'con movimiento' : 'VIDEO NO DISPONIBLE, se muestra su foto'}</b>` +
+              ` · ${fondo.video}`;
+            video?.play?.().catch(() => {});
+          });
+        }
 
         figura.append(lienzo, pie);
         fila.append(figura);
+        lienzos.push({ lienzo, carrera, fondo, visible: false });
       });
 
-      raiz.append(titulo, fila);
+      raiz.append(titulo, objetos, fila);
     }
 
-    document.title = `${contenido.carreras.length} ingenierías, sus fondos`;
+    document.title = `${contenido.carreras.length} ingenierías, sus fondos y sus objetos`;
 
-    // Los videos, ya con todo dibujado. Aca SI suenan todos a la vez: es la
-    // maquina de desarrollo eligiendo, no la PC del evento, donde el espejo
-    // reproduce uno solo.
-    if (enMovimiento.length > 0) {
-      await videos.precargar(enMovimiento.map(({ fondo }) => fondo.video));
+    // Solo se animan los que se ven: son casi cuarenta lienzos, y repintar los
+    // que estan fuera de la pantalla seria gastar la maquina en no mostrar nada.
+    const porLienzo = new Map(lienzos.map((l) => [l.lienzo, l]));
+    const observador = new IntersectionObserver((entradas) => {
+      for (const entrada of entradas) porLienzo.get(entrada.target).visible = entrada.isIntersecting;
+    });
+    for (const { lienzo } of lienzos) observador.observe(lienzo);
 
-      // Solo se redibujan los que de verdad se mueven. Los que no cargaron se
-      // quedan en su foto, quietos, y lo dicen: repintarlos sesenta veces por
-      // segundo seria gastar la maquina en no mover nada.
-      const andando = [];
-      for (const candidato of enMovimiento) {
-        const video = videos.obtener(candidato.fondo.video);
-        candidato.pie.innerHTML +=
-          `<br><b class="${video ? 'movimiento' : 'falta'}">` +
-          `${video ? 'con movimiento' : 'VIDEO NO DISPONIBLE, se muestra su foto'}</b>` +
-          ` · ${candidato.fondo.video}`;
-        if (!video) continue;
-        video.play?.().catch(() => {});
-        andando.push(candidato);
-      }
-
-      const animar = () => {
-        for (const c of andando) dibujarCandidato(c.lienzo, c.carrera, c.fondo, c.definicion);
-        requestAnimationFrame(animar);
-      };
-      if (andando.length > 0) requestAnimationFrame(animar);
-    }
+    const animar = (ahora) => {
+      for (const l of lienzos) if (l.visible) dibujarCandidato(l.lienzo, l.carrera, l.fondo, ahora);
+      requestAnimationFrame(animar);
+    };
+    requestAnimationFrame(animar);
   </script>
 </body>
 </html>

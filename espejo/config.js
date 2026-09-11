@@ -1,6 +1,11 @@
 // Todo numero ajustable del sistema vive aca. Ningun otro archivo deberia tener
 // constantes magicas: si algo hay que calibrar el dia del evento, se calibra aca.
 
+// El dorado de MAITE: el color con el que las cuatro tablets escriben los
+// nombres (--color-accent-strong en su public/style.css). Va en el nombre de la
+// ingenieria, en la carga y en las fichas, igual para las doce.
+const DORADO = '#f0dca0';
+
 export const CONFIG = {
   // En manual la experiencia no avanza sola: cada estado espera un ESPACIO.
   // Sirve para probar sin pelear con el reloj — la sesion no se corta cuando
@@ -9,6 +14,23 @@ export const CONFIG = {
   // manual este activo el espejo lo avisa en pantalla.
   avance: {
     manual: false,
+  },
+
+  // Los colores de la experiencia, que son los de las tablets de MAITE
+  // (`public/style.css`): las dos piezas estan a dos metros una de otra en el
+  // stand y tienen que leerse como una sola instalacion. La catedra pidio que
+  // el color no distinga a las ingenierias, asi que los nombres, la carga y los
+  // halos van en estos, iguales para las doce. Las opciones que se miraron
+  // estan lado a lado en herramientas/colores.html.
+  paleta: {
+    // --color-accent-strong: el de los nombres en las cuatro tablets.
+    nombre: DORADO,
+    // --color-text-muted: el de los textos de las tablets.
+    texto: '#cdbfa0',
+    // --color-bg, casi opaco: el panel de las fichas.
+    panel: 'rgba(5, 5, 10, 0.8)',
+    // El dorado apenas (0x47 es el 28 %): el borde del panel.
+    borde: `${DORADO}47`,
   },
 
   // Duraciones de cada estado, en milisegundos. La exploracion no tiene
@@ -31,7 +53,7 @@ export const CONFIG = {
     // hubiera agarrado con la mano: nadie se va sin ingenieria.
     eleccionMaxima: 30000,
 
-    // Cuanto tarda en entrar el fondo de una ingenieria con su ficha. Es el
+    // Cuanto tarda en entrar el fondo de una ingenieria con su nombre. Es el
     // reloj de la mirada, no el de un estado: arranca cuando la persona agarra
     // su objeto, en cualquier momento de la exploracion.
     aparicion: 2500,
@@ -44,7 +66,20 @@ export const CONFIG = {
     // anillo termina de vaciarse justo cuando el objeto elegido aterriza, y eso
     // se lee como que los demas se apartaron para dejarlo pasar.
     vuelo: 1000,
+
+    // Cuanto tardan en aparecer los objetos escondidos en el fondo. Arrancan
+    // cuando el elegido aterriza —primero se sigue el vuelo— y la consigna
+    // que enseña a explorarlos entra y sale con este mismo plazo.
+    escondidos: 1500,
     cierre: 3000,
+
+    // Lo que tarda en entrar la invitacion del reposo, y lo que tarda en irse
+    // cuando alguien se sienta: rapido, mientras las nubes se abren. Aparecer y
+    // desaparecer de golpe se leia como un parpadeo encima de las nubes. Sigue
+    // al estado desde donde este, como las nubes: si el reposo dura menos que
+    // su entrada, se va desde donde habia llegado.
+    invitacion: 1200,
+    salidaDeLaInvitacion: 600,
 
     // Corto: quien llega despues de que el espejo volvio al reposo no tiene por
     // que esperar. Existe solo para que la persona que se esta yendo no dispare
@@ -136,6 +171,15 @@ export const CONFIG = {
     // va siempre atras de la mano de verdad: apuntas y el anillo va atrasado.
     fps: 34,
 
+    // Con la ingenieria ya elegida las manos siguen sirviendo —pasarlas sobre
+    // los objetos del fondo abre sus fichas—, pero ya no hay un sostenido que
+    // se llene cuadro a cuadro: con 300 ms para abrir y 900 de gracia alcanza
+    // con pocos cuadros, y el resto se lo queda la silueta, que es lo que mas se
+    // mira a partir de ahi y corre a fpsConFondo con lectura de la GPU. Hay que
+    // medirlo con el panel (P) en la PC del evento: rostro, pose y manos corren
+    // en el mismo hilo.
+    fpsExplorando: 12,
+
     // Generosos: facil de interactuar a 1.5m - 2m de la camara sin exigir estirar el brazo.
     factorRadio: 1.5,
     radioMinimoEnPalmas: 1.2,
@@ -158,6 +202,12 @@ export const CONFIG = {
     senal: {
       resplandorFactor: 2.2, // radio del resplandor, en radios de mano
       nucleoFactor: 0.22, // brillo que marca el punto que elige
+
+      // Se prende rapido y se apaga despacio. El filtro suelta de golpe una mano
+      // perdida y la vuelve a tomar de golpe: sin esto la señal parpadeaba con
+      // la mano de costado.
+      msDeEntrada: 150,
+      msDeSalida: 450,
     },
   },
 
@@ -176,10 +226,12 @@ export const CONFIG = {
   // El sostenido: como se elige un objeto sin tocar nada.
   //
   // El plazo es el equilibrio entre elegir sin querer al pasar la mano (corto de
-  // mas) y cansar el brazo (largo de mas). Con 1500 ms hay tiempo de sacar la
-  // mano al ver que se empieza a llenar el anillo equivocado.
+  // mas) y cansar el brazo (largo de mas). La catedra pidio mas "tiempo de
+  // carga": con tres segundos la eleccion se siente deliberada, hay tiempo de
+  // sacar la mano al ver que se llena el anillo equivocado, y el brazo lo
+  // aguanta porque el carrusel se detiene apenas empieza.
   eleccion: {
-    msParaElegir: 1500,
+    msParaElegir: 3000,
 
     // Cuanto se le perdona a la deteccion antes de empezar a vaciar el anillo.
     // NO es un detalle: la deteccion de manos se pierde varios cuadros por
@@ -191,12 +243,30 @@ export const CONFIG = {
 
     // Pasada la gracia, el progreso NO se borra de golpe: se vacia en este
     // tiempo. Mas rapido que llenarse, para que un roce no valga por una
-    // eleccion, pero no instantaneo.
-    msDeOlvido: 600,
+    // eleccion, pero no instantaneo: con la carga mas lenta, un anillo que se
+    // vaciaba en 600 ms se leia como un corte.
+    msDeOlvido: 1000,
 
     // Que tan generoso es el blanco, en radios del objeto. Es mas facil
     // disfrutar un blanco que perdona que uno exacto que te hace errar.
     radioFactor: 1.4,
+  },
+
+  // Como se ve la carga del sostenido. UN SOLO COLOR para las doce —el de los
+  // nombres de MAITE— y transparencia en cada parte, que es lo que pidio
+  // explorar la catedra: `pista` es la opacidad del anillo completo de atras,
+  // `trazo` la del que avanza, `brillo` cuanto resplandece y `relleno` la del
+  // disco que se llena detras del objeto (0 lo apaga). Las otras opciones que
+  // se miraron estan andando en herramientas/colores.html.
+  carga: {
+    color: DORADO,
+    pista: 0.22,
+    trazo: 0.9,
+    brillo: 0.7,
+    relleno: 0.26,
+    // El disco, en radios del objeto: un poco mas grande, para que se vea
+    // alrededor, y mas chico que el anillo.
+    radioDelDisco: 1.12,
   },
 
   // Donde se ponen los objetos que se ofrecen: un anillo con todas las
@@ -288,20 +358,55 @@ export const CONFIG = {
     oscurecerVideo: 0.55, // cuanto se apaga el espejo debajo del fondo sin mascara
 
     // Donde se apoya el objeto cuando el fondo no declara su `lugar`:
-    // normalizado a la imagen, arriba a la izquierda, lejos de la cara, del
-    // nombre y del recorrido del carrusel, que pasa por encima de la cabeza a
-    // un tercio de la pantalla. `escala` es el diametro como fraccion del ancho
-    // de la imagen.
-    lugarPorDefecto: { x: 0.2, y: 0.22, escala: 0.16 },
+    // normalizado a la imagen, arriba a la izquierda, lejos de la cara y del
+    // nombre. `escala` es el diametro como fraccion del ancho de la imagen. Tan
+    // bajo como deja su ficha, que se abre por encima de el: mas arriba no lo
+    // alcanza la mano de alguien sentado a dos metros.
+    lugarPorDefecto: { x: 0.2, y: 0.295, escala: 0.16 },
 
-    // El halo del color de la carrera debajo del objeto apoyado. Lo presenta
+    // Y donde esperan los otros tres objetos cuando el fondo no declara sus
+    // `escondites` —el respaldo vectorial, una carrera sin fondos—: el otro
+    // rincon de arriba y, a cada lado, uno a la altura de la cara, con su ficha
+    // por debajo. Como el lugar por defecto, es un seguro del codigo y no una
+    // decision; las fotos declaran los suyos. Los dos los vigilan
+    // tests/integracion/fondos.test.js y fichas.test.js con las doce
+    // ingenierias: al alcance de la mano y sin que una ficha tape a un vecino.
+    esconditesPorDefecto: [
+      { x: 0.8, y: 0.295, escala: 0.14 },
+      { x: 0.16, y: 0.44, escala: 0.14 },
+      { x: 0.84, y: 0.44, escala: 0.14 },
+    ],
+
+    // Donde esta la persona, normalizado al espejo vertical: la cabeza y los
+    // hombros. Ningun objeto del fondo va ahi —la catedra pidio la periferia,
+    // para que no coincidan con la imagen de la persona—.
+    // tests/integracion/fondos.test.js lo vigila con el catalogo real, y
+    // herramientas/fondos.html la dibuja para elegir lugares mirando.
+    zonaDeLaPersona: [
+      { x0: 0.3, x1: 0.7, y0: 0.14, y1: 0.5 }, // la cabeza
+      { x0: 0.18, x1: 0.82, y0: 0.5, y1: 1 }, // los hombros y el cuerpo
+    ],
+
+    // Margen minimo del objeto apoyado al borde del lienzo, en radios y desde
+    // el centro (1 es tocar el borde). Solo actua cuando el recorte del fondo
+    // deja el lugar fuera de la pantalla: las fotos se preparan para el espejo
+    // vertical, y en un monitor apaisado —desarrollo— la franja de arriba,
+    // donde van los lugares, queda recortada. En el espejo no mueve nada.
+    margenDelLugar: 1.25,
+
+    // El halo debajo del objeto apoyado, en el color de la paleta. Lo presenta
     // sobre cualquier fondo, foto o escena vectorial, sin pedirle a cada imagen
     // que tenga una mesa justo ahi.
-    haloDelLugar: 0.35,
+    haloDelLugar: 0.3,
 
     // La flotacion del objeto apoyado: `amplitud` en radios del objeto. Poca a
     // proposito: tiene que leerse vivo, no competir con la persona.
     flotar: { amplitud: 0.08, periodoMs: 3200 },
+
+    // Lo que tardan la flotacion y el halo en entrar cuando el objeto aterriza.
+    // Llega volando sin ninguno de los dos: aparecer enteros en un cuadro era un
+    // salto justo en el momento mas mirado.
+    msDeAterrizaje: 400,
 
     // Cuanto se espera a cada fondo con movimiento antes de darlo por perdido y
     // seguir con su foto. Los videos se cargan DESPUES de que el espejo arranco
@@ -309,6 +414,61 @@ export const CONFIG = {
     // archivo que nunca contesta deje la cola de descargas trabada para siempre
     // y las carreras siguientes sin su video.
     msParaCargarVideo: 8000,
+  },
+
+  // Los otros objetos de la ingenieria, escondidos en el fondo.
+  escondidos: {
+    // Menos halo que el del carrusel: estan integrados al fondo, no encima.
+    // Algo igual, porque un objeto oscuro en un rincon oscuro no lo encuentra
+    // nadie.
+    halo: 0.18,
+
+    // El halo del objeto que se esta leyendo, sea escondido o el que llego
+    // volando: asi se sabe de cual habla la ficha.
+    haloAlLeer: 0.45,
+
+    // El pequeño movimiento que pidio la catedra para que se los pueda
+    // identificar: se mecen despacio, cada uno a su ritmo —`variacion` mas
+    // lento que el anterior—. Mas rapido o mas amplio se lee como un aviso y
+    // compite con la persona.
+    balanceo: { grados: 6, amplitud: 0.05, periodoMs: 4400, variacion: 0.17 },
+
+    // Cuanto crece el objeto que se esta describiendo, en fraccion del radio,
+    // y cuanto se calma su vaiven mientras se lee su ficha.
+    resalte: 0.14,
+    calmaAlLeer: 0.7,
+  },
+
+  // La ficha de cada objeto del fondo: al pasar la mano por encima se abre su
+  // nombre y una descripcion corta.
+  //
+  // Abrir pide un momento y cerrar pide otro mas largo, igual que la presencia
+  // y el sostenido: una ficha que se abre al primer cuadro se abre con cada
+  // mano que pasa camino a otro lado, y una que se cierra al primero parpadea
+  // con cada deteccion perdida y no deja terminar de leer.
+  fichas: {
+    msParaMostrar: 300,
+    msDeGracia: 900,
+    msDeEntrada: 450,
+    msDeSalida: 700,
+
+    // Generoso: los escondidos son mas chicos que los del carrusel.
+    radioFactor: 1.6,
+
+    // Un escondido se puede leer recien cuando se ve a medias: abrir la ficha
+    // de algo que todavia no aparecio seria hablar de nada.
+    alfaParaLeer: 0.5,
+
+    // El ancho de la franja de cada costado donde va la ficha, en fraccion del
+    // ancho de la pantalla: el mismo borde que la cabeza en zonaDeLaPersona,
+    // para que la ficha nunca le tape la cara a la persona.
+    columna: 0.3,
+
+    // La letra de la ficha, en fraccion del tamaño de frase de la pantalla
+    // (unos 32 px en el espejo): `texto` la descripcion y `titulo` el nombre.
+    // `anchoEnLetras` topa el ancho del panel en tamaños de letra. Es
+    // legibilidad a dos metros: se calibra en el stand.
+    tipografia: { texto: 0.82, titulo: 1.25, anchoEnLetras: 15 },
   },
 
   // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio
@@ -349,5 +509,10 @@ export const CONFIG = {
 
   operacion: {
     recargaCadaMs: 4 * 60 * 60 * 1000,
+
+    // En modo demo (tecla D) el puntero hace de mano: sin camara se puede
+    // elegir sosteniendo el mouse sobre un objeto y abrir las fichas pasandolo
+    // por encima. Es el radio de esa mano, en pixeles.
+    radioDelPuntero: 70,
   },
 };

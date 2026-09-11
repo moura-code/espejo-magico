@@ -3,6 +3,7 @@ import {
   validarContenido,
   cargarContenido,
   objetoDeCarrera,
+  escondidosDeCarrera,
   fondoActivo,
 } from '../../espejo/contenido.js';
 
@@ -133,6 +134,23 @@ describe('validarContenido', () => {
     conError(con({ x: 0.5 }), 'entre 0 y 1');
   });
 
+  // Los escondites son donde van los otros objetos de la carrera, integrados
+  // al fondo. Uno fuera de la imagen es un objeto que nadie va a encontrar, y
+  // el mensaje tiene que decir cual de los tres es.
+  it('los escondites, si estan, son una lista de lugares dentro de la imagen', () => {
+    const con = (escondites) => ({
+      carreras: [{ ...carreraValida(), fondos: [{ img: 'a.png', escondites }] }],
+    });
+    sinErrores(con([{ x: 0.1, y: 0.2, escala: 0.1 }, { x: 0.9, y: 0.4, escala: 0.1 }]));
+    sinErrores(con([]));
+    conError(con({ x: 0.1, y: 0.2, escala: 0.1 }), '"escondites" tiene que ser una lista');
+    conError(con([{ x: 1.3, y: 0.2, escala: 0.1 }]), 'escondites[0] necesita "x" e "y" entre 0 y 1');
+    conError(
+      con([{ x: 0.1, y: 0.2, escala: 0.1 }, { x: 0.1, y: 0.2, escala: -1 }]),
+      'escondites[1] "escala" tiene que ser un numero mayor que cero',
+    );
+  });
+
   // El campo viejo, en singular, dejaria a la carrera sin fondo en silencio.
   it('rechaza el viejo "fondo" y dice como migrarlo', () => {
     conError(
@@ -142,11 +160,31 @@ describe('validarContenido', () => {
     conError({ carreras: [{ ...carreraValida(), fondo: 'x' }] }, 'fondos');
   });
 
-  it('valida tambien el objeto representante, si esta declarado', () => {
-    sinErrores({
-      carreras: [{ ...carreraValida(), objeto: { img: 'assets/civil/grua.png', escala: 0.2 } }],
+  // El representante ahora es el primero de `objetos`, y elegirlo es reordenar,
+  // igual que los fondos. Un JSON con el campo viejo dejaria de mostrar el
+  // objeto que alguien fijo a mano, y nadie lo notaria hasta verlo en el stand.
+  it('rechaza el viejo "objeto" y dice como migrarlo', () => {
+    conError(
+      {
+        carreras: [
+          { ...carreraValida(), objeto: { img: 'assets/civil/casco.png', escala: 0.2 } },
+        ],
+      },
+      '"objeto" ya no existe: el del carrusel es el primero de "objetos"',
+    );
+  });
+
+  // El nombre y la descripcion son lo que se lee al pasar la mano por encima
+  // del objeto. Pueden faltar mientras se escribe el contenido —la ficha
+  // muestra lo que haya—, pero si estan tienen que ser texto.
+  it('el nombre y la descripcion de un objeto, si estan, son texto', () => {
+    const con = (extra) => ({
+      carreras: [{ ...carreraValida(), objetos: [{ img: 'a.png', escala: 0.2, ...extra }] }],
     });
-    conError({ carreras: [{ ...carreraValida(), objeto: { escala: 0.2 } }] }, 'objeto sin "img"');
+    sinErrores(con({ nombre: 'Grúa', descripcion: 'Levanta cargas en la obra.' }));
+    sinErrores(con({}));
+    conError(con({ nombre: 7 }), 'objetos[0] "nombre" tiene que ser un texto');
+    conError(con({ descripcion: ['x'] }), 'objetos[0] "descripcion" tiene que ser un texto');
   });
 
   // Solo se comprueba cuando el llamador pasa el catalogo de figuras. Es lo que
@@ -180,26 +218,43 @@ describe('validarContenido', () => {
 });
 
 describe('objetoDeCarrera', () => {
-  it('usa el representante declarado cuando esta', () => {
-    const fijo = { img: 'assets/civil/casco.png', escala: 0.2 };
-    const carrera = { ...carreraValida(), objeto: fijo };
-    expect(objetoDeCarrera(carrera, () => 0.9)).toBe(fijo);
-  });
-
-  // Sin representante fijo, dos visitantes seguidos no ven exactamente la misma
-  // pantalla. `azar` se inyecta para que la prueba no dependa de la suerte.
-  it('sin representante sortea uno de la lista', () => {
+  // Ya no se sortea: los otros objetos de la carrera se esconden en el fondo, y
+  // cual vuela desde el carrusel y cuales esperan escondidos es una decision de
+  // contenido, no de la suerte. Elegirlo es reordenar, como los fondos.
+  it('es el primero de los objetos', () => {
     const carrera = {
       ...carreraValida(),
-      objetos: [{ img: 'a.png', escala: 0.2 }, { img: 'b.png', escala: 0.2 }],
+      objetos: [
+        { img: 'a.png', escala: 0.2 },
+        { img: 'b.png', escala: 0.2 },
+      ],
     };
-    expect(objetoDeCarrera(carrera, () => 0).img).toBe('a.png');
-    expect(objetoDeCarrera(carrera, () => 0.99).img).toBe('b.png');
+    expect(objetoDeCarrera(carrera).img).toBe('a.png');
   });
 
   it('no rompe con una carrera vacia', () => {
     expect(objetoDeCarrera(null)).toBeNull();
     expect(objetoDeCarrera({ objetos: [] })).toBeNull();
+    expect(objetoDeCarrera({})).toBeNull();
+  });
+});
+
+describe('escondidosDeCarrera', () => {
+  it('son los objetos que no van al carrusel, en su orden', () => {
+    const carrera = {
+      objetos: [{ img: 'a.png' }, { img: 'b.png' }, { img: 'c.png' }, { img: 'd.png' }],
+    };
+    expect(escondidosDeCarrera(carrera).map((objeto) => objeto.img)).toEqual([
+      'b.png',
+      'c.png',
+      'd.png',
+    ]);
+  });
+
+  it('con un solo objeto, o ninguno, no hay nada escondido', () => {
+    expect(escondidosDeCarrera({ objetos: [{ img: 'a.png' }] })).toEqual([]);
+    expect(escondidosDeCarrera({ objetos: [] })).toEqual([]);
+    expect(escondidosDeCarrera(null)).toEqual([]);
   });
 });
 
@@ -248,14 +303,18 @@ describe('cargarContenido', () => {
   });
 
   // Solo se precarga el fondo activo de cada carrera: 36 candidatos de
-  // 1080x1920 en memoria de video no tienen sentido para mostrar doce.
-  it('junta objetos, representante y el fondo activo para precargarlos', async () => {
+  // 1080x1920 en memoria de video no tienen sentido para mostrar doce. Los
+  // objetos van todos: el del carrusel y los que se esconden en el fondo.
+  it('junta los objetos y el fondo activo para precargarlos', async () => {
     const contenido = await cargarContenido({
       traer: traerCon({
         carreras: [
           {
             ...carreraValida(),
-            objeto: { img: 'assets/civil/casco.png', escala: 0.2 },
+            objetos: [
+              { img: 'assets/civil/grua.png', escala: 0.2 },
+              { img: 'assets/civil/casco.png', escala: 0.2 },
+            ],
             fondos: [{ img: 'assets/fondos/civil.png' }, { img: 'assets/fondos/civil-2.jpg' }],
           },
         ],

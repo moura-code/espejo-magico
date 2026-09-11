@@ -1,0 +1,288 @@
+import { describe, it, expect } from 'vitest';
+import {
+  lugaresDelFondo,
+  esconder,
+  balanceo,
+  aspectoDelObjeto,
+  objetosDelFondo,
+  fichaDelObjeto,
+} from '../../espejo/escondites.js';
+
+const POR_DEFECTO = {
+  lugar: { x: 0.2, y: 0.22, escala: 0.16 },
+  escondites: [
+    { x: 0.8, y: 0.2, escala: 0.1 },
+    { x: 0.15, y: 0.45, escala: 0.1 },
+  ],
+};
+
+describe('lugaresDelFondo', () => {
+  // El primero es el del objeto que llega volando del carrusel; despues, los
+  // escondites en su orden.
+  it('el primero es el lugar del que vuela y despues los escondites', () => {
+    const fondo = {
+      img: 'a.jpg',
+      lugar: { x: 0.8, y: 0.15, escala: 0.15 },
+      escondites: [{ x: 0.1, y: 0.2, escala: 0.11 }],
+    };
+    expect(lugaresDelFondo(fondo, POR_DEFECTO)).toEqual([
+      { x: 0.8, y: 0.15, escala: 0.15 },
+      { x: 0.1, y: 0.2, escala: 0.11 },
+    ]);
+  });
+
+  // Un fondo sin lugares —el respaldo vectorial, una carrera sin fondos— igual
+  // esconde sus objetos, y en la periferia: los de config son un seguro.
+  it('lo que el fondo no declara sale de los valores por defecto', () => {
+    const esperados = [
+      { x: 0.2, y: 0.22, escala: 0.16 },
+      { x: 0.8, y: 0.2, escala: 0.1 },
+      { x: 0.15, y: 0.45, escala: 0.1 },
+    ];
+    expect(lugaresDelFondo({ img: 'a.png' }, POR_DEFECTO)).toEqual(esperados);
+    expect(lugaresDelFondo(null, POR_DEFECTO)).toEqual(esperados);
+  });
+
+  // Mezclar escondites del fondo con los de config podria poner dos objetos uno
+  // encima del otro: si el fondo declara los suyos, van solo esos.
+  it('si el fondo declara escondites, no se mezclan con los de config', () => {
+    const fondo = { img: 'a.jpg', escondites: [{ x: 0.1, y: 0.2, escala: 0.11 }] };
+    expect(lugaresDelFondo(fondo, POR_DEFECTO)).toEqual([
+      { x: 0.2, y: 0.22, escala: 0.16 },
+      { x: 0.1, y: 0.2, escala: 0.11 },
+    ]);
+  });
+});
+
+describe('esconder', () => {
+  const b = { img: 'b.png' };
+  const c = { img: 'c.png' };
+  const arriba = { x: 0.8, y: 0.2, escala: 0.1 };
+  const abajo = { x: 0.15, y: 0.45, escala: 0.1 };
+
+  it('pone cada objeto en su escondite, en orden', () => {
+    expect(esconder([b, c], [arriba, abajo])).toEqual([
+      { definicion: b, lugar: arriba },
+      { definicion: c, lugar: abajo },
+    ]);
+  });
+
+  // Meter en cualquier lado un objeto sin escondite es arriesgarse a taparle la
+  // cara a la persona, que es justo lo que la periferia existe para evitar.
+  it('un objeto sin escondite no se muestra', () => {
+    expect(esconder([b, c], [arriba])).toEqual([{ definicion: b, lugar: arriba }]);
+  });
+
+  it('un escondite sin objeto queda vacio', () => {
+    expect(esconder([b], [arriba, abajo])).toEqual([{ definicion: b, lugar: arriba }]);
+    expect(esconder([], [arriba])).toEqual([]);
+  });
+});
+
+describe('balanceo', () => {
+  const ajuste = { grados: 6, amplitud: 0.06, periodoMs: 4000, variacion: 0.17 };
+  const GRADO = Math.PI / 180;
+
+  it('se mece dentro de lo pedido', () => {
+    for (let ahora = 0; ahora < 12000; ahora += 53) {
+      for (const indice of [0, 1, 2, 3]) {
+        const { dy, giro } = balanceo(ahora, indice, 50, ajuste);
+        expect(Math.abs(giro)).toBeLessThanOrEqual(6 * GRADO + 1e-9);
+        expect(Math.abs(dy)).toBeLessThanOrEqual(3 + 1e-9); // 0.06 radios de 50
+      }
+    }
+  });
+
+  // El movimiento es lo que delata a un objeto escondido: tiene que haberlo.
+  it('se mueve de verdad', () => {
+    const giros = new Set();
+    for (let ahora = 0; ahora < 4000; ahora += 200) {
+      giros.add(balanceo(ahora, 0, 50, ajuste).giro.toFixed(3));
+    }
+    expect(giros.size).toBeGreaterThan(5);
+  });
+
+  // Tres objetos meciendose al unisono se leen como una animacion pegada encima
+  // del fondo; cada uno a su ritmo, como cosas que estan ahi.
+  it('cada objeto se mece a su propio ritmo', () => {
+    for (const ahora of [0, 1000, 2500, 7000]) {
+      const giros = [0, 1, 2, 3].map((indice) => balanceo(ahora, indice, 50, ajuste).giro.toFixed(4));
+      expect(new Set(giros).size).toBe(4);
+    }
+  });
+
+  // Cuanto cambia el ritmo de un objeto al siguiente sale de la config: en
+  // cero, todos se mecen con el mismo periodo (y fases distintas).
+  it('la variacion del ritmo sale de lo pedido', () => {
+    const parejo = { ...ajuste, variacion: 0 };
+    for (const indice of [0, 1, 2]) {
+      const antes = balanceo(1000, indice, 50, parejo);
+      const unaVueltaDespues = balanceo(1000 + parejo.periodoMs, indice, 50, parejo);
+      expect(unaVueltaDespues.giro).toBeCloseTo(antes.giro);
+    }
+  });
+
+  // Un movimiento a los saltos se lee como un parpadeo, que es lo primero que
+  // pidio evitar la catedra: entre dos cuadros seguidos cambia apenas.
+  it('es continuo: entre dos cuadros seguidos cambia muy poco', () => {
+    for (const indice of [0, 1, 2, 3]) {
+      for (let ahora = 0; ahora < 9000; ahora += 16) {
+        const a = balanceo(ahora, indice, 50, ajuste);
+        const b = balanceo(ahora + 16, indice, 50, ajuste);
+        expect(Math.abs(b.giro - a.giro)).toBeLessThan(0.3 * GRADO);
+        expect(Math.abs(b.dy - a.dy)).toBeLessThan(0.1);
+      }
+    }
+  });
+});
+
+describe('aspectoDelObjeto', () => {
+  // Con la forma de CONFIG: el espejo y herramientas/fondos.html le pasan la de
+  // verdad, y asi la herramienta muestra exactamente lo que hace el espejo.
+  const CONFIG_FALSA = {
+    fondo: { flotar: { amplitud: 0.08, periodoMs: 3200 }, haloDelLugar: 0.3, msDeAterrizaje: 400 },
+    escondidos: {
+      halo: 0.18,
+      haloAlLeer: 0.45,
+      balanceo: { grados: 6, amplitud: 0.05, periodoMs: 4400, variacion: 0.17 },
+      resalte: 0.14,
+      calmaAlLeer: 0.7,
+    },
+  };
+  const aspecto = (extra) =>
+    aspectoDelObjeto({ ahora: 1234, indice: 1, radio: 60, esElegido: false, ...extra }, CONFIG_FALSA);
+
+  it('un escondido lleva su tamaño y un halo tenue, y se mueve', () => {
+    const quieto = aspecto();
+    expect(quieto.radio).toBe(60);
+    expect(quieto.halo).toBeCloseTo(0.18);
+    expect(Math.abs(quieto.giro) + Math.abs(quieto.dy)).toBeGreaterThan(0);
+  });
+
+  // Asi se sabe de cual habla la ficha: el objeto que se lee crece un poco, se
+  // calma y se ilumina.
+  it('el que se esta leyendo crece, se calma y se ilumina', () => {
+    const quieto = aspecto({ leyendo: 0 });
+    const leido = aspecto({ leyendo: 1 });
+    expect(leido.radio).toBeCloseTo(60 * 1.14);
+    expect(leido.halo).toBeCloseTo(0.45);
+    expect(Math.abs(leido.giro)).toBeCloseTo(Math.abs(quieto.giro) * 0.3);
+    expect(Math.abs(leido.dy)).toBeCloseTo(Math.abs(quieto.dy) * 0.3);
+  });
+
+  it('el que llego volando flota apenas y lleva el halo de su lugar', () => {
+    const elegido = aspecto({ esElegido: true });
+    expect(elegido.halo).toBeCloseTo(0.3);
+    expect(Math.abs(elegido.dy)).toBeLessThanOrEqual(0.08 * 60 + 1e-9);
+  });
+
+  // EL ATERRIZAJE NO SALTA. El objeto llega volando sin halo y sin flotacion:
+  // si al tocar su lugar aparecieran enteros, el halo se prenderia de golpe y
+  // el objeto pegaria un salto, justo en el cuadro mas mirado de la experiencia.
+  it('al aterrizar, el halo y la flotacion arrancan de cero y entran de a poco', () => {
+    const recien = aspecto({ esElegido: true, desdeElAterrizaje: 0 });
+    expect(recien.halo).toBeCloseTo(0);
+    expect(recien.dy).toBeCloseTo(0);
+    expect(recien.giro).toBeCloseTo(0);
+    expect(recien.radio).toBe(60);
+
+    const aMedias = aspecto({ esElegido: true, desdeElAterrizaje: 200 });
+    expect(aMedias.halo).toBeGreaterThan(0);
+    expect(aMedias.halo).toBeLessThan(0.3);
+
+    expect(aspecto({ esElegido: true, desdeElAterrizaje: 400 }).halo).toBeCloseTo(0.3);
+  });
+
+  it('entre dos cuadros seguidos del aterrizaje no hay saltos', () => {
+    for (let t = 0; t <= 800; t += 16) {
+      const antes = aspecto({ esElegido: true, desdeElAterrizaje: t, ahora: 5000 + t });
+      const despues = aspecto({ esElegido: true, desdeElAterrizaje: t + 16, ahora: 5016 + t });
+      expect(Math.abs(despues.dy - antes.dy)).toBeLessThan(0.02 * 60);
+      expect(Math.abs(despues.halo - antes.halo)).toBeLessThan(0.05);
+    }
+  });
+});
+
+describe('objetosDelFondo', () => {
+  const pantalla = { ancho: 1080, alto: 1920 };
+  const rectangulo = { x: 0, y: 0, ancho: 1080, alto: 1920 };
+  const CONFIG_FALSA = {
+    fondo: {
+      margenDelLugar: 1.25,
+      lugarPorDefecto: POR_DEFECTO.lugar,
+      esconditesPorDefecto: POR_DEFECTO.escondites,
+    },
+  };
+  const [a, b, c, d] = ['a.png', 'b.png', 'c.png', 'd.png'].map((img) => ({ img }));
+  const fondo = {
+    img: 'f.jpg',
+    lugar: { x: 0.2, y: 0.3, escala: 0.16 },
+    escondites: [
+      { x: 0.8, y: 0.3, escala: 0.14 },
+      { x: 0.15, y: 0.45, escala: 0.14 },
+      { x: 0.85, y: 0.45, escala: 0.14 },
+    ],
+  };
+  const armar = (extra) =>
+    objetosDelFondo({ objetos: [a, b, c, d], fondo, rectangulo, pantalla, config: CONFIG_FALSA, ...extra });
+
+  // El 0 es el que llega volando y los escondidos son los que siguen: cada uno
+  // se identifica por su lugar en `objetos`, no por su PNG.
+  it('pone cada objeto en su lugar de la pantalla, con su id y su definicion', () => {
+    const objetos = armar();
+    expect(objetos.map((objeto) => [objeto.id, objeto.definicion])).toEqual([
+      [0, a],
+      [1, b],
+      [2, c],
+      [3, d],
+    ]);
+    expect(objetos[0].x).toBeCloseTo(0.2 * 1080);
+    expect(objetos[0].y).toBeCloseTo(0.3 * 1920);
+    expect(objetos[0].radio).toBeCloseTo((0.16 * 1080) / 2);
+    expect(objetos[3].x).toBeCloseTo(0.85 * 1080);
+    expect(objetos[3].y).toBeCloseTo(0.45 * 1920);
+    expect(objetos[3].radio).toBeCloseTo((0.14 * 1080) / 2);
+  });
+
+  // Cada escondido se mece a su ritmo, y el ritmo sale de su indice.
+  it('los escondidos llevan el indice de su vaiven', () => {
+    expect(armar().slice(1).map((objeto) => objeto.indice)).toEqual([0, 1, 2]);
+  });
+
+  it('sin fondo, los lugares de config', () => {
+    const [primero, segundo] = armar({ fondo: null });
+    expect(primero.x).toBeCloseTo(POR_DEFECTO.lugar.x * 1080);
+    expect(primero.y).toBeCloseTo(POR_DEFECTO.lugar.y * 1920);
+    expect(segundo.x).toBeCloseTo(POR_DEFECTO.escondites[0].x * 1080);
+    expect(segundo.y).toBeCloseTo(POR_DEFECTO.escondites[0].y * 1920);
+  });
+
+  it('un objeto sin escondite no se muestra', () => {
+    const conUno = armar({ fondo: { ...fondo, escondites: fondo.escondites.slice(0, 1) } });
+    expect(conUno.map((objeto) => objeto.definicion)).toEqual([a, b]);
+  });
+});
+
+describe('fichaDelObjeto', () => {
+  const CONFIG_FALSA = {
+    escondidos: { resalte: 0.14 },
+    fichas: { columna: 0.3, tipografia: { texto: 0.8, titulo: 1.2, anchoEnLetras: 14 } },
+  };
+  const delFondo = [
+    { id: 0, x: 200, y: 560, radio: 86 },
+    { id: 1, x: 880, y: 590, radio: 76 },
+    { id: 2, x: 190, y: 830, radio: 76 },
+  ];
+
+  // Contra el objeto ya crecido: asi la ficha no se corre mientras el objeto se
+  // agranda al leerse. Y sin tapar a ninguno de los otros del fondo.
+  it('se dispone contra el objeto ya crecido, en su franja, evitando a los demas', () => {
+    const { circulo, opciones } = fichaDelObjeto(delFondo[2], delFondo, 1080, CONFIG_FALSA);
+    expect(circulo.x).toBe(190);
+    expect(circulo.y).toBe(830);
+    expect(circulo.radio).toBeCloseTo(76 * 1.14);
+    expect(opciones.evitar).toEqual([delFondo[0], delFondo[1]]);
+    expect(opciones.columna).toBeCloseTo(324);
+    expect(opciones.tipografia).toBe(CONFIG_FALSA.fichas.tipografia);
+  });
+});

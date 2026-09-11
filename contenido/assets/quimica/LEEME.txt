@@ -1,2 +1,5 @@
-PNG de quimica: 6 a 10 objetos. Transparencia, lado mayor 512 px.
-Las rutas exactas estan declaradas en contenido/carreras.json.
+PNG de quimica: la carrera usa cuatro, los que declara
+contenido/carreras.json (el primero es el del carrusel y los otros tres se
+esconden en el fondo); los demas quedan como banco para reemplazar.
+Transparencia, lado mayor de 512 a 768 px.
+Cambiar un objeto es cambiar su img, su nombre y su descripcion ahi.

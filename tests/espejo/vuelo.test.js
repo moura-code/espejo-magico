@@ -1,16 +1,78 @@
 import { describe, it, expect } from 'vitest';
 import { lugarEnPantalla, posicionEnVuelo, flotacion } from '../../espejo/vuelo.js';
+import { calcularRectanguloVideo } from '../../espejo/escena.js';
 
 describe('lugarEnPantalla', () => {
-  // El fondo se dibuja cubriendo y recortado: un lugar normalizado a la IMAGEN
-  // cae siempre en el mismo sitio de la escena, en cualquier resolucion.
-  it('mapea el lugar sobre el rectangulo donde se dibujo el fondo', () => {
-    const rectangulo = { x: -200, y: 0, ancho: 1480, alto: 1920 };
-    const puesto = lugarEnPantalla({ x: 0.5, y: 0.25, escala: 0.2 }, rectangulo);
-    expect(puesto.x).toBeCloseTo(-200 + 740);
-    expect(puesto.y).toBeCloseTo(480);
-    // La escala es el diametro como fraccion del ancho dibujado.
-    expect(puesto.radio).toBeCloseTo(148);
+  const ESPEJO = { ancho: 1080, alto: 1920 };
+  const APAISADA = { ancho: 1920, alto: 1080 };
+
+  // En la pantalla para la que se preparo la foto, el lugar es el que se eligio
+  // mirando en herramientas/fondos.html: no se toca.
+  it('en la pantalla de la foto el lugar es exactamente el elegido', () => {
+    const rectangulo = { x: 0, y: 0, ancho: 1080, alto: 1920 };
+    const puesto = lugarEnPantalla({ x: 0.25, y: 0.297, escala: 0.15 }, rectangulo, ESPEJO, 1.25);
+    expect(puesto.x).toBeCloseTo(270);
+    expect(puesto.y).toBeCloseTo(570.24);
+    // La escala es el diametro como fraccion del ancho de la foto.
+    expect(puesto.radio).toBeCloseTo(81);
+  });
+
+  // Los fondos se preparan en 1080x1920, para el espejo vertical. En un monitor
+  // apaisado la foto entra al ancho y solo se ve su franja del medio: medido
+  // contra la foto entera, un lugar de arriba caia por encima del borde, donde
+  // nadie lo ve. Se mide contra lo que se ve de la foto.
+  it('en un monitor apaisado ubica el lugar sobre lo que se ve de la foto', () => {
+    const rectangulo = calcularRectanguloVideo(1080, 1920, APAISADA.ancho, APAISADA.alto);
+    const puesto = lugarEnPantalla({ x: 0.25, y: 0.297, escala: 0.15 }, rectangulo, APAISADA, 1.25);
+    expect(puesto.x).toBeCloseTo(480); // 0.25 × 1920
+    expect(puesto.y).toBeCloseTo(320.76); // 0.297 × 1080
+    // 0.15 × (1080 × 9/16) / 2: la composicion vertical, a la altura de la pantalla.
+    expect(puesto.radio).toBeCloseTo(45.5625);
+  });
+
+  // El video de la camara se dibuja cubriendo: en el espejo lo agranda 1920/720
+  // y en un monitor apaisado 1920/1280, o sea que ahi la persona se ve 0,5625
+  // veces mas chica. El objeto tiene que achicarse igual: si no, en apaisado
+  // un objeto del fondo seria del tamaño de una cabeza.
+  it('el objeto guarda la misma proporcion con la persona en cualquier pantalla', () => {
+    const lugar = { x: 0.2, y: 0.2, escala: 0.15 };
+    const radioEn = (pantalla) =>
+      lugarEnPantalla(lugar, calcularRectanguloVideo(1080, 1920, pantalla.ancho, pantalla.alto), pantalla)
+        .radio;
+    expect(radioEn(APAISADA) / radioEn(ESPEJO)).toBeCloseTo(0.5625);
+  });
+
+  // EL BUG DE LOS CUATRO OBJETOS. Recortar cada lugar contra el borde, de a uno,
+  // amontonaba contra el borde de arriba todos los que en la foto estaban
+  // arriba: dos objetos de un mismo costado quedaban uno encima del otro. La
+  // composicion se achica entera y dos que no se pisan en el espejo tampoco se
+  // pisan en apaisado.
+  it('dos objetos que no se pisan en el espejo tampoco se pisan en apaisado', () => {
+    const arriba = { x: 0.17, y: 0.16, escala: 0.15 };
+    const abajo = { x: 0.16, y: 0.42, escala: 0.11 };
+    for (const pantalla of [ESPEJO, APAISADA]) {
+      const rectangulo = calcularRectanguloVideo(1080, 1920, pantalla.ancho, pantalla.alto);
+      const a = lugarEnPantalla(arriba, rectangulo, pantalla, 1.25);
+      const b = lugarEnPantalla(abajo, rectangulo, pantalla, 1.25);
+      expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(a.radio + b.radio);
+    }
+  });
+
+  // `margen` es en radios, medido desde el centro: 1 es tocar el borde, y un
+  // poco mas deja aire para que no se lea como que se cae de la pantalla.
+  it('un lugar pegado al borde se corre lo justo para que el objeto entre entero', () => {
+    const rectangulo = { x: 0, y: 0, ancho: 1080, alto: 1920 };
+    const puesto = lugarEnPantalla({ x: 0.02, y: 0.5, escala: 0.15 }, rectangulo, ESPEJO, 1.25);
+    expect(puesto.x).toBeCloseTo(101.25); // 81 × 1.25
+    expect(puesto.y).toBeCloseTo(960);
+  });
+
+  it('tambien de costado: una foto apaisada en el espejo vertical', () => {
+    const rectangulo = calcularRectanguloVideo(1920, 1080, ESPEJO.ancho, ESPEJO.alto);
+    const puesto = lugarEnPantalla({ x: 0.1, y: 0.5, escala: 0.05 }, rectangulo, ESPEJO);
+    expect(puesto.x).toBeCloseTo(108);
+    expect(puesto.y).toBeCloseTo(960);
+    expect(puesto.radio).toBeCloseTo(27);
   });
 });
 

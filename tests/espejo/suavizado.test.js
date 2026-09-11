@@ -4,6 +4,8 @@ import {
   crearFiltroRostro,
   crearFiltroDeManos,
   crearHisteresis,
+  crearDesvanecedorDeManos,
+  crearDesvanecedor,
 } from '../../espejo/suavizado.js';
 
 const rostroEn = (x) => ({
@@ -325,5 +327,142 @@ describe('crearHisteresis', () => {
     // Cinco cuadros seguidos sin rostro. El reloj de salida arranca en el primero.
     for (const t of [100, 200, 300, 400]) expect(h.actualizar(false, t)).toBe(true);
     expect(h.actualizar(false, 505)).toBe(false);
+  });
+});
+
+describe('crearDesvanecedorDeManos', () => {
+  const AJUSTE = { msDeEntrada: 150, msDeSalida: 450 };
+  const PASO = 1000 / 60;
+  const mano = (id, x = 100) => ({ idSeguimiento: id, palma: { x, y: 200 }, radio: 80 });
+
+  // La señal de una mano que aparece no se prende de golpe.
+  it('una mano nueva se enciende de a poco', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    desvanecedor.actualizar([mano(1)], 0);
+    expect(desvanecedor.actualizar([mano(1)], 50)[0].alfa).toBeCloseTo(50 / 150);
+    let alfa;
+    for (let t = 50 + PASO; t <= 200; t += PASO) alfa = desvanecedor.actualizar([mano(1)], t)[0].alfa;
+    expect(alfa).toBe(1);
+  });
+
+  // EL FILTRO SUELTA UNA MANO PERDIDA DE GOLPE, y la señal que la seguia
+  // desaparecia con el: con la mano de costado, a los saltos. La que se pierde
+  // se sigue viendo donde estaba mientras se apaga.
+  it('una mano que se pierde se apaga despacio donde estaba', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    for (let t = 0; t <= 300; t += PASO) desvanecedor.actualizar([mano(1, 100)], t);
+    const t0 = 300 + PASO;
+    let saliendo;
+    for (let t = t0; t <= t0 + 225; t += PASO) saliendo = desvanecedor.actualizar([], t);
+    expect(saliendo).toHaveLength(1);
+    expect(saliendo[0].palma).toEqual({ x: 100, y: 200 });
+    expect(saliendo[0].alfa).toBeCloseTo(0.5, 1);
+    let alFinal;
+    for (let t = t0 + 225 + PASO; t <= t0 + 1000; t += PASO) alFinal = desvanecedor.actualizar([], t);
+    expect(alFinal).toEqual([]);
+  });
+
+  it('cada mano lleva su propio alfa', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    for (let t = 0; t <= 300; t += PASO) desvanecedor.actualizar([mano(1, 100), mano(2, 600)], t);
+    const [queda, seVa] = desvanecedor.actualizar([mano(1, 100)], 300 + PASO + 100);
+    expect(queda.idSeguimiento).toBe(1);
+    expect(queda.alfa).toBe(1);
+    expect(seVa.idSeguimiento).toBe(2);
+    expect(seVa.alfa).toBeLessThan(1);
+    expect(seVa.alfa).toBeGreaterThan(0);
+  });
+
+  // La mano que sigue vista se dibuja con los datos de este cuadro.
+  it('devuelve cada mano tal como vino, con su alfa agregado', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    desvanecedor.actualizar([mano(7, 300)], 0);
+    const [vista] = desvanecedor.actualizar([mano(7, 320)], 100);
+    expect(vista).toMatchObject({ idSeguimiento: 7, palma: { x: 320, y: 200 }, radio: 80 });
+  });
+
+  it('reiniciar las olvida', () => {
+    const desvanecedor = crearDesvanecedorDeManos(AJUSTE);
+    for (let t = 0; t <= 300; t += PASO) desvanecedor.actualizar([mano(1)], t);
+    desvanecedor.reiniciar();
+    expect(desvanecedor.actualizar([], 400)).toEqual([]);
+  });
+});
+
+describe('crearDesvanecedor', () => {
+  const AJUSTE = { msDeEntrada: 800, msDeSalida: 400 };
+  const PASO = 1000 / 60;
+
+  // Cuadro a cuadro, como en el espejo: de `desde` a `hasta`, cada `paso` ms.
+  // 50 ms dan fracciones exactas de los dos plazos.
+  const avanzar = (desvanecedor, encendido, desde, hasta, paso = 50) => {
+    let alfa;
+    for (let t = desde; t <= hasta; t += paso) alfa = desvanecedor.actualizar(encendido, t);
+    return alfa;
+  };
+
+  it('arranca apagado y se enciende en msDeEntrada', () => {
+    const desvanecedor = crearDesvanecedor(AJUSTE);
+    expect(desvanecedor.actualizar(true, 0)).toBe(0);
+    expect(avanzar(desvanecedor, true, 50, 400)).toBe(0.5);
+    expect(avanzar(desvanecedor, true, 450, 800)).toBe(1);
+    expect(avanzar(desvanecedor, true, 850, 3000)).toBe(1);
+  });
+
+  it('se apaga en msDeSalida', () => {
+    const desvanecedor = crearDesvanecedor(AJUSTE);
+    avanzar(desvanecedor, true, 0, 800);
+    expect(avanzar(desvanecedor, false, 850, 1000)).toBe(0.5);
+    expect(avanzar(desvanecedor, false, 1050, 1200)).toBe(0);
+  });
+
+  // Un tiron del navegador —un detector que tarda, una pestaña que se tapa—
+  // no la apaga de golpe: un cuadro cuenta, como mucho, lo que cuenta un cuadro
+  // de 20 por segundo. Con un tope de 250 ms, un solo tiron se comia media
+  // salida.
+  it('un tiron del navegador no la apaga de golpe', () => {
+    const desvanecedor = crearDesvanecedor(AJUSTE);
+    avanzar(desvanecedor, true, 0, 800);
+    expect(desvanecedor.actualizar(false, 800 + 250)).toBeGreaterThan(0.9);
+  });
+
+  // LO QUE HACE FALTA DE ESTO. Con un alfa por estado, la invitacion arrancaba
+  // entera en el enganche aunque el reposo hubiera durado menos que su entrada
+  // —el primer cuadro de la mañana con alguien ya sentado, o quien se sienta
+  // apenas vuelven las nubes— y se prendia de golpe justo para irse. Si la
+  // señal se da vuelta a mitad de camino, sigue desde donde estaba.
+  it('si se da vuelta a mitad de camino, sigue desde donde estaba', () => {
+    const desvanecedor = crearDesvanecedor(AJUSTE);
+    let alfa = 0;
+    for (let t = 0; t <= 300; t += PASO) alfa = desvanecedor.actualizar(true, t);
+    expect(alfa).toBeGreaterThan(0);
+    expect(alfa).toBeLessThan(0.5);
+
+    // Lo mas que puede cambiar en un cuadro: la pendiente de la curva suave
+    // (1,5) por lo que avanza en linea recta.
+    const maximo = (1.5 * PASO) / AJUSTE.msDeSalida + 1e-9;
+    let anterior = alfa;
+    let t = 300;
+    for (; anterior > 0; t += PASO) {
+      const siguiente = desvanecedor.actualizar(false, t + PASO);
+      expect(siguiente).toBeLessThanOrEqual(anterior);
+      expect(anterior - siguiente).toBeLessThanOrEqual(maximo);
+      anterior = siguiente;
+    }
+    // Se va en lo que le queda, no en la salida entera.
+    expect(t - 300).toBeLessThan(AJUSTE.msDeSalida);
+  });
+
+  it('un salto grande del reloj no la enciende de golpe', () => {
+    const desvanecedor = crearDesvanecedor(AJUSTE);
+    desvanecedor.actualizar(true, 0);
+    expect(desvanecedor.actualizar(true, 5000)).toBeLessThan(0.2);
+  });
+
+  it('reiniciar la apaga', () => {
+    const desvanecedor = crearDesvanecedor(AJUSTE);
+    avanzar(desvanecedor, true, 0, 800);
+    desvanecedor.reiniciar();
+    expect(desvanecedor.actualizar(true, 1300)).toBe(0);
   });
 });
