@@ -134,7 +134,7 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 
 ### Las fichas de los objetos del fondo no se abren, o se abren solas
 1. Presionar `P`: la línea `manos` tiene que mostrar la mano vista, y la línea `ficha` el objeto que se está describiendo.
-2. Si la mano se ve pero la ficha no se abre, la mano no llega al objeto: los objetos del fondo van en los costados, y a veces hay que estirar el brazo. Se agranda el blanco con `CONFIG.fichas.radioFactor`. Si no llega a los de arriba, se bajan sus lugares en `contenido/carreras.json`, mirando `herramientas/fondos.html`: `tests/integracion/fondos.test.js` supone a alguien sentado a 2 m con los hombros en y = 1300 (de 1920), y si en el stand la gente queda más abajo, se ajusta también ahí.
+2. Si la mano se ve pero la ficha no se abre, la mano no llega al objeto: los objetos del fondo van en los costados, y a veces hay que estirar el brazo. Se agranda el blanco con `CONFIG.fichas.radioFactor`. Si no llega a los de arriba, se bajan sus lugares en `contenido/carreras.json`, mirando `herramientas/fondos.html`: `tests/integracion/fondos.test.js` supone a la persona donde la pone la zona de la persona —la cara en la mitad de arriba del espejo, los hombros a la mitad— con 380 px de hombros; si en el stand la gente queda más abajo en el cuadro (se ve con `M`), se ajustan juntas la zona y los lugares, o se sube la cámara.
 3. Si se abren al pasar la mano camino a otro lado, subir `CONFIG.fichas.msParaMostrar`; si se cierran mientras alguien lee, subir `CONFIG.fichas.msDeGracia`.
 
 ### Las tablets no acompañan al espejo

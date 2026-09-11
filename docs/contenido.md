@@ -171,15 +171,14 @@ también que los cuatro objetos de un fondo no se pisen. En
 
 **Al alcance de la mano, y sin que una ficha tape a otro objeto.** La periferia
 no puede quedar tan arriba que haya que pararse para llegar:
-`tests/integracion/fondos.test.js` supone a alguien sentado a 2 m —con los
-hombros donde los pone la prueba del sostenido y el brazo que supone el
-carrusel— y exige que la mano llegue a los cuatro objetos. Por eso el rincón
-alto no sube mucho más allá del 28 % de la altura: más arriba, a esa distancia,
-no llega nadie. Y `tests/integracion/fichas.test.js` dispone la ficha de cada
-objeto de cada fondo como lo hace el espejo y exige que entre entera, en su
+`tests/integracion/fondos.test.js` supone la misma persona que la zona —hombros
+donde empieza el cuerpo, 380 px de ancho: alguien sentado a unos 2 m o más— y
+el brazo del carrusel, y exige que la mano llegue a los cuatro objetos con un
+10 % de brazo de sobra. Y `tests/integracion/fichas.test.js` dispone la ficha de
+cada objeto de cada fondo como lo hace el espejo y exige que entre entera, en su
 franja, sin tapar a su objeto ni a los otros. Es un modelo, no una medición: en
-el stand se prueba con gente de verdad, y si la persona queda más abajo que en
-la prueba, se bajan los lugares.
+el stand se prueba con gente de verdad, y si la persona queda más abajo en el
+cuadro, se bajan juntos los lugares y la zona.
 
 El punto de partida se mide sobre la foto, no se estima: de cada imagen se saca
 un mapa de brillo de 108×192 celdas y se buscan **cuatro rincones, dos por
@@ -251,8 +250,8 @@ Tres cosas que se descubren rompiéndose:
   necesita `0.42`. Para medirlo:
   `ffprobe -f lavfi -i "movie=fondo.jpg,signalstats" -show_entries frame_tags=lavfi.signalstats.YAVG -of csv=p=0`
 - **Bajarle la saturación** (`eq=saturation`): un cielo azul o un modelo de
-  terreno en falso color compiten con el nombre de la carrera, que va en su
-  color.
+  terreno en falso color compiten con el nombre de la carrera y con los objetos
+  del fondo.
 
 ### Fondos con movimiento
 
@@ -264,7 +263,12 @@ la `img`**:
   {
     "img": "assets/fondos/naval-canal.jpg",
     "video": "assets/fondos/naval-canal.mp4",
-    "lugar": { "x": 0.76, "y": 0.21, "escala": 0.15 }
+    "lugar": { "x": 0.16, "y": 0.321, "escala": 0.16 },
+    "escondites": [
+      { "x": 0.795, "y": 0.349, "escala": 0.14 },
+      { "x": 0.12, "y": 0.445, "escala": 0.14 },
+      { "x": 0.905, "y": 0.45, "escala": 0.14 }
+    ]
   }
 ]
 ```

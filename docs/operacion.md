@@ -18,8 +18,9 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    escondidos** a los costados y pasar la mano sobre cada uno para ver su ficha,
    ver que las tablets cambien, levantarse y ver que las nubes vuelvan. Sentarse
    **donde se va a sentar la gente**: desde ahí la mano tiene que llegar a los
-   cuatro objetos del fondo sin pararse. Si no llega a los de arriba, avisar al
-   equipo técnico.
+   cuatro objetos del fondo sin pararse, y la cara tiene que quedar en la mitad
+   de arriba del espejo. Si no llega a los de arriba, o la cara queda más abajo,
+   avisar al equipo técnico: se sube la cámara o se bajan los objetos.
 
 El espejo no necesita internet. Sí necesita que las tablets estén en la misma
 máquina o en la red del stand, pero eso lo maneja el otro proyecto.

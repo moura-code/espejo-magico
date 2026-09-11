@@ -405,9 +405,10 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
 - **El que se está leyendo va también delante de la persona.** Los objetos del
   fondo van detrás de la persona recortada, y la mano que va a buscar uno lo tapa
   justo cuando crece y se ilumina. Mientras su ficha está abierta se dibuja otra
-  vez encima de la persona —el mismo objeto en el mismo lugar, sin halo— con el
-  alfa de la ficha: donde nada lo tapa no cambia nada, y donde la mano lo tapaba
-  aparece de a poco.
+  vez, con el alfa de la ficha, en una capa que se recorta contra la silueta
+  antes de pegarse (`dibujarObjetosDelante`): aparece sólo donde la persona lo
+  tapa. Dibujado entero encima de sí mismo duplicaba la sombra y engrosaba los
+  bordes del PNG justo en el objeto que se estaba leyendo.
 - **La ficha.** Pasar la mano sobre cualquiera de los cuatro abre su ficha: el
   nombre en Muffaroo y la descripción en la sans, sobre un panel del negro de
   MAITE. `fichas.js` decide cuál está abierta y cuánto se ve cada una. Cada
@@ -437,15 +438,25 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   con una medida proporcional a la letra, y exige que entren enteras, en su
   franja, sin tapar a su objeto ni a los otros. En apaisado, con el pie más
   alto, alguna ficha de un objeto de abajo todavía tapa al de arriba: se acepta
-  porque el espejo del evento es vertical.
+  porque el espejo del evento es vertical. Si del lado libre le faltan unos
+  píxeles, la ficha se corre hacia su objeto —el aire entre los dos sobra— en
+  vez de irse del otro lado a tapar a otro: medio píxel de redondeo daba vuelta
+  la decisión. Los objetos y lo que se le pasa a la ficha salen de
+  `objetosDelFondo` y `fichaDelObjeto` (escondites.js), las mismas en el espejo,
+  en `herramientas/fondos.html` —que dibuja a la medida del espejo y achica— y
+  en las pruebas.
 - **Al alcance de la mano.** La periferia tira hacia arriba y hacia los costados,
   y el brazo de alguien sentado lejos no llega a todos lados: el carrusel se
   calibró para eso (`tablero.radioFactor`, en anchos de hombros).
-  `tests/integracion/fondos.test.js` usa ese mismo brazo, desde cada hombro, con
-  la persona sentada de la prueba del sostenido a 2 m —40 cm de hombros son unos
-  420 px con una cámara de 78° recortada al espejo— y exige que la mano llegue a
-  los cuatro objetos de cada fondo, con la tolerancia de la ficha. Es un modelo,
-  no una medición: en el stand se prueba con gente de verdad a 1,5 y 2 m.
+  `tests/integracion/fondos.test.js` usa ese mismo brazo —desde el centro de los
+  hombros— y la misma persona que la zona de la periferia: hombros donde empieza
+  el cuerpo, 380 px de ancho como la de la prueba del sostenido (alguien sentado
+  a unos 2 m o más). Exige que la mano llegue a los cuatro objetos de cada
+  fondo, con la tolerancia de la ficha y un 10 % de brazo de sobra. Es un
+  modelo, no una medición: la prueba del sostenido pone los hombros más abajo, y
+  con esa persona a la mitad de los objetos de arriba no se llega; si en el
+  stand la gente queda así en el cuadro, se recalibran juntas la zona y los
+  lugares. En el stand se prueba con gente de verdad a 1,5 y 2 m.
 - **Las manos siguen sirviendo.** Antes, elegida la ingeniería, se apagaba el
   detector de manos. Ahora sigue, a `manos.fpsExplorando` (12 FPS): con 300 ms
   para abrir y 900 de gracia, una ficha se conforma con pocos cuadros, y el resto
@@ -506,4 +517,5 @@ El recorte se prepara **una vez por cuadro** y sólo si algún detector va a cor
 - Renderizado con tope de **60 FPS** (`CONFIG.render.fpsMaximo`). En una pantalla de 144 o 240 Hz, dibujar todos los cuadros es calor y consumo sin beneficio visible.
 - Los objetos en pantalla son a lo sumo **seis** en el carrusel, girando a 8°/s, y **cuatro** en el fondo: el rendimiento no depende de cuánto tiempo lleve alguien sentado. Las fichas miden su texto sólo mientras se ven.
 - El salto de reloj del sostenido se acota a 250 ms: si el navegador se traba un instante, un salto grande completaría un sostenido que nadie hizo.
+- Los fundidos —las fichas, la invitación, la señal de las manos— cuentan un cuadro como mucho 50 ms (`DT_MAXIMO`, el mismo tope que el paso de reloj de `main.js`): si el navegador se traba, se frenan en vez de saltar. Con 250 ms, un solo tirón se comía media salida de la invitación.
 - Recarga de mantenimiento automática: si el espejo está en `ATRACCION` tras el intervalo configurado (`CONFIG.operacion.recargaCadaMs`), la página se recarga para liberar memoria acumulada. Nunca corta una sesión en curso.

@@ -120,11 +120,14 @@ eligió y que la mano de alguien sentado a dos metros llegue a los cuatro; y
 `tests/integracion/fichas.test.js`, que ninguna ficha tape a su objeto ni a los
 otros.
 
-**Al alcance de la mano.** La periferia tira para arriba y el brazo no. El
-modelo es el del carrusel: la mano llega a 1,5 anchos de hombros desde cada
-hombro, y la ficha se abre a 1,6 radios del objeto. Con la persona sentada a
-2 m —unos 420 px de hombros—, el rincón alto no puede subir mucho más allá del
-28 % de la altura. Es un modelo y no una medición: se prueba en el stand.
+**Al alcance de la mano.** La periferia tira para arriba y el brazo no. La
+prueba usa la misma persona que la zona —los hombros donde empieza el cuerpo,
+380 px de ancho: alguien sentado a unos 2 m o más— y el brazo del carrusel: la
+mano llega a 1,5 anchos de hombros desde el centro de los hombros, y la ficha se
+abre a 1,6 radios del objeto. Exige que sobre un 10 % del brazo; el lugar más
+justo tiene un 20 %. Es un modelo y no una medición: si en el stand la gente
+queda más abajo en el cuadro, a los de arriba no llega, y se recalibran juntas la
+zona y los lugares.
 
 ### El pequeño movimiento (punto 5)
 
@@ -134,8 +137,8 @@ fase distinta para cada uno: tres objetos meciéndose al unísono se leen como u
 animación pegada encima del fondo; cada uno a su ritmo, como cosas que están
 ahí. Es un movimiento continuo y lento, que llama la atención sin parpadear. El
 objeto que se está leyendo crece un poco, se calma y se ilumina, y se dibuja
-también delante de la persona: detrás, la mano que lo fue a buscar lo tapaba
-justo en ese momento.
+también delante de la persona, recortado contra su silueta: detrás, la mano que
+lo fue a buscar lo tapaba justo en ese momento.
 
 ### La ficha (puntos 5 y 6)
 
@@ -146,7 +149,8 @@ cae encima de la cara. La ficha va **en la franja del costado de su objeto** —
 debajo del objeto si está arriba y arriba si está abajo, nunca encima del que
 describe ni de los otros objetos del fondo, y nunca en el pie. El nombre se
 mide: si no entra en un renglón va en dos, y si una palabra sola no entra se
-achica.
+achica. Y si del lado libre le faltan unos píxeles, se corre hacia su objeto en
+vez de irse del otro lado a tapar a otro.
 
 **Cuándo.** Abrir pide 300 ms con la mano encima: si no, cada mano que pasa
 camino a otro lado abre fichas en cadena. Cerrar pide 900 ms sin la mano: absorbe
@@ -216,8 +220,9 @@ Queda para decidir:
 - **Los costados piden estirar el brazo.** A dos metros de la cámara, los objetos
   de la periferia quedan más lejos de la mano que los del carrusel. Los lugares
   se eligieron para que la mano llegue a los cuatro según el modelo del
-  carrusel, y una prueba lo vigila, pero es un modelo: supone a la persona con
-  los hombros donde los pone la prueba del sostenido. Hay que probarlo en el
+  carrusel, y una prueba lo vigila, pero es un modelo: supone a la persona donde
+  la pone la zona de la persona, con la cara en la mitad de arriba del espejo.
+  Hay que probarlo en el
   stand con gente de verdad, a 1,5 y a 2 m. Si cuesta, se agranda el blanco de
   las fichas (`CONFIG.fichas.radioFactor`) o se bajan los lugares mirando
   `herramientas/fondos.html`.
