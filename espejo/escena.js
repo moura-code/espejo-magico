@@ -200,8 +200,9 @@ function dibujarSustituto(ctx, radio, color) {
 
 /**
  * Un objeto de los que se ofrecen. Orden de preferencia: el PNG si existe, la
- * figura vectorial si no, y un circulo del color de la carrera como ultimo
- * recurso. Un objeto que no se dibuja es una opcion que no se puede elegir.
+ * figura vectorial si no, y un circulo de `color` como ultimo recurso —el
+ * espejo le pasa el dorado de la paleta, el mismo para las doce—. Un objeto
+ * que no se dibuja es una opcion que no se puede elegir.
  */
 export function dibujarObjeto(ctx, { definicion, x, y, radio, alfa = 1, giro = 0 }, banco, color) {
   if (!definicion || alfa <= 0 || radio <= 0) return;
@@ -289,7 +290,10 @@ export function dibujarAnilloDeProgreso(
  * Es una de las opciones de carga con transparencia que pidio explorar la
  * catedra; con `opacidad` en cero no se dibuja y queda solo el anillo.
  */
-export function dibujarDiscoDeCarga(ctx, { x, y, radio, progreso, color, opacidad, alfa = 1 }) {
+export function dibujarDiscoDeCarga(
+  ctx,
+  { x, y, radio, progreso, color, opacidad, alfa = 1, radioFactor = 1.12 },
+) {
   if (progreso <= 0 || opacidad <= 0 || alfa <= 0) return;
 
   ctx.save();
@@ -297,7 +301,7 @@ export function dibujarDiscoDeCarga(ctx, { x, y, radio, progreso, color, opacida
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(x, y);
-  ctx.arc(x, y, radio * 1.12, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, progreso));
+  ctx.arc(x, y, radio * radioFactor, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, progreso));
   ctx.closePath();
   ctx.fill();
   ctx.restore();
@@ -430,9 +434,9 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, colo
 /**
  * El objeto agarrado, apoyado en su lugar del fondo.
  *
- * Debajo lleva un halo del color de la carrera: lo presenta sobre cualquier
- * fondo, foto o escena vectorial, sin pedirle a cada imagen que tenga una mesa
- * justo ahi. `giro` es la inclinacion de la flotacion.
+ * Debajo lleva un halo de `color` —el dorado de la paleta—: lo presenta sobre
+ * cualquier fondo, foto o escena vectorial, sin pedirle a cada imagen que tenga
+ * una mesa justo ahi. `giro` es la inclinacion de la flotacion o del vaiven.
  */
 export function dibujarObjetoApoyado(
   ctx,
@@ -657,34 +661,65 @@ const acotar = (valor, minimo, maximo) => Math.min(maximo, Math.max(minimo, valo
  * Nunca encima del objeto que describe: va debajo si el objeto esta arriba y
  * arriba si esta abajo, y si del lado que le toca no entra, del otro. Tampoco
  * baja hasta el pie, que es del nombre de la ingenieria.
+ *
+ * `tipografia` es el tamaño de la letra en fraccion de `texto.tamanoFrase`
+ * —`texto` la descripcion, `titulo` el nombre— y `anchoEnLetras` el ancho
+ * maximo del panel, en tamaños de letra. Se calibra en el stand, leyendo a dos
+ * metros: vive en CONFIG.fichas.tipografia.
  */
 export function disponerFicha(
   { x, y, radio },
   { nombre, descripcion } = {},
   disposicion,
   medir,
-  { columna, evitar = [] } = {},
+  { columna, evitar = [], tipografia = {} } = {},
 ) {
   const hayNombre = esTexto(nombre);
   const hayDescripcion = esTexto(descripcion);
   if (!hayNombre && !hayDescripcion) return null;
 
+  const { texto: letraDelTexto = 0.82, titulo: letraDelTitulo = 1.25, anchoEnLetras = 15 } =
+    tipografia;
   const { ancho, alto, pie, texto } = disposicion;
-  const tamanoTexto = Math.max(10, Math.round(texto.tamanoFrase * 0.82));
-  const tamanoTitulo = Math.max(12, Math.round(texto.tamanoFrase * 1.25));
+  const tamanoTexto = Math.max(10, Math.round(texto.tamanoFrase * letraDelTexto));
+  const tamanoTituloPedido = Math.max(12, Math.round(texto.tamanoFrase * letraDelTitulo));
   const relleno = Math.round(tamanoTexto * 0.75);
   const margen = Math.round(tamanoTexto * 0.6);
   const separacion = Math.round(tamanoTexto * 0.5);
   const interlinea = tamanoTexto * 1.3;
-  const fuenteTitulo = `${PESO_TITULO} ${tamanoTitulo}px ${FAMILIA_TITULO}`;
+  const fuenteDelTitulo = (tamano) => `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
   const fuenteTexto = `400 ${tamanoTexto}px ${FAMILIA_TEXTO}`;
 
   const anchoColumna = columna ?? ancho * 0.3;
-  const anchoCaja = Math.max(tamanoTexto * 6, Math.min(tamanoTexto * 15, anchoColumna - margen * 2));
+  const anchoCaja = Math.max(
+    tamanoTexto * 6,
+    Math.min(tamanoTexto * anchoEnLetras, anchoColumna - margen * 2),
+  );
+  const util = anchoCaja - relleno * 2;
+
+  // El nombre va entero si entra; si no, en dos renglones —"Lector de código
+  // de barras" no entra en la columna a tamaño de titulo—, y si aun asi un
+  // renglon no entra (una palabra sola muy larga), se achica lo justo. Sin
+  // medirlo, se salia del panel y de la pantalla.
+  let renglonesDelTitulo = [];
+  let tamanoTitulo = tamanoTituloPedido;
+  if (hayNombre) {
+    const medirTitulo = (linea, tamano = tamanoTituloPedido) => medir(linea, fuenteDelTitulo(tamano));
+    renglonesDelTitulo = [nombre.trim()];
+    if (medirTitulo(renglonesDelTitulo[0]) > util) {
+      const partes = partirEnLineas(nombre, util, (linea) => medirTitulo(linea));
+      renglonesDelTitulo = partes.length <= 2 ? partes : [partes[0], partes.slice(1).join(' ')];
+    }
+    tamanoTitulo = Math.min(
+      ...renglonesDelTitulo.map((linea) => tamanoQueEntra(linea, tamanoTituloPedido, util, medirTitulo)),
+    );
+  }
+
   const lineas = hayDescripcion
-    ? partirEnLineas(descripcion, anchoCaja - relleno * 2, (linea) => medir(linea, fuenteTexto))
+    ? partirEnLineas(descripcion, util, (linea) => medir(linea, fuenteTexto))
     : [];
-  const altoTitulo = hayNombre ? tamanoTitulo * 1.05 : 0;
+  const pasoDelTitulo = tamanoTitulo * 1.05;
+  const altoTitulo = renglonesDelTitulo.length * pasoDelTitulo;
   const hueco = hayNombre && lineas.length > 0 ? tamanoTexto * 0.4 : 0;
   const altoCaja = relleno * 2 + altoTitulo + hueco + lineas.length * interlinea;
 
@@ -730,9 +765,17 @@ export function disponerFicha(
     lado,
     caja,
     relleno,
-    fuenteTitulo,
     fuenteTexto,
-    titulo: hayNombre ? { texto: nombre, x: alTexto, y: cajaY + relleno } : null,
+    titulo: hayNombre
+      ? {
+          fuente: fuenteDelTitulo(tamanoTitulo),
+          lineas: renglonesDelTitulo.map((renglon, i) => ({
+            texto: renglon,
+            x: alTexto,
+            y: cajaY + relleno + i * pasoDelTitulo,
+          })),
+        }
+      : null,
     lineas: lineas.map((linea, i) => ({
       texto: linea,
       x: alTexto,
@@ -762,10 +805,13 @@ export function dibujarFicha(
   ctx,
   { x, y, radio, nombre, descripcion, alfa = 1 },
   disposicion,
-  { columna, colores, evitar },
+  { columna, colores, evitar, tipografia },
 ) {
-  if (alfa <= 0) return;
+  if (alfa <= 0 || (!esTexto(nombre) && !esTexto(descripcion))) return;
 
+  // Se mide adentro del save: medir cambia la letra del lienzo, y afuera la
+  // dejaria cambiada para todo lo que se dibuja despues.
+  ctx.save();
   const medir = (texto, fuente) => {
     ctx.font = fuente;
     return ctx.measureText(texto).width;
@@ -773,15 +819,12 @@ export function dibujarFicha(
   const ficha = disponerFicha({ x, y, radio }, { nombre, descripcion }, disposicion, medir, {
     columna,
     evitar,
+    tipografia,
   });
-  if (!ficha) return;
 
-  const { caja, pico } = ficha;
   const visible = Math.min(1, alfa);
   const suave = visible * visible * (3 - 2 * visible);
   const hacia = ficha.lado === 'abajo' ? -1 : 1;
-
-  ctx.save();
   ctx.translate(0, (1 - suave) * ficha.relleno * 0.8 * hacia);
   ctx.globalAlpha = visible;
 
@@ -789,11 +832,7 @@ export function dibujarFicha(
   ctx.shadowBlur = ficha.relleno * 1.4;
   ctx.fillStyle = colores.panel;
   ctx.beginPath();
-  ctx.roundRect(caja.x, caja.y, caja.ancho, caja.alto, caja.radio);
-  ctx.moveTo(pico.x - pico.ancho, pico.y);
-  ctx.lineTo(pico.x, pico.y + pico.alto);
-  ctx.lineTo(pico.x + pico.ancho, pico.y);
-  ctx.closePath();
+  trazarPanel(ctx, ficha.caja, ficha.pico);
   ctx.fill();
 
   ctx.shadowBlur = 0;
@@ -805,12 +844,40 @@ export function dibujarFicha(
   ctx.textBaseline = 'top';
   if (ficha.titulo) {
     ctx.fillStyle = colores.titulo;
-    ctx.font = ficha.fuenteTitulo;
-    ctx.fillText(ficha.titulo.texto, ficha.titulo.x, ficha.titulo.y);
+    ctx.font = ficha.titulo.fuente;
+    for (const renglon of ficha.titulo.lineas) ctx.fillText(renglon.texto, renglon.x, renglon.y);
   }
   ctx.fillStyle = colores.texto;
   ctx.font = ficha.fuenteTexto;
   for (const linea of ficha.lineas) ctx.fillText(linea.texto, linea.x, linea.y);
 
   ctx.restore();
+}
+
+/**
+ * El contorno del panel con su pico, en un solo trazo. Con el pico como una
+ * figura aparte, el borde le dibujaba una raya en la base, como si estuviera
+ * pegado con cinta. El pico va en el borde de arriba si apunta hacia arriba
+ * (`pico.alto` negativo) y en el de abajo si apunta hacia abajo.
+ */
+function trazarPanel(ctx, { x, y, ancho, alto, radio }, pico) {
+  const derecha = x + ancho;
+  const abajo = y + alto;
+
+  ctx.moveTo(x + radio, y);
+  if (pico.alto < 0) {
+    ctx.lineTo(pico.x - pico.ancho, y);
+    ctx.lineTo(pico.x, y + pico.alto);
+    ctx.lineTo(pico.x + pico.ancho, y);
+  }
+  ctx.arcTo(derecha, y, derecha, abajo, radio);
+  ctx.arcTo(derecha, abajo, x, abajo, radio);
+  if (pico.alto > 0) {
+    ctx.lineTo(pico.x + pico.ancho, abajo);
+    ctx.lineTo(pico.x, abajo + pico.alto);
+    ctx.lineTo(pico.x - pico.ancho, abajo);
+  }
+  ctx.arcTo(x, abajo, x, y, radio);
+  ctx.arcTo(x, y, derecha, y, radio);
+  ctx.closePath();
 }

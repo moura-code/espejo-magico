@@ -100,7 +100,6 @@ describe('calcularTransicionEscena', () => {
     aparicion: 2000,
     vuelo: 1000,
     escondidos: 1500,
-    invitacion: 1200,
     cierre: 4000,
   };
   const en = (estado, transcurrido, desdeLaMirada = null, desdeElDescubrimiento = null) =>
@@ -112,6 +111,9 @@ describe('calcularTransicionEscena', () => {
       tiempos,
     });
 
+  // La invitacion del reposo no es una capa de la escena: la sigue un
+  // desvanecedor (suavizado.js), como a las nubes, porque tiene que seguir
+  // desde donde este aunque el estado rebote entre el reposo y el enganche.
   it('en reposo y en el enganche no se ve ninguna capa', () => {
     const nada = {
       objetos: 0,
@@ -121,26 +123,9 @@ describe('calcularTransicionEscena', () => {
       vuelo: 0,
       escondidos: 0,
       explorar: 0,
-      invitacion: 0,
     };
     expect(en(ESTADOS.ATRACCION, 0)).toEqual(nada);
     expect(en(ESTADOS.ENGANCHE, 1000)).toEqual(nada);
-  });
-
-  // La invitacion aparecia de golpe encima de las nubes que se estaban
-  // cerrando, y desaparecia de golpe cuando alguien se sentaba. Entra despacio
-  // en el reposo y se va rapido en el enganche, sin saltos.
-  it('la invitacion entra despacio en el reposo y se va rapido al sentarse alguien', () => {
-    expect(en(ESTADOS.ATRACCION, 0).invitacion).toBe(0);
-    expect(en(ESTADOS.ATRACCION, 600).invitacion).toBeCloseTo(0.5);
-    expect(en(ESTADOS.ATRACCION, 1200).invitacion).toBe(1);
-    expect(en(ESTADOS.ATRACCION, 60000).invitacion).toBe(1);
-    expect(en(ESTADOS.ENGANCHE, 0).invitacion).toBe(1);
-    expect(en(ESTADOS.ENGANCHE, 300).invitacion).toBeCloseTo(0.5);
-    expect(en(ESTADOS.ENGANCHE, 600).invitacion).toBe(0);
-    for (const estado of [ESTADOS.HUMO, ESTADOS.EXPLORACION, ESTADOS.CIERRE]) {
-      expect(en(estado, 500).invitacion, estado).toBe(0);
-    }
   });
 
   // Los objetos estan puestos desde el principio del humo, pero encenderlos
@@ -163,7 +148,6 @@ describe('calcularTransicionEscena', () => {
       vuelo: 0,
       escondidos: 0,
       explorar: 0,
-      invitacion: 0,
     };
     expect(en(ESTADOS.EXPLORACION, 0)).toEqual(soloElCarrusel);
     expect(en(ESTADOS.EXPLORACION, 20000)).toEqual(soloElCarrusel);
@@ -181,7 +165,6 @@ describe('calcularTransicionEscena', () => {
       vuelo: 0,
       escondidos: 0,
       explorar: 0,
-      invitacion: 0,
     });
 
     const medio = en(ESTADOS.EXPLORACION, 5500, 500);
@@ -224,7 +207,6 @@ describe('calcularTransicionEscena', () => {
       vuelo: 1,
       escondidos: 1,
       explorar: 1,
-      invitacion: 0,
     });
   });
 
@@ -278,18 +260,31 @@ describe('calcularTransicionEscena', () => {
   // Sin elegir, el carrusel es lo unico que hay en pantalla y se va con todo lo
   // demas: es el caso de quien se levanta sin entender el gesto.
   it('desvanece todas las capas juntas durante el cierre', () => {
+    // Sin eleccion no habia mas que el carrusel, y es lo que se apaga.
     expect(en(ESTADOS.CIERRE, 0)).toEqual({
       objetos: 1,
-      elegido: 1,
-      fondo: 1,
-      contenido: 1,
-      vuelo: 1,
+      elegido: 0,
+      fondo: 0,
+      contenido: 0,
+      vuelo: 0,
       escondidos: 0,
       explorar: 0,
-      invitacion: 0,
     });
     expect(en(ESTADOS.CIERRE, 2000).objetos).toBe(0.5);
     expect(en(ESTADOS.CIERRE, 4000).objetos).toBe(0);
+  });
+
+  // EL CIERRE ARRANCA DESDE DONDE QUEDO LA EXPLORACION. Si llega en pleno
+  // vuelo —el tope de sesion, un ESPACIO en manual—, el fondo y el objeto no
+  // pueden saltar a enteros para despues apagarse: siguen desde donde estaban.
+  it('el cierre arranca desde donde quedo la exploracion', () => {
+    for (const mirada of [200, 500, 1500, 3000]) {
+      const antes = en(ESTADOS.EXPLORACION, 10000, mirada);
+      const despues = en(ESTADOS.CIERRE, 0, mirada);
+      for (const capa of Object.keys(antes)) {
+        expect(despues[capa], `${capa} con la mirada a ${mirada}`).toBeCloseTo(antes[capa]);
+      }
+    }
   });
 
   // Ya elegida, el carrusel hace rato que no esta: encenderlo para apagarlo

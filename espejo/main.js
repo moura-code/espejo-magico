@@ -15,14 +15,15 @@ import {
   crearFiltroDeManos,
   crearHisteresis,
   crearDesvanecedorDeManos,
+  crearDesvanecedor,
 } from './suavizado.js';
 import { crearSorteo } from './sorteo.js';
 import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearEleccion } from './eleccion.js';
 import { crearTablero } from './tablero.js';
 import { crearSilueta } from './silueta.js';
-import { lugarEnPantalla, posicionEnVuelo, flotacion } from './vuelo.js';
-import { lugaresDelFondo, esconder, balanceo } from './escondites.js';
+import { lugarEnPantalla, posicionEnVuelo } from './vuelo.js';
+import { lugaresDelFondo, esconder, aspectoDelObjeto } from './escondites.js';
 import { crearFichas } from './fichas.js';
 import { crearPuente } from './maite.js';
 import { alfaDeHumo } from './humo.js';
@@ -244,6 +245,13 @@ const filtro = crearFiltroRostro(CONFIG.suavizado);
 const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizado);
 // Cuanto se ve la señal de cada mano: se prende y se apaga de a poco.
 const desvanecedorDeManos = crearDesvanecedorDeManos(CONFIG.manos.senal);
+// Cuanto se ve la invitacion del reposo. Sigue al estado como las nubes, desde
+// donde este: calculada por estado, arrancaba entera en el enganche aunque el
+// reposo hubiera durado menos que su entrada.
+const invitacion = crearDesvanecedor({
+  msDeEntrada: CONFIG.tiempos.invitacion,
+  msDeSalida: CONFIG.tiempos.invitacion / 2,
+});
 // Dos histeresis sobre dos señales distintas. `histeresis` mira rostro O pose:
 // es lo que SOSTIENE una sesion, y por eso los hombros alcanzan cuando la cara
 // gira. `histeresisDeRostro` mira solo la cara: es lo que ARRANCA una sesion, y
@@ -741,8 +749,11 @@ function cuadro(ahora) {
       escondites: CONFIG.fondo.esconditesPorDefecto,
     });
     const destino = aPantalla(lugarDelElegido);
+    // Cada objeto del fondo se identifica por su lugar en `objetos`: el 0 es el
+    // que llego volando y los escondidos son los que siguen. Con la ruta del
+    // PNG, dos objetos con la misma imagen compartirian la ficha.
     const escondidos = esconder(escondidosDeCarrera(carrera), escondites).map(
-      ({ definicion, lugar }, indice) => ({ id: definicion.img, definicion, indice, ...aPantalla(lugar) }),
+      ({ definicion, lugar }, indice) => ({ id: indice + 1, definicion, indice, ...aPantalla(lugar) }),
     );
     const enVuelo = posicionEnVuelo({ origen: origenDelVuelo, destino, t: transicion.vuelo });
     const aterrizo = transicion.vuelo >= 1;
@@ -750,16 +761,14 @@ function cuadro(ahora) {
     // Las fichas se leen sobre los objetos QUIETOS, no sobre su vaiven: si el
     // blanco se meciera con el objeto, la ficha se abriria y cerraria sola con
     // la mano quieta en el borde. El que llego volando tiene ficha apenas
-    // aterriza, los escondidos cuando ya se ven, y ninguno fuera de la
+    // aterriza, los escondidos cuando ya se ven a medias, y ninguno fuera de la
     // exploracion: en el cierre se apagan con todo lo demas.
     delFondo = [
-      ...(aterrizo && objetoMostrado
-        ? [{ id: objetoMostrado.img, definicion: objetoMostrado, ...destino }]
-        : []),
+      ...(aterrizo && objetoMostrado ? [{ id: 0, definicion: objetoMostrado, ...destino }] : []),
       ...escondidos,
     ];
     const leibles = delFondo.filter(
-      (objeto) => objeto.id === objetoMostrado?.img || transicion.escondidos >= 0.5,
+      (objeto) => objeto.id === 0 || transicion.escondidos >= CONFIG.fichas.alfaParaLeer,
     );
     const explorando = estado === ESTADOS.EXPLORACION;
     estadoFichas = fichas.actualizar({
@@ -769,55 +778,58 @@ function cuadro(ahora) {
     });
     const leido = (id) => estadoFichas.alfas[id] ?? 0;
 
-    // Los escondidos van DETRAS de la persona, integrados a la escena, y se
-    // mecen apenas: es lo unico que los delata. El que se esta leyendo crece
-    // un poco, se calma y le sube el halo, que es como se sabe de cual habla la
-    // ficha.
-    for (const escondido of escondidos) {
-      const leyendo = leido(escondido.id);
-      const vaiven = balanceo(ahora, escondido.indice, escondido.radio, CONFIG.escondidos.balanceo);
-      const calma = 1 - CONFIG.escondidos.calmaAlLeer * leyendo;
-      dibujarObjetoApoyado(
-        ctx,
-        {
-          definicion: escondido.definicion,
-          x: escondido.x,
-          y: escondido.y + vaiven.dy * calma,
-          radio: escondido.radio * (1 + CONFIG.escondidos.resalte * leyendo),
-          giro: vaiven.giro * calma,
-          alfa: transicion.escondidos,
-          halo:
-            CONFIG.escondidos.halo + (CONFIG.fondo.haloDelLugar - CONFIG.escondidos.halo) * leyendo,
-        },
-        banco,
-        CONFIG.paleta.nombre,
+    // Como se ve cada objeto en este cuadro —cuanto se mece o flota, y cuanto
+    // crece, se calma y se ilumina mientras se lee su ficha— lo dice
+    // aspectoDelObjeto: la misma cuenta que usa herramientas/fondos.html.
+    const aspecto = (objeto, extra = {}) =>
+      aspectoDelObjeto(
+        { ahora, indice: objeto.indice, radio: objeto.radio, leyendo: leido(objeto.id), ...extra },
+        CONFIG,
       );
+    // Lo que queda dibujado detras de la persona, para volver a ponerle delante
+    // al que se esta leyendo.
+    const detras = [];
+
+    // Los escondidos van DETRAS de la persona, integrados a la escena, y se
+    // mecen apenas: es lo unico que los delata.
+    for (const escondido of escondidos) {
+      const { dy, giro, radio, halo } = aspecto(escondido);
+      const dibujo = {
+        definicion: escondido.definicion,
+        x: escondido.x,
+        y: escondido.y + dy,
+        radio,
+        giro,
+        alfa: transicion.escondidos,
+        halo,
+      };
+      dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre);
+      detras.push({ ...dibujo, leyendo: leido(escondido.id) });
     }
 
-    const flota = aterrizo ? flotacion(ahora, enVuelo.radio, CONFIG.fondo.flotar) : { dy: 0, giro: 0 };
-    const leyendoElElegido = objetoMostrado ? leido(objetoMostrado.img) : 0;
+    // El que llego volando vuela quieto y sin halo; al aterrizar arranca a
+    // flotar y le entra el halo, de a poco.
+    const comoSeVe = aterrizo
+      ? aspecto(
+          { id: 0, radio: enVuelo.radio },
+          { esElegido: true, desdeElAterrizaje: ahora - miraDesde - CONFIG.tiempos.vuelo },
+        )
+      : { dy: 0, giro: 0, radio: enVuelo.radio, halo: 0 };
     apoyado = {
       definicion: objetoMostrado,
       x: enVuelo.x,
-      y: enVuelo.y + flota.dy,
-      radio: enVuelo.radio * (1 + CONFIG.escondidos.resalte * leyendoElElegido),
-      giro: flota.giro,
+      y: enVuelo.y + comoSeVe.dy,
+      radio: comoSeVe.radio,
+      giro: comoSeVe.giro,
       aterrizo,
     };
 
     // Apoyado, va DETRAS de la persona: integrado a la escena. Si la persona se
     // inclina sobre ese punto lo tapa, que es lo correcto.
     if (aterrizo) {
-      dibujarObjetoApoyado(
-        ctx,
-        {
-          ...apoyado,
-          alfa: transicion.elegido,
-          halo: CONFIG.fondo.haloDelLugar * (1 + 0.5 * leyendoElElegido),
-        },
-        banco,
-        CONFIG.paleta.nombre,
-      );
+      const dibujo = { ...apoyado, alfa: transicion.elegido, halo: comoSeVe.halo };
+      dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre);
+      detras.push({ ...dibujo, leyendo: leido(0) });
     }
 
     if (hayRecorte) {
@@ -831,6 +843,16 @@ function cuadro(ahora) {
         disposicion,
       });
       ctx.restore();
+
+      // EL QUE SE ESTA LEYENDO VA TAMBIEN DELANTE DE LA PERSONA. Detras, la
+      // mano que fue a buscarlo lo tapa justo cuando crece y se ilumina, y la
+      // ficha quedaria hablando de algo que no se ve. Es el mismo objeto en el
+      // mismo lugar, sin halo, y entra y sale con su ficha: donde nada lo tapa
+      // no cambia nada, y donde la mano lo tapaba aparece de a poco.
+      for (const dibujo of detras) {
+        if (dibujo.leyendo <= 0) continue;
+        dibujarObjeto(ctx, { ...dibujo, alfa: dibujo.alfa * dibujo.leyendo }, banco, CONFIG.paleta.nombre);
+      }
     }
   }
 
@@ -907,6 +929,7 @@ function cuadro(ahora) {
         progreso: progresoDelAnillo,
         color: CONFIG.carga.color,
         opacidad: CONFIG.carga.relleno,
+        radioFactor: CONFIG.carga.radioDelDisco,
         alfa: alfaDelBlanco,
       });
       if (!esElMostrado) {
@@ -990,6 +1013,7 @@ function cuadro(ahora) {
         columna: disposicion.ancho * CONFIG.fichas.columna,
         colores: COLORES_DE_FICHA,
         evitar: delFondo.filter((otro) => otro.id !== objeto.id),
+        tipografia: CONFIG.fichas.tipografia,
       },
     );
   }
@@ -1039,7 +1063,12 @@ function cuadro(ahora) {
   // 700 ms era un parpadeo, no una respiracion: apurado, se leia como un aviso
   // de error mas que como una invitacion. Entra despacio en el reposo y se va
   // rapido cuando alguien se sienta.
-  dibujarInvitacion(ctx, disposicion, (Math.sin(ahora / 1400) + 1) / 2, transicion.invitacion);
+  dibujarInvitacion(
+    ctx,
+    disposicion,
+    (Math.sin(ahora / 1400) + 1) / 2,
+    invitacion.actualizar(estado === ESTADOS.ATRACCION, ahora),
+  );
   // La consigna ensena el gesto, y es lo unico que lo hace. La de la eleccion
   // sale de abajo del humo —encendida de golpe encima del humo espeso era un
   // golpe de luz— y se apaga con el carrusel: elegida la ingenieria, ya no hay
@@ -1067,9 +1096,12 @@ window.espejo = {
   mostrada: () => mostrada,
   origenDelVuelo: () => origenDelVuelo,
   progresoDeEleccion: () => progresoDeEleccion,
-  fichaActiva: () => estadoFichas.activa,
+  // El nombre del objeto cuya ficha se esta mostrando, o null.
+  fichaActiva: () =>
+    delFondo.find((objeto) => objeto.id === estadoFichas.activa)?.definicion?.nombre ?? null,
   // Donde estan, en este cuadro, los objetos del fondo que tienen ficha.
-  objetosDelFondo: () => delFondo.map(({ id, x, y, radio }) => ({ id, x, y, radio })),
+  objetosDelFondo: () =>
+    delFondo.map(({ id, definicion, x, y, radio }) => ({ id, nombre: definicion?.nombre, x, y, radio })),
   hayFondo: () => Boolean(videoDeHumo),
   modo: () => modo,
   cambiarModo: (nuevo) => {

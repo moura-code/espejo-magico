@@ -157,6 +157,11 @@ export function crearFiltroDeManos({
   };
 }
 
+// Tope del salto de reloj entre dos llamadas de los desvanecedores. Si el
+// navegador se traba un instante, un salto grande prenderia o apagaria de golpe
+// lo que existe para no hacerlo nunca.
+const DT_MAXIMO = 250;
+
 /**
  * Cuanto se ve la señal de cada mano.
  *
@@ -174,7 +179,7 @@ export function crearDesvanecedorDeManos({ msDeEntrada, msDeSalida }) {
 
   return {
     actualizar(manos, ahora) {
-      const dt = ultimoReloj === null ? 0 : Math.min(250, Math.max(0, ahora - ultimoReloj));
+      const dt = ultimoReloj === null ? 0 : Math.min(DT_MAXIMO, Math.max(0, ahora - ultimoReloj));
       ultimoReloj = ahora;
 
       const vistas = new Set();
@@ -196,6 +201,37 @@ export function crearDesvanecedorDeManos({ msDeEntrada, msDeSalida }) {
 
     reiniciar() {
       pistas.clear();
+      ultimoReloj = null;
+    },
+  };
+}
+
+/**
+ * Un alfa que se enciende en `msDeEntrada` y se apaga en `msDeSalida`, siempre
+ * desde donde esta. Es el de la invitacion del reposo: calculada por estado,
+ * arrancaba entera en el enganche aunque el reposo hubiera durado menos que su
+ * entrada, y se prendia de golpe justo para irse. Aca, si la señal se da vuelta
+ * a mitad de camino, sigue desde ahi —como las nubes—, y rebotar entre el
+ * reposo y el enganche no la hace parpadear.
+ *
+ * Avanza en linea recta y devuelve la curva suave: entra y sale sin tirones.
+ */
+export function crearDesvanecedor({ msDeEntrada, msDeSalida }) {
+  let lineal = 0;
+  let ultimoReloj = null;
+
+  return {
+    actualizar(encendido, ahora) {
+      const dt = ultimoReloj === null ? 0 : Math.min(DT_MAXIMO, Math.max(0, ahora - ultimoReloj));
+      ultimoReloj = ahora;
+      lineal = encendido
+        ? Math.min(1, lineal + dt / Math.max(1, msDeEntrada))
+        : Math.max(0, lineal - dt / Math.max(1, msDeSalida));
+      return lineal * lineal * (3 - 2 * lineal);
+    },
+
+    reiniciar() {
+      lineal = 0;
       ultimoReloj = null;
     },
   };

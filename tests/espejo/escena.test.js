@@ -66,6 +66,7 @@ function crearCtxFalso() {
       llamadas.push(['stroke', estilo(ctx.strokeStyle), ctx.globalAlpha, ctx.shadowBlur]),
     fill: () => llamadas.push(['fill', estilo(ctx.fillStyle), ctx.globalAlpha]),
     roundRect: (...args) => llamadas.push(['roundRect', ...args]),
+    arcTo: (...args) => llamadas.push(['arcTo', ...args]),
     clip: (...args) => llamadas.push(['clip', ...args]),
     translate: (x, y) => llamadas.push(['translate', x, y]),
     scale: (x, y) => llamadas.push(['scale', x, y]),
@@ -242,6 +243,13 @@ describe('dibujarDiscoDeCarga', () => {
     };
     expect(barrido(0.25)).toBeCloseTo(Math.PI / 2);
     expect(barrido(1)).toBeCloseTo(Math.PI * 2);
+  });
+
+  it('mide lo que se le pide, en radios del objeto', () => {
+    const ctx = crearCtxFalso();
+    dibujarDiscoDeCarga(ctx, { ...base, progreso: 0.5, radioFactor: 1.3 });
+    const [, , , radio] = soloDe(ctx, 'arc')[0];
+    expect(radio).toBeCloseTo(78);
   });
 
   it('se rellena con el color pedido y su transparencia', () => {
@@ -949,6 +957,21 @@ describe('las dos tipografias', () => {
     ]);
   });
 
+  // La ficha mide su texto con la letra del lienzo. Si midiera antes de su
+  // save, dejaria la letra cambiada para todo lo que se dibuja despues.
+  it('la ficha no deja cambiada la letra del lienzo', () => {
+    const ctx = ctxQueAnotaFuentes();
+    dibujarFicha(
+      ctx,
+      { x: 170, y: 330, radio: 59, alfa: 1, nombre: 'Rodamiento', descripcion: 'Gira sin rozar.' },
+      disposicion,
+      { columna: 324, colores: { titulo: '#f0dca0', texto: '#cdbfa0', panel: '#05050a', borde: '#8a7038' } },
+    );
+    const orden = ctx.llamadas.map(([que]) => que);
+    expect(orden.indexOf('font')).toBeGreaterThan(orden.indexOf('save'));
+    expect(orden.lastIndexOf('font')).toBeLessThan(orden.lastIndexOf('restore'));
+  });
+
   it('la ficha escribe el nombre en la de titulo y la descripcion en la sans', () => {
     const ctx = ctxQueAnotaFuentes();
     dibujarFicha(
@@ -1074,9 +1097,48 @@ describe('disponerFicha', () => {
     expect(Math.hypot(vecino.x - cercaX, vecino.y - cercaY)).toBeGreaterThanOrEqual(vecino.radio);
   });
 
+  // "Lector de código de barras" o "Vaso de precipitados" no entran en la
+  // columna a tamaño de titulo: el nombre va en dos renglones antes que
+  // salirse del panel —y de la pantalla—.
+  it('un nombre largo va en dos renglones que entran en la ficha', () => {
+    const ficha = disponer(
+      { x: 170, y: 330, radio: 59 },
+      { nombre: 'Lector de código de barras', descripcion: textos.descripcion },
+    );
+    const anchoUtil = ficha.caja.ancho - 2 * ficha.relleno;
+    expect(ficha.titulo.lineas).toHaveLength(2);
+    expect(ficha.titulo.lineas.map((linea) => linea.texto).join(' ')).toBe(
+      'Lector de código de barras',
+    );
+    for (const linea of ficha.titulo.lineas) {
+      expect(medir(linea.texto, ficha.titulo.fuente)).toBeLessThanOrEqual(anchoUtil);
+    }
+    // Y la caja crece para los dos renglones: la descripcion arranca debajo.
+    expect(ficha.lineas[0].y).toBeGreaterThan(ficha.titulo.lineas[1].y);
+  });
+
+  it('un nombre de una sola palabra que no entra se achica lo justo', () => {
+    const ficha = disponer({ x: 170, y: 330, radio: 59 }, { nombre: 'Electroencefalógrafo' });
+    expect(ficha.titulo.lineas.map((linea) => linea.texto)).toEqual(['Electroencefalógrafo']);
+    expect(medir('Electroencefalógrafo', ficha.titulo.fuente)).toBeLessThanOrEqual(
+      ficha.caja.ancho - 2 * ficha.relleno,
+    );
+  });
+
+  // La letra de la ficha se calibra en el stand, leyendo a dos metros: sale de
+  // las opciones (CONFIG.fichas.tipografia), no de este archivo.
+  it('el tamaño de la letra sale de las opciones', () => {
+    const ficha = disponerFicha({ x: 170, y: 330, radio: 59 }, textos, disposicion, medir, {
+      columna: COLUMNA,
+      tipografia: { texto: 0.6, titulo: 1, anchoEnLetras: 15 },
+    });
+    expect(ficha.fuenteTexto).toContain(`${Math.round(disposicion.texto.tamanoFrase * 0.6)}px`);
+    expect(ficha.titulo.fuente).toContain(`${disposicion.texto.tamanoFrase}px`);
+  });
+
   it('sin descripcion va solo el nombre, y sin nada no hay ficha', () => {
     const soloNombre = disponer({ x: 170, y: 330, radio: 59 }, { nombre: 'Casco' });
-    expect(soloNombre.titulo.texto).toBe('Casco');
+    expect(soloNombre.titulo.lineas.map((linea) => linea.texto)).toEqual(['Casco']);
     expect(soloNombre.lineas).toEqual([]);
     expect(disponer({ x: 170, y: 330, radio: 59 }, {})).toBeNull();
   });
@@ -1124,6 +1186,15 @@ describe('dibujarFicha', () => {
     const orden = ctx.llamadas.map(([que]) => que);
     expect(orden.indexOf('fill')).toBeGreaterThanOrEqual(0);
     expect(orden.indexOf('fill')).toBeLessThan(orden.indexOf('fillText'));
+  });
+
+  // El pico es parte del panel: trazado aparte, el borde le dibujaba una raya
+  // en la base, como si estuviera pegado con cinta.
+  it('el panel y su pico son un solo trazo', () => {
+    const ctx = crearCtxFalso();
+    dibujar(ctx, { alfa: 1 });
+    expect(soloDe(ctx, 'roundRect')).toEqual([]);
+    expect(soloDe(ctx, 'moveTo')).toHaveLength(1);
   });
 
   it('se enciende con su alfa', () => {

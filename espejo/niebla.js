@@ -85,7 +85,17 @@ export function calcularTransicionEscena({
     };
   };
 
-  // Todas las capas, apagadas salvo las que se pidan.
+  // Las capas de la exploracion con la ingenieria ya elegida, en este momento.
+  const conLaMirada = () => {
+    const t = progreso(desdeLaMirada, tiempos.aparicion);
+    const vuelo = progreso(desdeLaMirada, tiempos.vuelo);
+    return { objetos: 1 - vuelo, elegido: 1, fondo: t, contenido: t, vuelo, ...delFondo() };
+  };
+
+  // Todas las capas, apagadas salvo las que se pidan. En el reposo y en el
+  // enganche no se ve ninguna: la invitacion no es una capa de la escena, la
+  // sigue un desvanecedor (suavizado.js), como a las nubes, para que siga desde
+  // donde este aunque el estado rebote entre los dos.
   const capas = (encendidas) => ({
     objetos: 0,
     elegido: 0,
@@ -94,19 +104,10 @@ export function calcularTransicionEscena({
     vuelo: 0,
     escondidos: 0,
     explorar: 0,
-    invitacion: 0,
     ...encendidas,
   });
 
   switch (estado) {
-    // La invitacion entra despacio en el reposo —aparecer de golpe encima de
-    // las nubes que se estan cerrando era un golpe de luz— y se va rapido
-    // cuando alguien se sienta, mientras las nubes se abren.
-    case ESTADOS.ATRACCION:
-      return capas({ invitacion: progreso(transcurrido, tiempos.invitacion) });
-    case ESTADOS.ENGANCHE:
-      return capas({ invitacion: 1 - progreso(transcurrido, tiempos.invitacion / 2) });
-
     // Los objetos se encienden en la segunda mitad del humo. Estan puestos
     // desde el principio del estado, pero encenderlos antes de que el humo
     // este espeso los deja verse a traves y arruina la aparicion.
@@ -122,30 +123,28 @@ export function calcularTransicionEscena({
     //
     // El elegido no se va con ellos: vuela a su lugar y se queda ahi, entero,
     // hasta el final de la sesion.
-    case ESTADOS.EXPLORACION: {
-      if (desdeLaMirada === null) return capas({ objetos: 1 });
-      const t = progreso(desdeLaMirada, tiempos.aparicion);
-      const vuelo = progreso(desdeLaMirada, tiempos.vuelo);
-      return capas({ objetos: 1 - vuelo, elegido: 1, fondo: t, contenido: t, vuelo, ...delFondo() });
-    }
+    case ESTADOS.EXPLORACION:
+      return desdeLaMirada === null ? capas({ objetos: 1 }) : capas(conLaMirada());
 
-    // En el cierre el objeto elegido ya esta apoyado: se desvanece con todo lo
-    // demas. El carrusel solo tiene algo que desvanecer si la persona se fue
-    // sin elegir; si ya habia elegido estaba apagado, y encenderlo para
-    // apagarlo otra vez seria un parpadeo en el ultimo segundo. Lo mismo la
-    // consigna de explorar: se apaga desde donde estaba, y si ya se habia ido
-    // no vuelve para despedirse.
+    // EL CIERRE ARRANCA DESDE DONDE QUEDO LA EXPLORACION y se apaga desde ahi.
+    // Sin eleccion, lo unico que habia era el carrusel. Con eleccion, cada capa
+    // sigue su propio reloj multiplicada por la salida: si el cierre llega en
+    // pleno vuelo —el tope de sesion, un ESPACIO en manual— el objeto termina
+    // de volar mientras se apaga, en vez de saltar a su lugar con el fondo
+    // entero; y el carrusel, si ya estaba apagado, no se enciende para
+    // apagarse otra vez, ni la consigna de explorar vuelve para despedirse.
     case ESTADOS.CIERRE: {
       const salida = 1 - progreso(transcurrido, tiempos.cierre);
-      const { escondidos, explorar } = delFondo();
+      if (desdeLaMirada === null) return capas({ objetos: salida });
+      const quedo = conLaMirada();
       return capas({
-        objetos: desdeLaMirada === null ? salida : 0,
-        elegido: salida,
-        fondo: salida,
-        contenido: salida,
-        vuelo: 1,
-        escondidos: escondidos * salida,
-        explorar: explorar * salida,
+        objetos: quedo.objetos * salida,
+        elegido: quedo.elegido * salida,
+        fondo: quedo.fondo * salida,
+        contenido: quedo.contenido * salida,
+        vuelo: quedo.vuelo,
+        escondidos: quedo.escondidos * salida,
+        explorar: quedo.explorar * salida,
       });
     }
 

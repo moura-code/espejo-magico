@@ -52,13 +52,14 @@
     import { cargarContenido, objetoDeCarrera, escondidosDeCarrera } from '../espejo/contenido.js';
     import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
     import { cargarVideoDelNavegador, crearBancoDeVideos } from '../espejo/videos.js';
-    import { lugarEnPantalla, flotacion } from '../espejo/vuelo.js';
-    import { lugaresDelFondo, esconder, balanceo } from '../espejo/escondites.js';
+    import { lugarEnPantalla } from '../espejo/vuelo.js';
+    import { lugaresDelFondo, esconder, aspectoDelObjeto } from '../espejo/escondites.js';
     import {
       calcularDisposicion,
       dibujarFondo,
       dibujarFicha,
       dibujarNombreDeCarrera,
+      dibujarObjeto,
       dibujarObjetoApoyado,
       TITULO_SOLO,
       PESO_TITULO,
@@ -179,42 +180,28 @@
       const turno = turnoDeFicha(ahora, todos.length);
       const leido = (objeto) => (todos[turno.indice] === objeto ? turno.alfa : 0);
 
-      for (const escondido of escondidos) {
-        const leyendo = leido(escondido);
-        const vaiven = balanceo(ahora, escondido.indice, escondido.radio, CONFIG.escondidos.balanceo);
-        const calma = 1 - CONFIG.escondidos.calmaAlLeer * leyendo;
-        dibujarObjetoApoyado(
-          ctx,
-          {
-            definicion: escondido.definicion,
-            x: escondido.x,
-            y: escondido.y + vaiven.dy * calma,
-            radio: escondido.radio * (1 + CONFIG.escondidos.resalte * leyendo),
-            giro: vaiven.giro * calma,
-            halo: CONFIG.escondidos.halo + (CONFIG.fondo.haloDelLugar - CONFIG.escondidos.halo) * leyendo,
-          },
-          banco,
-          CONFIG.paleta.nombre,
+      // Como en el espejo: los escondidos se mecen, el del carrusel flota, y el
+      // de la ficha abierta crece, se calma y se ilumina. La cuenta es la del
+      // espejo (aspectoDelObjeto), no una copia: ajustarla en un lado solo
+      // separaria en silencio lo que se ve aca de lo que hace el espejo.
+      const dibujados = [...escondidos, elegido].map((objeto) => {
+        const leyendo = leido(objeto);
+        const { dy, giro, radio, halo } = aspectoDelObjeto(
+          { ahora, indice: objeto.indice, radio: objeto.radio, esElegido: objeto === elegido, leyendo },
+          CONFIG,
         );
-      }
-
-      const flota = flotacion(ahora, elegido.radio, CONFIG.fondo.flotar);
-      const leyendoElElegido = leido(elegido);
-      dibujarObjetoApoyado(
-        ctx,
-        {
-          definicion: elegido.definicion,
-          x: elegido.x,
-          y: elegido.y + flota.dy,
-          radio: elegido.radio * (1 + CONFIG.escondidos.resalte * leyendoElElegido),
-          giro: flota.giro,
-          halo: CONFIG.fondo.haloDelLugar * (1 + 0.5 * leyendoElElegido),
-        },
-        banco,
-        CONFIG.paleta.nombre,
-      );
+        return { definicion: objeto.definicion, x: objeto.x, y: objeto.y + dy, radio, giro, halo, leyendo };
+      });
+      for (const dibujo of dibujados) dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre);
 
       dibujarSilueta(ctx);
+      // El de la ficha abierta va tambien delante de la persona, como en el
+      // espejo: detras, la mano que lo fue a buscar lo taparia.
+      for (const dibujo of dibujados) {
+        if (dibujo.leyendo > 0) {
+          dibujarObjeto(ctx, { ...dibujo, alfa: dibujo.leyendo }, banco, CONFIG.paleta.nombre);
+        }
+      }
       if (conZona) dibujarZonas(ctx);
 
       const deTurno = todos[turno.indice];
@@ -233,6 +220,7 @@
           columna: ANCHO * CONFIG.fichas.columna,
           colores: COLORES_DE_FICHA,
           evitar: todos.filter((otro) => otro !== deTurno),
+          tipografia: CONFIG.fichas.tipografia,
         },
       );
       dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, CONFIG.paleta.nombre);

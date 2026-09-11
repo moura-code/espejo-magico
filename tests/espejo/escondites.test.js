@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lugaresDelFondo, esconder, balanceo } from '../../espejo/escondites.js';
+import { lugaresDelFondo, esconder, balanceo, aspectoDelObjeto } from '../../espejo/escondites.js';
 
 const POR_DEFECTO = {
   lugar: { x: 0.2, y: 0.22, escala: 0.16 },
@@ -104,6 +104,17 @@ describe('balanceo', () => {
     }
   });
 
+  // Cuanto cambia el ritmo de un objeto al siguiente sale de la config: en
+  // cero, todos se mecen con el mismo periodo (y fases distintas).
+  it('la variacion del ritmo sale de lo pedido', () => {
+    const parejo = { ...ajuste, variacion: 0 };
+    for (const indice of [0, 1, 2]) {
+      const antes = balanceo(1000, indice, 50, parejo);
+      const unaVueltaDespues = balanceo(1000 + parejo.periodoMs, indice, 50, parejo);
+      expect(unaVueltaDespues.giro).toBeCloseTo(antes.giro);
+    }
+  });
+
   // Un movimiento a los saltos se lee como un parpadeo, que es lo primero que
   // pidio evitar la catedra: entre dos cuadros seguidos cambia apenas.
   it('es continuo: entre dos cuadros seguidos cambia muy poco', () => {
@@ -114,6 +125,73 @@ describe('balanceo', () => {
         expect(Math.abs(b.giro - a.giro)).toBeLessThan(0.3 * GRADO);
         expect(Math.abs(b.dy - a.dy)).toBeLessThan(0.1);
       }
+    }
+  });
+});
+
+describe('aspectoDelObjeto', () => {
+  // Con la forma de CONFIG: el espejo y herramientas/fondos.html le pasan la de
+  // verdad, y asi la herramienta muestra exactamente lo que hace el espejo.
+  const CONFIG_FALSA = {
+    fondo: { flotar: { amplitud: 0.08, periodoMs: 3200 }, haloDelLugar: 0.3, msDeAterrizaje: 400 },
+    escondidos: {
+      halo: 0.18,
+      haloAlLeer: 0.45,
+      balanceo: { grados: 6, amplitud: 0.05, periodoMs: 4400, variacion: 0.17 },
+      resalte: 0.14,
+      calmaAlLeer: 0.7,
+    },
+  };
+  const aspecto = (extra) =>
+    aspectoDelObjeto({ ahora: 1234, indice: 1, radio: 60, esElegido: false, ...extra }, CONFIG_FALSA);
+
+  it('un escondido lleva su tamaño y un halo tenue, y se mueve', () => {
+    const quieto = aspecto();
+    expect(quieto.radio).toBe(60);
+    expect(quieto.halo).toBeCloseTo(0.18);
+    expect(Math.abs(quieto.giro) + Math.abs(quieto.dy)).toBeGreaterThan(0);
+  });
+
+  // Asi se sabe de cual habla la ficha: el objeto que se lee crece un poco, se
+  // calma y se ilumina.
+  it('el que se esta leyendo crece, se calma y se ilumina', () => {
+    const quieto = aspecto({ leyendo: 0 });
+    const leido = aspecto({ leyendo: 1 });
+    expect(leido.radio).toBeCloseTo(60 * 1.14);
+    expect(leido.halo).toBeCloseTo(0.45);
+    expect(Math.abs(leido.giro)).toBeCloseTo(Math.abs(quieto.giro) * 0.3);
+    expect(Math.abs(leido.dy)).toBeCloseTo(Math.abs(quieto.dy) * 0.3);
+  });
+
+  it('el que llego volando flota apenas y lleva el halo de su lugar', () => {
+    const elegido = aspecto({ esElegido: true });
+    expect(elegido.halo).toBeCloseTo(0.3);
+    expect(Math.abs(elegido.dy)).toBeLessThanOrEqual(0.08 * 60 + 1e-9);
+  });
+
+  // EL ATERRIZAJE NO SALTA. El objeto llega volando sin halo y sin flotacion:
+  // si al tocar su lugar aparecieran enteros, el halo se prenderia de golpe y
+  // el objeto pegaria un salto, justo en el cuadro mas mirado de la experiencia.
+  it('al aterrizar, el halo y la flotacion arrancan de cero y entran de a poco', () => {
+    const recien = aspecto({ esElegido: true, desdeElAterrizaje: 0 });
+    expect(recien.halo).toBeCloseTo(0);
+    expect(recien.dy).toBeCloseTo(0);
+    expect(recien.giro).toBeCloseTo(0);
+    expect(recien.radio).toBe(60);
+
+    const aMedias = aspecto({ esElegido: true, desdeElAterrizaje: 200 });
+    expect(aMedias.halo).toBeGreaterThan(0);
+    expect(aMedias.halo).toBeLessThan(0.3);
+
+    expect(aspecto({ esElegido: true, desdeElAterrizaje: 400 }).halo).toBeCloseTo(0.3);
+  });
+
+  it('entre dos cuadros seguidos del aterrizaje no hay saltos', () => {
+    for (let t = 0; t <= 800; t += 16) {
+      const antes = aspecto({ esElegido: true, desdeElAterrizaje: t, ahora: 5000 + t });
+      const despues = aspecto({ esElegido: true, desdeElAterrizaje: t + 16, ahora: 5016 + t });
+      expect(Math.abs(despues.dy - antes.dy)).toBeLessThan(0.02 * 60);
+      expect(Math.abs(despues.halo - antes.halo)).toBeLessThan(0.05);
     }
   });
 });

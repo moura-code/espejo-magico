@@ -190,7 +190,13 @@
       }
       const objeto = { x: LADO / 2, y: LADO / 2, radio: LADO * 0.22 };
       const progreso = progresoEn(ahora);
-      dibujarDiscoDeCarga(ctx, { ...objeto, progreso, color: opcion.color, opacidad: opcion.relleno });
+      dibujarDiscoDeCarga(ctx, {
+        ...objeto,
+        progreso,
+        color: opcion.color,
+        opacidad: opcion.relleno,
+        radioFactor: CONFIG.carga.radioDelDisco,
+      });
       dibujarObjeto(ctx, { definicion: objetoDeCarrera(carrera), ...objeto }, banco, CONFIG.paleta.nombre);
       dibujarAnilloDeProgreso(ctx, {
         ...objeto,

@@ -79,12 +79,6 @@ describe('contenido real', () => {
     expect(flojos).toEqual([]);
   });
 
-  it('todos los colores son distintos entre si', async () => {
-    const datos = await leer();
-    const colores = datos.carreras.map((c) => c.color.toUpperCase());
-    expect(new Set(colores).size).toBe(colores.length);
-  });
-
   it('todos los PNG declarados existen en el disco', async () => {
     const datos = await leer();
     const faltantes = [];

@@ -139,6 +139,35 @@ describe('los objetos de los fondos reales', () => {
     expect(problemas).toEqual([]);
   });
 
+  // AL ALCANCE DE LA MANO. La periferia no puede quedar tan arriba que haya que
+  // pararse para llegar: la ficha de un objeto que nadie alcanza no se lee
+  // nunca. El modelo es el del carrusel —la mano llega a `tablero.radioFactor`
+  // anchos de hombros, aca desde cada hombro, y la ficha se abre a
+  // `fichas.radioFactor` radios del objeto— con la persona sentada de la
+  // integracion del sostenido (hombros en y = 1300) a 2 m. A esa distancia, una
+  // camara de 1280x720 y 78 grados recortada al espejo vertical ve un metro de
+  // ancho: 40 cm de hombros son unos 420 px. Mas lejos alcanza a los de la
+  // altura de la cara, no a los de arriba. En el stand se mide con gente de
+  // verdad (docs/operacion.md): si la persona queda mas abajo, se bajan los
+  // lugares en herramientas/fondos.html.
+  it('todos quedan al alcance de la mano de alguien sentado a 2 m', async () => {
+    const hombros = { x: ESPEJO.ancho / 2, y: 1300, ancho: 420 };
+    const brazo = CONFIG.tablero.radioFactor * hombros.ancho;
+    const lejos = [];
+    for (const { nombre, fondo } of await todosLosFondos()) {
+      puestosEn(fondo, ESPEJO).forEach((puesto, i) => {
+        const hastaLaPalma = Math.min(
+          ...[-1, 1].map((lado) =>
+            Math.hypot(puesto.x - (hombros.x + (lado * hombros.ancho) / 2), puesto.y - hombros.y),
+          ),
+        );
+        const falta = hastaLaPalma - CONFIG.fichas.radioFactor * puesto.radio - brazo;
+        if (falta > 0) lejos.push(`${nombre} [${i}]: faltan ${Math.round(falta)} px`);
+      });
+    }
+    expect(lejos, 'estos objetos quedan fuera del alcance del brazo').toEqual([]);
+  });
+
   // La ficha va en la franja del costado de su objeto. Si esa franja entrara en
   // la zona de la cabeza, la ficha le taparia la cara a la persona.
   it('la franja de las fichas no se mete en la zona de la cabeza', () => {

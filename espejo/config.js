@@ -1,6 +1,11 @@
 // Todo numero ajustable del sistema vive aca. Ningun otro archivo deberia tener
 // constantes magicas: si algo hay que calibrar el dia del evento, se calibra aca.
 
+// El dorado de MAITE: el color con el que las cuatro tablets escriben los
+// nombres (--color-accent-strong en su public/style.css). Va en el nombre de la
+// ingenieria, en la carga y en las fichas, igual para las doce.
+const DORADO = '#f0dca0';
+
 export const CONFIG = {
   // En manual la experiencia no avanza sola: cada estado espera un ESPACIO.
   // Sirve para probar sin pelear con el reloj — la sesion no se corta cuando
@@ -19,13 +24,13 @@ export const CONFIG = {
   // estan lado a lado en herramientas/colores.html.
   paleta: {
     // --color-accent-strong: el de los nombres en las cuatro tablets.
-    nombre: '#f0dca0',
+    nombre: DORADO,
     // --color-text-muted: el de los textos de las tablets.
     texto: '#cdbfa0',
     // --color-bg, casi opaco: el panel de las fichas.
     panel: 'rgba(5, 5, 10, 0.8)',
-    // --color-accent-strong, apenas: el borde del panel.
-    borde: 'rgba(240, 220, 160, 0.28)',
+    // El dorado apenas (0x47 es el 28 %): el borde del panel.
+    borde: `${DORADO}47`,
   },
 
   // Duraciones de cada estado, en milisegundos. La exploracion no tiene
@@ -48,7 +53,7 @@ export const CONFIG = {
     // hubiera agarrado con la mano: nadie se va sin ingenieria.
     eleccionMaxima: 30000,
 
-    // Cuanto tarda en entrar el fondo de una ingenieria con su ficha. Es el
+    // Cuanto tarda en entrar el fondo de una ingenieria con su nombre. Es el
     // reloj de la mirada, no el de un estado: arranca cuando la persona agarra
     // su objeto, en cualquier momento de la exploracion.
     aparicion: 2500,
@@ -70,7 +75,8 @@ export const CONFIG = {
 
     // Lo que tarda en entrar la invitacion del reposo; se va en la mitad,
     // cuando alguien se sienta. Aparecer y desaparecer de golpe se leia como un
-    // parpadeo encima de las nubes.
+    // parpadeo encima de las nubes. Sigue al estado desde donde este, como las
+    // nubes: si el reposo dura menos que esto, se va desde donde habia llegado.
     invitacion: 1200,
 
     // Corto: quien llega despues de que el espejo volvio al reposo no tiene por
@@ -165,9 +171,12 @@ export const CONFIG = {
 
     // Con la ingenieria ya elegida las manos siguen sirviendo —pasarlas sobre
     // los objetos del fondo abre sus fichas—, pero ya no hay un sostenido que
-    // se llene cuadro a cuadro: alcanza con menos, y esos milisegundos se los
-    // queda la silueta, que es lo que mas se mira a partir de ahi.
-    fpsExplorando: 20,
+    // se llene cuadro a cuadro: con 300 ms para abrir y 900 de gracia alcanza
+    // con pocos cuadros, y el resto se lo queda la silueta, que es lo que mas se
+    // mira a partir de ahi y corre a fpsConFondo con lectura de la GPU. Hay que
+    // medirlo con el panel (P) en la PC del evento: rostro, pose y manos corren
+    // en el mismo hilo.
+    fpsExplorando: 12,
 
     // Generosos: facil de interactuar a 1.5m - 2m de la camara sin exigir estirar el brazo.
     factorRadio: 1.5,
@@ -248,11 +257,14 @@ export const CONFIG = {
   // disco que se llena detras del objeto (0 lo apaga). Las otras opciones que
   // se miraron estan andando en herramientas/colores.html.
   carga: {
-    color: '#f0dca0',
+    color: DORADO,
     pista: 0.22,
     trazo: 0.9,
     brillo: 0.7,
     relleno: 0.26,
+    // El disco, en radios del objeto: un poco mas grande, para que se vea
+    // alrededor, y mas chico que el anillo.
+    radioDelDisco: 1.12,
   },
 
   // Donde se ponen los objetos que se ofrecen: un anillo con todas las
@@ -344,20 +356,23 @@ export const CONFIG = {
     oscurecerVideo: 0.55, // cuanto se apaga el espejo debajo del fondo sin mascara
 
     // Donde se apoya el objeto cuando el fondo no declara su `lugar`:
-    // normalizado a la imagen, arriba a la izquierda, lejos de la cara, del
-    // nombre y del recorrido del carrusel, que pasa por encima de la cabeza a
-    // un tercio de la pantalla. `escala` es el diametro como fraccion del ancho
-    // de la imagen.
-    lugarPorDefecto: { x: 0.2, y: 0.22, escala: 0.16 },
+    // normalizado a la imagen, arriba a la izquierda, lejos de la cara y del
+    // nombre. `escala` es el diametro como fraccion del ancho de la imagen. Tan
+    // bajo como deja su ficha, que se abre por encima de el: mas arriba no lo
+    // alcanza la mano de alguien sentado a dos metros.
+    lugarPorDefecto: { x: 0.2, y: 0.295, escala: 0.16 },
 
     // Y donde esperan los otros tres objetos cuando el fondo no declara sus
-    // `escondites` —el respaldo vectorial, una carrera sin fondos—: los otros
-    // tres rincones de la periferia. Como el lugar por defecto, es un seguro
-    // del codigo y no una decision; las fotos declaran los suyos.
+    // `escondites` —el respaldo vectorial, una carrera sin fondos—: el otro
+    // rincon de arriba y, a cada lado, uno a la altura de la cara, con su ficha
+    // por debajo. Como el lugar por defecto, es un seguro del codigo y no una
+    // decision; las fotos declaran los suyos. Los dos los vigilan
+    // tests/integracion/fondos.test.js y fichas.test.js con las doce
+    // ingenierias: al alcance de la mano y sin que una ficha tape a un vecino.
     esconditesPorDefecto: [
-      { x: 0.82, y: 0.19, escala: 0.14 },
-      { x: 0.16, y: 0.43, escala: 0.14 },
-      { x: 0.84, y: 0.43, escala: 0.14 },
+      { x: 0.8, y: 0.295, escala: 0.14 },
+      { x: 0.16, y: 0.44, escala: 0.14 },
+      { x: 0.84, y: 0.44, escala: 0.14 },
     ],
 
     // Donde esta la persona, normalizado al espejo vertical: la cabeza y los
@@ -386,6 +401,11 @@ export const CONFIG = {
     // proposito: tiene que leerse vivo, no competir con la persona.
     flotar: { amplitud: 0.08, periodoMs: 3200 },
 
+    // Lo que tardan la flotacion y el halo en entrar cuando el objeto aterriza.
+    // Llega volando sin ninguno de los dos: aparecer enteros en un cuadro era un
+    // salto justo en el momento mas mirado.
+    msDeAterrizaje: 400,
+
     // Cuanto se espera a cada fondo con movimiento antes de darlo por perdido y
     // seguir con su foto. Los videos se cargan DESPUES de que el espejo arranco
     // y de a uno, asi que este tope no retrasa el arranque: solo evita que un
@@ -401,10 +421,15 @@ export const CONFIG = {
     // nadie.
     halo: 0.18,
 
+    // El halo del objeto que se esta leyendo, sea escondido o el que llego
+    // volando: asi se sabe de cual habla la ficha.
+    haloAlLeer: 0.45,
+
     // El pequeño movimiento que pidio la catedra para que se los pueda
-    // identificar: se mecen despacio, cada uno a su ritmo. Mas rapido o mas
-    // amplio se lee como un aviso y compite con la persona.
-    balanceo: { grados: 6, amplitud: 0.05, periodoMs: 4400 },
+    // identificar: se mecen despacio, cada uno a su ritmo —`variacion` mas
+    // lento que el anterior—. Mas rapido o mas amplio se lee como un aviso y
+    // compite con la persona.
+    balanceo: { grados: 6, amplitud: 0.05, periodoMs: 4400, variacion: 0.17 },
 
     // Cuanto crece el objeto que se esta describiendo, en fraccion del radio,
     // y cuanto se calma su vaiven mientras se lee su ficha.
@@ -428,10 +453,20 @@ export const CONFIG = {
     // Generoso: los escondidos son mas chicos que los del carrusel.
     radioFactor: 1.6,
 
+    // Un escondido se puede leer recien cuando se ve a medias: abrir la ficha
+    // de algo que todavia no aparecio seria hablar de nada.
+    alfaParaLeer: 0.5,
+
     // El ancho de la franja de cada costado donde va la ficha, en fraccion del
     // ancho de la pantalla: el mismo borde que la cabeza en zonaDeLaPersona,
     // para que la ficha nunca le tape la cara a la persona.
     columna: 0.3,
+
+    // La letra de la ficha, en fraccion del tamaño de frase de la pantalla
+    // (unos 32 px en el espejo): `texto` la descripcion y `titulo` el nombre.
+    // `anchoEnLetras` topa el ancho del panel en tamaños de letra. Es
+    // legibilidad a dos metros: se calibra en el stand.
+    tipografia: { texto: 0.82, titulo: 1.25, anchoEnLetras: 15 },
   },
 
   // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio
