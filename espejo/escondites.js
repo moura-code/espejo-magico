@@ -122,8 +122,17 @@ export function aspectoDelObjeto(
  * seguir en verde.
  */
 export function objetosDelFondo({ objetos, fondo, rectangulo, pantalla, config }) {
+  // En una pantalla apaisada sobra lugar a los costados de la persona: los
+  // objetos crecen `agrandarEnApaisado`. Se agranda la escala y no el radio ya
+  // puesto, asi el margen contra el borde se mide con el tamaño que se dibuja.
+  const agrandar = pantalla.ancho > pantalla.alto ? config.fondo.agrandarEnApaisado : 1;
   const aPantalla = (lugar) =>
-    lugarEnPantalla(lugar, rectangulo, pantalla, config.fondo.margenDelLugar);
+    lugarEnPantalla(
+      { ...lugar, escala: lugar.escala * agrandar },
+      rectangulo,
+      pantalla,
+      config.fondo.margenDelLugar,
+    );
   const [lugar, ...escondites] = lugaresDelFondo(fondo, {
     lugar: config.fondo.lugarPorDefecto,
     escondites: config.fondo.esconditesPorDefecto,
@@ -141,17 +150,18 @@ export function objetosDelFondo({ objetos, fondo, rectangulo, pantalla, config }
 }
 
 /**
- * Contra que se dispone la ficha de un objeto del fondo, para disponerFicha y
- * dibujarFicha: el objeto ya crecido —asi la ficha no se corre mientras el
- * objeto se agranda al leerse—, la franja del costado en pixeles de esa
- * pantalla, los otros objetos del fondo, que no puede tapar, y la letra.
+ * Lo que necesita la ficha de un objeto del fondo, para disponerFicha y
+ * dibujarFicha: hasta donde puede bajar el cartel —donde empieza la cabeza en
+ * zonaDeLaPersona, en pixeles de esa `pantalla`— y la letra. Y el objeto ya
+ * crecido, que es lo que el cartel no puede tapar mientras se lee: lo usan las
+ * pruebas.
  */
-export function fichaDelObjeto(objeto, delFondo, anchoDePantalla, config) {
+export function fichaDelObjeto(objeto, pantalla, config) {
+  const [cabeza] = config.fondo.zonaDeLaPersona;
   return {
     circulo: { x: objeto.x, y: objeto.y, radio: objeto.radio * (1 + config.escondidos.resalte) },
     opciones: {
-      columna: anchoDePantalla * config.fichas.columna,
-      evitar: delFondo.filter((otro) => otro.id !== objeto.id),
+      hasta: pantalla.alto * cabeza.y0,
       tipografia: config.fichas.tipografia,
     },
   };

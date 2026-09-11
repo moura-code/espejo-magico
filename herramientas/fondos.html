@@ -214,11 +214,10 @@
       dibujarSilueta(ctx);
       if (conZona) dibujarZonas(ctx);
 
-      const { circulo, opciones } = fichaDelObjeto(deTurno, todos, ESPEJO.ancho, CONFIG);
+      const { opciones } = fichaDelObjeto(deTurno, ESPEJO, CONFIG);
       dibujarFicha(
         ctx,
         {
-          ...circulo,
           nombre: deTurno.definicion?.nombre,
           descripcion: deTurno.definicion?.descripcion,
           alfa: turno.alfa,

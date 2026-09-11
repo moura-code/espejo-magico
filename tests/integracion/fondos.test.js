@@ -10,7 +10,10 @@
 //   - en el espejo, lo elegido entra entero y el codigo no lo mueve;
 //   - ningun objeto cae en la zona de la persona ni baja hasta el nombre: la
 //     catedra pidio la periferia, para que no coincidan con su imagen;
-//   - los objetos de un mismo fondo no se pisan;
+//   - ninguno sube a la franja de arriba de la cabeza, que es del cartel de las
+//     fichas;
+//   - los blancos de la mano de dos objetos no se tocan: yendo a buscar uno no
+//     se abre el de al lado;
 //   - la mano de la persona llega a los cuatro, con margen;
 //   - en un monitor apaisado —desarrollo— todos aparecen en pantalla y siguen
 //     sin pisarse. Fue un bug de verdad: el objeto volaba a un punto arriba del
@@ -115,22 +118,41 @@ describe('los objetos de los fondos reales', () => {
     expect(bajos, 'estos objetos quedan encima del nombre').toEqual([]);
   });
 
-  // Con aire: dos objetos que se tocan se leen como uno solo, y el blanco de la
-  // ficha de uno se come al del otro.
-  it('los objetos de un mismo fondo no se pisan', async () => {
+  // La franja de arriba de la cabeza es del cartel de las fichas: un objeto ahi
+  // quedaria debajo del cartel justo mientras se lee.
+  it('ninguno sube a la franja del cartel de las fichas', async () => {
+    const [cabeza] = CONFIG.fondo.zonaDeLaPersona;
+    const altos = [];
+    for (const caso of await todosLosFondos()) {
+      puestosEn(caso, ESPEJO).forEach((puesto, i) => {
+        if (puesto.y - puesto.radio < cabeza.y0 * ESPEJO.alto) altos.push(`${caso.nombre} [${i}]`);
+      });
+    }
+    expect(altos, 'estos objetos quedan debajo del cartel').toEqual([]);
+  });
+
+  // SIN CHOCAR CON EL DE ARRIBA. La mano abre la ficha del objeto cuyo blanco
+  // —`fichas.radioFactor` radios— la contiene. Si los blancos de dos objetos se
+  // tocan, yendo a buscar uno se abre el otro: pasaba con los dos de cada
+  // costado, uno arriba del otro. Y dos objetos que se tocan se leen como uno.
+  it('los blancos de la mano de un mismo fondo no se tocan', async () => {
     const pisados = [];
     for (const caso of await todosLosFondos()) {
       const puestos = puestosEn(caso, ESPEJO);
       for (let i = 0; i < puestos.length; i++) {
         for (let j = i + 1; j < puestos.length; j++) {
-          if (sePisan(puestos[i], puestos[j], 1.2)) pisados.push(`${caso.nombre} [${i}] y [${j}]`);
+          if (sePisan(puestos[i], puestos[j], CONFIG.fichas.radioFactor)) {
+            pisados.push(`${caso.nombre} [${i}] y [${j}]`);
+          }
         }
       }
     }
     expect(pisados).toEqual([]);
   });
 
-  it('en un monitor apaisado, todos aparecen en pantalla y siguen sin pisarse', async () => {
+  // En apaisado los objetos crecen (`fondo.agrandarEnApaisado`), y el tope es
+  // el mismo que en el espejo: que yendo a buscar uno no se abra el de al lado.
+  it('en un monitor apaisado, todos aparecen en pantalla y sus blancos no se tocan', async () => {
     const problemas = [];
     for (const caso of await todosLosFondos()) {
       const puestos = puestosEn(caso, APAISADA);
@@ -139,7 +161,9 @@ describe('los objetos de los fondos reales', () => {
       });
       for (let i = 0; i < puestos.length; i++) {
         for (let j = i + 1; j < puestos.length; j++) {
-          if (sePisan(puestos[i], puestos[j])) problemas.push(`${caso.nombre} [${i}] y [${j}] se pisan`);
+          if (sePisan(puestos[i], puestos[j], CONFIG.fichas.radioFactor)) {
+            problemas.push(`${caso.nombre} [${i}] y [${j}] se tocan`);
+          }
         }
       }
     }
@@ -179,13 +203,5 @@ describe('los objetos de los fondos reales', () => {
       });
     }
     expect(lejos, 'a estos objetos la mano no llega con margen').toEqual([]);
-  });
-
-  // La ficha va en la franja del costado de su objeto. Si esa franja entrara en
-  // la zona de la cabeza, la ficha le taparia la cara a la persona.
-  it('la franja de las fichas no se mete en la zona de la cabeza', () => {
-    const [cabeza] = CONFIG.fondo.zonaDeLaPersona;
-    expect(CONFIG.fichas.columna).toBeLessThanOrEqual(cabeza.x0);
-    expect(1 - CONFIG.fichas.columna).toBeGreaterThanOrEqual(cabeza.x1);
   });
 });

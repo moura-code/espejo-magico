@@ -226,6 +226,32 @@ describe('objetosDelFondo', () => {
   const armar = (extra) =>
     objetosDelFondo({ objetos: [a, b, c, d], fondo, rectangulo, pantalla, config: CONFIG_FALSA, ...extra });
 
+  // En una pantalla apaisada —la notebook donde se desarrolla— la composicion
+  // vertical entra achicada y a los costados de la persona sobra lugar: los
+  // objetos crecen `agrandarEnApaisado`, sin moverse. En el espejo, nada.
+  it('en una pantalla apaisada los objetos crecen agrandarEnApaisado', () => {
+    const apaisada = { ancho: 1920, alto: 1080 };
+    // Como queda la foto de 1080x1920 cubriendo esa pantalla.
+    const cubre = { x: 0, y: (1080 - 3413.33) / 2, ancho: 1920, alto: 3413.33 };
+    const conFactor = (agrandarEnApaisado) =>
+      objetosDelFondo({
+        objetos: [a, b, c, d],
+        fondo,
+        rectangulo: cubre,
+        pantalla: apaisada,
+        config: { fondo: { ...CONFIG_FALSA.fondo, agrandarEnApaisado } },
+      });
+    const normales = conFactor(1);
+    conFactor(1.25).forEach((grande, i) => {
+      expect(grande.radio).toBeCloseTo(normales[i].radio * 1.25);
+      expect(grande.x).toBeCloseTo(normales[i].x);
+      expect(grande.y).toBeCloseTo(normales[i].y);
+    });
+
+    const enElEspejo = armar({ config: { fondo: { ...CONFIG_FALSA.fondo, agrandarEnApaisado: 1.25 } } });
+    expect(enElEspejo[0].radio).toBeCloseTo((0.16 * 1080) / 2);
+  });
+
   // El 0 es el que llega volando y los escondidos son los que siguen: cada uno
   // se identifica por su lugar en `objetos`, no por su PNG.
   it('pone cada objeto en su lugar de la pantalla, con su id y su definicion', () => {
@@ -266,23 +292,19 @@ describe('objetosDelFondo', () => {
 describe('fichaDelObjeto', () => {
   const CONFIG_FALSA = {
     escondidos: { resalte: 0.14 },
-    fichas: { columna: 0.3, tipografia: { texto: 0.8, titulo: 1.2, anchoEnLetras: 14 } },
+    fondo: { zonaDeLaPersona: [{ x0: 0.3, x1: 0.7, y0: 0.14, y1: 0.5 }] },
+    fichas: { tipografia: { texto: 1, titulo: 1.5 } },
   };
-  const delFondo = [
-    { id: 0, x: 200, y: 560, radio: 86 },
-    { id: 1, x: 880, y: 590, radio: 76 },
-    { id: 2, x: 190, y: 830, radio: 76 },
-  ];
 
-  // Contra el objeto ya crecido: asi la ficha no se corre mientras el objeto se
-  // agranda al leerse. Y sin tapar a ninguno de los otros del fondo.
-  it('se dispone contra el objeto ya crecido, en su franja, evitando a los demas', () => {
-    const { circulo, opciones } = fichaDelObjeto(delFondo[2], delFondo, 1080, CONFIG_FALSA);
+  // El cartel no baja de donde empieza la cabeza, en pixeles de esa pantalla.
+  // Y lo que no puede tapar es el objeto ya crecido: el que se lee se agranda.
+  it('el cartel no baja hasta la cara, y el objeto va ya crecido', () => {
+    const objeto = { id: 2, x: 190, y: 830, radio: 76 };
+    const { circulo, opciones } = fichaDelObjeto(objeto, { ancho: 1080, alto: 1920 }, CONFIG_FALSA);
     expect(circulo.x).toBe(190);
     expect(circulo.y).toBe(830);
     expect(circulo.radio).toBeCloseTo(76 * 1.14);
-    expect(opciones.evitar).toEqual([delFondo[0], delFondo[1]]);
-    expect(opciones.columna).toBeCloseTo(324);
+    expect(opciones.hasta).toBeCloseTo(0.14 * 1920);
     expect(opciones.tipografia).toBe(CONFIG_FALSA.fichas.tipografia);
   });
 });
