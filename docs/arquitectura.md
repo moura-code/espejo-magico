@@ -431,10 +431,13 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   pie, que es del nombre de la ingeniería. El nombre se mide: si no entra en un
   renglón va en dos, y si una palabra sola no entra se achica —"Lector de código
   de barras" se salía de la pantalla—. La letra (`fichas.tipografia`) es
-  legibilidad a dos metros y se calibra en el stand.
+  legibilidad a dos metros y se calibra en el stand; en un monitor apaisado se
+  achica con la composición (`disposicion.unidad`), como los objetos.
   `tests/integracion/fichas.test.js` dispone todas las fichas del catálogo real,
   con una medida proporcional a la letra, y exige que entren enteras, en su
-  franja, sin tapar a su objeto ni a los otros.
+  franja, sin tapar a su objeto ni a los otros. En apaisado, con el pie más
+  alto, alguna ficha de un objeto de abajo todavía tapa al de arriba: se acepta
+  porque el espejo del evento es vertical.
 - **Al alcance de la mano.** La periferia tira hacia arriba y hacia los costados,
   y el brazo de alguien sentado lejos no llega a todos lados: el carrusel se
   calibró para eso (`tablero.radioFactor`, en anchos de hombros).

@@ -665,7 +665,8 @@ const acotar = (valor, minimo, maximo) => Math.min(maximo, Math.max(minimo, valo
  * `tipografia` es el tamaño de la letra en fraccion de `texto.tamanoFrase`
  * —`texto` la descripcion, `titulo` el nombre— y `anchoEnLetras` el ancho
  * maximo del panel, en tamaños de letra. Se calibra en el stand, leyendo a dos
- * metros: vive en CONFIG.fichas.tipografia.
+ * metros: vive en CONFIG.fichas.tipografia. En una pantalla mas ancha que el
+ * espejo, la letra se achica como la composicion (`unidad`).
  */
 export function disponerFicha(
   { x, y, radio },
@@ -680,9 +681,14 @@ export function disponerFicha(
 
   const { texto: letraDelTexto = 0.82, titulo: letraDelTitulo = 1.25, anchoEnLetras = 15 } =
     tipografia;
-  const { ancho, alto, pie, texto } = disposicion;
-  const tamanoTexto = Math.max(10, Math.round(texto.tamanoFrase * letraDelTexto));
-  const tamanoTituloPedido = Math.max(12, Math.round(texto.tamanoFrase * letraDelTitulo));
+  const { ancho, alto, pie, texto, unidad } = disposicion;
+  // La letra acompaña a la composicion, como los objetos (lugarEnPantalla): en
+  // el espejo es la de la pantalla, y en un monitor apaisado, donde la
+  // composicion vertical entra a la altura de la pantalla, se achica con ella.
+  // Con la letra de la pantalla, la ficha de cada objeto tapaba a su vecino.
+  const escala = unidad / Math.min(ancho, alto);
+  const tamanoTexto = Math.max(10, Math.round(texto.tamanoFrase * escala * letraDelTexto));
+  const tamanoTituloPedido = Math.max(12, Math.round(texto.tamanoFrase * escala * letraDelTitulo));
   const relleno = Math.round(tamanoTexto * 0.75);
   const margen = Math.round(tamanoTexto * 0.6);
   const separacion = Math.round(tamanoTexto * 0.5);

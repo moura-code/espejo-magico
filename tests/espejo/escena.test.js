@@ -1136,6 +1136,29 @@ describe('disponerFicha', () => {
     expect(ficha.titulo.fuente).toContain(`${disposicion.texto.tamanoFrase}px`);
   });
 
+  // En un monitor apaisado la composicion vertical entra mas chica, a la altura
+  // de la pantalla: los objetos y la distancia entre ellos se achican con ella
+  // (lugarEnPantalla). Con la letra de la pantalla, la ficha de cada objeto
+  // tapaba a su vecino. La letra se achica en la misma proporcion.
+  it('en un monitor apaisado la letra se achica con la composicion', () => {
+    const tipografia = { texto: 1, titulo: 1.25, anchoEnLetras: 15 };
+    const px = (fuente) => Number(fuente.match(/([\d.]+)px/)[1]);
+    const enElEspejo = disponerFicha({ x: 170, y: 330, radio: 59 }, textos, disposicion, medir, {
+      columna: COLUMNA,
+      tipografia,
+    });
+    const apaisada = calcularDisposicion(1920, 1080);
+    const enApaisado = disponerFicha({ x: 300, y: 190, radio: 33 }, textos, apaisada, medir, {
+      columna: 1920 * 0.3,
+      tipografia,
+    });
+
+    const proporcion = apaisada.unidad / disposicion.unidad;
+    expect(proporcion).toBeLessThan(1);
+    expect(px(enApaisado.fuenteTexto)).toBe(Math.round(px(enElEspejo.fuenteTexto) * proporcion));
+    expect(px(enApaisado.titulo.fuente)).toBe(Math.round(px(enElEspejo.titulo.fuente) * proporcion));
+  });
+
   it('sin descripcion va solo el nombre, y sin nada no hay ficha', () => {
     const soloNombre = disponer({ x: 170, y: 330, radio: 59 }, { nombre: 'Casco' });
     expect(soloNombre.titulo.lineas.map((linea) => linea.texto)).toEqual(['Casco']);

@@ -80,7 +80,7 @@ Es la parte que más fácil se rompe al calibrar. `tests/integracion/eleccion.te
 
 Al completarse el sostenido, el objeto **vuela de su ranura a su lugar en el fondo** (`tiempos.vuelo`, 1 s, con easing e interpolando el tamaño). Cada fondo declara `lugar: {x, y, escala}` **normalizado a la imagen**, no a la pantalla: el fondo se dibuja cubriendo y recortado, y un punto normalizado a la imagen cae siempre en el mismo sitio de la escena en cualquier resolución. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`. El origen se captura en el evento `mira` (la ranura en ese cuadro), porque el carrusel sigue girando mientras el objeto vuela; sin ranura a la vista —la red de la fila, una carrera forzada por teclado— el objeto crece en su lugar desde cero. **Mientras vuela va por delante de todo; al aterrizar pasa detrás de la persona recortada**, con un halo en el color de la paleta debajo (`fondo.haloDelLugar`) y una flotación suave (`fondo.flotar`), que entran de a poco al aterrizar (`fondo.msDeAterrizaje`): llegar volando y encontrarlos enteros era un salto en el cuadro más mirado. Integrado a la escena: si la persona se inclina sobre ese punto lo tapa, que es lo correcto. `calcularTransicionEscena` lleva la capa `vuelo` junto a `fondo` y `contenido`.
 
-**Los lugares se miden contra lo que se ve de la foto, no contra la foto entera.** Las fotos se preparan en 1080×1920 para el espejo vertical, y ahí son lo mismo. En un monitor apaisado (desarrollo) la foto entra al ancho y sólo se ve su franja del medio: medido contra la foto entera, el rincón de arriba caía por encima del borde (el objeto "desaparecía" en las doce ingenierías), y recortarlo contra el borde de a uno amontonaba ahí a todos los objetos de ese costado, que con cuatro por fondo se pisaban. `lugarEnPantalla` recibe la pantalla, ubica el lugar sobre la parte visible de la foto y le da el tamaño de la composición vertical puesta a la altura de la pantalla: la composición entera se conserva, el objeto guarda su proporción con la persona (que en apaisado también se ve más chica) y nada se pisa que no se pisara en el espejo. `fondo.margenDelLugar` queda como seguro contra el borde. `tests/integracion/fondos.test.js` lo fija con el catálogo real en las dos orientaciones.
+**Los lugares se miden contra lo que se ve de la foto, no contra la foto entera.** Las fotos se preparan en 1080×1920 para el espejo vertical, y ahí son lo mismo. En un monitor apaisado (desarrollo) la foto entra al ancho y sólo se ve su franja del medio: medido contra la foto entera, el rincón de arriba caía por encima del borde (el objeto "desaparecía" en las doce ingenierías), y recortarlo contra el borde de a uno amontonaba ahí a todos los objetos de ese costado, que con cuatro por fondo se pisaban. `lugarEnPantalla` recibe la pantalla, ubica el lugar sobre la parte visible de la foto y le da el tamaño de la composición vertical puesta a la altura de la pantalla: la composición entera se conserva, el objeto guarda su proporción con la persona (que en apaisado también se ve más chica) y nada se pisa que no se pisara en el espejo. `fondo.margenDelLugar` queda como seguro contra el borde. `tests/integracion/fondos.test.js` lo fija con el catálogo real en las dos orientaciones. Las fichas acompañan: en apaisado su letra se achica con la composición (`unidad` de `calcularDisposicion`), aunque con el pie más alto alguna ficha de un objeto de abajo todavía tapa al de arriba. Se acepta porque el espejo del evento es vertical, y ahí `tests/integracion/fichas.test.js` exige que no tape a nadie.
 
 ### Los objetos escondidos y sus fichas (`escondites.js` + `fichas.js`)
 
@@ -129,10 +129,14 @@ el que las cuatro tablets escriben los nombres. El `color` de cada carrera en
 se miraron están andando en `herramientas/colores.html`.
 
 **Y nada aparece ni desaparece de golpe**, que fue el otro pedido: la consigna de
-la elección sale de abajo del humo, la invitación del reposo entra y sale con la
-capa `invitacion`, la señal de cada mano se prende y se apaga con
-`crearDesvanecedorDeManos` (el filtro suelta una mano perdida de golpe), y el
-anillo y el disco del elegido se apagan con el carrusel.
+la elección sale de abajo del humo, la invitación del reposo entra y sale
+siguiendo al estado desde donde esté, como las nubes (`crearDesvanecedor`: con
+un alfa por estado arrancaba entera en el enganche), la señal de cada mano se
+prende y se apaga con `crearDesvanecedorDeManos` (el filtro suelta una mano
+perdida de golpe), y el anillo y el disco del elegido se apagan con el carrusel.
+Tampoco salta nada: al aterrizar, la flotación y el halo del elegido entran de a
+poco, y si la sesión se corta en pleno vuelo, el objeto termina de volar
+mientras se apaga.
 
 ### El fondo detrás de la persona
 

@@ -37,12 +37,16 @@ const tocaCirculo = (caja, { x, y, radio }) => {
   return Math.hypot(x - cercaX, y - cercaY) < radio;
 };
 
-/** Cada ficha de cada objeto de cada fondo del catalogo, dispuesta como en el espejo. */
-async function fichasDelCatalogo() {
+/**
+ * Cada ficha de cada objeto de cada fondo del catalogo, dispuesta como en esa
+ * pantalla: por defecto, la del espejo.
+ */
+async function fichasDelCatalogo(pantalla = ESPEJO) {
   const { carreras } = JSON.parse(
     await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'),
   );
-  const rectangulo = calcularRectanguloVideo(1080, 1920, ESPEJO.ancho, ESPEJO.alto);
+  const rectangulo = calcularRectanguloVideo(1080, 1920, pantalla.ancho, pantalla.alto);
+  const enPantalla = calcularDisposicion(pantalla.ancho, pantalla.alto);
   const porDefecto = {
     lugar: CONFIG.fondo.lugarPorDefecto,
     escondites: CONFIG.fondo.esconditesPorDefecto,
@@ -57,7 +61,7 @@ async function fichasDelCatalogo() {
         ...esconder(escondidosDeCarrera(carrera), escondites),
       ].map(({ definicion, lugar: donde }) => ({
         definicion,
-        ...lugarEnPantalla(donde, rectangulo, ESPEJO, CONFIG.fondo.margenDelLugar),
+        ...lugarEnPantalla(donde, rectangulo, pantalla, CONFIG.fondo.margenDelLugar),
       }));
 
       objetos.forEach((objeto, i) => {
@@ -68,8 +72,8 @@ async function fichasDelCatalogo() {
           nombre: `${fondo.img} · ${objeto.definicion.nombre}`,
           objeto: leido,
           otros,
-          ficha: disponerFicha(leido, objeto.definicion, disposicion, medir, {
-            columna: COLUMNA,
+          ficha: disponerFicha(leido, objeto.definicion, enPantalla, medir, {
+            columna: pantalla.ancho * CONFIG.fichas.columna,
             evitar: otros,
             tipografia: CONFIG.fichas.tipografia,
           }),
@@ -129,5 +133,28 @@ describe('las fichas del catalogo real', () => {
       }
     }
     expect(tapan).toEqual([]);
+  });
+
+  // En un monitor apaisado —donde se desarrolla— la composicion entra mas chica
+  // y el pie es mas alto. La letra se achica con la composicion, pero alguna
+  // ficha de un objeto de abajo todavia tapa al de arriba, y se acepta porque el
+  // espejo del evento es vertical. Lo que no se acepta ni ahi: salirse de la
+  // pantalla, bajar al pie, salir de la franja o tapar su propio objeto.
+  it('en un monitor apaisado entran enteras, en su franja y sin tapar su objeto', async () => {
+    const pantalla = { ancho: 1920, alto: 1080 };
+    const piso = pantalla.alto - calcularDisposicion(pantalla.ancho, pantalla.alto).pie.alto;
+    const columna = pantalla.ancho * CONFIG.fichas.columna;
+    const problemas = [];
+    for (const { nombre, objeto, ficha } of await fichasDelCatalogo(pantalla)) {
+      const { caja } = ficha;
+      if (caja.x < 0 || caja.x + caja.ancho > pantalla.ancho || caja.y < 0 || caja.y + caja.alto > piso) {
+        problemas.push(`${nombre} afuera`);
+      }
+      if (objeto.x < pantalla.ancho / 2 ? caja.x + caja.ancho > columna : caja.x < pantalla.ancho - columna) {
+        problemas.push(`${nombre} fuera de la franja`);
+      }
+      if (tocaCirculo(caja, objeto)) problemas.push(`${nombre} tapa su objeto`);
+    }
+    expect(problemas).toEqual([]);
   });
 });
