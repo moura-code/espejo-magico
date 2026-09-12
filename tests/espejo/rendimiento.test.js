@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { crearGobernadorDeRendimiento } from '../../espejo/rendimiento.js';
+import * as moduloDeRendimiento from '../../espejo/rendimiento.js';
 
 const perfiles = [
   { nombre: 'completo', manos: 34, pose: 20 },
@@ -69,5 +70,29 @@ describe('crearGobernadorDeRendimiento', () => {
     }
 
     expect(gobernador.perfil().nombre).toBe('completo');
+  });
+});
+
+describe('fpsDeManos', () => {
+  it('usa la frecuencia completa durante un sostenido aunque el perfil sea seguro', () => {
+    expect(
+      moduloDeRendimiento.fpsDeManos?.({
+        perfil: perfiles[2],
+        perfilCompleto: perfiles[0],
+        protegiendoEleccion: true,
+        conFondo: false,
+      }),
+    ).toBe(34);
+  });
+
+  it('respeta el perfil adaptativo fuera del sostenido', () => {
+    expect(
+      moduloDeRendimiento.fpsDeManos?.({
+        perfil: perfiles[2],
+        perfilCompleto: perfiles[0],
+        protegiendoEleccion: false,
+        conFondo: false,
+      }),
+    ).toBe(16);
   });
 });

@@ -1,5 +1,10 @@
 // Decide cuanto trabajo de vision hace el espejo sin mezclar esa politica con
 // el bucle de dibujo. Asi se prueba con relojes y fps concretos, sin camara.
+export function fpsDeManos({ perfil, perfilCompleto, protegiendoEleccion, conFondo }) {
+  const elegido = protegiendoEleccion ? perfilCompleto : perfil;
+  return conFondo ? elegido.manosConFondo : elegido.manos;
+}
+
 export function crearGobernadorDeRendimiento({
   perfiles,
   fpsParaBajar,

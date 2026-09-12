@@ -37,7 +37,7 @@ import {
   crearBancoDeVideos,
   iniciarCargaOpcional,
 } from './videos.js';
-import { crearGobernadorDeRendimiento } from './rendimiento.js';
+import { crearGobernadorDeRendimiento, fpsDeManos } from './rendimiento.js';
 import {
   crearNiebla,
   objetivoDeNiebla,
@@ -531,7 +531,14 @@ function cuadro(ahora) {
   const poseSirve = detectorDePose && video && modo !== 'demo';
   const manosSirven =
     detectorDeManos && video && modo !== 'demo' && estadoAnterior === ESTADOS.EXPLORACION;
-  const intervaloDeManos = 1000 / (mostrada ? perfilDeRendimiento.manosConFondo : perfilDeRendimiento.manos);
+  const intervaloDeManos =
+    1000 /
+    fpsDeManos({
+      perfil: perfilDeRendimiento,
+      perfilCompleto: CONFIG.rendimiento.perfiles[0],
+      protegiendoEleccion: progresoDeEleccion > 0,
+      conFondo: Boolean(mostrada),
+    });
 
   // La mascara ES la imagen mientras hay fondo: a 12 cuadros por segundo el
   // borde de la silueta va atras del cuerpo y se ve el fondo pegado al hombro.
