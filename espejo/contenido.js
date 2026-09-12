@@ -193,6 +193,13 @@ export async function cargarContenido({
   }
 
   const porId = new Map(datos.carreras.map((carrera) => [carrera.id, carrera]));
+  const imagenesDe = (carrera) =>
+    carrera
+      ? [
+          ...carrera.objetos.map((objeto) => objeto.img),
+          ...(fondoActivo(carrera) ? [fondoActivo(carrera).img] : []),
+        ]
+      : [];
 
   return {
     carreras: datos.carreras,
@@ -205,14 +212,15 @@ export async function cargarContenido({
 
     obtener: (id) => porId.get(id) ?? null,
 
+    // Para mostrar el carrusel sólo hace falta el primer objeto de cada
+    // carrera. Fondos y objetos escondidos se piden cuando alguien elige.
+    imagenesIniciales: () => datos.carreras.map((carrera) => objetoDeCarrera(carrera)?.img).filter(Boolean),
+    imagenesDeCarrera: (id) => imagenesDe(porId.get(id)),
+
     // Todos los objetos —el del carrusel y los que se esconden en el fondo— y
     // solo el fondo activo: los otros candidatos se miran en la herramienta,
     // no en el espejo.
-    todasLasImagenes: () =>
-      datos.carreras.flatMap((carrera) => [
-        ...carrera.objetos.map((objeto) => objeto.img),
-        ...(fondoActivo(carrera) ? [fondoActivo(carrera).img] : []),
-      ]),
+    todasLasImagenes: () => datos.carreras.flatMap(imagenesDe),
 
     // Los fondos que se mueven, y solo los activos: un video que no se va a ver
     // no se descarga. Puede estar vacio —hoy casi todas las carreras son foto

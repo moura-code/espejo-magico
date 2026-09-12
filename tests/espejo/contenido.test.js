@@ -327,6 +327,48 @@ describe('cargarContenido', () => {
     ]);
   });
 
+  it('separa las imagenes iniciales de las que se necesitan despues de elegir', async () => {
+    const contenido = await cargarContenido({
+      traer: traerCon({
+        carreras: [
+          {
+            ...carreraValida(),
+            objetos: [
+              { img: 'assets/civil/grua.png', escala: 0.2 },
+              { img: 'assets/civil/casco.png', escala: 0.2 },
+            ],
+            fondos: [{ img: 'assets/fondos/civil.png' }],
+          },
+          {
+            ...carreraValida(),
+            id: 'naval',
+            maite: 'naval',
+            objetos: [{ img: 'assets/naval/barco.png', escala: 0.2 }],
+            fondos: [{ img: 'assets/fondos/naval.png' }],
+          },
+        ],
+      }),
+    });
+
+    expect(contenido.imagenesIniciales?.()).toEqual([
+      'assets/civil/grua.png',
+      'assets/naval/barco.png',
+    ]);
+    expect(contenido.imagenesDeCarrera?.('civil')).toEqual([
+      'assets/civil/grua.png',
+      'assets/civil/casco.png',
+      'assets/fondos/civil.png',
+    ]);
+  });
+
+  it('no pide imagenes tardias para una carrera inexistente', async () => {
+    const contenido = await cargarContenido({
+      traer: traerCon({ carreras: [carreraValida()] }),
+    });
+
+    expect(contenido.imagenesDeCarrera?.('inexistente')).toEqual([]);
+  });
+
   // Los videos van aparte de las imagenes porque se cargan aparte: despues de
   // arrancar, de a uno y sin que el espejo los espere.
   it('junta los videos de los fondos activos, y solo esos', async () => {

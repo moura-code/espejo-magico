@@ -140,13 +140,19 @@ aviso('cargando…');
 // ---------- contenido ----------
 const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
 const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
-const informe = await banco.precargar(contenido.todasLasImagenes());
-if (informe.faltantes.length > 0) {
+
+function informarImagenesFaltantes(informe, contexto) {
+  if (informe.faltantes.length === 0) return;
   console.warn(
-    `Faltan ${informe.faltantes.length} de ${informe.total} imagenes. Se dibujan sus figuras vectoriales:`,
+    `Faltan ${informe.faltantes.length} de ${informe.total} imagenes ${contexto}. Se dibujan sus figuras vectoriales:`,
     informe.faltantes,
   );
 }
+
+// El primer cuadro sólo espera los objetos visibles del carrusel. Los fondos y
+// objetos escondidos de una carrera se piden cuando alguien la elige.
+const informeInicial = await banco.precargar(contenido.imagenesIniciales());
+informarImagenesFaltantes(informeInicial, 'del carrusel');
 
 // Los fondos que se mueven. NO se esperan aca: se cargan al final, con el bucle
 // ya andando, y hasta que llegan se ve la foto del mismo fondo. Un video pesa
@@ -373,6 +379,12 @@ function atender(salida, ahora) {
     // el mismo objeto no manda dos veces, asi las tablets no parpadean.
     if (evento.tipo === 'mira') {
       const carrera = contenido.obtener(evento.carrera);
+      iniciarCargaOpcional({
+        cargar: () => banco.precargar(contenido.imagenesDeCarrera(evento.carrera)),
+        alResolver: (informe) => informarImagenesFaltantes(informe, `de ${evento.carrera}`),
+        alFallar: (error) =>
+          console.warn(`No se pudieron cargar las imagenes de ${evento.carrera}:`, error),
+      });
       mostrada = carrera ?? null;
       objetoMostrado =
         ofrecidos.find((ofrecido) => ofrecido.id === evento.carrera)?.definicion ??
