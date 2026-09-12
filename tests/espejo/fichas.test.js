@@ -6,6 +6,7 @@ const AJUSTE = {
   msDeGracia: 900,
   msDeEntrada: 450,
   msDeSalida: 700,
+  msDelante: 150,
   radioFactor: 1.5,
 };
 
@@ -30,6 +31,7 @@ function correr(fichas, desde, hasta, manoEn) {
 }
 
 const alfa = (salida, id) => salida.alfas[id] ?? 0;
+const adelante = (salida, id) => salida.delante[id] ?? 0;
 
 describe('crearFichas', () => {
   it('sin manos no se abre ninguna', () => {
@@ -37,6 +39,7 @@ describe('crearFichas', () => {
     const salida = correr(fichas, 0, 2000, nada).at(-1);
     expect(salida.activa).toBeNull();
     expect(salida.alfas).toEqual({});
+    expect(salida.delante).toEqual({});
   });
 
   // Pasar la mano camino a otro lado no puede ir abriendo fichas en cadena: la
@@ -60,6 +63,41 @@ describe('crearFichas', () => {
     expect(alfa(entera, 'a')).toBe(1);
   });
 
+  // LA MANO NO ATRAVIESA EL OBJETO. Detras de la persona, la mano que va a
+  // buscar uno lo tapa: tiene que pasar adelante enseguida, mucho antes de que
+  // se abra su ficha.
+  it('el objeto con la mano encima pasa adelante enseguida, sin esperar la ficha', () => {
+    const fichas = crearFichas(AJUSTE);
+    const recien = correr(fichas, 0, 200, () => sobre(A)).at(-1);
+    expect(recien.activa).toBeNull();
+    expect(adelante(recien, 'a')).toBe(1);
+    expect(adelante(recien, 'b')).toBe(0);
+  });
+
+  // Y no vuelve atras con cada deteccion perdida: se sostiene durante la
+  // gracia, como la ficha, y recien despues vuelve de a poco.
+  it('al sacar la mano sigue adelante durante la gracia y vuelve atras de a poco', () => {
+    const fichas = crearFichas(AJUSTE);
+    correr(fichas, 0, 1000, () => sobre(A));
+    expect(adelante(correr(fichas, 1000, 1850, nada).at(-1), 'a')).toBe(1);
+
+    const volviendo = adelante(correr(fichas, 1850, 2200, nada).at(-1), 'a');
+    expect(volviendo).toBeGreaterThan(0);
+    expect(volviendo).toBeLessThan(1);
+
+    expect(correr(fichas, 2200, 4000, nada).at(-1).delante).toEqual({});
+  });
+
+  // Ir a otro objeto lo pasa adelante enseguida, aunque la ficha del anterior
+  // siga puesta hasta que la nueva se gane su lugar.
+  it('ir a otro objeto lo pasa adelante enseguida', () => {
+    const fichas = crearFichas(AJUSTE);
+    correr(fichas, 0, 1000, () => sobre(A));
+    const yendo = correr(fichas, 1000, 1200, () => sobre(B)).at(-1);
+    expect(adelante(yendo, 'b')).toBe(1);
+    expect(yendo.activa).toBe('a');
+  });
+
   // La deteccion de manos se pierde varios cuadros por segundo. Si cada hueco
   // cerrara la ficha, parpadearia justo mientras la persona la lee.
   it('una deteccion que parpadea no la cierra ni la atenua', () => {
@@ -69,6 +107,7 @@ describe('crearFichas', () => {
       Math.floor(t / PASO) % 4 === 3 ? [] : sobre(A),
     );
     expect(Math.min(...salidas.map((salida) => alfa(salida, 'a')))).toBe(1);
+    expect(Math.min(...salidas.map((salida) => adelante(salida, 'a')))).toBe(1);
   });
 
   // Y tampoco le impide abrirse: si cada hueco reiniciara la espera, con la
@@ -128,7 +167,7 @@ describe('crearFichas', () => {
 
   // Nunca hay un salto de un cuadro al otro. Es la regla de "evitar cosas que
   // parpadean", y la que se rompe primero si alguien cambia un fundido por un
-  // corte para simplificar.
+  // corte para simplificar. Tampoco al pasar adelante: rapido, pero fundido.
   it('ningun alfa salta de un cuadro al siguiente', () => {
     const fichas = crearFichas(AJUSTE);
     const recorrido = (t) => {
@@ -140,9 +179,13 @@ describe('crearFichas', () => {
     };
     const salidas = correr(fichas, 0, 7000, recorrido);
     const maximo = PASO / Math.min(AJUSTE.msDeEntrada, AJUSTE.msDeSalida) + 1e-9;
+    const maximoDelante = PASO / Math.min(AJUSTE.msDelante, AJUSTE.msDeSalida) + 1e-9;
     for (let i = 1; i < salidas.length; i++) {
       for (const id of ['a', 'b']) {
         expect(Math.abs(alfa(salidas[i], id) - alfa(salidas[i - 1], id))).toBeLessThanOrEqual(maximo);
+        expect(Math.abs(adelante(salidas[i], id) - adelante(salidas[i - 1], id))).toBeLessThanOrEqual(
+          maximoDelante,
+        );
       }
     }
   });
@@ -188,11 +231,11 @@ describe('crearFichas', () => {
     correr(fichas, 0, 1000, () => sobre(A));
     fichas.reiniciar();
     const salida = fichas.actualizar({ manos: [], objetivos: OBJETOS, ahora: 1000 });
-    expect(salida).toEqual({ activa: null, alfas: {}, primera: null });
+    expect(salida).toEqual({ activa: null, alfas: {}, delante: {}, primera: null });
   });
 
   // Un objeto que deja de estar —el fondo se fue en el cierre— no puede dejar su
-  // ficha colgada en pantalla.
+  // ficha colgada en pantalla, ni quedarse adelante.
   it('la ficha de un objeto que ya no esta se apaga', () => {
     const fichas = crearFichas(AJUSTE);
     correr(fichas, 0, 1000, () => sobre(A));
@@ -202,5 +245,6 @@ describe('crearFichas', () => {
     }
     expect(salida.activa).toBeNull();
     expect(salida.alfas).toEqual({});
+    expect(salida.delante).toEqual({});
   });
 });

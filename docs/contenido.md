@@ -21,11 +21,11 @@ El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
   "fondos": [
     {
       "img": "assets/fondos/computacion-2.jpg",
-      "lugar": { "x": 0.79, "y": 0.358, "escala": 0.16 },
+      "lugar": { "x": 0.834, "y": 0.22, "escala": 0.24 },
       "escondites": [
-        { "x": 0.13, "y": 0.317, "escala": 0.14 },
-        { "x": 0.885, "y": 0.475, "escala": 0.14 },
-        { "x": 0.22, "y": 0.435, "escala": 0.14 }
+        { "x": 0.166, "y": 0.22, "escala": 0.24 },
+        { "x": 0.834, "y": 0.43, "escala": 0.24 },
+        { "x": 0.166, "y": 0.43, "escala": 0.24 }
       ]
     },
     { "img": "assets/fondos/computacion.png" }
@@ -169,44 +169,47 @@ abajo— más el pie, donde va el nombre (el 30 % de abajo).
 también que los cuatro objetos de un fondo no se pisen. En
 `herramientas/fondos.html` hay una casilla para ver la zona dibujada encima.
 
-**Al alcance de la mano, y sin que una ficha tape a otro objeto.** La periferia
-no puede quedar tan arriba que haya que pararse para llegar:
-`tests/integracion/fondos.test.js` supone la misma persona que la zona —hombros
-donde empieza el cuerpo, 380 px de ancho: alguien sentado a unos 2 m o más— y
-el brazo del carrusel, y exige que la mano llegue a los cuatro objetos con un
-10 % de brazo de sobra. Y `tests/integracion/fichas.test.js` dispone la ficha de
-cada objeto de cada fondo como lo hace el espejo y exige que entre entera, en su
-franja, sin tapar a su objeto ni a los otros. Es un modelo, no una medición: en
-el stand se prueba con gente de verdad, y si la persona queda más abajo en el
-cuadro, se bajan juntos los lugares y la zona.
+**Al alcance de la mano, y sin chocar.** La periferia no puede quedar tan
+arriba que haya que pararse para llegar: `tests/integracion/fondos.test.js`
+supone la misma persona que la zona —hombros donde empieza el cuerpo, 380 px de
+ancho: alguien sentado a unos 2 m o más— y el brazo del carrusel, y exige que la
+mano llegue a los cuatro objetos con un 10 % de brazo de sobra. También exige
+que **los blancos de la mano de dos objetos no se toquen** (`fichas.radioFactor`
+radios de cada uno): si se tocan, yendo a buscar el de abajo se abre el de
+arriba. Y que ninguno suba a la franja de arriba de la cabeza, que es del
+cartel de las fichas. Es un modelo, no una medición: en el stand se prueba con
+gente de verdad, y si la persona queda más abajo en el cuadro, se bajan juntos
+los lugares y la zona.
 
-El punto de partida se mide sobre la foto, no se estima: de cada imagen se saca
-un mapa de brillo de 108×192 celdas y se buscan **cuatro rincones, dos por
-costado** —uno alto, al lado de la cabeza, con su ficha por encima, y uno a la
-altura de la cara, con su ficha por debajo—, fuera de la zona de la persona, al
-alcance de la mano, con margen al borde de la pantalla y tan separados que la
-ficha de uno no tapa al otro. En cada rincón gana la ventana más oscura y más
-pareja (el objeto más su halo) cerca de una composición de referencia, para que
-no terminen todos pegados a los bordes. El objeto del carrusel va al rincón alto más oscuro
-—el "rincón oscuro arriba" de los criterios— con `escala` 0.16, y los otros tres
-a los tres rincones que quedan con 0.14. Después se afina mirando, que es para
-lo que está `herramientas/fondos.html`.
+**Todos los fondos usan la misma grilla**: dos columnas pegadas a la zona de la
+cabeza (`x` 0.166 y 0.834) y dos filas —`y` 0.22, justo debajo del cartel de
+las fichas, y 0.43, a la altura de los hombros—, con `escala` 0.24 para los
+cuatro. Es el equilibrio entre tamaño y aire: a los costados está la cabeza,
+arriba el cartel y abajo los hombros, así que un objeto más grande sólo entra
+acercándose a su vecino. A 0.24 los dos de cada costado quedan bien separados y
+se nota cuál tiene la mano encima. Lo que cambia de un fondo a otro es qué objeto va en cada rincón: el del
+carrusel en el rincón alto más oscuro de la foto —el "rincón oscuro arriba" de
+los criterios— y los otros tres en los que quedan. Si una foto pide otra cosa,
+se mueve mirando en `herramientas/fondos.html`, y las pruebas dicen si todavía
+entra.
 
 Si el espejo corre en una pantalla de otra proporción —un monitor apaisado
 mientras se desarrolla—, la foto se ve recortada a su franja del medio. Ahí el
 espejo mide los lugares contra lo que se ve de la foto: la composición entera se
 conserva, a la escala de la persona, y nada se pisa que no se pisara en el
-espejo vertical.
+espejo vertical. Los objetos, eso sí, crecen un poco más
+(`fondo.agrandarEnApaisado`): a la escala de la composición se veían chiquitos,
+con lugar de sobra a los costados de la persona.
 
 ```json
 "fondos": [
   {
     "img": "assets/fondos/quimica-laboratorio.jpg",
-    "lugar": { "x": 0.18, "y": 0.295, "escala": 0.16 },
+    "lugar": { "x": 0.166, "y": 0.22, "escala": 0.24 },
     "escondites": [
-      { "x": 0.905, "y": 0.312, "escala": 0.14 },
-      { "x": 0.215, "y": 0.42, "escala": 0.14 },
-      { "x": 0.82, "y": 0.42, "escala": 0.14 }
+      { "x": 0.834, "y": 0.22, "escala": 0.24 },
+      { "x": 0.166, "y": 0.43, "escala": 0.24 },
+      { "x": 0.834, "y": 0.43, "escala": 0.24 }
     ]
   },
   { "img": "assets/fondos/quimica.png" }
@@ -263,11 +266,11 @@ la `img`**:
   {
     "img": "assets/fondos/naval-canal.jpg",
     "video": "assets/fondos/naval-canal.mp4",
-    "lugar": { "x": 0.16, "y": 0.321, "escala": 0.16 },
+    "lugar": { "x": 0.166, "y": 0.22, "escala": 0.24 },
     "escondites": [
-      { "x": 0.795, "y": 0.349, "escala": 0.14 },
-      { "x": 0.12, "y": 0.445, "escala": 0.14 },
-      { "x": 0.905, "y": 0.45, "escala": 0.14 }
+      { "x": 0.834, "y": 0.22, "escala": 0.24 },
+      { "x": 0.166, "y": 0.43, "escala": 0.24 },
+      { "x": 0.834, "y": 0.43, "escala": 0.24 }
     ]
   }
 ]

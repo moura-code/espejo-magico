@@ -28,7 +28,7 @@ import {
 
 // La letra de las fichas en estas pruebas. En el espejo sale de
 // CONFIG.fichas.tipografia, y disponerFicha no la inventa si falta.
-const TIPOGRAFIA_DE_FICHA = { texto: 0.82, titulo: 1.25, anchoEnLetras: 15 };
+const TIPOGRAFIA_DE_FICHA = { texto: 1, titulo: 1.5 };
 
 // Lienzo falso: registra las llamadas para poder afirmar sobre lo dibujado.
 function crearCtxFalso() {
@@ -1017,7 +1017,7 @@ describe('las dos tipografias', () => {
       { x: 170, y: 330, radio: 59, alfa: 1, nombre: 'Rodamiento', descripcion: 'Gira sin rozar.' },
       disposicion,
       {
-        columna: 324,
+        hasta: 1920 * 0.14,
         colores: { titulo: '#f0dca0', texto: '#cdbfa0', panel: '#05050a', borde: '#8a7038' },
         tipografia: TIPOGRAFIA_DE_FICHA,
       },
@@ -1034,7 +1034,7 @@ describe('las dos tipografias', () => {
       { x: 170, y: 330, radio: 59, alfa: 1, nombre: 'Rodamiento', descripcion: 'Gira sin rozar.' },
       disposicion,
       {
-        columna: 324,
+        hasta: 1920 * 0.14,
         colores: { titulo: '#f0dca0', texto: '#cdbfa0', panel: '#05050a', borde: '#8a7038' },
         tipografia: TIPOGRAFIA_DE_FICHA,
       },
@@ -1079,66 +1079,36 @@ describe('disponerFicha', () => {
   const disposicion = calcularDisposicion(1080, 1920);
   // Medida falsa: cada caracter mide medio tamaño de letra.
   const medir = (texto, fuente) => texto.length * Number(fuente.match(/([\d.]+)px/)[1]) * 0.5;
+  const px = (fuente) => Number(fuente.match(/([\d.]+)px/)[1]);
   const textos = {
     nombre: 'Rodamiento',
     descripcion: 'Bolillas de acero entre dos anillos: dejan girar un eje casi sin rozamiento.',
   };
-  // El 30 % del ancho de cada costado: hasta ahi no llega la persona.
-  const COLUMNA = 324;
-  const disponer = (objeto, conTextos = textos, evitar = []) =>
-    disponerFicha(objeto, conTextos, disposicion, medir, {
-      columna: COLUMNA,
-      evitar,
+  // Donde empieza la cabeza: el 14 % de arriba es la franja del cartel.
+  const HASTA = 1920 * 0.14;
+  const disponer = (conTextos = textos, opciones = {}) =>
+    disponerFicha(conTextos, disposicion, medir, {
+      hasta: HASTA,
       tipografia: TIPOGRAFIA_DE_FICHA,
+      ...opciones,
     });
-  const tapa = (caja, { x, y, radio }) => {
-    const cercaX = Math.max(caja.x, Math.min(x, caja.x + caja.ancho));
-    const cercaY = Math.max(caja.y, Math.min(y, caja.y + caja.alto));
-    return Math.hypot(x - cercaX, y - cercaY) < radio;
-  };
 
-  // LA FICHA NO LE PUEDE TAPAR LA CARA A LA PERSONA. Va en la columna del
-  // costado de su objeto: la misma periferia donde la catedra pidio que vayan
-  // los objetos, y por el mismo motivo.
-  it('queda en la columna del costado de su objeto', () => {
-    const izquierda = disponer({ x: 170, y: 330, radio: 59 }).caja;
-    expect(izquierda.x).toBeGreaterThanOrEqual(0);
-    expect(izquierda.x + izquierda.ancho).toBeLessThanOrEqual(COLUMNA);
-
-    const derecha = disponer({ x: 910, y: 330, radio: 59 }).caja;
-    expect(derecha.x).toBeGreaterThanOrEqual(1080 - COLUMNA);
-    expect(derecha.x + derecha.ancho).toBeLessThanOrEqual(1080);
-  });
-
-  // Nunca encima del objeto que describe: arriba de todo va debajo de el, y
-  // abajo va arriba.
-  it('no tapa el objeto que describe', () => {
-    for (const y of [150, 330, 830, 1250]) {
-      const objeto = { x: 170, y, radio: 59 };
-      const { caja } = disponer(objeto);
-      const tapa = caja.y < objeto.y + objeto.radio && caja.y + caja.alto > objeto.y - objeto.radio;
-      expect(tapa, 'con el objeto a ' + y).toBe(false);
-    }
-  });
-
-  // El pie es del nombre de la ingenieria.
-  it('entra entera en la pantalla y no baja hasta el pie', () => {
-    for (const [x, y] of [
-      [170, 150],
-      [170, 1250],
-      [910, 150],
-      [910, 1250],
-    ]) {
-      const { caja } = disponer({ x, y, radio: 59 });
-      expect(caja.y).toBeGreaterThanOrEqual(0);
-      expect(caja.y + caja.alto).toBeLessThanOrEqual(1920 - disposicion.pie.alto);
-    }
+  // LA FICHA NO LE PUEDE TAPAR LA CARA A LA PERSONA, y al costado de su objeto
+  // no entraba con letra grande: va arriba de la cabeza, a lo ancho.
+  it('va arriba, a lo ancho y centrada, sin bajar hasta la cara', () => {
+    const { caja } = disponer();
+    expect(caja.y).toBeGreaterThanOrEqual(0);
+    expect(caja.y + caja.alto).toBeLessThanOrEqual(HASTA);
+    expect(caja.x).toBeGreaterThanOrEqual(0);
+    expect(caja.x + caja.ancho).toBeLessThanOrEqual(1080);
+    expect(caja.ancho).toBeGreaterThan(1080 * 0.9);
+    expect(caja.x).toBeCloseTo(1080 - caja.x - caja.ancho);
   });
 
   it('parte la descripcion en renglones que entran en la ficha', () => {
-    const ficha = disponer({ x: 170, y: 330, radio: 59 });
+    const ficha = disponer({ ...textos, descripcion: textos.descripcion.repeat(2) });
     expect(ficha.lineas.length).toBeGreaterThan(1);
-    expect(ficha.lineas.map((linea) => linea.texto).join(' ')).toBe(textos.descripcion);
+    expect(ficha.lineas.map((linea) => linea.texto).join(' ')).toBe(textos.descripcion.repeat(2));
     for (const linea of ficha.lineas) {
       expect(medir(linea.texto, ficha.fuenteTexto)).toBeLessThanOrEqual(
         ficha.caja.ancho - 2 * ficha.relleno,
@@ -1146,74 +1116,30 @@ describe('disponerFicha', () => {
     }
   });
 
-  // Si del lado que le toca taparia a otro objeto del fondo, va del otro: la
-  // persona tiene que poder ir de un objeto al siguiente sin que la ficha del
-  // primero le esconda el que sigue.
-  it('si del lado que le toca taparia a otro objeto, va del otro lado', () => {
-    const objeto = { x: 170, y: 830, radio: 59 };
-    const vecino = { x: 180, y: 560, radio: 59 };
-    expect(disponer(objeto).lado).toBe('arriba');
-
-    const ficha = disponer(objeto, textos, [vecino]);
-    expect(ficha.lado).toBe('abajo');
-    expect(tapa(ficha.caja, vecino)).toBe(false);
-  });
-
-  // Una ficha a la que del lado libre le faltan unos pixeles no se puede ir del
-  // otro lado a taparle un objeto a la persona: se corre lo justo hacia su
-  // objeto, que tiene aire de sobra. Sin esto, medio pixel de redondeo —o una
-  // letra apenas mas ancha que la de la prueba— daba vuelta la decision, y
-  // herramientas/fondos.html le mostraba a la catedra otra ficha que el espejo.
-  it('si del lado libre le faltan unos pixeles, se corre hacia su objeto en vez de tapar a otro', () => {
-    const radio = 59;
-    const piso = 1920 - disposicion.pie.alto;
-    // Cuanto mide la ficha, y cuanto aire deja con su objeto cuando entra sin
-    // correrse: debajo de un objeto de arriba de todo.
-    const muestra = disponer({ x: 170, y: 150, radio });
-    const alto = muestra.caja.alto;
-    const aire = muestra.caja.y - 150 - radio;
-
-    // Un objeto de la mitad de abajo, con un vecino arriba: su ficha va abajo,
-    // y abajo le faltan `faltan` pixeles para llegar sin correrse.
-    const conFalta = (faltan) => {
-      const y = piso + faltan - alto - aire - radio;
-      const objeto = { x: 170, y, radio };
-      const vecino = { x: 170, y: y - radio - aire - alto / 2, radio: 40 };
-      return { objeto, vecino, ficha: disponer(objeto, textos, [vecino]) };
-    };
-
-    const { objeto, vecino, ficha } = conFalta(5);
-    expect(ficha.lado).toBe('abajo');
-    expect(ficha.caja.y + ficha.caja.alto).toBeLessThanOrEqual(piso);
-    expect(tapa(ficha.caja, objeto)).toBe(false);
-    expect(tapa(ficha.caja, vecino)).toBe(false);
-
-    // Si correrla le taparia su propio objeto, eso no: nunca encima del que
-    // describe. Va del lado que entra.
-    expect(conFalta(aire + 20).ficha.lado).toBe('arriba');
+  // Una descripcion mucho mas larga que las del catalogo no puede bajar el
+  // cartel hasta la cara: antes chica que encima de la cara.
+  it('si no entra hasta la cara, achica la letra en vez de taparla', () => {
+    const ficha = disponer({ nombre: 'Rodamiento', descripcion: textos.descripcion.repeat(8) });
+    expect(ficha.caja.y + ficha.caja.alto).toBeLessThanOrEqual(HASTA);
+    expect(px(ficha.fuenteTexto)).toBeLessThan(px(disponer().fuenteTexto));
   });
 
   // La letra de la ficha vive en CONFIG.fichas.tipografia: quien no la pasa se
   // entera en el acto, en vez de dibujar con una copia vieja de esos numeros.
-  it('sin tipografia no inventa una letra', () => {
-    expect(() =>
-      disponerFicha({ x: 170, y: 330, radio: 59 }, textos, disposicion, medir, { columna: COLUMNA }),
-    ).toThrow();
+  // Y sin saber donde empieza la cara, no hay donde ponerla.
+  it('sin tipografia o sin saber hasta donde bajar, no inventa', () => {
+    expect(() => disponerFicha(textos, disposicion, medir, { hasta: HASTA })).toThrow();
+    expect(() => disponerFicha(textos, disposicion, medir, { tipografia: TIPOGRAFIA_DE_FICHA })).toThrow();
   });
 
-  // "Lector de código de barras" o "Vaso de precipitados" no entran en la
-  // columna a tamaño de titulo: el nombre va en dos renglones antes que
-  // salirse del panel —y de la pantalla—.
+  // Un nombre que no entra en un renglon va en dos antes que salirse del panel
+  // —y de la pantalla—.
   it('un nombre largo va en dos renglones que entran en la ficha', () => {
-    const ficha = disponer(
-      { x: 170, y: 330, radio: 59 },
-      { nombre: 'Lector de código de barras', descripcion: textos.descripcion },
-    );
+    const nombre = 'Lector de código de barras con cable espiralado y base de apoyo';
+    const ficha = disponer({ nombre, descripcion: textos.descripcion });
     const anchoUtil = ficha.caja.ancho - 2 * ficha.relleno;
     expect(ficha.titulo.lineas).toHaveLength(2);
-    expect(ficha.titulo.lineas.map((linea) => linea.texto).join(' ')).toBe(
-      'Lector de código de barras',
-    );
+    expect(ficha.titulo.lineas.map((linea) => linea.texto).join(' ')).toBe(nombre);
     for (const linea of ficha.titulo.lineas) {
       expect(medir(linea.texto, ficha.titulo.fuente)).toBeLessThanOrEqual(anchoUtil);
     }
@@ -1222,9 +1148,10 @@ describe('disponerFicha', () => {
   });
 
   it('un nombre de una sola palabra que no entra se achica lo justo', () => {
-    const ficha = disponer({ x: 170, y: 330, radio: 59 }, { nombre: 'Electroencefalógrafo' });
-    expect(ficha.titulo.lineas.map((linea) => linea.texto)).toEqual(['Electroencefalógrafo']);
-    expect(medir('Electroencefalógrafo', ficha.titulo.fuente)).toBeLessThanOrEqual(
+    const palabra = 'Electroencefalografista'.repeat(3);
+    const ficha = disponer({ nombre: palabra });
+    expect(ficha.titulo.lineas.map((linea) => linea.texto)).toEqual([palabra]);
+    expect(medir(palabra, ficha.titulo.fuente)).toBeLessThanOrEqual(
       ficha.caja.ancho - 2 * ficha.relleno,
     );
   });
@@ -1232,42 +1159,34 @@ describe('disponerFicha', () => {
   // La letra de la ficha se calibra en el stand, leyendo a dos metros: sale de
   // las opciones (CONFIG.fichas.tipografia), no de este archivo.
   it('el tamaño de la letra sale de las opciones', () => {
-    const ficha = disponerFicha({ x: 170, y: 330, radio: 59 }, textos, disposicion, medir, {
-      columna: COLUMNA,
-      tipografia: { texto: 0.6, titulo: 1, anchoEnLetras: 15 },
-    });
+    const ficha = disponer(textos, { tipografia: { texto: 0.6, titulo: 1 } });
     expect(ficha.fuenteTexto).toContain(`${Math.round(disposicion.texto.tamanoFrase * 0.6)}px`);
     expect(ficha.titulo.fuente).toContain(`${disposicion.texto.tamanoFrase}px`);
   });
 
   // En un monitor apaisado la composicion vertical entra mas chica, a la altura
-  // de la pantalla: los objetos y la distancia entre ellos se achican con ella
-  // (lugarEnPantalla). Con la letra de la pantalla, la ficha de cada objeto
-  // tapaba a su vecino. La letra se achica en la misma proporcion.
-  it('en un monitor apaisado la letra se achica con la composicion', () => {
-    const tipografia = { texto: 1, titulo: 1.25, anchoEnLetras: 15 };
-    const px = (fuente) => Number(fuente.match(/([\d.]+)px/)[1]);
-    const enElEspejo = disponerFicha({ x: 170, y: 330, radio: 59 }, textos, disposicion, medir, {
-      columna: COLUMNA,
-      tipografia,
-    });
+  // de la pantalla, en la franja del medio: el cartel va sobre ella, no a lo
+  // ancho de la pantalla, y la letra se achica en la misma proporcion.
+  it('en un monitor apaisado el cartel y la letra se achican con la composicion', () => {
+    const tipografia = { texto: 1, titulo: 1.25 };
+    const enElEspejo = disponer(textos, { tipografia });
     const apaisada = calcularDisposicion(1920, 1080);
-    const enApaisado = disponerFicha({ x: 300, y: 190, radio: 33 }, textos, apaisada, medir, {
-      columna: 1920 * 0.3,
-      tipografia,
-    });
+    const enApaisado = disponerFicha(textos, apaisada, medir, { hasta: 1080 * 0.14, tipografia });
 
     const proporcion = apaisada.unidad / disposicion.unidad;
     expect(proporcion).toBeLessThan(1);
     expect(px(enApaisado.fuenteTexto)).toBe(Math.round(px(enElEspejo.fuenteTexto) * proporcion));
     expect(px(enApaisado.titulo.fuente)).toBe(Math.round(px(enElEspejo.titulo.fuente) * proporcion));
+    expect(enApaisado.caja.ancho).toBeLessThanOrEqual(apaisada.unidad);
+    expect(enApaisado.caja.x + enApaisado.caja.ancho / 2).toBeCloseTo(960);
+    expect(enApaisado.caja.y + enApaisado.caja.alto).toBeLessThanOrEqual(1080 * 0.14);
   });
 
   it('sin descripcion va solo el nombre, y sin nada no hay ficha', () => {
-    const soloNombre = disponer({ x: 170, y: 330, radio: 59 }, { nombre: 'Casco' });
+    const soloNombre = disponer({ nombre: 'Casco' });
     expect(soloNombre.titulo.lineas.map((linea) => linea.texto)).toEqual(['Casco']);
     expect(soloNombre.lineas).toEqual([]);
-    expect(disponer({ x: 170, y: 330, radio: 59 }, {})).toBeNull();
+    expect(disponer({})).toBeNull();
   });
 });
 
@@ -1280,15 +1199,12 @@ describe('dibujarFicha', () => {
     borde: 'rgba(240, 220, 160, 0.3)',
   };
   const objeto = {
-    x: 170,
-    y: 330,
-    radio: 59,
     nombre: 'Rodamiento',
     descripcion: 'Bolillas de acero entre dos anillos.',
   };
   const dibujar = (ctx, extra) =>
     dibujarFicha(ctx, { ...objeto, ...extra }, disposicion, {
-      columna: 324,
+      hasta: 1920 * 0.14,
       colores,
       tipografia: TIPOGRAFIA_DE_FICHA,
     });
@@ -1319,9 +1235,8 @@ describe('dibujarFicha', () => {
     expect(orden.indexOf('fill')).toBeLessThan(orden.indexOf('fillText'));
   });
 
-  // El pico es parte del panel: trazado aparte, el borde le dibujaba una raya
-  // en la base, como si estuviera pegado con cinta.
-  it('el panel y su pico son un solo trazo', () => {
+  // Un solo trazo: con el borde en dos figuras, se le veia la union.
+  it('el panel es un solo trazo', () => {
     const ctx = crearCtxFalso();
     dibujar(ctx, { alfa: 1 });
     expect(soloDe(ctx, 'roundRect')).toEqual([]);

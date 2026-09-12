@@ -387,8 +387,11 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   cara o quedaría tapado por ella. `CONFIG.fondo.zonaDeLaPersona` (la cabeza y
   los hombros, normalizados al espejo) y el pie del nombre son zonas prohibidas,
   y `tests/integracion/fondos.test.js` lo vigila para cada fondo del catálogo, el
-  respaldo vectorial y los lugares por defecto incluidos. También vigila que los
-  cuatro objetos de un fondo no se pisen.
+  respaldo vectorial y los lugares por defecto incluidos. También vigila que
+  ninguno suba a la franja del cartel de las fichas y que los blancos de la
+  mano de dos objetos (`fichas.radioFactor`) no se toquen: tocándose, yendo a
+  buscar el de abajo se abría el de arriba. Todos los fondos usan la misma
+  grilla, dos columnas pegadas a la cabeza y dos filas, con `escala` 0.24.
 - **Se mecen apenas, cada uno a su ritmo** (`balanceo`,
   `CONFIG.escondidos.balanceo`): es el "pequeño movimiento para que la persona
   los pueda identificar" que pidió la cátedra. Cada objeto tiene otro período
@@ -402,13 +405,16 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   `herramientas/fondos.html`, que tiene que mostrarle a la cátedra exactamente
   lo que hace el espejo: con la cuenta copiada en los dos, ajustar uno solo los
   separaba en silencio.
-- **El que se está leyendo va también delante de la persona.** Los objetos del
-  fondo van detrás de la persona recortada, y la mano que va a buscar uno lo tapa
-  justo cuando crece y se ilumina. Mientras su ficha está abierta se dibuja otra
-  vez, con el alfa de la ficha, en una capa que se recorta contra la silueta
-  antes de pegarse (`dibujarObjetosDelante`): aparece sólo donde la persona lo
-  tapa. Dibujado entero encima de sí mismo duplicaba la sombra y engrosaba los
-  bordes del PNG justo en el objeto que se estaba leyendo.
+- **El que tiene la mano encima pasa delante de la persona.** Los objetos del
+  fondo van detrás de la persona recortada, y la mano que va a buscar uno lo
+  tapa. Apenas la mano lo toca —sin esperar a que se abra su ficha— se dibuja
+  otra vez en una capa que se recorta contra la silueta antes de pegarse
+  (`dibujarObjetosDelante`), y crece y se ilumina. Entra en `fichas.msDelante`
+  (150 ms) y se sostiene la misma gracia que la ficha (`delante`, en
+  `fichas.js`). Antes pasaba adelante recién con la ficha abierta, casi un
+  segundo después, y mientras tanto la mano parecía atravesarlo. Aparece sólo
+  donde la persona lo tapa: dibujado entero encima de sí mismo duplicaba la
+  sombra y engrosaba los bordes del PNG.
 - **La ficha.** Pasar la mano sobre cualquiera de los cuatro abre su ficha: el
   nombre en Muffaroo y la descripción en la sans, sobre un panel del negro de
   MAITE. `fichas.js` decide cuál está abierta y cuánto se ve cada una. Cada
@@ -423,28 +429,25 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   Se lee sobre los objetos **quietos**, no sobre su vaivén: si el blanco se
   meciera con el objeto, la ficha se abriría y cerraría sola con la mano quieta
   en el borde.
-- **Dónde va la ficha** (`disponerFicha`, en `escena.js`): en la franja del
-  costado de su objeto (`fichas.columna`, el 30 % del ancho: el mismo borde que
-  la cabeza en `zonaDeLaPersona`). Por eso es angosta y alta y no un cartel al
-  lado del objeto: al lado sería encima de la cara. Va debajo del objeto si está
-  arriba y arriba si está abajo, nunca encima del que describe, y si del lado que
-  le toca taparía a otro objeto del fondo, va del otro. Tampoco baja hasta el
-  pie, que es del nombre de la ingeniería. El nombre se mide: si no entra en un
-  renglón va en dos, y si una palabra sola no entra se achica —"Lector de código
-  de barras" se salía de la pantalla—. La letra (`fichas.tipografia`) es
-  legibilidad a dos metros y se calibra en el stand; en un monitor apaisado se
-  achica con la composición (`disposicion.unidad`), como los objetos.
+- **Dónde va la ficha** (`disponerFicha`, en `escena.js`): en un cartel ancho
+  arriba de la cabeza, de `zonaDeLaPersona[0].y0` para arriba y a lo ancho de la
+  composición. Es la única franja que no le tapa la cara a nadie, y ahí la
+  descripción entra en dos o tres renglones con letra grande. Antes iba al
+  costado de su objeto, en la franja angosta de la periferia: con objetos
+  grandes y una letra que se lea a dos metros, dos objetos y sus dos fichas por
+  costado no entraban y la ficha de uno tapaba al otro. De cuál habla lo dice el
+  objeto, que crece y se ilumina mientras se lee. El nombre se mide: si no entra
+  en un renglón va en dos, y si una palabra sola no entra se achica. La letra
+  (`fichas.tipografia`) es legibilidad a dos metros y se calibra en el stand; si
+  una descripción no entrara en la franja, se achica sola antes que bajar hasta
+  la cara. En un monitor apaisado el cartel y la letra se achican con la
+  composición (`disposicion.unidad`), como los objetos.
   `tests/integracion/fichas.test.js` dispone todas las fichas del catálogo real,
-  con una medida proporcional a la letra, y exige que entren enteras, en su
-  franja, sin tapar a su objeto ni a los otros. En apaisado, con el pie más
-  alto, alguna ficha de un objeto de abajo todavía tapa al de arriba: se acepta
-  porque el espejo del evento es vertical. Si del lado libre le faltan unos
-  píxeles, la ficha se corre hacia su objeto —el aire entre los dos sobra— en
-  vez de irse del otro lado a tapar a otro: medio píxel de redondeo daba vuelta
-  la decisión. Los objetos y lo que se le pasa a la ficha salen de
-  `objetosDelFondo` y `fichaDelObjeto` (escondites.js), las mismas en el espejo,
-  en `herramientas/fondos.html` —que dibuja a la medida del espejo y achica— y
-  en las pruebas.
+  con una medida proporcional a la letra, y exige que entren enteras en la
+  franja con la letra de la config —sin achicarse— y sin tapar a ningún objeto
+  del fondo, en el espejo y en apaisado. Hasta dónde baja y con qué letra lo
+  dice `fichaDelObjeto` (escondites.js), la misma en el espejo, en
+  `herramientas/fondos.html` y en las pruebas.
 - **Al alcance de la mano.** La periferia tira hacia arriba y hacia los costados,
   y el brazo de alguien sentado lejos no llega a todos lados: el carrusel se
   calibró para eso (`tablero.radioFactor`, en anchos de hombros).
@@ -494,7 +497,8 @@ cuadro:
   cierre arranca desde donde quedó la exploración, cada capa con su reloj
   multiplicada por la salida, y el objeto termina de volar mientras se apaga.
 - El borde de la ficha le dibujaba una raya a la base del pico, como si
-  estuviera pegado con cinta: el panel y el pico son un solo trazo.
+  estuviera pegado con cinta: el panel se traza de una sola vez (y hoy ya no
+  tiene pico: el cartel va arriba de la cabeza, no al lado de su objeto).
 
 ## 6. Garantías de Rendimiento y Presupuesto
 

@@ -1,11 +1,13 @@
 // Las fichas de los objetos del fondo, con el catalogo y la CONFIG de verdad.
 //
-// Cada objeto de cada fondo tiene su ficha, y todas tienen que cumplir lo mismo:
-// entrar enteras en la pantalla sin bajar al pie, quedarse en la franja del
-// costado de su objeto —para no taparle la cara a la persona—, con el nombre y
-// cada renglon adentro del panel, y sin tapar al objeto que describen ni a los
-// otros objetos del fondo. Asi aparecio que "Lector de código de barras" se
-// salia de la pantalla y que una de cada seis fichas tapaba a un vecino.
+// La ficha va en un cartel ancho arriba de la cabeza (disponerFicha). Todas las
+// del catalogo tienen que cumplir lo mismo: entrar enteras en esa franja sin
+// bajar hasta la cara, con la letra que pide la config —achicarse es el
+// seguro, no el plan—, con el nombre y cada renglon adentro del panel, y sin
+// tapar a ninguno de los objetos del fondo, tampoco al que se esta leyendo, que
+// crece. Al costado de su objeto, en la franja angosta de la periferia, "Lector
+// de código de barras" se salia de la pantalla, una de cada seis fichas tapaba
+// a un vecino y con la letra grande ya no entraban.
 //
 // Los objetos y lo que se le pasa a la ficha salen de las mismas funciones que
 // usa el espejo (objetosDelFondo y fichaDelObjeto): armados aca por separado,
@@ -23,8 +25,7 @@ import { objetosDelFondo, fichaDelObjeto } from '../../espejo/escondites.js';
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const ESPEJO = { ancho: 1080, alto: 1920 };
-const disposicion = calcularDisposicion(ESPEJO.ancho, ESPEJO.alto);
-const COLUMNA = ESPEJO.ancho * CONFIG.fichas.columna;
+const APAISADA = { ancho: 1920, alto: 1080 };
 
 // Una medida proporcional al tamaño de la letra, como la de verdad: Muffaroo es
 // condensada —unos 0,4 del tamaño por letra, medido sobre el TTF— y la sans del
@@ -33,6 +34,7 @@ const medir = (texto, fuente) => {
   const tamano = Number(fuente.match(/([\d.]+)px/)[1]);
   return texto.length * tamano * (fuente.includes('Muffaroo') ? 0.4 : 0.52);
 };
+const px = (fuente) => Number(fuente.match(/([\d.]+)px/)[1]);
 
 const tocaCirculo = (caja, { x, y, radio }) => {
   const cercaX = Math.max(caja.x, Math.min(x, caja.x + caja.ancho));
@@ -62,12 +64,13 @@ async function fichasDelCatalogo(pantalla = ESPEJO) {
         config: CONFIG,
       });
       for (const objeto of delFondo) {
-        const { circulo, opciones } = fichaDelObjeto(objeto, delFondo, pantalla.ancho, CONFIG);
+        const { circulo, opciones } = fichaDelObjeto(objeto, pantalla, CONFIG);
         casos.push({
           nombre: `${fondo.img} · ${objeto.definicion.nombre}`,
           objeto: circulo,
-          otros: opciones.evitar,
-          ficha: disponerFicha(circulo, objeto.definicion, enPantalla, medir, opciones),
+          otros: delFondo.filter((otro) => otro.id !== objeto.id),
+          hasta: opciones.hasta,
+          ficha: disponerFicha(objeto.definicion, enPantalla, medir, opciones),
         });
       }
     }
@@ -81,22 +84,41 @@ describe('las fichas del catalogo real', () => {
     expect(sinFicha.map((caso) => caso.nombre)).toEqual([]);
   });
 
-  it('entran enteras en la pantalla, sin bajar al pie', async () => {
-    const piso = ESPEJO.alto - disposicion.pie.alto;
-    const afuera = (await fichasDelCatalogo()).filter(({ ficha: { caja } }) => {
-      return caja.x < 0 || caja.x + caja.ancho > ESPEJO.ancho || caja.y < 0 || caja.y + caja.alto > piso;
+  // La franja de arriba de la cabeza es la unica que no le tapa la cara a
+  // nadie. En un monitor apaisado —donde se desarrolla— la composicion entra
+  // mas chica y el cartel con ella, y tiene que cumplir lo mismo.
+  for (const [donde, pantalla] of [
+    ['en el espejo', ESPEJO],
+    ['en un monitor apaisado', APAISADA],
+  ]) {
+    it(`${donde}, entran enteras arriba sin bajar hasta la cara`, async () => {
+      const afuera = (await fichasDelCatalogo(pantalla)).filter(({ hasta, ficha: { caja } }) => {
+        return caja.x < 0 || caja.x + caja.ancho > pantalla.ancho || caja.y < 0 || caja.y + caja.alto > hasta;
+      });
+      expect(afuera.map((caso) => caso.nombre)).toEqual([]);
     });
-    expect(afuera.map((caso) => caso.nombre)).toEqual([]);
-  });
 
-  // Hasta ahi no llega la persona: una ficha mas ancha le taparia la cara.
-  it('se quedan en la franja del costado de su objeto', async () => {
-    const adentro = (await fichasDelCatalogo()).filter(({ objeto, ficha: { caja } }) =>
-      objeto.x < ESPEJO.ancho / 2
-        ? caja.x + caja.ancho > COLUMNA
-        : caja.x < ESPEJO.ancho - COLUMNA,
-    );
-    expect(adentro.map((caso) => caso.nombre)).toEqual([]);
+    // Tapar al objeto que describe deja a la ficha hablando de algo que no se
+    // ve; tapar a otro le esconde a la persona el objeto que iba a buscar.
+    it(`${donde}, no tapan a ninguno de los objetos del fondo`, async () => {
+      const tapan = [];
+      for (const { nombre, objeto, otros, ficha } of await fichasDelCatalogo(pantalla)) {
+        if (tocaCirculo(ficha.caja, objeto)) tapan.push(`${nombre} tapa su objeto`);
+        for (const otro of otros) {
+          if (tocaCirculo(ficha.caja, otro)) tapan.push(`${nombre} tapa a ${otro.definicion.nombre}`);
+        }
+      }
+      expect(tapan).toEqual([]);
+    });
+  }
+
+  // Achicar la letra es el seguro de disponerFicha para una descripcion que no
+  // entra. Con el catalogo de verdad no puede hacer falta: si hiciera, la letra
+  // de la config estaria prometiendo algo que el espejo no muestra.
+  it('en el espejo van con la letra que pide la config, sin achicarse', async () => {
+    const pedida = Math.round(calcularDisposicion(1080, 1920).texto.tamanoFrase * CONFIG.fichas.tipografia.texto);
+    const achicadas = (await fichasDelCatalogo()).filter(({ ficha }) => px(ficha.fuenteTexto) !== pedida);
+    expect(achicadas.map((caso) => caso.nombre)).toEqual([]);
   });
 
   it('el nombre y cada renglon entran en el panel', async () => {
@@ -111,41 +133,5 @@ describe('las fichas del catalogo real', () => {
       }
     }
     expect(salidos).toEqual([]);
-  });
-
-  // Tapar al objeto que describe deja a la ficha hablando de algo que no se ve;
-  // tapar a un vecino le esconde a la persona el objeto que iba a buscar.
-  it('no tapan el objeto que describen ni a los otros del fondo', async () => {
-    const tapan = [];
-    for (const { nombre, objeto, otros, ficha } of await fichasDelCatalogo()) {
-      if (tocaCirculo(ficha.caja, objeto)) tapan.push(`${nombre} tapa su objeto`);
-      for (const otro of otros) {
-        if (tocaCirculo(ficha.caja, otro)) tapan.push(`${nombre} tapa a ${otro.definicion.nombre}`);
-      }
-    }
-    expect(tapan).toEqual([]);
-  });
-
-  // En un monitor apaisado —donde se desarrolla— la composicion entra mas chica
-  // y el pie es mas alto. La letra se achica con la composicion, pero alguna
-  // ficha de un objeto de abajo todavia tapa al de arriba, y se acepta porque el
-  // espejo del evento es vertical. Lo que no se acepta ni ahi: salirse de la
-  // pantalla, bajar al pie, salir de la franja o tapar su propio objeto.
-  it('en un monitor apaisado entran enteras, en su franja y sin tapar su objeto', async () => {
-    const pantalla = { ancho: 1920, alto: 1080 };
-    const piso = pantalla.alto - calcularDisposicion(pantalla.ancho, pantalla.alto).pie.alto;
-    const columna = pantalla.ancho * CONFIG.fichas.columna;
-    const problemas = [];
-    for (const { nombre, objeto, ficha } of await fichasDelCatalogo(pantalla)) {
-      const { caja } = ficha;
-      if (caja.x < 0 || caja.x + caja.ancho > pantalla.ancho || caja.y < 0 || caja.y + caja.alto > piso) {
-        problemas.push(`${nombre} afuera`);
-      }
-      if (objeto.x < pantalla.ancho / 2 ? caja.x + caja.ancho > columna : caja.x < pantalla.ancho - columna) {
-        problemas.push(`${nombre} fuera de la franja`);
-      }
-      if (tocaCirculo(caja, objeto)) problemas.push(`${nombre} tapa su objeto`);
-    }
-    expect(problemas).toEqual([]);
   });
 });

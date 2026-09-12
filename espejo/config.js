@@ -359,22 +359,22 @@ export const CONFIG = {
 
     // Donde se apoya el objeto cuando el fondo no declara su `lugar`:
     // normalizado a la imagen, arriba a la izquierda, lejos de la cara y del
-    // nombre. `escala` es el diametro como fraccion del ancho de la imagen. Tan
-    // bajo como deja su ficha, que se abre por encima de el: mas arriba no lo
-    // alcanza la mano de alguien sentado a dos metros.
-    lugarPorDefecto: { x: 0.2, y: 0.295, escala: 0.16 },
+    // nombre. `escala` es el diametro como fraccion del ancho de la imagen.
+    // Justo debajo de la franja del cartel de las fichas, con aire para crecer
+    // mientras se lee: mas arriba quedaria debajo del cartel.
+    lugarPorDefecto: { x: 0.166, y: 0.22, escala: 0.24 },
 
     // Y donde esperan los otros tres objetos cuando el fondo no declara sus
     // `escondites` —el respaldo vectorial, una carrera sin fondos—: el otro
-    // rincon de arriba y, a cada lado, uno a la altura de la cara, con su ficha
-    // por debajo. Como el lugar por defecto, es un seguro del codigo y no una
-    // decision; las fotos declaran los suyos. Los dos los vigilan
-    // tests/integracion/fondos.test.js y fichas.test.js con las doce
-    // ingenierias: al alcance de la mano y sin que una ficha tape a un vecino.
+    // rincon de arriba y, a cada lado, uno a la altura de los hombros. Es la
+    // misma grilla que usan las fotos: dos columnas pegadas a la zona de la
+    // cabeza y dos filas tan separadas que los blancos de la mano no se tocan.
+    // tests/integracion/fondos.test.js y fichas.test.js la vigilan con las doce
+    // ingenierias.
     esconditesPorDefecto: [
-      { x: 0.8, y: 0.295, escala: 0.14 },
-      { x: 0.16, y: 0.44, escala: 0.14 },
-      { x: 0.84, y: 0.44, escala: 0.14 },
+      { x: 0.834, y: 0.22, escala: 0.24 },
+      { x: 0.166, y: 0.43, escala: 0.24 },
+      { x: 0.834, y: 0.43, escala: 0.24 },
     ],
 
     // Donde esta la persona, normalizado al espejo vertical: la cabeza y los
@@ -393,6 +393,14 @@ export const CONFIG = {
     // vertical, y en un monitor apaisado —desarrollo— la franja de arriba,
     // donde van los lugares, queda recortada. En el espejo no mueve nada.
     margenDelLugar: 1.25,
+
+    // En una pantalla mas ancha que alta —la notebook donde se desarrolla— la
+    // composicion vertical entra achicada a la altura de la pantalla, y los
+    // objetos, medidos contra ella, se veian chiquitos con lugar de sobra a los
+    // costados de la persona. Ahi crecen este factor; en el espejo vertical no
+    // cambia nada. El tope es que los blancos de la mano de los dos de cada
+    // costado no se toquen: tests/integracion/fondos.test.js lo vigila.
+    agrandarEnApaisado: 1.25,
 
     // El halo debajo del objeto apoyado, en el color de la paleta. Lo presenta
     // sobre cualquier fondo, foto o escena vectorial, sin pedirle a cada imagen
@@ -452,23 +460,29 @@ export const CONFIG = {
     msDeEntrada: 450,
     msDeSalida: 700,
 
-    // Generoso: los escondidos son mas chicos que los del carrusel.
-    radioFactor: 1.6,
+    // Lo que tarda en pasar adelante de la persona el objeto que tiene la mano
+    // encima. Corto a proposito: detras, la mano lo tapa y la persona siente
+    // que lo atraviesa. Un fundido y no un corte igual: nada aparece de golpe.
+    msDelante: 150,
+
+    // El blanco de la mano, en radios del objeto. Los objetos del fondo son
+    // grandes y los dos de cada costado van uno arriba del otro: con un blanco
+    // mas generoso los dos se tocaban y, yendo a buscar el de abajo, se abria el
+    // de arriba. tests/integracion/fondos.test.js exige que los blancos de un
+    // mismo fondo no se toquen.
+    radioFactor: 1.2,
 
     // Un escondido se puede leer recien cuando se ve a medias: abrir la ficha
     // de algo que todavia no aparecio seria hablar de nada.
     alfaParaLeer: 0.5,
 
-    // El ancho de la franja de cada costado donde va la ficha, en fraccion del
-    // ancho de la pantalla: el mismo borde que la cabeza en zonaDeLaPersona,
-    // para que la ficha nunca le tape la cara a la persona.
-    columna: 0.3,
-
     // La letra de la ficha, en fraccion del tamaño de frase de la pantalla
     // (unos 32 px en el espejo): `texto` la descripcion y `titulo` el nombre.
-    // `anchoEnLetras` topa el ancho del panel en tamaños de letra. Es
-    // legibilidad a dos metros: se calibra en el stand.
-    tipografia: { texto: 0.82, titulo: 1.25, anchoEnLetras: 15 },
+    // Es legibilidad a dos metros: se calibra en el stand. El tope lo pone la
+    // franja de arriba de la cabeza, donde va el cartel: la descripcion mas
+    // larga del catalogo tiene que entrar ahi en tres renglones. Si no entrara,
+    // la ficha achica la letra sola, y tests/integracion/fichas.test.js avisa.
+    tipografia: { texto: 1, titulo: 1.5 },
   },
 
   // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio

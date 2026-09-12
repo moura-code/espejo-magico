@@ -671,69 +671,79 @@ export function dibujarConsigna(ctx, disposicion, alfa = 1, frase = 'Sostené la
 }
 
 const esTexto = (valor) => typeof valor === 'string' && valor.trim().length > 0;
-const acotar = (valor, minimo, maximo) => Math.min(maximo, Math.max(minimo, valor));
 
 /**
  * Donde va la ficha de un objeto del fondo y como se reparte adentro. Solo
  * numeros: `medir(texto, fuente)` se inyecta para poder probarla sin lienzo.
  * Devuelve null si no hay nada que decir.
  *
- * LA FICHA NO LE TAPA LA CARA A LA PERSONA. Va en la columna del costado de su
- * objeto —`columna` es cuanto mide, en pixeles, la franja de cada costado a la
- * que no llega la persona—: la misma periferia donde la catedra pidio que
- * vayan los objetos, y por el mismo motivo. Por eso es angosta y alta, y no un
- * cartel al lado del objeto: al lado seria encima de la cara.
+ * LA FICHA VA ARRIBA DE LA CABEZA, EN UN CARTEL ANCHO, y no al costado de su
+ * objeto. Al costado compartia con los objetos la franja angosta de la
+ * periferia: con objetos grandes y una letra que se lea a dos metros, dos
+ * objetos y sus dos fichas no entraban por costado, y la ficha de uno tapaba al
+ * otro. Arriba de la cabeza hay una franja libre del ancho de la composicion:
+ * ahi la descripcion entra en dos o tres renglones con letra grande, y los
+ * costados quedan para los objetos. De cual habla lo dice el objeto, que crece
+ * y se ilumina mientras se lee (aspectoDelObjeto).
  *
- * Nunca encima del objeto que describe: va debajo si el objeto esta arriba y
- * arriba si esta abajo, y si del lado que le toca no entra, del otro. Tampoco
- * baja hasta el pie, que es del nombre de la ingenieria.
+ * `hasta` es donde empieza la cabeza, en pixeles de la pantalla: la ficha no
+ * baja de ahi. Si una descripcion no entrara con la letra pedida, la letra se
+ * achica lo justo —antes chica que encima de la cara—;
+ * tests/integracion/fichas.test.js vigila que con el catalogo real no haga
+ * falta.
  *
  * `tipografia` es el tamaño de la letra en fraccion de `texto.tamanoFrase`
- * —`texto` la descripcion, `titulo` el nombre— y `anchoEnLetras` el ancho
- * maximo del panel, en tamaños de letra. Se calibra en el stand, leyendo a dos
- * metros: vive en CONFIG.fichas.tipografia. En una pantalla mas ancha que el
- * espejo, la letra se achica como la composicion (`unidad`).
+ * —`texto` la descripcion, `titulo` el nombre—. Se calibra en el stand,
+ * leyendo a dos metros: vive en CONFIG.fichas.tipografia. En una pantalla mas
+ * ancha que el espejo, la letra y el cartel se achican como la composicion
+ * (`unidad`).
  */
-export function disponerFicha(
-  { x, y, radio },
-  { nombre, descripcion } = {},
-  disposicion,
-  medir,
-  { columna, evitar = [], tipografia } = {},
-) {
+export function disponerFicha(textos, disposicion, medir, { hasta, tipografia } = {}) {
+  // La letra vive en CONFIG.fichas.tipografia y no tiene copia aca: sin ella
+  // esto falla en el acto, en vez de dibujar con numeros viejos. Y sin saber
+  // donde empieza la cara no hay donde ponerla.
+  if (!tipografia || !(hasta > 0)) {
+    throw new Error('disponerFicha necesita la tipografia y hasta donde puede bajar');
+  }
+  let ficha = armarFicha(textos, disposicion, medir, tipografia, 1);
+  for (
+    let achique = 0.96;
+    ficha && ficha.caja.y + ficha.caja.alto > hasta && achique > 0.3;
+    achique -= 0.04
+  ) {
+    ficha = armarFicha(textos, disposicion, medir, tipografia, achique);
+  }
+  return ficha;
+}
+
+/** La ficha armada con la letra pedida, por `achique` (1 es la pedida). */
+function armarFicha({ nombre, descripcion } = {}, disposicion, medir, tipografia, achique) {
   const hayNombre = esTexto(nombre);
   const hayDescripcion = esTexto(descripcion);
   if (!hayNombre && !hayDescripcion) return null;
 
-  // La letra vive en CONFIG.fichas.tipografia y no tiene copia aca: sin ella
-  // esto falla en el acto, en vez de dibujar con numeros viejos.
-  const { texto: letraDelTexto, titulo: letraDelTitulo, anchoEnLetras } = tipografia;
-  const { ancho, alto, pie, texto, unidad } = disposicion;
+  const { texto: letraDelTexto, titulo: letraDelTitulo } = tipografia;
+  const { ancho, alto, texto, unidad } = disposicion;
   // La letra acompaña a la composicion, como los objetos (lugarEnPantalla): en
   // el espejo es la de la pantalla, y en un monitor apaisado, donde la
   // composicion vertical entra a la altura de la pantalla, se achica con ella.
-  // Con la letra de la pantalla, la ficha de cada objeto tapaba a su vecino.
-  const escala = unidad / Math.min(ancho, alto);
+  const escala = (unidad / Math.min(ancho, alto)) * achique;
   const tamanoTexto = Math.max(10, Math.round(texto.tamanoFrase * escala * letraDelTexto));
   const tamanoTituloPedido = Math.max(12, Math.round(texto.tamanoFrase * escala * letraDelTitulo));
   const relleno = Math.round(tamanoTexto * 0.75);
   const margen = Math.round(tamanoTexto * 0.6);
-  const separacion = Math.round(tamanoTexto * 0.5);
   const interlinea = tamanoTexto * 1.3;
   const fuenteDelTitulo = (tamano) => `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
   const fuenteTexto = `400 ${tamanoTexto}px ${FAMILIA_TEXTO}`;
 
-  const anchoColumna = columna ?? ancho * 0.3;
-  const anchoCaja = Math.max(
-    tamanoTexto * 6,
-    Math.min(tamanoTexto * anchoEnLetras, anchoColumna - margen * 2),
-  );
+  // A lo ancho de la composicion: en el espejo, la pantalla entera; en un
+  // monitor apaisado, la franja del medio, donde esta la persona.
+  const anchoCaja = Math.min(ancho, unidad) - margen * 2;
   const util = anchoCaja - relleno * 2;
 
-  // El nombre va entero si entra; si no, en dos renglones —"Lector de código
-  // de barras" no entra en la columna a tamaño de titulo—, y si aun asi un
+  // El nombre va entero si entra; si no, en dos renglones, y si aun asi un
   // renglon no entra (una palabra sola muy larga), se achica lo justo. Sin
-  // medirlo, se salia del panel y de la pantalla.
+  // medirlo, "Lector de código de barras" se salia del panel y de la pantalla.
   let renglonesDelTitulo = [];
   let tamanoTitulo = tamanoTituloPedido;
   if (hayNombre) {
@@ -756,53 +766,13 @@ export function disponerFicha(
   const hueco = hayNombre && lineas.length > 0 ? tamanoTexto * 0.4 : 0;
   const altoCaja = relleno * 2 + altoTitulo + hueco + lineas.length * interlinea;
 
-  // De costado: centrada en su objeto, sin salirse de la columna de ese lado.
-  const aLaIzquierda = x < ancho / 2;
-  const desdeX = aLaIzquierda ? margen : ancho - anchoColumna + margen;
-  const hastaX = aLaIzquierda ? anchoColumna - margen - anchoCaja : ancho - margen - anchoCaja;
-  const cajaX = acotar(x - anchoCaja / 2, desdeX, Math.max(desdeX, hastaX));
-
-  // De alto: del lado del objeto donde haya lugar, sin llegar al pie.
-  const techo = margen;
-  const piso = alto - pie.alto;
-  const debajo = y + radio + separacion;
-  const arriba = y - radio - separacion - altoCaja;
-  const entraDebajo = debajo + altoCaja <= piso;
-  const entraArriba = arriba >= techo;
-  // Del lado que le toca si ahi la ficha —corrida hacia su objeto lo que haga
-  // falta para entrar en la pantalla— no tapa a su objeto ni a otro del fondo
-  // (`evitar`): la persona tiene que poder ir de un objeto al siguiente sin que
-  // la ficha del primero le esconda el que sigue. Correrla unos pixeles hacia
-  // su objeto le come parte del aire que los separa, que sobra; irse del otro
-  // lado por medio pixel de redondeo, en cambio, tapaba a un vecino. Si no, del
-  // otro lado; y si en ninguno se puede todo, del que entra sin correrse.
-  const yDe = (lado) =>
-    acotar(lado === 'abajo' ? debajo : arriba, techo, Math.max(techo, piso - altoCaja));
-  const entra = (lado) => (lado === 'abajo' ? entraDebajo : entraArriba);
-  const tapa = (arribaDeLaCaja, otro) => {
-    const cercaX = acotar(otro.x, cajaX, cajaX + anchoCaja);
-    const cercaY = acotar(otro.y, arribaDeLaCaja, arribaDeLaCaja + altoCaja);
-    return Math.hypot(otro.x - cercaX, otro.y - cercaY) < otro.radio;
-  };
-  const sirve = (lado) => {
-    const arribaDeLaCaja = yDe(lado);
-    return (
-      !tapa(arribaDeLaCaja, { x, y, radio }) &&
-      !evitar.some((otro) => tapa(arribaDeLaCaja, otro))
-    );
-  };
-  const orden = y < (techo + piso) / 2 ? ['abajo', 'arriba'] : ['arriba', 'abajo'];
-  const lado = orden.find(sirve) ?? orden.find(entra) ?? orden[0];
-  const cajaY = yDe(lado);
-
+  // Arriba de todo y centrada.
   const esquina = Math.round(tamanoTexto * 0.55);
-  const punta = Math.round(tamanoTexto * 0.45);
-  const caja = { x: cajaX, y: cajaY, ancho: anchoCaja, alto: altoCaja, radio: esquina };
-  const alTexto = cajaX + relleno;
-  const primeraLinea = cajaY + relleno + altoTitulo + hueco;
+  const caja = { x: (ancho - anchoCaja) / 2, y: margen, ancho: anchoCaja, alto: altoCaja, radio: esquina };
+  const alTexto = caja.x + relleno;
+  const primeraLinea = caja.y + relleno + altoTitulo + hueco;
 
   return {
-    lado,
     caja,
     relleno,
     fuenteTexto,
@@ -812,7 +782,7 @@ export function disponerFicha(
           lineas: renglonesDelTitulo.map((renglon, i) => ({
             texto: renglon,
             x: alTexto,
-            y: cajaY + relleno + i * pasoDelTitulo,
+            y: caja.y + relleno + i * pasoDelTitulo,
           })),
         }
       : null,
@@ -821,20 +791,13 @@ export function disponerFicha(
       x: alTexto,
       y: primeraLinea + i * interlinea + (interlinea - tamanoTexto) / 2,
     })),
-    // El pico que apunta al objeto, sobre el borde de la caja que lo mira.
-    pico: {
-      x: acotar(x, cajaX + esquina + punta, cajaX + anchoCaja - esquina - punta),
-      y: lado === 'abajo' ? cajaY : cajaY + altoCaja,
-      alto: lado === 'abajo' ? -punta : punta,
-      ancho: punta,
-    },
   };
 }
 
 /**
  * La ficha de un objeto del fondo: su nombre y una descripcion corta, en un
- * panel oscuro con el pico apuntando al objeto. Se enciende con `alfa` y entra
- * deslizandose desde el objeto, apenas, como si saliera de el.
+ * cartel oscuro arriba de la cabeza. Se enciende con `alfa` y baja apenas al
+ * entrar, como un cartel que se descuelga.
  *
  * Los colores son los de MAITE: el titulo en el de los nombres y el texto en el
  * de los textos de las tablets, sobre un panel del mismo negro. El titulo va en
@@ -843,9 +806,9 @@ export function disponerFicha(
  */
 export function dibujarFicha(
   ctx,
-  { x, y, radio, nombre, descripcion, alfa = 1 },
+  { nombre, descripcion, alfa = 1 },
   disposicion,
-  { columna, colores, evitar, tipografia },
+  { colores, hasta, tipografia },
 ) {
   if (alfa <= 0 || (!esTexto(nombre) && !esTexto(descripcion))) return;
 
@@ -856,23 +819,18 @@ export function dibujarFicha(
     ctx.font = fuente;
     return ctx.measureText(texto).width;
   };
-  const ficha = disponerFicha({ x, y, radio }, { nombre, descripcion }, disposicion, medir, {
-    columna,
-    evitar,
-    tipografia,
-  });
+  const ficha = disponerFicha({ nombre, descripcion }, disposicion, medir, { hasta, tipografia });
 
   const visible = Math.min(1, alfa);
   const suave = visible * visible * (3 - 2 * visible);
-  const hacia = ficha.lado === 'abajo' ? -1 : 1;
-  ctx.translate(0, (1 - suave) * ficha.relleno * 0.8 * hacia);
+  ctx.translate(0, -(1 - suave) * ficha.relleno * 0.8);
   ctx.globalAlpha = visible;
 
   ctx.shadowColor = 'rgba(0,0,0,0.55)';
   ctx.shadowBlur = ficha.relleno * 1.4;
   ctx.fillStyle = colores.panel;
   ctx.beginPath();
-  trazarPanel(ctx, ficha.caja, ficha.pico);
+  trazarPanel(ctx, ficha.caja);
   ctx.fill();
 
   ctx.shadowBlur = 0;
@@ -894,29 +852,14 @@ export function dibujarFicha(
   ctx.restore();
 }
 
-/**
- * El contorno del panel con su pico, en un solo trazo. Con el pico como una
- * figura aparte, el borde le dibujaba una raya en la base, como si estuviera
- * pegado con cinta. El pico va en el borde de arriba si apunta hacia arriba
- * (`pico.alto` negativo) y en el de abajo si apunta hacia abajo.
- */
-function trazarPanel(ctx, { x, y, ancho, alto, radio }, pico) {
+/** El contorno del panel, con las esquinas redondeadas, en un solo trazo. */
+function trazarPanel(ctx, { x, y, ancho, alto, radio }) {
   const derecha = x + ancho;
   const abajo = y + alto;
 
   ctx.moveTo(x + radio, y);
-  if (pico.alto < 0) {
-    ctx.lineTo(pico.x - pico.ancho, y);
-    ctx.lineTo(pico.x, y + pico.alto);
-    ctx.lineTo(pico.x + pico.ancho, y);
-  }
   ctx.arcTo(derecha, y, derecha, abajo, radio);
   ctx.arcTo(derecha, abajo, x, abajo, radio);
-  if (pico.alto > 0) {
-    ctx.lineTo(pico.x + pico.ancho, abajo);
-    ctx.lineTo(pico.x, abajo + pico.alto);
-    ctx.lineTo(pico.x - pico.ancho, abajo);
-  }
   ctx.arcTo(x, abajo, x, y, radio);
   ctx.arcTo(x, y, derecha, y, radio);
   ctx.closePath();

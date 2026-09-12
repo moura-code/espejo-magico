@@ -10,75 +10,75 @@
         {
           "img": "assets/fondos/mecanica-nave.jpg",
           "lugar": {
-            "x": 0.81,
-            "y": 0.288,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.18,
-              "y": 0.302,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.895,
-              "y": 0.405,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.095,
-              "y": 0.41,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/mecanica-2.jpg",
           "lugar": {
-            "x": 0.79,
-            "y": 0.343,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.22,
-              "y": 0.357,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.895,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.1,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/mecanica-taller.jpg",
           "lugar": {
-            "x": 0.2,
-            "y": 0.323,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.79,
-              "y": 0.337,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.175,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.805,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -126,75 +126,75 @@
         {
           "img": "assets/fondos/electrica-turbinas.jpg",
           "lugar": {
-            "x": 0.82,
-            "y": 0.303,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.18,
-              "y": 0.334,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.85,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.14,
-              "y": 0.45,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/electrica-generadores.jpg",
           "lugar": {
-            "x": 0.79,
-            "y": 0.283,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.22,
-              "y": 0.319,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.78,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.095,
-              "y": 0.415,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/electrica-2.jpg",
           "lugar": {
-            "x": 0.18,
-            "y": 0.303,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.78,
-              "y": 0.304,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.14,
+              "x": 0.166,
               "y": 0.43,
-              "escala": 0.14
+              "escala": 0.24
             },
             {
-              "x": 0.78,
-              "y": 0.425,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -242,75 +242,75 @@
         {
           "img": "assets/fondos/computacion-2.jpg",
           "lugar": {
-            "x": 0.79,
-            "y": 0.358,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.13,
-              "y": 0.317,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.885,
-              "y": 0.475,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.22,
-              "y": 0.435,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/computacion-pasillo.jpg",
           "lugar": {
-            "x": 0.185,
-            "y": 0.283,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.805,
-              "y": 0.297,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.22,
-              "y": 0.44,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.805,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/computacion-3.jpg",
           "lugar": {
-            "x": 0.185,
-            "y": 0.293,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.78,
-              "y": 0.337,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.115,
-              "y": 0.475,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.78,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -358,75 +358,75 @@
         {
           "img": "assets/fondos/fisico-matematico-3.jpg",
           "lugar": {
-            "x": 0.18,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.294,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.14,
-              "y": 0.41,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.86,
-              "y": 0.41,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/fisico-matematico-acelerador.jpg",
           "lugar": {
-            "x": 0.79,
-            "y": 0.346,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.1,
-              "y": 0.329,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.865,
-              "y": 0.465,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.22,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/fisico-matematico-anillo.jpg",
           "lugar": {
-            "x": 0.835,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.095,
-              "y": 0.339,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.885,
-              "y": 0.475,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.17,
-              "y": 0.45,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -474,75 +474,75 @@
         {
           "img": "assets/fondos/civil-dique.jpg",
           "lugar": {
-            "x": 0.18,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.78,
-              "y": 0.289,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.22,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.78,
-              "y": 0.41,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/civil-embalse.jpg",
           "lugar": {
-            "x": 0.165,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.825,
-              "y": 0.294,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.15,
+              "x": 0.166,
               "y": 0.43,
-              "escala": 0.14
+              "escala": 0.24
             },
             {
-              "x": 0.88,
-              "y": 0.47,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/civil-2.jpg",
           "lugar": {
-            "x": 0.18,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.78,
-              "y": 0.359,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.22,
-              "y": 0.41,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.905,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -590,75 +590,75 @@
         {
           "img": "assets/fondos/quimica-laboratorio.jpg",
           "lugar": {
-            "x": 0.18,
-            "y": 0.295,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.905,
-              "y": 0.312,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.215,
-              "y": 0.42,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.82,
-              "y": 0.42,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/quimica-3.jpg",
           "lugar": {
-            "x": 0.895,
-            "y": 0.295,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.18,
-              "y": 0.302,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.905,
-              "y": 0.465,
-              "escala": 0.14
-            },
-            {
-              "x": 0.15,
+              "x": 0.834,
               "y": 0.43,
-              "escala": 0.14
+              "escala": 0.24
+            },
+            {
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/quimica-2.jpg",
           "lugar": {
-            "x": 0.835,
-            "y": 0.295,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.18,
-              "y": 0.297,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.89,
-              "y": 0.46,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.155,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -706,75 +706,75 @@
         {
           "img": "assets/fondos/alimentos-2.jpg",
           "lugar": {
-            "x": 0.8,
-            "y": 0.283,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.095,
-              "y": 0.306,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.905,
-              "y": 0.395,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.095,
-              "y": 0.475,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/alimentos-bodega.jpg",
           "lugar": {
-            "x": 0.21,
-            "y": 0.283,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.845,
-              "y": 0.296,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.095,
-              "y": 0.44,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.79,
-              "y": 0.41,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/alimentos-3.jpg",
           "lugar": {
-            "x": 0.2,
-            "y": 0.323,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.825,
-              "y": 0.321,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.095,
-              "y": 0.435,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.82,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -822,75 +822,75 @@
         {
           "img": "assets/fondos/produccion-2.jpg",
           "lugar": {
-            "x": 0.825,
-            "y": 0.316,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.095,
-              "y": 0.309,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.835,
-              "y": 0.445,
-              "escala": 0.14
-            },
-            {
-              "x": 0.095,
+              "x": 0.834,
               "y": 0.43,
-              "escala": 0.14
+              "escala": 0.24
+            },
+            {
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/produccion-deposito.jpg",
           "lugar": {
-            "x": 0.8,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.22,
-              "y": 0.289,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.86,
-              "y": 0.445,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.105,
-              "y": 0.445,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/produccion-3.jpg",
           "lugar": {
-            "x": 0.125,
-            "y": 0.291,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.78,
-              "y": 0.289,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.22,
-              "y": 0.405,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.88,
-              "y": 0.395,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -938,75 +938,75 @@
         {
           "img": "assets/fondos/agrimensura-valle.jpg",
           "lugar": {
-            "x": 0.18,
-            "y": 0.328,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.81,
-              "y": 0.359,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.16,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.885,
-              "y": 0.475,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/agrimensura-aereo.jpg",
           "lugar": {
-            "x": 0.2,
-            "y": 0.343,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.294,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.095,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.905,
-              "y": 0.475,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/agrimensura-terrazas.jpg",
           "lugar": {
-            "x": 0.82,
-            "y": 0.303,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.18,
-              "y": 0.299,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.885,
+              "x": 0.834,
               "y": 0.43,
-              "escala": 0.14
+              "escala": 0.24
             },
             {
-              "x": 0.105,
-              "y": 0.41,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -1054,75 +1054,75 @@
         {
           "img": "assets/fondos/comunicacion-antenas.jpg",
           "lugar": {
-            "x": 0.835,
-            "y": 0.288,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.22,
-              "y": 0.334,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.85,
+              "x": 0.834,
               "y": 0.43,
-              "escala": 0.14
+              "escala": 0.24
             },
             {
-              "x": 0.215,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/comunicacion-2.jpg",
           "lugar": {
-            "x": 0.815,
-            "y": 0.283,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.18,
-              "y": 0.294,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.875,
-              "y": 0.405,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.15,
-              "y": 0.415,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/comunicacion-3.jpg",
           "lugar": {
-            "x": 0.185,
-            "y": 0.283,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.78,
-              "y": 0.294,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.095,
-              "y": 0.405,
-              "escala": 0.14
-            },
-            {
-              "x": 0.85,
+              "x": 0.166,
               "y": 0.43,
-              "escala": 0.14
+              "escala": 0.24
+            },
+            {
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -1170,75 +1170,75 @@
         {
           "img": "assets/fondos/forestal-niebla.jpg",
           "lugar": {
-            "x": 0.2,
-            "y": 0.328,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.9,
-              "y": 0.304,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.22,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.885,
-              "y": 0.475,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/forestal-2.jpg",
           "lugar": {
-            "x": 0.875,
-            "y": 0.318,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.155,
-              "y": 0.339,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.87,
-              "y": 0.445,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.15,
-              "y": 0.46,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/forestal-3.jpg",
           "lugar": {
-            "x": 0.175,
-            "y": 0.328,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.83,
-              "y": 0.354,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.13,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.88,
-              "y": 0.47,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -1286,75 +1286,75 @@
         {
           "img": "assets/fondos/naval-2.jpg",
           "lugar": {
-            "x": 0.175,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.78,
-              "y": 0.289,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.22,
-              "y": 0.41,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.905,
-              "y": 0.385,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/naval-dique.jpg",
           "lugar": {
-            "x": 0.185,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.78,
-              "y": 0.289,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.15,
-              "y": 0.46,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.905,
-              "y": 0.385,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
         {
           "img": "assets/fondos/naval-3.jpg",
           "lugar": {
-            "x": 0.835,
-            "y": 0.286,
-            "escala": 0.16
+            "x": 0.834,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.205,
-              "y": 0.354,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.78,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.095,
-              "y": 0.455,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },
@@ -1362,25 +1362,25 @@
           "img": "assets/fondos/naval-canal.jpg",
           "video": "assets/fondos/naval-canal.mp4",
           "lugar": {
-            "x": 0.16,
-            "y": 0.321,
-            "escala": 0.16
+            "x": 0.166,
+            "y": 0.22,
+            "escala": 0.24
           },
           "escondites": [
             {
-              "x": 0.795,
-              "y": 0.349,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.22,
+              "escala": 0.24
             },
             {
-              "x": 0.12,
-              "y": 0.445,
-              "escala": 0.14
+              "x": 0.166,
+              "y": 0.43,
+              "escala": 0.24
             },
             {
-              "x": 0.905,
-              "y": 0.45,
-              "escala": 0.14
+              "x": 0.834,
+              "y": 0.43,
+              "escala": 0.24
             }
           ]
         },

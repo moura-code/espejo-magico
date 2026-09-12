@@ -320,10 +320,11 @@ let objetoMostrado = null;
 // objeto vuela y el origen no puede irse con el. Null cuando no habia ranura a
 // la vista: la red de la fila, o una carrera forzada por teclado.
 let origenDelVuelo = null;
-// Lo que dijo el ultimo cuadro sobre las fichas: la activa, el alfa de cada una
-// y cuando se abrio la primera de la sesion, que es desde donde se apaga la
-// consigna de explorar.
-const FICHAS_CERRADAS = { activa: null, alfas: {}, primera: null };
+// Lo que dijo el ultimo cuadro sobre las fichas: la activa, el alfa de cada una,
+// cuanto esta adelante de la persona el que tiene la mano encima y cuando se
+// abrio la primera de la sesion, que es desde donde se apaga la consigna de
+// explorar.
+const FICHAS_CERRADAS = { activa: null, alfas: {}, delante: {}, primera: null };
 let estadoFichas = FICHAS_CERRADAS;
 // Los objetos del fondo que tienen ficha, en su lugar quieto: el que llego
 // volando y los escondidos. Se arman en cada cuadro, y las fichas se dibujan al
@@ -778,14 +779,18 @@ function cuadro(ahora) {
       objetivos: explorando ? leibles : [],
       ahora,
     });
-    const leido = (id) => estadoFichas.alfas[id] ?? 0;
+    // Cuanto esta en foco cada objeto: su ficha abierta o la mano encima, lo que
+    // llegue primero. La mano encima lo pasa adelante de la persona y lo hace
+    // crecer enseguida, sin esperar a la ficha: detras, la mano lo tapaba y
+    // parecia atravesarlo.
+    const enFoco = (id) => Math.max(estadoFichas.alfas[id] ?? 0, estadoFichas.delante[id] ?? 0);
 
     // Como se ve cada objeto en este cuadro —cuanto se mece o flota, y cuanto
     // crece, se calma y se ilumina mientras se lee su ficha— lo dice
     // aspectoDelObjeto: la misma cuenta que usa herramientas/fondos.html.
     const aspecto = (objeto, extra = {}) =>
       aspectoDelObjeto(
-        { ahora, indice: objeto.indice, radio: objeto.radio, leyendo: leido(objeto.id), ...extra },
+        { ahora, indice: objeto.indice, radio: objeto.radio, leyendo: enFoco(objeto.id), ...extra },
         CONFIG,
       );
     // Lo que queda dibujado detras de la persona, para volver a ponerle delante
@@ -806,7 +811,7 @@ function cuadro(ahora) {
         halo,
       };
       dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre);
-      detras.push({ ...dibujo, leyendo: leido(escondido.id) });
+      detras.push({ ...dibujo, leyendo: enFoco(escondido.id) });
     }
 
     // El que llego volando vuela quieto y sin halo; al aterrizar arranca a
@@ -831,7 +836,7 @@ function cuadro(ahora) {
     if (aterrizo) {
       const dibujo = { ...apoyado, alfa: transicion.elegido, halo: comoSeVe.halo };
       dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre);
-      detras.push({ ...dibujo, leyendo: leido(0) });
+      detras.push({ ...dibujo, leyendo: enFoco(0) });
     }
 
     if (hayRecorte) {
@@ -846,11 +851,12 @@ function cuadro(ahora) {
       });
       ctx.restore();
 
-      // EL QUE SE ESTA LEYENDO VA TAMBIEN DELANTE DE LA PERSONA, y solo donde
-      // esta ella. Detras, la mano que fue a buscarlo lo tapa justo cuando
-      // crece y se ilumina, y la ficha quedaria hablando de algo que no se ve.
-      // Recortado contra la silueta, donde nada lo tapa no se dibuja dos veces
-      // y donde la mano lo tapaba aparece encima, con el alfa de su ficha.
+      // EL QUE TIENE LA MANO ENCIMA VA TAMBIEN DELANTE DE LA PERSONA, y solo
+      // donde esta ella: apenas la mano lo toca, sin esperar a su ficha.
+      // Detras, la mano que fue a buscarlo lo tapa y parece atravesarlo, y la
+      // ficha quedaria hablando de algo que no se ve. Recortado contra la
+      // silueta, donde nada lo tapa no se dibuja dos veces y donde la mano lo
+      // tapaba aparece encima, con su alfa de foco.
       dibujarObjetosDelante(ctx, {
         capa: delante,
         persona,
@@ -1000,22 +1006,16 @@ function cuadro(ahora) {
   );
 
   // Las fichas, encima de todo lo de la escena: el texto se tiene que leer.
-  // Cada una en la franja del costado de su objeto, para no taparle la cara a
-  // nadie, y se apaga con el fondo en el cierre. Contra que se dispone —el
-  // objeto ya crecido, los otros del fondo— lo dice fichaDelObjeto, la misma
-  // cuenta que la herramienta y las pruebas.
+  // Van en el cartel de arriba de la cabeza, sin bajar hasta la cara, y se
+  // apagan con el fondo en el cierre. Hasta donde baja y con que letra lo dice
+  // fichaDelObjeto, la misma cuenta que la herramienta y las pruebas.
   for (const objeto of delFondo) {
     const alfa = (estadoFichas.alfas[objeto.id] ?? 0) * transicion.fondo;
     if (alfa <= 0) continue;
-    const { circulo, opciones } = fichaDelObjeto(objeto, delFondo, disposicion.ancho, CONFIG);
+    const { opciones } = fichaDelObjeto(objeto, disposicion, CONFIG);
     dibujarFicha(
       ctx,
-      {
-        ...circulo,
-        nombre: objeto.definicion.nombre,
-        descripcion: objeto.definicion.descripcion,
-        alfa,
-      },
+      { nombre: objeto.definicion.nombre, descripcion: objeto.definicion.descripcion, alfa },
       disposicion,
       { ...opciones, colores: COLORES_DE_FICHA },
     );
