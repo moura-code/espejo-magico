@@ -25,6 +25,11 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
 El espejo no necesita internet. Sí necesita que las tablets estén en la misma
 máquina o en la red del stand, pero eso lo maneja el otro proyecto.
 
+Antes del evento, hacer además una pasada con al menos ocho personas ajenas al
+equipo. Registrar sólo totales: cuántas completan una elección, cuánto tarda y
+cuántas necesitan la segunda consigna. Si varias no llegan a los objetos sin
+estirar el brazo, corregir la altura de cámara o la disposición antes de abrir.
+
 ## Apagar
 
 Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
@@ -117,11 +122,11 @@ Se cerró la ventana negra del servidor. Cerrar Chrome y volver a correr
 `arrancar.bat`.
 
 **Todo va lento.**
-Apretar `P` y mirar `fps`. Por debajo de 25 se nota. Cerrar cualquier otro programa
-de la PC. Si sigue lento, avisar al equipo técnico: hay que bajar
-`pose.fpsConFondo` o `manos.fpsExplorando` en `espejo/config.js` (con la
-ingeniería ya elegida siguen corriendo la silueta y las manos, que abren las
-fichas).
+Apretar `P` y mirar `fps` y `perfil`. Por debajo de 30 FPS hay que investigarlo:
+el espejo baja solo a `equilibrado` tras 5 s lentos y a `seguro` si persiste; no
+lo hace mientras alguien completa una elección. Cerrar cualquier otro programa.
+Si permanece en `seguro`, avisar al equipo técnico antes de cambiar la
+configuración de detección.
 
 **Aparecen íconos o círculos dorados en vez de las fotos de los objetos.**
 Falta ese PNG. Apretar `P` y mirar `png faltan`. No rompe nada: es el
@@ -187,4 +192,3 @@ falta para correr las pruebas, no para que el stand funcione.
 - `docs/arquitectura.md` — especificación técnica de la arquitectura, módulos, máquina de estados y el puente con las tablets.
 - `docs/contenido.md` — guía para creadores de contenido: PNG de objetos, fondos, personas y figuras vectoriales.
 - `docs/despliegue.md` — guía completa de puesta en marcha del stand y contingencias.
-

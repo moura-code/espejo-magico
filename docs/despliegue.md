@@ -83,7 +83,7 @@ Antes de abrir el stand al público:
 8. Confirmar que aparezca el **fondo de la ingeniería detrás de la persona**, no encima. Si se ve la persona lavada bajo el fondo, la máscara de silueta no está: mirar la línea `pose` del panel.
    Al rato de aterrizar el objeto tienen que aparecer, a los costados, los **otros tres objetos** de la carrera, escondidos en el fondo y meciéndose apenas, y abajo la consigna *"Pasá la mano sobre los objetos del fondo"*. Pasar la mano sobre cada uno de los cuatro: se tiene que abrir su **ficha** —el nombre y una descripción corta— en el costado de ese objeto, sin taparle la cara a la persona; al sacar la mano, la ficha espera un momento y se apaga despacio. La línea `ficha` del panel dice cuál está abierta.
 9. **Sentarse quieto un par de minutos.** La escena tiene que seguir siendo suya: si se corta sola, revisar `CONFIG.tiempos.sesionMaxima` y `CONFIG.presencia.msParaSalir`.
-10. **Sentarse y no elegir nada.** A los 30 segundos el espejo tiene que resolver solo y revelar una carrera: nadie se va sin ingeniería y la fila no se traba.
+10. **Sentarse y no elegir nada.** A los 10 segundos la consigna tiene que explicar que se mantenga la mano hasta completar el círculo. A los 30 segundos el espejo debe cerrar y volver a quedar disponible, sin asignar una carrera ni cambiar las tablets.
 11. Levantarse del sillón y verificar que la escena se cierre, que las nubes vuelvan a cubrir el espejo y que **las tablets vuelvan a su humo**. Son unos **nueve segundos** desde que uno se levanta: seis de ausencia (`ausenciaParaCortar` más `presencia.msParaSalir`) y tres de cierre.
 12. **Probar el relevo:** levantarse y que se siente otra persona. Tiene que recibir su propio carrusel, con otro orden, no seguir en la escena de la anterior. Si se sienta antes de esos nueve segundos, hereda la escena — es un límite conocido, no una falla de calibración.
 
@@ -124,7 +124,7 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 ### La experiencia se siente lenta o con tirones
 1. Presionar `P` y revisar los `fps`.
 2. Si el valor es inferior a 30 FPS, cerrar otras aplicaciones abiertas en la PC.
-3. Si continúa lento, bajar `CONFIG.pose.fpsConFondo` en `espejo/config.js`: es lo más caro del cuadro, porque cada lectura de la silueta cuesta un viaje de la GPU a la CPU. El borde del recorte se va a ver un poco más atrasado, nada más. Con la ingeniería elegida también siguen corriendo las manos, que abren las fichas, a `CONFIG.manos.fpsExplorando` (12): se puede bajar un poco más, porque con 300 ms para abrir una ficha, 8 cuadros por segundo todavía la abren. Rostro, pose y manos corren en el mismo hilo: si el panel muestra tirones con la ingeniería puesta y no antes, empezar por estos dos.
+3. Revisar la línea `perfil`: el regulador pasa solo a `equilibrado` y `seguro` si sostiene menos de 27 FPS durante 5 s, y vuelve a subir únicamente después de 10 s por encima de 35 FPS. Si sigue en `seguro`, avisar al equipo técnico; no alterar la configuración durante el evento sin repetir la prueba completa.
 4. Como último recurso, `CONFIG.pose.segmentacion: false` apaga el recorte entero: el fondo se dibuja semitransparente encima del espejo y el espejo vuelve a ir sobrado.
 
 ### Nadie consigue elegir un objeto

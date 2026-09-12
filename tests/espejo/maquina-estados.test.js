@@ -8,6 +8,7 @@ import { crearMaquina, ESTADOS } from '../../espejo/maquina-estados.js';
 const TIEMPOS = {
   enganche: 2000,
   humo: 3000,
+  ayudaEleccion: 4000,
   eleccionMaxima: 10000,
   cierre: 4000,
   enfriamiento: 3000,
@@ -199,6 +200,27 @@ describe('mirar', () => {
   });
 });
 
+describe('exploracion sin eleccion', () => {
+  // Protege contra volver a asignar la primera carrera cuando alguien no
+  // entendio el gesto: la experiencia debe pedir ayuda y liberarse, no decidir
+  // una identidad en su nombre.
+  it('pide ayuda una sola vez antes de cerrar sin elegir', () => {
+    const maquina = hastaExplorar();
+    const salida = avanzar(maquina, 6100, 16100, true);
+
+    expect(tipos(salida.eventos, 'ayuda-eleccion')).toHaveLength(1);
+    expect(salida.carrera).toBeNull();
+    expect(salida.estado).toBe(ESTADOS.CIERRE);
+  });
+
+  it('no emite mira al vencer el plazo de eleccion', () => {
+    const maquina = hastaExplorar();
+    const salida = avanzar(maquina, 6100, 16100, true);
+
+    expect(tipos(salida.eventos, 'mira')).toEqual([]);
+  });
+});
+
 describe('el rostro sostiene la sesion', () => {
   // Antes los hombros mantenian viva la sesion con la cara girada. Ahora el
   // rostro es lo que manda: cuando deja de reconocerse, el espejo vuelve a su
@@ -270,17 +292,14 @@ describe('el rostro sostiene la sesion', () => {
 });
 
 describe('la red de seguridad de la fila', () => {
-  // Quien no entiende el gesto no puede quedarse con el espejo tomado. Al
-  // vencerse se muestra una por sorteo —lo ofrecido viene barajado, asi que
-  // tomar el primero ya es un sorteo— y nadie se va sin ingenieria.
-  it('muestra la primera ofrecida si nadie agarro nada, y sigue explorando', () => {
+  it('libera el espejo si nadie eligio', () => {
     const maquina = hastaExplorar();
 
     const vencido = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 200, true);
 
-    expect(vencido.estado).toBe(ESTADOS.EXPLORACION);
-    expect(vencido.carrera).toBe(OFRECIDAS[0]);
-    expect(maquina.sesion()).toBe(1);
+    expect(vencido.estado).toBe(ESTADOS.CIERRE);
+    expect(vencido.carrera).toBeNull();
+    expect(maquina.sesion()).toBe(0);
   });
 
   // LA RED NO PUEDE ROBARLE EL GESTO A QUIEN YA ESTA ELIGIENDO. Desde que la
@@ -296,8 +315,8 @@ describe('la red de seguridad de la fila', () => {
     expect(vencido.carrera).toBeNull();
   });
 
-  // Y en cuanto la mano se va —el anillo se vacia solo—, la red vuelve a valer.
-  it('sortea apenas se suelta el sostenido, si el plazo ya vencio', () => {
+  // Al soltar el sostenido vencido, se libera el espejo sin adjudicar una carrera.
+  it('cierra apenas se suelta el sostenido, si el plazo ya vencio', () => {
     const maquina = hastaExplorar();
     avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 5000, true, { eligiendo: true });
 
@@ -307,19 +326,17 @@ describe('la red de seguridad de la fila', () => {
       ahora: 6100 + TIEMPOS.eleccionMaxima + 5100,
     });
 
-    expect(suelto.carrera).toBe(OFRECIDAS[0]);
+    expect(suelto.estado).toBe(ESTADOS.CIERRE);
+    expect(suelto.carrera).toBeNull();
   });
 
-  // La red de la fila cierra la eleccion igual que agarrar un objeto: si no,
-  // quedaria un carrusel apagado y una mano que ya no sirve para nada, y la
-  // persona veria cambiar su ingenieria sin haber hecho nada.
-  it('la carrera sorteada tampoco se puede cambiar', () => {
+  it('no acepta una carrera despues de haber cerrado sin eleccion', () => {
     const maquina = hastaExplorar();
     const vencido = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 200, true);
 
     const despues = maquina.mirar('civil', vencido.ahora + 100);
 
-    expect(despues.carrera).toBe(OFRECIDAS[0]);
+    expect(despues.carrera).toBeNull();
     expect(despues.eventos).toEqual([]);
   });
 
@@ -332,7 +349,7 @@ describe('la red de seguridad de la fila', () => {
     expect(vencido.carrera).toBe('naval');
   });
 
-  it('no vuelve a dispararse despues de mostrar la de la red', () => {
+  it('no emite una mirada despues de cerrar sin eleccion', () => {
     const maquina = hastaExplorar();
 
     const primera = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 200, true);
@@ -448,21 +465,21 @@ describe('el enfriamiento y el tope de sesion', () => {
       sortearOpciones: () => [...OFRECIDAS],
     });
 
-    const salida = avanzar(maquina, 0, 25000, true);
+    avanzar(maquina, 0, 6000, true);
+    maquina.mirar('civil', 6100);
+    const salida = avanzar(maquina, 6200, 25000, true);
     expect([ESTADOS.CIERRE, ESTADOS.ATRACCION]).toContain(salida.estado);
     expect(entra(salida.eventos, ESTADOS.CIERRE)).toHaveLength(1);
   });
 
   it('numera las sesiones de forma creciente', () => {
     const maquina = nueva();
-    avanzar(maquina, 0, 20000, true);
+    maquina.forzarCarrera('civil', 0);
     expect(maquina.sesion()).toBe(1);
 
-    // La segunda sesion recien se numera cuando vuelve a mostrar algo: el tope
-    // de sesion corta a los 75 s, el cierre y el enfriamiento se llevan otros
-    // siete, y el ciclo nuevo tarda quince mas en llegar a la red de la fila.
-    const segunda = avanzar(maquina, 20100, 110000, true);
-    expect(segunda.sesion).toBeGreaterThan(1);
+    maquina.reiniciar(100);
+    const segunda = maquina.forzarCarrera('naval', 200);
+    expect(segunda.sesion).toBe(2);
   });
 
   // El ciclo tiene que cerrar sobre si mismo indefinidamente: en una tarde de
@@ -470,21 +487,16 @@ describe('el enfriamiento y el tope de sesion', () => {
   it('cada vuelta numera una sesion nueva, vuelta tras vuelta', () => {
     const maquina = nueva();
     const todos = [];
-    for (let ahora = 0; ahora <= 200000; ahora += 100) {
-      todos.push(...maquina.actualizar({ hayRostro: true, ahora }).eventos);
+    for (let ahora = 0; ahora <= 2000; ahora += 200) {
+      todos.push(...maquina.forzarCarrera('civil', ahora).eventos);
+      todos.push(...maquina.reiniciar(ahora + 100).eventos);
     }
 
-    // Con la persona siempre presente, cada sesion muestra exactamente una
-    // carrera: la que le pone la red de seguridad de la fila.
+    // Cada sesion se cuenta cuando una persona efectivamente ve una carrera.
     const miradas = tipos(todos, 'mira');
     expect(miradas.length).toBeGreaterThan(1);
     expect(maquina.sesion()).toBe(miradas.length);
 
-    // Nunca hay un cierre sin su sesion. La ventana puede terminar a mitad de
-    // ciclo, asi que la ultima mirada todavia puede no tener el suyo.
-    const cierres = entra(todos, ESTADOS.CIERRE).length;
-    expect(cierres).toBeLessThanOrEqual(miradas.length);
-    expect(cierres).toBeGreaterThanOrEqual(miradas.length - 1);
   });
 });
 

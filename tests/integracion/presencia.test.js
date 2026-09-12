@@ -20,7 +20,7 @@ import { crearMaquina, ESTADOS } from '../../espejo/maquina-estados.js';
  * es la otra señal: por defecto acompaña al rostro, y se separa para probar el
  * caso de la cara girada con los hombros todavia a la vista.
  */
-function correr({ hayRostroEn, hayPoseEn = hayRostroEn, hasta, paso = 50 }) {
+function correr({ hayRostroEn, hayPoseEn = hayRostroEn, hasta, paso = 50, elegir = false }) {
   const histeresis = crearHisteresis(CONFIG.presencia);
   const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
   const maquina = crearMaquina({
@@ -33,14 +33,24 @@ function correr({ hayRostroEn, hayPoseEn = hayRostroEn, hasta, paso = 50 }) {
   for (let ahora = 0; ahora <= hasta; ahora += paso) {
     const crudoRostro = Boolean(hayRostroEn(ahora));
     const crudoPersona = Boolean(hayPoseEn(ahora)) || crudoRostro;
+    const registrar = (salida) => {
+      for (const evento of salida.eventos) {
+        if (evento.tipo === 'entra') entradas.push({ estado: evento.estado, ahora });
+        if (evento.tipo === 'mira') miradas.push({ carrera: evento.carrera, ahora });
+      }
+    };
     const salida = maquina.actualizar({
       puedeIniciar: histeresisDeRostro.actualizar(crudoRostro, ahora),
       hayPersona: histeresis.actualizar(crudoPersona, ahora),
       ahora,
     });
-    for (const evento of salida.eventos) {
-      if (evento.tipo === 'entra') entradas.push({ estado: evento.estado, ahora });
-      if (evento.tipo === 'mira') miradas.push({ carrera: evento.carrera, ahora });
+    registrar(salida);
+
+    // Estas pruebas buscan tolerancia de presencia, no la salida de la fila.
+    // Para que esa segunda red no las corte a los 30 s, una visita completada
+    // simula la elección normal apenas aparece el carrusel.
+    if (elegir && maquina.estado() === ESTADOS.EXPLORACION && maquina.carrera() === null) {
+      registrar(maquina.mirar('civil', ahora));
     }
   }
 
@@ -58,6 +68,7 @@ describe('estabilidad de la sesion', () => {
     const { maquina, visitados } = correr({
       hayRostroEn: (ahora) => ahora % CICLO < 1500,
       hasta: 60000,
+      elegir: true,
     });
 
     expect(visitados).toContain(ESTADOS.EXPLORACION);
@@ -71,6 +82,7 @@ describe('estabilidad de la sesion', () => {
     const { visitados } = correr({
       hayRostroEn: (ahora) => ahora % 3000 < 2000, // 2 s si, 1 s no
       hasta: 40000,
+      elegir: true,
     });
 
     expect(cuantos(visitados, ESTADOS.ATRACCION)).toBe(0);
@@ -82,7 +94,7 @@ describe('estabilidad de la sesion', () => {
   // experiencia. Si le corta la escena a alguien que la esta disfrutando, esta
   // mal puesto.
   it('quien se queda sentado y bien detectado conserva su exploracion varios minutos', () => {
-    const { visitados, maquina } = correr({ hayRostroEn: () => true, hasta: 150000 });
+    const { visitados, maquina } = correr({ hayRostroEn: () => true, hasta: 150000, elegir: true });
 
     expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
     expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
@@ -126,15 +138,14 @@ describe('estabilidad de la sesion', () => {
 
   // La otra red de seguridad de la fila: quien se sienta y no entiende el gesto
   // no puede dejar el espejo tomado hasta el tope de sesion, tres minutos
-  // despues. La red le muestra una y como lo ofrecido viene barajado, la
-  // ingenieria que recibe igual es un sorteo. Despues puede agarrar otras.
-  it('quien no agarra nada igual recibe una ingenieria', () => {
+  // despues. Pero el sistema tampoco puede adjudicarle una ingeniería.
+  it('quien no agarra nada libera el espejo sin recibir una ingenieria', () => {
     const { maquina, visitados, miradas } = correr({ hayRostroEn: () => true, hasta: 60000 });
 
     expect(visitados).toContain(ESTADOS.EXPLORACION);
-    expect(miradas).toHaveLength(1);
-    expect(maquina.carrera()).not.toBeNull();
-    expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
+    expect(miradas).toHaveLength(0);
+    expect(maquina.carrera()).toBeNull();
+    expect(cuantos(visitados, ESTADOS.CIERRE)).toBeGreaterThan(0);
   });
 
   // LO QUE PIDIO EL STAND: cuando el espejo deja de reconocer una cara, vuelve a
@@ -147,6 +158,7 @@ describe('estabilidad de la sesion', () => {
       // El cuerpo se sigue viendo todo el tiempo: no alcanza para sostenerla.
       hayPoseEn: () => true,
       hasta: 60000,
+      elegir: true,
     });
 
     const vuelta = entradas.find((e) => e.estado === ESTADOS.ATRACCION);
@@ -162,6 +174,7 @@ describe('estabilidad de la sesion', () => {
       hayRostroEn: (ahora) => ahora % 5500 < 4000,
       hayPoseEn: () => true,
       hasta: 60000,
+      elegir: true,
     });
 
     expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);

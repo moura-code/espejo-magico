@@ -106,6 +106,7 @@ export function instalarOperacion({
       const maite = espejo.puente.ultimo();
       panel.textContent = [
         `fps         ${fps.valor().toFixed(0)}`,
+        `perfil      ${espejo.perfilDeRendimiento?.() ?? 'completo'}`,
         `estado      ${espejo.maquina.estado()}`,
         `ofrecidas   ${espejo.maquina.opciones().join(' ') || '-'}`,
         `carrera     ${espejo.maquina.carrera() ?? '-'}`,

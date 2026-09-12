@@ -28,7 +28,12 @@ import { aspectoDelObjeto, objetosDelFondo, fichaDelObjeto } from './escondites.
 import { crearFichas } from './fichas.js';
 import { crearPuente } from './maite.js';
 import { alfaDeHumo } from './humo.js';
-import { cargarVideoDelNavegador, crearBancoDeVideos } from './videos.js';
+import {
+  cargarVideoDelNavegador,
+  crearBancoDeVideos,
+  iniciarCargaOpcional,
+} from './videos.js';
+import { crearGobernadorDeRendimiento } from './rendimiento.js';
 import {
   crearNiebla,
   objetivoDeNiebla,
@@ -176,13 +181,18 @@ try {
 // El humo es un agregado opcional: si el video falta o el navegador no lo puede
 // reproducir, el espejo arranca igual y lo unico que se pierde es la transicion.
 let videoDeHumo = null;
-try {
-  videoDeHumo = await cargarVideoDelNavegador(`/contenido/${CONFIG.humo.ruta}`, {
-    msMaximos: CONFIG.humo.msParaCargar,
-  });
-} catch (error) {
-  console.warn('Humo no disponible:', error?.message ?? error);
-}
+iniciarCargaOpcional({
+  cargar: () =>
+    cargarVideoDelNavegador(`/contenido/${CONFIG.humo.ruta}`, {
+      msMaximos: CONFIG.humo.msParaCargar,
+    }),
+  alResolver: (video) => {
+    videoDeHumo = video;
+  },
+  alFallar: (error) => {
+    console.warn('Humo no disponible:', error?.message ?? error);
+  },
+});
 
 // ---------- rostro ----------
 let modo = 'camara';
@@ -326,6 +336,9 @@ let origenDelVuelo = null;
 // explorar.
 const FICHAS_CERRADAS = { activa: null, alfas: {}, delante: {}, primera: null };
 let estadoFichas = FICHAS_CERRADAS;
+// La primera frase ya ensena el gesto. Si pasan varios segundos sin elegir, la
+// ayuda de la maquina la vuelve mas concreta sin interrumpir la escena.
+let ayudaDeEleccionVisible = false;
 // Los objetos del fondo que tienen ficha, en su lugar quieto: el que llego
 // volando y los escondidos. Se arman en cada cuadro, y las fichas se dibujan al
 // final, encima de todo.
@@ -347,6 +360,11 @@ function prepararOfrecidos(opciones) {
 
 function atender(salida, ahora) {
   for (const evento of salida.eventos) {
+    if (evento.tipo === 'ayuda-eleccion') {
+      ayudaDeEleccionVisible = true;
+      continue;
+    }
+
     // Cambio la ingenieria que se esta mostrando. Es lo unico que le avisa a
     // MAITE, y la maquina ya se encargo de que no se repita: agarrar dos veces
     // el mismo objeto no manda dos veces, asi las tablets no parpadean.
@@ -377,6 +395,7 @@ function atender(salida, ahora) {
       mostrada = null;
       objetoMostrado = null;
       origenDelVuelo = null;
+      ayudaDeEleccionVisible = false;
     }
 
     if (evento.estado === ESTADOS.ATRACCION) {
@@ -385,6 +404,7 @@ function atender(salida, ahora) {
       mostrada = null;
       objetoMostrado = null;
       origenDelVuelo = null;
+      ayudaDeEleccionVisible = false;
       eleccion.reiniciar();
       tablero.reiniciar();
       cerrarFichas();
@@ -449,8 +469,9 @@ let ultimaDeteccionPose = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
 let progresoDeEleccion = 0;
 let sobreQueBlanco = null;
-const intervaloDeteccion = 1000 / CONFIG.deteccion.fpsObjetivo;
-const intervaloManos = 1000 / CONFIG.manos.fps;
+let detectoresEscalonados = false;
+const rendimiento = crearGobernadorDeRendimiento(CONFIG.rendimiento);
+let perfilDeRendimiento = rendimiento.perfil();
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
 
 // La silueta cuesta una lectura de la GPU a la CPU: solo se arma cuando hay un
@@ -470,8 +491,14 @@ function cuadro(ahora) {
 
   // Se acota el dt: si el navegador se traba un instante, un salto grande
   // haria saltar la niebla de golpe. Es el mismo tope que el de los fundidos.
-  const dt = Math.min(DT_MAXIMO, ahora - anterior) / 1000;
+  const lapso = ahora - anterior;
+  const dt = Math.min(DT_MAXIMO, lapso) / 1000;
   anterior = ahora;
+  perfilDeRendimiento = rendimiento.registrar({
+    ahora,
+    fps: lapso > 0 ? 1000 / lapso : Infinity,
+    protegiendoEleccion: progresoDeEleccion > 0,
+  });
 
   const camaraLista = camara.obtener();
   const video = camaraLista?.video ?? null;
@@ -500,16 +527,17 @@ function cuadro(ahora) {
   const poseSirve = detectorDePose && video && modo !== 'demo';
   const manosSirven =
     detectorDeManos && video && modo !== 'demo' && estadoAnterior === ESTADOS.EXPLORACION;
-  const intervaloDeManos = mostrada ? 1000 / CONFIG.manos.fpsExplorando : intervaloManos;
+  const intervaloDeManos = 1000 / (mostrada ? perfilDeRendimiento.manosConFondo : perfilDeRendimiento.manos);
 
   // La mascara ES la imagen mientras hay fondo: a 12 cuadros por segundo el
   // borde de la silueta va atras del cuerpo y se ve el fondo pegado al hombro.
   const intervaloPose =
-    1000 / (conFondo(estadoAnterior, mostrada) ? CONFIG.pose.fpsConFondo : CONFIG.pose.fps);
+    1000 / (conFondo(estadoAnterior, mostrada) ? perfilDeRendimiento.poseConFondo : perfilDeRendimiento.pose);
 
-  const tocaRostro = ahora - ultimaDeteccion >= intervaloDeteccion;
-  const tocaPose = poseSirve && ahora - ultimaDeteccionPose >= intervaloPose;
-  const tocaManos = manosSirven && ahora - ultimaDeteccionManos >= intervaloDeManos;
+  const tocaRostro = ahora - ultimaDeteccion >= 1000 / perfilDeRendimiento.rostro;
+  const tocaPose = detectoresEscalonados && poseSirve && ahora - ultimaDeteccionPose >= intervaloPose;
+  const tocaManos =
+    detectoresEscalonados && manosSirven && ahora - ultimaDeteccionManos >= intervaloDeManos;
 
   // El recorte se prepara UNA vez por cuadro y solo si alguno de los tres va a
   // correr: el drawImage no es gratis. Como contiene exactamente lo que se ve en
@@ -523,6 +551,15 @@ function cuadro(ahora) {
 
   if (tocaRostro) {
     ultimaDeteccion = ahora;
+
+    // Arrancar los tres modelos en el mismo cuadro hace que el primer pico de
+    // CPU/GPU coincida con la llegada de una persona. La cara abre la marcha;
+    // pose y manos se suman uno y dos tercios de intervalo despues.
+    if (!detectoresEscalonados) {
+      detectoresEscalonados = true;
+      ultimaDeteccionPose = ahora;
+      ultimaDeteccionManos = ahora - (intervaloDeManos * 2) / 3;
+    }
 
     crudoRostro =
       modo === 'demo'
@@ -1078,7 +1115,14 @@ function cuadro(ahora) {
   // nada que agarrar. La de explorar entra con la escena entera y se va para
   // siempre la primera vez que alguien abre una ficha: el gesto ya se aprendio.
   if (estado === ESTADOS.EXPLORACION) {
-    dibujarConsigna(ctx, disposicion, transicion.objetos * (1 - humo));
+    dibujarConsigna(
+      ctx,
+      disposicion,
+      transicion.objetos * (1 - humo),
+      ayudaDeEleccionVisible
+        ? 'Mantené la mano sobre un objeto hasta completar el círculo'
+        : 'Sostené la mano sobre un objeto',
+    );
   }
   dibujarConsigna(ctx, disposicion, transicion.explorar, 'Pasá la mano sobre los objetos del fondo');
 }
@@ -1099,6 +1143,7 @@ window.espejo = {
   mostrada: () => mostrada,
   origenDelVuelo: () => origenDelVuelo,
   progresoDeEleccion: () => progresoDeEleccion,
+  perfilDeRendimiento: () => perfilDeRendimiento.nombre,
   // El nombre del objeto cuya ficha se esta mostrando, o null.
   fichaActiva: () =>
     delFondo.find((objeto) => objeto.id === estadoFichas.activa)?.definicion?.nombre ?? null,

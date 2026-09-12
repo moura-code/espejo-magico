@@ -50,6 +50,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
   let miraDesde = null;
   let sesion = 0;
   let contada = false;
+  let ayudaDeEleccionEnviada = false;
   let enManual = manual;
 
   function ir(nuevo, ahora, eventos) {
@@ -65,6 +66,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       miraDesde = null;
       inicioDeSesion = null;
       contada = false;
+      ayudaDeEleccionEnviada = false;
     }
   }
 
@@ -234,26 +236,28 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
           break;
 
         // La exploracion no tiene duracion propia: dura mientras la persona
-        // siga sentada, mirando la ingenieria que le toco. El tope es la red de
-        // seguridad de la fila — quien no entiende el gesto no puede dejar el
-        // espejo tomado sin ver nada, asi que se le muestra una por sorteo. Y
-        // como cierra la eleccion igual que agarrar un objeto, nadie se va sin
-        // ingenieria ni se queda esperando delante de un carrusel que no
-        // entiende.
+        // siga sentada, mirando la ingenieria que eligio. Si no entiende el
+        // gesto, primero recibe una ayuda y despues el espejo se libera: no se
+        // le puede asignar una carrera al azar.
         case ESTADOS.EXPLORACION:
           if (seFue || sePerdioElRostro || pasoElTope) {
             ir(ESTADOS.CIERRE, ahora, eventos);
             break;
           }
-          // LA RED NO SE LE CAE ENCIMA A QUIEN YA ESTA ELIGIENDO. Como ahora
-          // cerrar la eleccion es definitivo, vencer el plazo con la mano
-          // sostenida sobre un objeto le robaria el gesto: se llevaria una
-          // ingenieria sorteada que no eligio y sin poder corregirlo. Se espera
-          // a que el sostenido termine o se suelte; el tope de sesion sigue
-          // vigilando por detras, y un sostenido no puede durar para siempre
-          // porque el anillo se vacia solo en cuanto la mano se va.
+          if (
+            carrera === null &&
+            !ayudaDeEleccionEnviada &&
+            transcurrido >= (tiempos.ayudaEleccion ?? tiempos.eleccionMaxima)
+          ) {
+            ayudaDeEleccionEnviada = true;
+            eventos.push({ tipo: 'ayuda-eleccion' });
+          }
+
+          // La red no se le cae encima a quien esta en la mitad del sostenido.
+          // Al vencer sin una carrera elegida, el cierre libera el espejo sin
+          // inventar una eleccion por la persona.
           if (carrera === null && !eligiendo && transcurrido >= tiempos.eleccionMaxima) {
-            mostrar(opciones[0] ?? null, ahora, eventos);
+            ir(ESTADOS.CIERRE, ahora, eventos);
           }
           break;
 

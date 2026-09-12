@@ -152,6 +152,7 @@ describe('instalarOperacion', () => {
 
     expect(espejo.alternarMalla).toHaveBeenCalledOnce();
     expect(panel.textContent).toContain('estado      EXPLORACION');
+    expect(panel.textContent).toContain('perfil      completo');
   });
 
   // Si las tablets no acompañan, el panel tiene que decir de un vistazo si el

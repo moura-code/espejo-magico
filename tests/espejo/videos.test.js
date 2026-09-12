@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { cargarVideoDelNavegador, crearBancoDeVideos } from '../../espejo/videos.js';
+import {
+  cargarVideoDelNavegador,
+  crearBancoDeVideos,
+  iniciarCargaOpcional,
+} from '../../espejo/videos.js';
 
 // --- carga del video ---------------------------------------------------------
 //
@@ -129,6 +133,41 @@ describe('cargarVideoDelNavegador', () => {
 
     expect(() => video.oncanplaythrough?.()).not.toThrow();
     await expect(promesa).rejects.toThrow(/tardo demasiado/i);
+  });
+});
+
+describe('iniciarCargaOpcional', () => {
+  it('no espera un recurso opcional para devolver el control', async () => {
+    let resolver;
+    const cargar = vi.fn(
+      () =>
+        new Promise((ok) => {
+          resolver = ok;
+        }),
+    );
+    const alResolver = vi.fn();
+
+    iniciarCargaOpcional({ cargar, alResolver });
+
+    expect(alResolver).not.toHaveBeenCalled();
+    await Promise.resolve();
+    expect(cargar).toHaveBeenCalledTimes(1);
+
+    resolver('humo');
+    await new Promise((ok) => setTimeout(ok, 0));
+    expect(alResolver).toHaveBeenCalledWith('humo');
+  });
+
+  it('informa el error sin convertirlo en un rechazo sin atender', async () => {
+    const alFallar = vi.fn();
+
+    iniciarCargaOpcional({
+      cargar: () => Promise.reject(new Error('sin video')),
+      alFallar,
+    });
+
+    await new Promise((ok) => setTimeout(ok, 0));
+    expect(alFallar).toHaveBeenCalledWith(expect.objectContaining({ message: 'sin video' }));
   });
 });
 

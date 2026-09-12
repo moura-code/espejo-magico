@@ -116,12 +116,14 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
       │                         │                                         │
       └── POST /api/humo        │   y de ahí en más mirar() no mueve nada  │
                                 └─────────────────────────────────────────┘
-                                  sin duración propia; a los 30 s sin que
-                                  nadie agarre nada, muestra opciones[0]
+                                  sin duración propia; a los 10 s sin que
+                                  nadie agarre nada, refuerza la consigna;
+                                  a los 30 s libera el espejo sin asignar
+                                  una carrera
 ```
 
 **Se elige una sola vez.** `mirar` no hace nada si ya hay `carrera`: la
-ingeniería que le tocó a la persona se queda puesta hasta que se va. No hace
+ingeniería elegida por la persona se queda puesta hasta que se va. No hace
 falta un estado "ya elegiste" para eso —lo dice `carrera`, que deja de ser
 null— y la guarda vive en la máquina y no en quien dibuja: aunque en pantalla ya
 no queden objetos, un `mirar` que llegara igual reiniciaría el reloj del fondo y
@@ -164,7 +166,7 @@ falta.
 1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Nadie sentado. Al entrar se le pide a MAITE que vuelva a su humo.
 2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado.
 3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Ese margen le sirve al espejo para tener listos los PNG y los fondos, y como todavía no se ve nada, no se cuenta el final.
-4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Al aterrizar, los otros tres objetos de la carrera aparecen escondidos en el fondo y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cuatro se abre su ficha. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.eleccionMaxima` (30 s) es la red de seguridad de la fila — si nadie agarró nada, muestra la primera de la lista, que como viene barajada ya es un sorteo, y cierra la elección igual que si la hubiera agarrado con la mano.
+4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Al aterrizar, los otros tres objetos de la carrera aparecen escondidos en el fondo y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cuatro se abre su ficha. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
 5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
 **Lo que se muestra se le informa a la máquina desde afuera**, con
@@ -516,7 +518,7 @@ Por eso `main.js` mantiene un lienzo de análisis con exactamente el recorte vis
 El recorte se prepara **una vez por cuadro** y sólo si algún detector va a correr.
 
 ### Presupuestos
-- Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**, que sube a **20** mientras hay fondo. Las manos además sólo se buscan durante `EXPLORACION`, que es cuando hacen algo, porque es el detector más caro del cuadro; y con la ingeniería ya elegida bajan a **12 FPS** (`manos.fpsExplorando`): abrir una ficha no pide la precisión de un sostenido. Los tres corren en el mismo hilo y pueden coincidir en un cuadro: el costo real se mide con el panel (`P`) en la PC del evento.
+- Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**, que sube a **20** mientras hay fondo. Las manos además sólo se buscan durante `EXPLORACION`, que es cuando hacen algo, porque es el detector más caro del cuadro; y con la ingeniería ya elegida bajan a **12 FPS** (`manos.fpsExplorando`): abrir una ficha no pide la precisión de un sostenido. Los tres corren en el mismo hilo y empiezan escalonados para no concentrar el pico inicial. Si el panel detecta menos de 27 FPS durante 5 s, `rendimiento` pasa de `completo` a `equilibrado` y luego a `seguro`; sólo recupera calidad después de 10 s por encima de 35 FPS. Mientras el anillo de elección está activo no cambia de perfil. El perfil activo queda visible con `P`.
 - La lectura de la máscara de segmentación cuesta un viaje de la GPU a la CPU, así que **sólo se arma cuando hay fondo** que meterle atrás a la persona.
 - Renderizado con tope de **60 FPS** (`CONFIG.render.fpsMaximo`). En una pantalla de 144 o 240 Hz, dibujar todos los cuadros es calor y consumo sin beneficio visible.
 - Los objetos en pantalla son a lo sumo **seis** en el carrusel, girando a 8°/s, y **cuatro** en el fondo: el rendimiento no depende de cuánto tiempo lleve alguien sentado. Las fichas miden su texto sólo mientras se ven.

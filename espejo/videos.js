@@ -12,6 +12,16 @@
 // la vez no los aguanta ninguna placa, y once de ellos no se ven: el banco
 // arranca el de la ingenieria que se esta mostrando y pausa el resto.
 
+// Inicia una mejora visual sin hacer que quien la pide espere. La promesa queda
+// contenida aca: un fallo se comunica al llamador, pero no puede dejar un
+// rechazo sin atender ni frenar el arranque del espejo.
+export function iniciarCargaOpcional({ cargar, alResolver, alFallar = () => {} }) {
+  Promise.resolve()
+    .then(cargar)
+    .then(alResolver)
+    .catch(alFallar);
+}
+
 /**
  * Carga un video y lo deja listo para dibujarse en cualquier momento, en loop y
  * mudo. Un video que arranca recien cuando hace falta llega tarde: el primer

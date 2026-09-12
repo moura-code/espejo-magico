@@ -48,10 +48,13 @@ export const CONFIG = {
     // exploracion no termina nunca sola. Existe porque sin ella, quien no
     // entiende el gesto se queda mirando los objetos girar hasta el tope de
     // sesion, tres minutos despues, con la fila esperando. Al vencerse se
-    // muestra una por sorteo —lo ofrecido viene barajado, asi que tomar el
-    // primero ya es un sorteo— y la eleccion queda cerrada igual que si la
-    // hubiera agarrado con la mano: nadie se va sin ingenieria.
+    // libera el espejo sin asignar una carrera: la eleccion siempre pertenece
+    // a la persona.
     eleccionMaxima: 30000,
+
+    // Si la persona mira el carrusel pero no empezo un sostenido, se repite la
+    // instruccion antes de liberar el espejo. No se asigna ninguna carrera.
+    ayudaEleccion: 10000,
 
     // Cuanto tarda en entrar el fondo de una ingenieria con su nombre. Es el
     // reloj de la mirada, no el de un estado: arranca cuando la persona agarra
@@ -519,6 +522,21 @@ export const CONFIG = {
     // una pantalla de 60 Hz caiga a 30 por unas decimas de jitter.
     fpsMaximo: 60,
     margenMs: 2,
+  },
+
+  // El regulador cambia entre perfiles solo cuando el equipo sostiene un mal o
+  // buen rendimiento. La cara nunca baja tanto como para perder presencia; lo
+  // que se recorta primero son manos y pose, que son los modelos mas costosos.
+  rendimiento: {
+    fpsParaBajar: 27,
+    fpsParaSubir: 35,
+    msParaBajar: 5000,
+    msParaSubir: 10000,
+    perfiles: [
+      { nombre: 'completo', rostro: 22, manos: 34, manosConFondo: 12, pose: 12, poseConFondo: 20 },
+      { nombre: 'equilibrado', rostro: 18, manos: 24, manosConFondo: 10, pose: 10, poseConFondo: 16 },
+      { nombre: 'seguro', rostro: 16, manos: 16, manosConFondo: 8, pose: 8, poseConFondo: 12 },
+    ],
   },
 
   operacion: {
