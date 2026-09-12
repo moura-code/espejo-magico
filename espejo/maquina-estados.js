@@ -33,9 +33,8 @@ const SIGUIENTE = {
 
 /**
  * `sortearOpciones` devuelve las carreras que se le van a ofrecer a la persona,
- * una por objeto. Se llama al entrar al HUMO: mientras el humo tapa la pantalla
- * el espejo tiene tiempo de tener listos los PNG, y como todavia no se ve nada
- * no se cuenta el final.
+ * una por objeto. Se llama al entrar al HUMO para fijar el orden del carrusel;
+ * sus imágenes representativas ya se cargaron durante el arranque.
  */
 export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
   let estado = ESTADOS.ATRACCION;
@@ -231,9 +230,9 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
 
           if (rostroContinuoDesde === null) rostroContinuoDesde = ahora;
           if (ahora - rostroContinuoDesde >= tiempos.enganche) {
-            // Las carreras se eligen aca, mientras el humo tapa la pantalla: ese
-            // margen le sirve al espejo para tener listos los PNG y los fondos
-            // cuando el humo se disipe.
+            // El orden del carrusel se fija mientras el humo tapa la pantalla.
+            // Sus PNG ya están cargados; los recursos de la elegida se piden al
+            // recibir el evento `mira`.
             opciones = sortearOpciones();
             ir(ESTADOS.HUMO, ahora, eventos);
           }

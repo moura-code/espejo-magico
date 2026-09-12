@@ -11,7 +11,7 @@ Toda la experiencia vive en una sola pestaña de Chrome, en una sola PC. No hay 
 2. **Cero paso de compilación (No Bundler):** Módulos ES nativos en el navegador (`<script type="module">`).
 3. **Privacidad absoluta:** El flujo de video de la cámara se procesa exclusivamente en la memoria RAM del navegador local. Ninguna imagen se graba, almacena o transmite.
 4. **Desacoplamiento estricto de módulos:** Cada módulo tiene responsabilidades únicas y se puede probar de forma independiente sin necesidad de DOM, cámara o pantalla real.
-5. **Ninguna dependencia externa puede romper la experiencia:** el puente a MAITE, la detección de manos, la de pose y el video de humo son todos agregados opcionales. Si cualquiera falla, el espejo sigue funcionando y lo único que queda es un `console.warn`.
+5. **Ninguna dependencia externa puede romper la experiencia:** el puente a MAITE, la detección de manos, la de pose y el video de humo son agregados opcionales. Si falla la detección de manos, la consigna lo hace visible y el puntero o táctil permite elegir; las demás fallas conservan sus respaldos y quedan registradas en consola.
 
 ---
 
@@ -88,7 +88,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `sorteo.js` | Gestor de sorteo aleatorio con **bolsa barajada sin repetición contigua**. `siguientes(n)` entrega el orden del carrusel: todas las jugables, barajadas por sesión. |
 | `niebla.js` | Animación de las nubes que cubren el espejo durante el reposo. Se apartan **hacia los costados**, no en círculo: cada jirón queda fijado a su mitad de pantalla al crearse y viaja hasta el borde exterior. La transición tiene una sola magnitud (`apertura`). |
 | `figuras.js` | Sistema de fallback vectorial en Canvas 2D (36 figuras dibujadas por código para cuando no existen archivos PNG). |
-| `imagenes.js` | Gestor y precargador de imágenes con fallback elegante (objetos y fondos). |
+| `imagenes.js` | Gestor y precargador de imágenes con fallback elegante. Antes del arranque carga sólo los objetos del carrusel; fondo y objetos escondidos se piden al elegir la carrera. |
 | `videos.js` | Carga de videos en el navegador (con tope, para que uno que no contesta no frene el arranque) y el banco de **fondos con movimiento**: los carga de a uno después de arrancar y garantiza que **suene uno solo**, el de la ingeniería que se está mostrando. |
 | `contenido.js` | Carga y valida `contenido/carreras.json` al inicio. El primero de `objetos` es el que va al carrusel (`objetoDeCarrera`) y los demás se esconden en el fondo (`escondidosDeCarrera`). |
 | `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Fondo de la carrera → Objetos escondidos y apoyado → Persona recortada → Carrusel con su carga → Objeto en vuelo → Señal de manos → Fichas → Nombre al pie → Humo → Niebla → Invitación y consignas). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza), y de dónde va cada ficha (`disponerFicha`). |
@@ -118,8 +118,8 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
                                 └─────────────────────────────────────────┘
                                   sin duración propia; a los 10 s sin que
                                   nadie agarre nada, refuerza la consigna;
-                                  a los 30 s libera el espejo sin asignar
-                                  una carrera
+                                  a los 30 s cierra sin asignar carrera;
+                                  exige una ausencia antes de rearmarse
 ```
 
 **Se elige una sola vez.** `mirar` no hace nada si ya hay `carrera`: la
@@ -163,9 +163,9 @@ Lo ofrecido, la carrera y el número de sesión viajan en la salida
 (`salida.opciones`, `salida.carrera`, `salida.sesion`) y se leen cuando hagan
 falta.
 
-1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Nadie sentado. Al entrar se le pide a MAITE que vuelva a su humo.
+1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Al entrar se le pide a MAITE que vuelva a su humo. Tras cerrar una sesión no vuelve a arrancar con el mismo rostro: primero tiene que observar una ausencia y rearmarse para la persona siguiente.
 2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado.
-3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Ese margen le sirve al espejo para tener listos los PNG y los fondos, y como todavía no se ve nada, no se cuenta el final.
+3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Los doce objetos representativos ya se cargaron antes de iniciar; el fondo y los objetos escondidos de una ingeniería se piden en segundo plano recién cuando se la elige.
 4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Al aterrizar, los otros tres objetos de la carrera aparecen escondidos en el fondo y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cuatro se abre su ficha. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
 5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
@@ -463,11 +463,11 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   stand la gente queda así en el cuadro, se recalibran juntas la zona y los
   lugares. En el stand se prueba con gente de verdad a 1,5 y 2 m.
 - **Las manos siguen sirviendo.** Antes, elegida la ingeniería, se apagaba el
-  detector de manos. Ahora sigue, a `manos.fpsExplorando` (12 FPS): con 300 ms
+  detector de manos. Ahora sigue con `manosConFondo` del perfil activo: con 300 ms
   para abrir y 900 de gracia, una ficha se conforma con pocos cuadros, y el resto
-  se lo queda la silueta. Rostro, pose y manos corren en el mismo hilo y pueden
-  coincidir en un cuadro: el costo real se mide con el panel (`P`) en la PC del
-  evento. Una consigna enseña el gesto nuevo (*"Pasá la mano sobre
+  se lo queda la silueta. Rostro, pose y manos corren en el mismo hilo y empiezan
+  escalonados para no concentrar el pico inicial; el costo real se mide con el
+  panel (`P`) en la PC del evento. Una consigna enseña el gesto nuevo (*"Pasá la mano sobre
   los objetos del fondo"*): entra con la escena entera (capa `explorar`) y se va
   para siempre la primera vez que alguien abre una ficha.
 
@@ -518,7 +518,7 @@ Por eso `main.js` mantiene un lienzo de análisis con exactamente el recorte vis
 El recorte se prepara **una vez por cuadro** y sólo si algún detector va a correr.
 
 ### Presupuestos
-- Cada detector corre en su propio reloj, independiente del dibujo: rostro a **22 FPS**, manos a **34 FPS** (se mueven diez veces más rápido que una cabeza) y pose a **12 FPS**, que sube a **20** mientras hay fondo. Las manos además sólo se buscan durante `EXPLORACION`, que es cuando hacen algo, porque es el detector más caro del cuadro; y con la ingeniería ya elegida bajan a **12 FPS** (`manos.fpsExplorando`): abrir una ficha no pide la precisión de un sostenido. Los tres corren en el mismo hilo y empiezan escalonados para no concentrar el pico inicial. Si el panel detecta menos de 27 FPS durante 5 s, `rendimiento` pasa de `completo` a `equilibrado` y luego a `seguro`; sólo recupera calidad después de 10 s por encima de 35 FPS. Mientras el anillo de elección está activo no cambia de perfil. El perfil activo queda visible con `P`.
+- Cada detector corre en su propio reloj, independiente del dibujo. Los perfiles `completo`, `equilibrado` y `seguro` reducen rostro, manos y pose de forma coordinada; con fondo usan sus frecuencias específicas. Las manos sólo se buscan durante `EXPLORACION`, que es cuando hacen algo, y durante un sostenido vuelven temporalmente a **34 FPS** aunque el perfil activo sea inferior. Los tres modelos empiezan escalonados para no concentrar el pico inicial. `rendimiento` decide con una media móvil de 2 s: baja tras 5 s por debajo de 27 FPS y recupera sólo después de 10 s por encima de 35 FPS. Ignora el throttling de pestañas ocultas y no cambia de perfil mientras el anillo está activo. El perfil actual queda visible con `P`.
 - La lectura de la máscara de segmentación cuesta un viaje de la GPU a la CPU, así que **sólo se arma cuando hay fondo** que meterle atrás a la persona.
 - Renderizado con tope de **60 FPS** (`CONFIG.render.fpsMaximo`). En una pantalla de 144 o 240 Hz, dibujar todos los cuadros es calor y consumo sin beneficio visible.
 - Los objetos en pantalla son a lo sumo **seis** en el carrusel, girando a 8°/s, y **cuatro** en el fondo: el rendimiento no depende de cuánto tiempo lleve alguien sentado. Las fichas miden su texto sólo mientras se ven.

@@ -90,6 +90,8 @@ fichas de los objetos del fondo (ver abajo). Si el carrusel está a la vista, ap
 siempre está fuera del cuadro (muy abajo o muy al costado) o hay contraluz.
 Apretar `M` para ver si aparecen los puntos sobre los dedos. La mano tiene que
 estar **abierta y de frente**, no de canto.
+Si la pantalla pide *"Usá el puntero sobre un objeto"*, el detector no cargó:
+usar el mouse o el táctil como alternativa y avisar al equipo técnico.
 
 **El anillo se llena y se vacía sin llegar a mostrar nada.**
 La detección de la mano está entrecortada. Suele ser luz o distancia. Si pasa
@@ -124,7 +126,9 @@ Se cerró la ventana negra del servidor. Cerrar Chrome y volver a correr
 **Todo va lento.**
 Apretar `P` y mirar `fps` y `perfil`. Por debajo de 30 FPS hay que investigarlo:
 el espejo baja solo a `equilibrado` tras 5 s lentos y a `seguro` si persiste; no
-lo hace mientras alguien completa una elección. Cerrar cualquier otro programa.
+lo hace mientras alguien completa una elección y, durante ese sostenido, mantiene
+las manos en la frecuencia del perfil completo. Una pestaña oculta no cambia el
+perfil. Cerrar cualquier otro programa.
 Si permanece en `seguro`, avisar al equipo técnico antes de cambiar la
 configuración de detección.
 

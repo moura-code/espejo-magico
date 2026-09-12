@@ -3,8 +3,8 @@ import { crearMaquina, ESTADOS } from '../../espejo/maquina-estados.js';
 
 // La exploracion no tiene duracion propia: dura mientras la persona siga
 // sentada, con sesionMaxima como unico tope. `eleccionMaxima` ya no termina
-// nada — es la red de seguridad de la fila, que le muestra una ingenieria a
-// quien no entendio el gesto.
+// nada — es la red de seguridad de la fila, que cierra sin elegir por quien no
+// entendió el gesto.
 const TIEMPOS = {
   enganche: 2000,
   humo: 3000,
@@ -88,9 +88,8 @@ describe('crearMaquina', () => {
     ]);
   });
 
-  // Las carreras se sortean mientras el humo tapa la pantalla: ese margen le
-  // sirve al espejo para tener listos los PNG y los fondos, y como todavia no se
-  // ve nada tampoco se cuenta el final.
+  // El orden del carrusel se sortea mientras el humo tapa la pantalla. Los PNG
+  // representativos ya se cargaron al arrancar; acá sólo se fija el orden.
   it('sortea lo que se ofrece al entrar en humo, no antes', () => {
     const maquina = nueva();
 
@@ -304,8 +303,8 @@ describe('la red de seguridad de la fila', () => {
 
   // LA RED NO PUEDE ROBARLE EL GESTO A QUIEN YA ESTA ELIGIENDO. Desde que la
   // eleccion es definitiva, vencer el plazo con la mano sostenida sobre un
-  // objeto significaria irse con una ingenieria sorteada, sin poder corregirla.
-  it('espera a que termine el sostenido en curso antes de sortear', () => {
+  // objeto significaria cortarle un gesto deliberado antes de completarlo.
+  it('espera a que termine el sostenido en curso antes de cerrar', () => {
     const maquina = hastaExplorar();
     const vencido = avanzar(maquina, 6100, 6100 + TIEMPOS.eleccionMaxima + 5000, true, {
       eligiendo: true,
