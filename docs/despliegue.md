@@ -129,7 +129,7 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 
 ### Nadie consigue elegir un objeto
 1. Presionar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se está detectando: revisar luz y encuadre (`M` muestra los puntos sobre los dedos).
-   Si el detector no pudo cargar, la consigna cambia a *"Usá el puntero sobre un objeto"*: el mouse o una pantalla táctil quedan habilitados como alternativa para completar la selección.
+   Si el detector no pudo cargar, la consigna cambia a *"Mantené el puntero sobre un objeto hasta completar el círculo"*: el mouse o una pantalla táctil quedan habilitados como alternativa para completar la selección.
 2. Si el `progreso` de la línea `eleccion` sube y baja sin llegar a 100 %, la detección está entrecortada: subir `CONFIG.eleccion.msDeGracia`.
 3. Si los objetos quedan fuera del alcance del brazo, ajustar `CONFIG.tablero.radioFactor` (más chico = más cerca del cuerpo).
 

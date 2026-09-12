@@ -90,7 +90,7 @@ fichas de los objetos del fondo (ver abajo). Si el carrusel está a la vista, ap
 siempre está fuera del cuadro (muy abajo o muy al costado) o hay contraluz.
 Apretar `M` para ver si aparecen los puntos sobre los dedos. La mano tiene que
 estar **abierta y de frente**, no de canto.
-Si la pantalla pide *"Usá el puntero sobre un objeto"*, el detector no cargó:
+Si la pantalla pide *"Mantené el puntero sobre un objeto hasta completar el círculo"*, el detector no cargó:
 usar el mouse o el táctil como alternativa y avisar al equipo técnico.
 
 **El anillo se llena y se vacía sin llegar a mostrar nada.**

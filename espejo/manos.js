@@ -24,6 +24,53 @@ const NUDILLO_MEDIO = 9;
 
 const distancia = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
 
+export function crearSeguimientoDePuntero({ elemento }) {
+  let actual = null;
+  let contactoActivo = null;
+  const esMouse = (evento) => !evento.pointerType || evento.pointerType === 'mouse';
+  const posicion = (evento) => ({ x: evento.clientX, y: evento.clientY });
+
+  elemento.addEventListener('pointerdown', (evento) => {
+    if (esMouse(evento)) {
+      actual = posicion(evento);
+      return;
+    }
+    if (contactoActivo !== null && contactoActivo !== evento.pointerId) return;
+    evento.preventDefault();
+    contactoActivo = evento.pointerId;
+    actual = posicion(evento);
+    elemento.setPointerCapture?.(evento.pointerId);
+  });
+
+  elemento.addEventListener('pointermove', (evento) => {
+    if (esMouse(evento)) {
+      actual = posicion(evento);
+      return;
+    }
+    if (evento.pointerId !== contactoActivo) return;
+    evento.preventDefault();
+    actual = posicion(evento);
+  });
+
+  const terminarContacto = (evento) => {
+    if (esMouse(evento)) {
+      if (evento.type === 'pointerleave') actual = null;
+      return;
+    }
+    if (evento.pointerId !== contactoActivo) return;
+    evento.preventDefault();
+    elemento.releasePointerCapture?.(evento.pointerId);
+    contactoActivo = null;
+    actual = null;
+  };
+
+  elemento.addEventListener('pointerup', terminarContacto);
+  elemento.addEventListener('pointercancel', terminarContacto);
+  elemento.addEventListener('pointerleave', terminarContacto);
+
+  return { obtener: () => actual };
+}
+
 export function manosParaInteraccion({
   modo,
   detectorDisponible,
@@ -40,7 +87,9 @@ export function manosParaInteraccion({
 }
 
 export function consignaDeEleccion({ detectorDisponible, ayudaVisible }) {
-  if (!detectorDisponible) return 'Usá el puntero sobre un objeto';
+  if (!detectorDisponible) {
+    return 'Mantené el puntero sobre un objeto hasta completar el círculo';
+  }
   return ayudaVisible
     ? 'Mantené la mano sobre un objeto hasta completar el círculo'
     : 'Sostené la mano sobre un objeto';

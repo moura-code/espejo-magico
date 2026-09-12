@@ -295,6 +295,67 @@ describe('entrada alternativa cuando falla el detector', () => {
         detectorDisponible: false,
         ayudaVisible: false,
       }),
-    ).toBe('Usá el puntero sobre un objeto');
+    ).toBe('Mantené el puntero sobre un objeto hasta completar el círculo');
+  });
+});
+
+describe('seguimiento del puntero alternativo', () => {
+  const preparar = () => {
+    const escuchas = new Map();
+    const elemento = {
+      addEventListener: (tipo, escuchar) => escuchas.set(tipo, escuchar),
+    };
+    return {
+      escuchas,
+      seguimiento: moduloDeManos.crearSeguimientoDePuntero?.({ elemento }),
+    };
+  };
+
+  it('registra un toque desde pointerdown aunque no se mueva y lo suelta al terminar', () => {
+    const { escuchas, seguimiento } = preparar();
+    let evitados = 0;
+    const toque = {
+      pointerType: 'touch',
+      pointerId: 7,
+      clientX: 320,
+      clientY: 540,
+      preventDefault: () => (evitados += 1),
+    };
+
+    escuchas.get('pointerdown')?.(toque);
+    expect(seguimiento?.obtener()).toEqual({ x: 320, y: 540 });
+    expect(evitados).toBe(1);
+
+    escuchas.get('pointerup')?.(toque);
+    expect(seguimiento?.obtener()).toBeNull();
+  });
+
+  it('sigue el hover del mouse y lo limpia al salir', () => {
+    const { escuchas, seguimiento } = preparar();
+    const mouse = { pointerType: 'mouse', pointerId: 1, clientX: 100, clientY: 200 };
+
+    escuchas.get('pointermove')?.(mouse);
+    expect(seguimiento?.obtener()).toEqual({ x: 100, y: 200 });
+
+    escuchas.get('pointerleave')?.({ ...mouse, type: 'pointerleave' });
+    expect(seguimiento?.obtener()).toBeNull();
+  });
+
+  it('cancela el contacto y no acepta movimientos tactiles sin pointerdown', () => {
+    const { escuchas, seguimiento } = preparar();
+    const toque = {
+      pointerType: 'touch',
+      pointerId: 4,
+      clientX: 10,
+      clientY: 20,
+      preventDefault: () => {},
+    };
+
+    escuchas.get('pointermove')?.(toque);
+    expect(seguimiento?.obtener()).toBeNull();
+
+    escuchas.get('pointerdown')?.(toque);
+    escuchas.get('pointercancel')?.(toque);
+    expect(seguimiento?.obtener()).toBeNull();
   });
 });

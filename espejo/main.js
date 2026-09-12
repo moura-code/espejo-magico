@@ -10,6 +10,7 @@ import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
 import {
   crearDetectorDeManosMediaPipe,
+  crearSeguimientoDePuntero,
   manosParaInteraccion,
   consignaDeEleccion,
 } from './manos.js';
@@ -98,17 +99,9 @@ function ajustar() {
 ajustar();
 window.addEventListener('resize', ajustar);
 
-// En modo demo (tecla D) el puntero hace de mano: sin camara se puede elegir
-// sosteniendo el mouse sobre un objeto y abrir las fichas pasandolo por encima.
-// El lienzo mide exactamente lo mismo que la ventana, asi que el punto del
-// puntero ya esta en pixeles de pantalla.
-let puntero = null;
-lienzo.addEventListener('pointermove', (evento) => {
-  puntero = { x: evento.clientX, y: evento.clientY };
-});
-lienzo.addEventListener('pointerleave', () => {
-  puntero = null;
-});
+// En modo demo, o como respaldo sin detector de manos, el puntero hace de mano.
+// Mouse usa hover; táctil y lápiz permanecen activos entre down y up/cancel.
+const seguimientoDelPuntero = crearSeguimientoDePuntero({ elemento: lienzo });
 
 // La ficha va en los colores de MAITE, los mismos para las doce ingenierias.
 const COLORES_DE_FICHA = {
@@ -631,7 +624,7 @@ function cuadro(ahora) {
       modo,
       detectorDisponible: Boolean(detectorDeManos),
       estado: estadoAnterior,
-      puntero,
+      puntero: seguimientoDelPuntero.obtener(),
       radioPuntero: CONFIG.operacion.radioDelPuntero,
       detectadas: [],
     });
