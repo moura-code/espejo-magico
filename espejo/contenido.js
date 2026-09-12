@@ -214,7 +214,8 @@ export async function cargarContenido({
 
     // Para mostrar el carrusel solo hace falta el primer objeto de cada
     // carrera. Fondos y objetos escondidos se piden cuando alguien elige.
-    imagenesIniciales: () => datos.carreras.map((carrera) => objetoDeCarrera(carrera)?.img).filter(Boolean),
+    imagenesIniciales: (ids = datos.carreras.map((carrera) => carrera.id)) =>
+      ids.map((id) => objetoDeCarrera(porId.get(id))?.img).filter(Boolean),
     imagenesDeCarrera: (id) => imagenesDe(porId.get(id)),
 
     // Todos los objetos —el del carrusel y los que se esconden en el fondo— y

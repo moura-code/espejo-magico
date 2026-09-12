@@ -361,6 +361,26 @@ describe('cargarContenido', () => {
     ]);
   });
 
+  it('limita las imagenes iniciales a las carreras que se van a ofrecer', async () => {
+    const contenido = await cargarContenido({
+      traer: traerCon({
+        carreras: [
+          carreraValida(),
+          {
+            ...carreraValida(),
+            id: 'forestal',
+            maite: null,
+            objetos: [{ img: 'assets/forestal/arbol.png', escala: 0.2 }],
+          },
+        ],
+      }),
+    });
+
+    expect(contenido.imagenesIniciales(contenido.idsJugables())).toEqual([
+      'assets/civil/grua.png',
+    ]);
+  });
+
   it('no pide imagenes tardias para una carrera inexistente', async () => {
     const contenido = await cargarContenido({
       traer: traerCon({ carreras: [carreraValida()] }),

@@ -134,6 +134,8 @@ aviso('cargando…');
 // ---------- contenido ----------
 const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
 const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
+const jugables = contenido.idsJugables();
+const idsOfrecidos = jugables.length > 0 ? jugables : contenido.ids;
 
 function informarImagenesFaltantes(informe, contexto) {
   if (informe.faltantes.length === 0) return;
@@ -145,7 +147,7 @@ function informarImagenesFaltantes(informe, contexto) {
 
 // El primer cuadro solo espera los objetos visibles del carrusel. Los fondos y
 // objetos escondidos de una carrera se piden cuando alguien la elige.
-const informeInicial = await banco.precargar(contenido.imagenesIniciales());
+const informeInicial = await banco.precargar(contenido.imagenesIniciales(idsOfrecidos));
 informarImagenesFaltantes(informeInicial, 'del carrusel');
 
 // Los fondos que se mueven. NO se esperan aca: se cargan al final, con el bucle
@@ -156,7 +158,6 @@ const videosDeFondo = crearBancoDeVideos({
   raiz: '/contenido/',
 });
 
-const jugables = contenido.idsJugables();
 if (jugables.length === 0) {
   // Sin ninguna carrera con par en MAITE no hay nada que ofrecer. Se cae a todo
   // el catalogo: el espejo anda solo y las tablets se quedan en humo, que es
