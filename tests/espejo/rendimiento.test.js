@@ -14,6 +14,7 @@ const crear = () =>
     fpsParaSubir: 35,
     msParaBajar: 5000,
     msParaSubir: 10000,
+    ventanaMs: 2000,
   });
 
 describe('crearGobernadorDeRendimiento', () => {
@@ -46,6 +47,26 @@ describe('crearGobernadorDeRendimiento', () => {
 
     gobernador.registrar({ ahora: 0, fps: 20, protegiendoEleccion: true });
     gobernador.registrar({ ahora: 8000, fps: 20, protegiendoEleccion: true });
+
+    expect(gobernador.perfil().nombre).toBe('completo');
+  });
+
+  it('usa el promedio y no deja que un pico aislado oculte la lentitud sostenida', () => {
+    const gobernador = crear();
+
+    for (let ahora = 0; ahora <= 7000; ahora += 250) {
+      gobernador.registrar({ ahora, fps: ahora % 1000 === 0 ? 40 : 24 });
+    }
+
+    expect(gobernador.perfil().nombre).toBe('equilibrado');
+  });
+
+  it('ignora los cuadros limitados por una pestaña oculta', () => {
+    const gobernador = crear();
+
+    for (let ahora = 0; ahora <= 7000; ahora += 1000) {
+      gobernador.registrar({ ahora, fps: 1, visible: false });
+    }
 
     expect(gobernador.perfil().nombre).toBe('completo');
   });

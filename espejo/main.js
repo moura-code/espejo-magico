@@ -501,6 +501,7 @@ function cuadro(ahora) {
     ahora,
     fps: lapso > 0 ? 1000 / lapso : Infinity,
     protegiendoEleccion: progresoDeEleccion > 0,
+    visible: document.visibilityState !== 'hidden',
   });
 
   const camaraLista = camara.obtener();

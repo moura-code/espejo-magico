@@ -532,6 +532,7 @@ export const CONFIG = {
     fpsParaSubir: 35,
     msParaBajar: 5000,
     msParaSubir: 10000,
+    ventanaMs: 2000,
     perfiles: [
       { nombre: 'completo', rostro: 22, manos: 34, manosConFondo: 12, pose: 12, poseConFondo: 20 },
       { nombre: 'equilibrado', rostro: 18, manos: 24, manosConFondo: 10, pose: 10, poseConFondo: 16 },
