@@ -653,7 +653,12 @@ export function dibujarInvitacion(ctx, disposicion, pulso, alfa = 1) {
  * defecto), que se apaga con el carrusel, y la de explorar el fondo, que se va
  * la primera vez que alguien abre una ficha.
  */
-export function dibujarConsigna(ctx, disposicion, alfa = 1, frase = 'Sostené la mano sobre un objeto') {
+export function dibujarConsigna(
+  ctx,
+  disposicion,
+  alfa = 1,
+  frase = 'Sostené la mano sobre un objeto',
+) {
   if (alfa <= 0) return;
   const { ancho, alto, texto } = disposicion;
 
@@ -665,8 +670,14 @@ export function dibujarConsigna(ctx, disposicion, alfa = 1, frase = 'Sostené la
   ctx.shadowBlur = 20;
   // La consigna va en la sans a proposito: es la unica instruccion de toda la
   // experiencia y tiene que entenderse de un vistazo, desde lejos y de costado.
-  ctx.font = `600 ${Math.round(texto.tamanoFrase * 1.15)}px ${FAMILIA_TEXTO}`;
-  ctx.fillText(frase, ancho / 2, alto * 0.93);
+  const tamano = Math.round(texto.tamanoFrase * 1.15);
+  ctx.font = `600 ${tamano}px ${FAMILIA_TEXTO}`;
+  const lineas = partirEnLineas(frase, ancho * 0.85, (linea) => ctx.measureText(linea).width);
+  const paso = tamano * 1.2;
+  const base = alto * 0.93;
+  lineas.forEach((linea, i) => {
+    ctx.fillText(linea, ancho / 2, base - (lineas.length - 1 - i) * paso);
+  });
   ctx.restore();
 }
 

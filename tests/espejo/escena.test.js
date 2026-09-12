@@ -1008,6 +1008,23 @@ describe('las dos tipografias', () => {
     ]);
   });
 
+  it('parte una ayuda larga para que no se recorte en una pantalla angosta', () => {
+    const ctx = crearCtxFalso();
+    ctx.measureText = (texto) => ({ width: texto.length * 14 });
+    const angosta = calcularDisposicion(720, 1280);
+    const frase = 'Mantené la mano sobre un objeto hasta completar el círculo';
+
+    dibujarConsigna(ctx, angosta, 1, frase);
+
+    const textos = soloDe(ctx, 'fillText');
+    expect(textos.length).toBeGreaterThan(1);
+    expect(textos.map(([, texto]) => texto).join(' ')).toBe(frase);
+    for (const [, texto] of textos) {
+      expect(ctx.measureText(texto).width).toBeLessThanOrEqual(angosta.ancho * 0.85);
+    }
+    expect(textos.at(-1)[3]).toBeLessThanOrEqual(angosta.alto * 0.93);
+  });
+
   // La ficha mide su texto con la letra del lienzo. Si midiera antes de su
   // save, dejaria la letra cambiada para todo lo que se dibuja despues.
   it('la ficha no deja cambiada la letra del lienzo', () => {
