@@ -29,6 +29,11 @@ export function crearGobernadorDeRendimiento({
     muestras.length = 0;
   };
 
+  const pausar = () => {
+    reiniciarMedicion();
+    limpiarMuestras();
+  };
+
   const promediarFps = (ahora, fps) => {
     if (Number.isFinite(fps) && fps > 0) {
       muestras.push({ ahora, duracion: 1000 / fps });
@@ -44,11 +49,11 @@ export function crearGobernadorDeRendimiento({
 
   return {
     perfil,
+    pausar,
 
     registrar({ ahora, fps, protegiendoEleccion = false, visible = true }) {
       if (!visible) {
-        reiniciarMedicion();
-        limpiarMuestras();
+        pausar();
         return perfil();
       }
 

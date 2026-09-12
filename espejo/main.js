@@ -483,6 +483,9 @@ let estadoAnterior = ESTADOS.ATRACCION;
 let progresoDeEleccion = 0;
 let sobreQueBlanco = null;
 const rendimiento = crearGobernadorDeRendimiento(CONFIG.rendimiento);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') rendimiento.pausar();
+});
 const planificadorDeDetectores = crearPlanificadorDeDetectores();
 let perfilDeRendimiento = rendimiento.perfil();
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;

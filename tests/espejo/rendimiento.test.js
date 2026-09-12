@@ -71,6 +71,17 @@ describe('crearGobernadorDeRendimiento', () => {
 
     expect(gobernador.perfil().nombre).toBe('completo');
   });
+
+  it('reinicia la medicion si la pestaña vuelve despues de una suspension', () => {
+    const gobernador = crear();
+
+    gobernador.registrar({ ahora: 0, fps: 20, visible: true });
+    gobernador.registrar({ ahora: 4900, fps: 20, visible: true });
+    gobernador.pausar?.();
+    gobernador.registrar({ ahora: 12000, fps: 1, visible: true });
+
+    expect(gobernador.perfil().nombre).toBe('completo');
+  });
 });
 
 describe('fpsDeManos', () => {
