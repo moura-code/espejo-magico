@@ -357,6 +357,20 @@ describe('la red de seguridad de la fila', () => {
 
     expect(tipos(despues.eventos, 'mira')).toHaveLength(0);
   });
+
+  it('espera una ausencia antes de iniciar otra sesion con el mismo rostro', () => {
+    const maquina = hastaExplorar();
+    avanzar(maquina, 6100, 20000, true);
+    expect(maquina.estado()).toBe(ESTADOS.ATRACCION);
+
+    const mismaPersona = avanzar(maquina, 20100, 30000, true);
+    expect(mismaPersona.estado).toBe(ESTADOS.ATRACCION);
+    expect(entra(mismaPersona.eventos, ESTADOS.ENGANCHE)).toHaveLength(0);
+
+    maquina.actualizar({ hayRostro: false, ahora: 30100 });
+    const siguiente = maquina.actualizar({ hayRostro: true, ahora: 30200 });
+    expect(siguiente.estado).toBe(ESTADOS.ENGANCHE);
+  });
 });
 
 describe('el enganche', () => {

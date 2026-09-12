@@ -52,6 +52,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
   let contada = false;
   let ayudaDeEleccionEnviada = false;
   let enManual = manual;
+  let listaParaNuevaSesion = true;
 
   function ir(nuevo, ahora, eventos) {
     estado = nuevo;
@@ -116,7 +117,10 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       const eventos = [];
       const proximo = SIGUIENTE[estado];
 
-      if (proximo === ESTADOS.ENGANCHE) inicioDeSesion = ahora;
+      if (proximo === ESTADOS.ENGANCHE) {
+        inicioDeSesion = ahora;
+        listaParaNuevaSesion = false;
+      }
       if (proximo === ESTADOS.HUMO) opciones = sortearOpciones();
       // En manual no hay enfriamiento: si apreto el boton, quiero que arranque.
       if (proximo === ESTADOS.ATRACCION) finDeCierre = null;
@@ -190,8 +194,13 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
 
       switch (estado) {
         case ESTADOS.ATRACCION:
+          // Volver a atraccion no convierte al mismo visitante en una sesion
+          // nueva. La señal de presencia ya tiene histeresis en main.js: verla
+          // ausente aca significa que el lugar quedó efectivamente libre.
+          if (!hayPersona) listaParaNuevaSesion = true;
           if (finDeCierre !== null && ahora - finDeCierre < tiempos.enfriamiento) break;
-          if (puedeIniciar) {
+          if (puedeIniciar && listaParaNuevaSesion) {
+            listaParaNuevaSesion = false;
             inicioDeSesion = ahora;
             ir(ESTADOS.ENGANCHE, ahora, eventos);
           }
@@ -280,6 +289,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       rostroAusenteDesde = null;
       contada = false;
       carrera = null;
+      listaParaNuevaSesion = false;
       // Sin opciones detras, la carrera forzada tiene que ser la que se pidio.
       opciones = [id];
       ir(ESTADOS.EXPLORACION, ahora, eventos);
@@ -292,6 +302,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       finDeCierre = null;
       ausenteDesde = null;
       rostroAusenteDesde = null;
+      listaParaNuevaSesion = true;
       ir(ESTADOS.ATRACCION, ahora, eventos);
       return salida(eventos);
     },
