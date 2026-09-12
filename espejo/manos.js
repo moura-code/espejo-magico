@@ -24,6 +24,28 @@ const NUDILLO_MEDIO = 9;
 
 const distancia = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
 
+export function manosParaInteraccion({
+  modo,
+  detectorDisponible,
+  estado,
+  puntero,
+  radioPuntero,
+  detectadas = [],
+}) {
+  const usarPuntero = modo === 'demo' || !detectorDisponible;
+  if (usarPuntero && puntero && estado === 'EXPLORACION') {
+    return [{ palma: puntero, radio: radioPuntero }];
+  }
+  return detectadas;
+}
+
+export function consignaDeEleccion({ detectorDisponible, ayudaVisible }) {
+  if (!detectorDisponible) return 'Usá el puntero sobre un objeto';
+  return ayudaVisible
+    ? 'Mantené la mano sobre un objeto hasta completar el círculo'
+    : 'Sostené la mano sobre un objeto';
+}
+
 export function mapearMano(
   puntos,
   {

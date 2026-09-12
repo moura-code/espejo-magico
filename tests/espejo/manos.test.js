@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mapearMano, crearDetectorDeManos } from '../../espejo/manos.js';
+import * as moduloDeManos from '../../espejo/manos.js';
 
 const RECT = { x: 0, y: 0, ancho: 1000, alto: 1000 };
 
@@ -241,5 +242,59 @@ describe('crearDetectorDeManos', () => {
       detectorCrudo: crudoCon([manoSintetica({}), planos], ['Left', 'Right']),
     });
     expect(detector.detectar(video, 0, RECT)).toHaveLength(1);
+  });
+});
+
+describe('entrada alternativa cuando falla el detector', () => {
+  it('convierte el puntero en una mano durante la exploracion', () => {
+    const puntero = { x: 320, y: 540 };
+
+    expect(
+      moduloDeManos.manosParaInteraccion?.({
+        modo: 'camara',
+        detectorDisponible: false,
+        estado: 'EXPLORACION',
+        puntero,
+        radioPuntero: 48,
+        detectadas: [],
+      }),
+    ).toEqual([{ palma: puntero, radio: 48 }]);
+  });
+
+  it('no reemplaza las manos reales cuando el detector esta disponible', () => {
+    const detectadas = [{ palma: { x: 100, y: 200 }, radio: 36 }];
+
+    expect(
+      moduloDeManos.manosParaInteraccion?.({
+        modo: 'camara',
+        detectorDisponible: true,
+        estado: 'EXPLORACION',
+        puntero: { x: 320, y: 540 },
+        radioPuntero: 48,
+        detectadas,
+      }),
+    ).toBe(detectadas);
+  });
+
+  it('no activa el puntero fuera de la exploracion', () => {
+    expect(
+      moduloDeManos.manosParaInteraccion?.({
+        modo: 'camara',
+        detectorDisponible: false,
+        estado: 'ATRACCION',
+        puntero: { x: 320, y: 540 },
+        radioPuntero: 48,
+        detectadas: [],
+      }),
+    ).toEqual([]);
+  });
+
+  it('explica la alternativa en vez de pedir una mano que no puede detectar', () => {
+    expect(
+      moduloDeManos.consignaDeEleccion?.({
+        detectorDisponible: false,
+        ayudaVisible: false,
+      }),
+    ).toBe('Usá el puntero sobre un objeto');
   });
 });

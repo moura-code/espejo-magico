@@ -8,7 +8,11 @@ import { cargarContenido, objetoDeCarrera, fondoActivo } from './contenido.js';
 import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
-import { crearDetectorDeManosMediaPipe } from './manos.js';
+import {
+  crearDetectorDeManosMediaPipe,
+  manosParaInteraccion,
+  consignaDeEleccion,
+} from './manos.js';
 import { crearDetectorDePoseMediaPipe } from './pose.js';
 import {
   crearFiltroRostro,
@@ -240,10 +244,9 @@ try {
     radioMinimoEnPalmas: CONFIG.manos.radioMinimoEnPalmas,
   });
 } catch (error) {
-  // Sin manos no se puede elegir. El espejo sigue andando y el tope de la
-  // eleccion sortea una carrera solo, asi que nadie se queda sin nada — pero es
-  // una falla grave y tiene que verse en el panel del stand.
-  console.warn('Deteccion de manos no disponible: no se va a poder elegir.', error);
+  // La seleccion conserva una salida accesible: el puntero/tactil ocupa el
+  // lugar de la mano y la consigna visible explica el cambio.
+  console.warn('Deteccion de manos no disponible: se habilita el puntero.', error);
 }
 
 let detectorDePose = null;
@@ -603,12 +606,17 @@ function cuadro(ahora) {
     manosSuaves = filtroDeManos.filtrar(manos, ahora);
   } else if (!manosSirven) {
     manos = [];
-    // En modo demo el puntero hace de mano, y solo cuando hay algo que agarrar
-    // o que explorar: lo mismo que la mano de verdad.
-    manosSuaves =
-      modo === 'demo' && puntero && estadoAnterior === ESTADOS.EXPLORACION
-        ? [{ palma: puntero, radio: CONFIG.operacion.radioDelPuntero }]
-        : [];
+    // En demo, o si el detector de manos no pudo cargar, el puntero/tactil hace
+    // de mano. Solo se habilita durante la exploracion, cuando hay algo que
+    // elegir o revisar.
+    manosSuaves = manosParaInteraccion({
+      modo,
+      detectorDisponible: Boolean(detectorDeManos),
+      estado: estadoAnterior,
+      puntero,
+      radioPuntero: CONFIG.operacion.radioDelPuntero,
+      detectadas: [],
+    });
     filtroDeManos.reiniciar();
   }
 
@@ -1119,9 +1127,10 @@ function cuadro(ahora) {
       ctx,
       disposicion,
       transicion.objetos * (1 - humo),
-      ayudaDeEleccionVisible
-        ? 'Mantené la mano sobre un objeto hasta completar el círculo'
-        : 'Sostené la mano sobre un objeto',
+      consignaDeEleccion({
+        detectorDisponible: Boolean(detectorDeManos),
+        ayudaVisible: ayudaDeEleccionVisible,
+      }),
     );
   }
   dibujarConsigna(ctx, disposicion, transicion.explorar, 'Pasá la mano sobre los objetos del fondo');
