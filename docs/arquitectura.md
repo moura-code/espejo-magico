@@ -370,8 +370,8 @@ contra el borde. `tests/integracion/fondos.test.js` lo fija con el catálogo
 real en las dos orientaciones.
 
 El origen se captura en el evento `mira` —la ranura en ese cuadro— porque el
-carrusel sigue girando mientras el objeto vuela. Sin ranura a la vista (la red
-de la fila, una carrera forzada por teclado) el objeto crece en su lugar desde
+carrusel sigue girando mientras el objeto vuela. Sin ranura a la vista (una
+carrera forzada por teclado) el objeto crece en su lugar desde
 cero. **Mientras vuela va por delante de todo; al aterrizar pasa detrás de la
 persona recortada**: integrado a la escena, y si la persona se inclina sobre ese
 punto lo tapa, que es lo correcto. `calcularTransicionEscena` lleva la capa

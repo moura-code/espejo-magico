@@ -212,7 +212,7 @@ export async function cargarContenido({
 
     obtener: (id) => porId.get(id) ?? null,
 
-    // Para mostrar el carrusel sólo hace falta el primer objeto de cada
+    // Para mostrar el carrusel solo hace falta el primer objeto de cada
     // carrera. Fondos y objetos escondidos se piden cuando alguien elige.
     imagenesIniciales: () => datos.carreras.map((carrera) => objetoDeCarrera(carrera)?.img).filter(Boolean),
     imagenesDeCarrera: (id) => imagenesDe(porId.get(id)),

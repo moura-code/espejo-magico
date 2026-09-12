@@ -34,7 +34,7 @@ const SIGUIENTE = {
 /**
  * `sortearOpciones` devuelve las carreras que se le van a ofrecer a la persona,
  * una por objeto. Se llama al entrar al HUMO para fijar el orden del carrusel;
- * sus imágenes representativas ya se cargaron durante el arranque.
+ * sus imagenes representativas ya se cargaron durante el arranque.
  */
 export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
   let estado = ESTADOS.ATRACCION;
@@ -195,7 +195,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
         case ESTADOS.ATRACCION:
           // Volver a atraccion no convierte al mismo visitante en una sesion
           // nueva. La señal de presencia ya tiene histeresis en main.js: verla
-          // ausente aca significa que el lugar quedó efectivamente libre.
+          // ausente aca significa que el lugar quedo efectivamente libre.
           if (!hayPersona) listaParaNuevaSesion = true;
           if (finDeCierre !== null && ahora - finDeCierre < tiempos.enfriamiento) break;
           if (puedeIniciar && listaParaNuevaSesion) {
@@ -231,7 +231,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
           if (rostroContinuoDesde === null) rostroContinuoDesde = ahora;
           if (ahora - rostroContinuoDesde >= tiempos.enganche) {
             // El orden del carrusel se fija mientras el humo tapa la pantalla.
-            // Sus PNG ya están cargados; los recursos de la elegida se piden al
+            // Sus PNG ya estan cargados; los recursos de la elegida se piden al
             // recibir el evento `mira`.
             opciones = sortearOpciones();
             ir(ESTADOS.HUMO, ahora, eventos);

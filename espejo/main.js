@@ -100,7 +100,7 @@ ajustar();
 window.addEventListener('resize', ajustar);
 
 // En modo demo, o como respaldo sin detector de manos, el puntero hace de mano.
-// Mouse usa hover; táctil y lápiz permanecen activos entre down y up/cancel.
+// Mouse usa hover; tactil y lapiz permanecen activos entre down y up/cancel.
 const seguimientoDelPuntero = crearSeguimientoDePuntero({ elemento: lienzo });
 
 // La ficha va en los colores de MAITE, los mismos para las doce ingenierias.
@@ -143,7 +143,7 @@ function informarImagenesFaltantes(informe, contexto) {
   );
 }
 
-// El primer cuadro sólo espera los objetos visibles del carrusel. Los fondos y
+// El primer cuadro solo espera los objetos visibles del carrusel. Los fondos y
 // objetos escondidos de una carrera se piden cuando alguien la elige.
 const informeInicial = await banco.precargar(contenido.imagenesIniciales());
 informarImagenesFaltantes(informeInicial, 'del carrusel');
@@ -283,8 +283,7 @@ const histeresisDeRostro = crearHisteresis(CONFIG.presencia);
 // Se ofrecen TODAS las carreras jugables, en el carrusel. El sorteo sigue
 // existiendo por el orden: la bolsa entrega una permutacion fresca por sesion,
 // asi dos visitantes seguidos no ven el anillo igual, y la primera de una
-// sesion nunca repite la ultima de la anterior (que es la que muestra la red
-// de la fila si nadie agarra nada).
+// sesion nunca repite la primera de la anterior.
 const ofrecibles = jugables.length > 0 ? jugables : contenido.ids;
 const sorteo = crearSorteo({ ids: ofrecibles });
 const maquina = crearMaquina({
@@ -331,7 +330,7 @@ let objetoMostrado = null;
 // De donde salio ese objeto: la posicion de su ranura en el cuadro en que se
 // agarro. Se captura una vez, porque el carrusel sigue girando mientras el
 // objeto vuela y el origen no puede irse con el. Null cuando no habia ranura a
-// la vista: la red de la fila, o una carrera forzada por teclado.
+// la vista: una carrera forzada por teclado.
 let origenDelVuelo = null;
 // Lo que dijo el ultimo cuadro sobre las fichas: la activa, el alfa de cada una,
 // cuanto esta adelante de la persona el que tiene la mano encima y cuando se

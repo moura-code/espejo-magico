@@ -1,7 +1,7 @@
-// Relojes independientes para los tres modelos de visión. Decide cuándo toca
-// intentar cada uno, pero sólo avanza su reloj cuando main.js confirma que el
-// detector se ejecutó: si el lienzo de análisis todavía no está listo, se
-// vuelve a intentar en el cuadro siguiente.
+// Relojes independientes para los tres modelos de vision. Decide cuando toca
+// intentar cada uno. Manos y pose avanzan solo si hubo lienzo de analisis; el
+// rostro conserva el pulso aun sin camara para sostener el modo demo y la
+// deteccion de ausencia.
 export function crearPlanificadorDeDetectores() {
   const ultimas = { rostro: 0, manos: 0, pose: 0 };
   let intervalos = { rostro: Infinity, manos: Infinity, pose: Infinity };

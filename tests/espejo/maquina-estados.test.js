@@ -4,7 +4,7 @@ import { crearMaquina, ESTADOS } from '../../espejo/maquina-estados.js';
 // La exploracion no tiene duracion propia: dura mientras la persona siga
 // sentada, con sesionMaxima como unico tope. `eleccionMaxima` ya no termina
 // nada — es la red de seguridad de la fila, que cierra sin elegir por quien no
-// entendió el gesto.
+// entendio el gesto.
 const TIEMPOS = {
   enganche: 2000,
   humo: 3000,
@@ -89,7 +89,7 @@ describe('crearMaquina', () => {
   });
 
   // El orden del carrusel se sortea mientras el humo tapa la pantalla. Los PNG
-  // representativos ya se cargaron al arrancar; acá sólo se fija el orden.
+  // representativos ya se cargaron al arrancar; aca solo se fija el orden.
   it('sortea lo que se ofrece al entrar en humo, no antes', () => {
     const maquina = nueva();
 

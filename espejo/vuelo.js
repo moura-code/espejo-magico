@@ -67,7 +67,7 @@ export function lugarEnPantalla(lugar, rectangulo, pantalla, margen = 1) {
  * su lugar); el tamaño se interpola a la vez, para que el objeto parezca
  * alejarse hacia la escena en vez de deslizarse por encima.
  *
- * Sin origen —la red de la fila, una carrera forzada por teclado— no hay
+ * Sin origen —una carrera forzada por teclado— no hay
  * ranura de donde salir: el objeto crece en su lugar desde cero.
  */
 export function posicionEnVuelo({ origen, destino, t }) {
