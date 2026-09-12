@@ -38,6 +38,7 @@ import {
   iniciarCargaOpcional,
 } from './videos.js';
 import { crearGobernadorDeRendimiento, fpsDeManos } from './rendimiento.js';
+import { crearPlanificadorDeDetectores } from './planificador-detectores.js';
 import {
   crearNiebla,
   objetivoDeNiebla,
@@ -469,7 +470,6 @@ const mezclar = (desde, hasta, t) => desde + (hasta - desde) * t;
 
 // ---------- bucle ----------
 let anterior = performance.now();
-let ultimaDeteccion = 0;
 let rostro = null;
 let crudoRostro = null;
 let pose = null;
@@ -479,13 +479,11 @@ let manos = [];
 let manosSuaves = [];
 let verMalla = false;
 let lienzoDeSilueta = null;
-let ultimaDeteccionManos = 0;
-let ultimaDeteccionPose = 0;
 let estadoAnterior = ESTADOS.ATRACCION;
 let progresoDeEleccion = 0;
 let sobreQueBlanco = null;
-let detectoresEscalonados = false;
 const rendimiento = crearGobernadorDeRendimiento(CONFIG.rendimiento);
+const planificadorDeDetectores = crearPlanificadorDeDetectores();
 let perfilDeRendimiento = rendimiento.perfil();
 const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
 
@@ -543,24 +541,30 @@ function cuadro(ahora) {
   const poseSirve = detectorDePose && video && modo !== 'demo';
   const manosSirven =
     detectorDeManos && video && modo !== 'demo' && estadoAnterior === ESTADOS.EXPLORACION;
-  const intervaloDeManos =
-    1000 /
-    fpsDeManos({
-      perfil: perfilDeRendimiento,
-      perfilCompleto: CONFIG.rendimiento.perfiles[0],
-      protegiendoEleccion: progresoDeEleccion > 0,
-      conFondo: Boolean(mostrada),
-    });
+  const frecuenciaDeManos = fpsDeManos({
+    perfil: perfilDeRendimiento,
+    perfilCompleto: CONFIG.rendimiento.perfiles[0],
+    protegiendoEleccion: progresoDeEleccion > 0,
+    conFondo: Boolean(mostrada),
+  });
 
   // La mascara ES la imagen mientras hay fondo: a 12 cuadros por segundo el
   // borde de la silueta va atras del cuerpo y se ve el fondo pegado al hombro.
-  const intervaloPose =
-    1000 / (conFondo(estadoAnterior, mostrada) ? perfilDeRendimiento.poseConFondo : perfilDeRendimiento.pose);
-
-  const tocaRostro = ahora - ultimaDeteccion >= 1000 / perfilDeRendimiento.rostro;
-  const tocaPose = detectoresEscalonados && poseSirve && ahora - ultimaDeteccionPose >= intervaloPose;
-  const tocaManos =
-    detectoresEscalonados && manosSirven && ahora - ultimaDeteccionManos >= intervaloDeManos;
+  const frecuenciaDePose = conFondo(estadoAnterior, mostrada)
+    ? perfilDeRendimiento.poseConFondo
+    : perfilDeRendimiento.pose;
+  const pendientes = planificadorDeDetectores.pendientes({
+    ahora,
+    frecuencias: {
+      rostro: perfilDeRendimiento.rostro,
+      manos: frecuenciaDeManos,
+      pose: frecuenciaDePose,
+    },
+    habilitados: { rostro: true, manos: Boolean(manosSirven), pose: Boolean(poseSirve) },
+  });
+  const tocaRostro = pendientes.rostro;
+  const tocaPose = pendientes.pose;
+  const tocaManos = pendientes.manos;
 
   // El recorte se prepara UNA vez por cuadro y solo si alguno de los tres va a
   // correr: el drawImage no es gratis. Como contiene exactamente lo que se ve en
@@ -573,16 +577,7 @@ function cuadro(ahora) {
       : null;
 
   if (tocaRostro) {
-    ultimaDeteccion = ahora;
-
-    // Arrancar los tres modelos en el mismo cuadro hace que el primer pico de
-    // CPU/GPU coincida con la llegada de una persona. La cara abre la marcha;
-    // pose y manos se suman uno y dos tercios de intervalo despues.
-    if (!detectoresEscalonados) {
-      detectoresEscalonados = true;
-      ultimaDeteccionPose = ahora;
-      ultimaDeteccionManos = ahora - (intervaloDeManos * 2) / 3;
-    }
+    planificadorDeDetectores.registrar('rostro', ahora);
 
     crudoRostro =
       modo === 'demo'
@@ -595,7 +590,7 @@ function cuadro(ahora) {
   }
 
   if (tocaPose && analisis) {
-    ultimaDeteccionPose = ahora;
+    planificadorDeDetectores.registrar('pose', ahora);
     pose = detectorDePose.detectar(analisis, ahora, rectDeteccion);
     // La silueta cuesta una lectura de la GPU a la CPU, asi que solo se arma
     // cuando hay fondo que meterle atras a la persona.
@@ -619,7 +614,7 @@ function cuadro(ahora) {
   }
 
   if (tocaManos && analisis) {
-    ultimaDeteccionManos = ahora;
+    planificadorDeDetectores.registrar('manos', ahora);
     // La palma que elige va filtrada: el temblor crudo la hace entrar y salir
     // del blanco varias veces por segundo y el anillo se llenaria a los saltos.
     manos = detectorDeManos.detectar(analisis, ahora, rectDeteccion);
