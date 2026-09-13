@@ -9,3 +9,6 @@ Thumbs.db
 # en este repo: sin esta línea, un `git add -A` se lleva sus videos y su
 # node_modules. El espejo le habla por HTTP (ver CONFIG.maite), nada más.
 MAITE/
+
+.worktrees/
+imagenes_1920x1080/*
