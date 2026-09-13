@@ -14,7 +14,7 @@
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | ATRACCION sin persona | 60 s | | | | | | | | | | | | | | |
 | EXPLORACION con carrusel | 60 s | | | | | | | | | | | | | | |
-| EXPLORACION con carrera elegida, fondo, silueta y cuatro objetos | 60 s | | | | | | | | | | | | | | |
+| EXPLORACION con fondo | 60 s | | | | | | | | | | | | | | |
 
 ## Protocolo
 
