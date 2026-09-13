@@ -71,7 +71,7 @@ import {
   PESO_TITULO,
 } from './escena.js';
 import { instalarOperacion } from './operacion.js';
-import { crearMedidorDeEtapas } from './metricas.js';
+import { crearAcumuladorDeEtapas, crearMedidorDeEtapas } from './metricas.js';
 
 // ---------- lienzos ----------
 // La niebla va en su propia capa para componer todos los jirones laterales sin
@@ -90,6 +90,7 @@ const persona = { canvas: capaPersona, ctx: ctxPersona };
 const capaDelante = document.createElement('canvas');
 const delante = { canvas: capaDelante, ctx: capaDelante.getContext('2d') };
 const metricas = crearMedidorDeEtapas({ ventana: 60 });
+const acumuladorDeDibujo = crearAcumuladorDeEtapas();
 const webgl2Disponible = Boolean(document.createElement('canvas').getContext('webgl2'));
 
 let disposicion = calcularDisposicion(1, 1);
@@ -735,14 +736,14 @@ function cuadro(ahora) {
 
   const dormido = estado === ESTADOS.ATRACCION;
   if (video) {
-    metricas.medir('compose', () =>
+    acumuladorDeDibujo.medir('compose', () =>
       dibujarVideoEspejado(ctx, video, rectangulo, disposicion, {
         desenfoque: dormido ? 10 : 0,
         brillo: dormido ? 0.45 : 1,
       }),
     );
   } else {
-    metricas.medir('compose', () => {
+    acumuladorDeDibujo.medir('compose', () => {
       ctx.fillStyle = '#101418';
       ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
     });
@@ -796,14 +797,14 @@ function cuadro(ahora) {
     // apoya normalizado a el, y calcularlo aparte es como se separan los dos
     // caminos. Null quiere decir que no habia nada dibujable —ni foto, ni escena,
     // ni un video con su primer cuadro— y ahi entra el color plano.
-    const dibujado = metricas.medir('compose', () =>
+    const dibujado = acumuladorDeDibujo.medir('compose', () =>
       dibujarFondo(ctx, escena, disposicion, alfaDelFondo),
     );
 
     if (!dibujado) {
       // Ni foto ni escena: el color de la carrera. Es feo pero es legible, y el
       // nombre sigue entrando: una carrera sin fondo no rompe nada.
-      metricas.medir('compose', () => {
+      acumuladorDeDibujo.medir('compose', () => {
         ctx.save();
         ctx.globalAlpha = transicion.fondo * 0.8;
         ctx.fillStyle = carrera.color;
@@ -882,7 +883,7 @@ function cuadro(ahora) {
         alfa: transicion.escondidos,
         halo,
       };
-      metricas.medir('objects', () =>
+      acumuladorDeDibujo.medir('objects', () =>
         dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre),
       );
       detras.push({ ...dibujo, leyendo: enFoco(escondido.id) });
@@ -909,7 +910,7 @@ function cuadro(ahora) {
     // inclina sobre ese punto lo tapa, que es lo correcto.
     if (aterrizo) {
       const dibujo = { ...apoyado, alfa: transicion.elegido, halo: comoSeVe.halo };
-      metricas.medir('objects', () =>
+      acumuladorDeDibujo.medir('objects', () =>
         dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre),
       );
       detras.push({ ...dibujo, leyendo: enFoco(0) });
@@ -918,7 +919,7 @@ function cuadro(ahora) {
     if (hayRecorte) {
       ctx.save();
       ctx.globalAlpha = transicion.fondo;
-      metricas.medir('compose', () =>
+      acumuladorDeDibujo.medir('compose', () =>
         dibujarPersonaRecortada(ctx, {
           capa: persona,
           video,
@@ -935,7 +936,7 @@ function cuadro(ahora) {
       // ficha quedaria hablando de algo que no se ve. Recortado contra la
       // silueta, donde nada lo tapa no se dibuja dos veces y donde la mano lo
       // tapaba aparece encima, con su alfa de foco.
-      metricas.medir('objects', () =>
+      acumuladorDeDibujo.medir('objects', () =>
         dibujarObjetosDelante(ctx, {
           capa: delante,
           persona,
@@ -1018,7 +1019,7 @@ function cuadro(ahora) {
       // El disco de la carga se llena DEBAJO del objeto: encima le teñiria la
       // foto. En la ranura del elegido queda lleno y se apaga con el carrusel:
       // cortarlo en el cuadro en que se completa era un parpadeo.
-      metricas.medir('objects', () =>
+      acumuladorDeDibujo.medir('objects', () =>
         dibujarDiscoDeCarga(ctx, {
           ...donde,
           progreso: progresoDelAnillo,
@@ -1029,7 +1030,7 @@ function cuadro(ahora) {
         }),
       );
       if (!esElMostrado) {
-        metricas.medir('objects', () =>
+        acumuladorDeDibujo.medir('objects', () =>
           dibujarObjeto(
             ctx,
             { definicion: blanco.definicion, ...donde, alfa: alfaDelBlanco },
@@ -1042,7 +1043,7 @@ function cuadro(ahora) {
       // Un solo color de carga para las doce ingenierias. La opacidad del
       // carrusel multiplica la del anillo: se apaga con el en vez de quedarse
       // entero y cortarse de golpe al final.
-      metricas.medir('objects', () =>
+      acumuladorDeDibujo.medir('objects', () =>
         dibujarAnilloDeProgreso(ctx, {
           ...donde,
           progreso: progresoDelAnillo,
@@ -1062,7 +1063,7 @@ function cuadro(ahora) {
   // exactamente en ese rato: con el alfa del carrusel, el objeto se
   // desvaneceria en pleno vuelo.
   if (apoyado && !apoyado.aterrizo) {
-    metricas.medir('objects', () =>
+    acumuladorDeDibujo.medir('objects', () =>
       dibujarObjeto(
         ctx,
         {
@@ -1085,7 +1086,7 @@ function cuadro(ahora) {
   // del fondo despues. Durante el vuelo se apaga con el carrusel y vuelve con
   // los escondidos, sin cortes: encendida mientras las manos no hacen nada
   // prometeria algo que no pasa.
-  metricas.medir('ui', () =>
+  acumuladorDeDibujo.medir('ui', () =>
     dibujarManos(
       ctx,
       desvanecedorDeManos.actualizar(manosSuaves, ahora),
@@ -1103,7 +1104,7 @@ function cuadro(ahora) {
     const alfa = (estadoFichas.alfas[objeto.id] ?? 0) * transicion.fondo;
     if (alfa <= 0) continue;
     const { opciones } = fichaDelObjeto(objeto, disposicion, CONFIG);
-    metricas.medir('ui', () =>
+    acumuladorDeDibujo.medir('ui', () =>
       dibujarFicha(
         ctx,
         { nombre: objeto.definicion.nombre, descripcion: objeto.definicion.descripcion, alfa },
@@ -1114,7 +1115,7 @@ function cuadro(ahora) {
   }
 
   // Un solo color para el nombre de las doce: el de los nombres de MAITE.
-  metricas.medir('ui', () =>
+  acumuladorDeDibujo.medir('ui', () =>
     dibujarNombreDeCarrera(ctx, carrera, disposicion, transicion.contenido, CONFIG.paleta.nombre),
   );
 
@@ -1126,7 +1127,7 @@ function cuadro(ahora) {
     tiempos: CONFIG.tiempos,
     humo: CONFIG.humo,
   });
-  metricas.medir('ui', () => dibujarHumo(ctx, videoDeHumo, disposicion, humo, CONFIG.humo.opacidad));
+  acumuladorDeDibujo.medir('ui', () => dibujarHumo(ctx, videoDeHumo, disposicion, humo, CONFIG.humo.opacidad));
 
   nieblaActual = acercarNiebla(
     nieblaActual,
@@ -1136,7 +1137,7 @@ function cuadro(ahora) {
   );
   if (nieblaActual.apertura < 1) {
     ctxNiebla.clearRect(0, 0, disposicion.ancho, disposicion.alto);
-    metricas.medir('ui', () => {
+    acumuladorDeDibujo.medir('ui', () => {
       niebla.dibujar(ctxNiebla, disposicion, nieblaActual);
       ctx.drawImage(capaNiebla, 0, 0);
     });
@@ -1162,7 +1163,7 @@ function cuadro(ahora) {
   // 700 ms era un parpadeo, no una respiracion: apurado, se leia como un aviso
   // de error mas que como una invitacion. Entra despacio en el reposo y se va
   // rapido cuando alguien se sienta.
-  metricas.medir('ui', () =>
+  acumuladorDeDibujo.medir('ui', () =>
     dibujarInvitacion(
       ctx,
       disposicion,
@@ -1176,7 +1177,7 @@ function cuadro(ahora) {
   // nada que agarrar. La de explorar entra con la escena entera y se va para
   // siempre la primera vez que alguien abre una ficha: el gesto ya se aprendio.
   if (estado === ESTADOS.EXPLORACION) {
-    metricas.medir('ui', () =>
+    acumuladorDeDibujo.medir('ui', () =>
       dibujarConsigna(
         ctx,
         disposicion,
@@ -1188,9 +1189,10 @@ function cuadro(ahora) {
       ),
     );
   }
-  metricas.medir('ui', () =>
+  acumuladorDeDibujo.medir('ui', () =>
     dibujarConsigna(ctx, disposicion, transicion.explorar, 'Pasá la mano sobre los objetos del fondo'),
   );
+  acumuladorDeDibujo.registrarEn(metricas);
   metricas.registrar('frame', performance.now() - inicioCuadro);
 }
 

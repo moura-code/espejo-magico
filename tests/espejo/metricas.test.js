@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { crearMedidorDeEtapas } from '../../espejo/metricas.js';
+import { crearAcumuladorDeEtapas, crearMedidorDeEtapas } from '../../espejo/metricas.js';
 
 describe('crearMedidorDeEtapas', () => {
   it('promedia una ventana acotada y conserva el máximo reciente', () => {
@@ -17,5 +17,19 @@ describe('crearMedidorDeEtapas', () => {
 
     expect(medidor.medir('ui', () => 'dibujado')).toBe('dibujado');
     expect(medidor.instantanea().ui).toEqual({ ms: 0, muestras: 1, maximoMs: 0 });
+  });
+});
+
+describe('crearAcumuladorDeEtapas', () => {
+  it('registra una sola muestra por etapa al sumar sus llamadas de un cuadro', () => {
+    const tiempos = [0, 2, 5, 9];
+    const acumulador = crearAcumuladorDeEtapas({ ahora: () => tiempos.shift() });
+    const medidor = crearMedidorDeEtapas();
+
+    acumulador.medir('objects', () => 'escondidos');
+    acumulador.medir('objects', () => 'carrusel');
+    acumulador.registrarEn(medidor);
+
+    expect(medidor.instantanea().objects).toEqual({ ms: 6, muestras: 1, maximoMs: 6 });
   });
 });
