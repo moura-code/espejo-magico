@@ -30,7 +30,7 @@ export function alfaDesdeConfianza(confianza, destino) {
  * `crearLienzo` se inyecta para poder probar esto sin DOM. En el navegador es
  * `() => document.createElement('canvas')`.
  */
-export function crearSilueta({ crearLienzo }) {
+export function crearSilueta({ crearLienzo, medir = (_nombre, fn) => fn() }) {
   const lienzo = crearLienzo();
   const ctx = lienzo.getContext('2d');
   let imagen = null;
@@ -50,7 +50,7 @@ export function crearSilueta({ crearLienzo }) {
 
       let confianza;
       try {
-        confianza = mascara.getAsUint8Array();
+        confianza = medir('maskRead', () => mascara.getAsUint8Array());
       } catch {
         return null;
       }
@@ -65,8 +65,10 @@ export function crearSilueta({ crearLienzo }) {
       }
       if (!imagen) imagen = ctx.createImageData(ancho, alto);
 
-      alfaDesdeConfianza(confianza, imagen.data);
-      ctx.putImageData(imagen, 0, 0);
+      medir('maskConvert', () => {
+        alfaDesdeConfianza(confianza, imagen.data);
+        ctx.putImageData(imagen, 0, 0);
+      });
       return lienzo;
     },
 
