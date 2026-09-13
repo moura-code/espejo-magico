@@ -8,7 +8,7 @@
       "maite": "industrial_mecanica",
       "fondos": [
         {
-          "img": "assets/fondos/mecanica-nave.jpg",
+          "img": "assets/fondos/mecanica_A.jpg",
           "lugar": {
             "x": 0.834,
             "y": 0.22,
@@ -31,59 +31,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/mecanica-2.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/mecanica-taller.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/mecanica.png"
         }
       ],
       "objetos": [
@@ -124,7 +71,7 @@
       "maite": "electronica",
       "fondos": [
         {
-          "img": "assets/fondos/electrica-turbinas.jpg",
+          "img": "assets/fondos/electrica_C.jpg",
           "lugar": {
             "x": 0.834,
             "y": 0.22,
@@ -147,59 +94,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/electrica-generadores.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/electrica-2.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/electrica.png"
         }
       ],
       "objetos": [
@@ -240,7 +134,7 @@
       "maite": "sistemas",
       "fondos": [
         {
-          "img": "assets/fondos/computacion-2.jpg",
+          "img": "assets/fondos/computacion_B.jpg",
           "lugar": {
             "x": 0.834,
             "y": 0.22,
@@ -263,59 +157,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/computacion-pasillo.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/computacion-3.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/computacion.png"
         }
       ],
       "objetos": [
@@ -356,7 +197,7 @@
       "maite": "fisico_matematica",
       "fondos": [
         {
-          "img": "assets/fondos/fisico-matematico-3.jpg",
+          "img": "assets/fondos/fisico_matematica_C.jpg",
           "lugar": {
             "x": 0.166,
             "y": 0.22,
@@ -379,59 +220,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/fisico-matematico-acelerador.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/fisico-matematico-anillo.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/fisico-matematico.png"
         }
       ],
       "objetos": [
@@ -472,7 +260,7 @@
       "maite": "civil",
       "fondos": [
         {
-          "img": "assets/fondos/civil-dique.jpg",
+          "img": "assets/fondos/civil_A.jpg",
           "lugar": {
             "x": 0.166,
             "y": 0.22,
@@ -495,59 +283,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/civil-embalse.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/civil-2.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/civil.png"
         }
       ],
       "objetos": [
@@ -588,7 +323,7 @@
       "maite": "quimica",
       "fondos": [
         {
-          "img": "assets/fondos/quimica-laboratorio.jpg",
+          "img": "assets/fondos/quimica_B.jpg",
           "lugar": {
             "x": 0.166,
             "y": 0.22,
@@ -611,59 +346,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/quimica-3.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/quimica-2.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/quimica.png"
         }
       ],
       "objetos": [
@@ -704,7 +386,7 @@
       "maite": "alimentos",
       "fondos": [
         {
-          "img": "assets/fondos/alimentos-2.jpg",
+          "img": "assets/fondos/alimentos_C.jpg",
           "lugar": {
             "x": 0.834,
             "y": 0.22,
@@ -727,59 +409,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/alimentos-bodega.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/alimentos-3.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/alimentos.png"
         }
       ],
       "objetos": [
@@ -820,7 +449,7 @@
       "maite": "produccion",
       "fondos": [
         {
-          "img": "assets/fondos/produccion-2.jpg",
+          "img": "assets/fondos/produccion_B.jpg",
           "lugar": {
             "x": 0.834,
             "y": 0.22,
@@ -843,59 +472,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/produccion-deposito.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/produccion-3.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/produccion.png"
         }
       ],
       "objetos": [
@@ -936,7 +512,7 @@
       "maite": "agrimensura",
       "fondos": [
         {
-          "img": "assets/fondos/agrimensura-valle.jpg",
+          "img": "assets/fondos/agrimensura_C.jpg",
           "lugar": {
             "x": 0.166,
             "y": 0.22,
@@ -959,59 +535,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/agrimensura-aereo.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/agrimensura-terrazas.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/agrimensura.png"
         }
       ],
       "objetos": [
@@ -1052,7 +575,7 @@
       "maite": "comunicacion",
       "fondos": [
         {
-          "img": "assets/fondos/comunicacion-antenas.jpg",
+          "img": "assets/fondos/comunicaciones_B.jpg",
           "lugar": {
             "x": 0.834,
             "y": 0.22,
@@ -1075,59 +598,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/comunicacion-2.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/comunicacion-3.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/comunicacion.png"
         }
       ],
       "objetos": [
@@ -1168,7 +638,7 @@
       "maite": "forestal",
       "fondos": [
         {
-          "img": "assets/fondos/forestal-niebla.jpg",
+          "img": "assets/fondos/forestal_A.jpg",
           "lugar": {
             "x": 0.166,
             "y": 0.22,
@@ -1191,59 +661,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/forestal-2.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/forestal-3.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/forestal.png"
         }
       ],
       "objetos": [
@@ -1284,7 +701,7 @@
       "maite": "naval",
       "fondos": [
         {
-          "img": "assets/fondos/naval-2.jpg",
+          "img": "assets/fondos/naval_B.jpg",
           "lugar": {
             "x": 0.166,
             "y": 0.22,
@@ -1307,85 +724,6 @@
               "escala": 0.24
             }
           ]
-        },
-        {
-          "img": "assets/fondos/naval-dique.jpg",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/naval-3.jpg",
-          "lugar": {
-            "x": 0.834,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.166,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/naval-canal.jpg",
-          "video": "assets/fondos/naval-canal.mp4",
-          "lugar": {
-            "x": 0.166,
-            "y": 0.22,
-            "escala": 0.24
-          },
-          "escondites": [
-            {
-              "x": 0.834,
-              "y": 0.22,
-              "escala": 0.24
-            },
-            {
-              "x": 0.166,
-              "y": 0.43,
-              "escala": 0.24
-            },
-            {
-              "x": 0.834,
-              "y": 0.43,
-              "escala": 0.24
-            }
-          ]
-        },
-        {
-          "img": "assets/fondos/naval.png"
         }
       ],
       "objetos": [

@@ -131,19 +131,16 @@ criterios, y se descubrieron mirando los que no funcionaban:
    conviene que ese rincón quede por debajo de ~58.
 5. **Oscura**, entre 25 y 70 de brillo medio sobre 255.
 
-Y si el fondo es un video, **poco movimiento**. `naval-canal.mp4` quedó en el
-repositorio como el ejemplo de lo contrario: el agua del canal de ensayos se
-mueve tanto que la persona y el objeto encima quedan compitiendo con el fondo en
-vez de integrados. Está declarado como cuarto candidato de Naval, no como el
-activo, para poder mirarlo al lado de los otros.
+Si en el futuro se incorpora un fondo de video, debe tener **poco movimiento**:
+la persona y el objeto encima no pueden competir con el escenario.
 
 ### Candidatos, `lugar` y `escondites`
 
-Cada carrera declara `fondos`, una lista de candidatos. **El espejo muestra el
-primero; elegir es reordenar.** Son **tres opciones reales por carrera** como
-mínimo, y `npm run listo` lo verifica; el `.png` que genera
-`npm run generar-fondos` no cuenta, porque es el respaldo que dibuja el código,
-no una opción para elegir.
+Cada carrera declara `fondos`, una lista extensible. **Por ahora contiene una
+sola imagen real**, que es la que muestra el espejo; `npm run listo` verifica
+que exista. Cuando se incorporen alternativas, se agregan a la lista y el
+espejo mostrará la primera. El `.png` que genera `npm run generar-fondos` sigue
+siendo un respaldo del código, no una opción para elegir.
 
 Cada candidato **esconde los cuatro objetos** de su ingeniería:
 
@@ -152,9 +149,9 @@ Cada candidato **esconde los cuatro objetos** de su ingeniería:
   `objetos`**: el segundo objeto va al primer escondite, y así.
 
 Todos van **normalizados a la imagen** (`x` e `y` de 0 a 1, `escala` es el
-diámetro como fracción del ancho de la imagen): las fotos se preparan en
-1080×1920, la medida del espejo, y ahí un punto normalizado a la imagen cae
-exactamente en el sitio de la escena que se eligió. Sin declararlos valen
+diámetro como fracción del ancho de la imagen). El set actual es 1920×1080 y el
+espejo calcula el encuadre para cada orientación de pantalla; por eso los puntos
+se guardan en proporciones y no en píxeles. Sin declararlos valen
 `CONFIG.fondo.lugarPorDefecto` y `CONFIG.fondo.esconditesPorDefecto`, que son un
 seguro del código y no una decisión — por eso `npm run listo` pide que **cada
 candidato declare los suyos**.
@@ -228,11 +225,10 @@ halo, los otros tres meciéndose en sus escondites, la ficha de cada uno
 abriéndose por turno y el nombre al pie, con las mismas funciones que usa el
 espejo.
 
-Los candidatos `-2` y `-3` son fotografías de Wikimedia Commons con licencia
-libre, **recortadas a 9:16, escaladas a 1080×1920 y oscurecidas** para que la
-persona recortada y el nombre se lean encima; cada una lleva su obra de origen,
-autoría y licencia en `assets/CREDITOS.md`. Las derivadas conservan la licencia
-de origen y quedan versionadas: el stand no necesita red.
+Los fondos vigentes son un set propio entregado al proyecto, versionado como
+JPEG 1920×1080. Si se agregan fotos de terceros como candidatos, su obra de
+origen, autoría y licencia deben incorporarse a `assets/CREDITOS.md` antes de
+usarlas en el stand.
 
 Para preparar una foto nueva, con el ffmpeg de la máquina de desarrollo (no hace
 falta en la PC del evento):

@@ -302,9 +302,8 @@ describe('cargarContenido', () => {
     expect(contenido.idsJugables()).toEqual(['civil', 'naval']);
   });
 
-  // Solo se precarga el fondo activo de cada carrera: 36 candidatos de
-  // 1080x1920 en memoria de video no tienen sentido para mostrar doce. Los
-  // objetos van todos: el del carrusel y los que se esconden en el fondo.
+  // Solo se precarga el fondo activo de cada carrera. Los objetos van todos:
+  // el del carrusel y los que se esconden en el fondo.
   it('junta los objetos y el fondo activo para precargarlos', async () => {
     const contenido = await cargarContenido({
       traer: traerCon({
