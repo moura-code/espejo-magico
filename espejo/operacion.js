@@ -49,6 +49,48 @@ export function crearContadorFps({ ventana }) {
   };
 }
 
+const ms = (valor) => Number.isFinite(valor) ? `${valor.toFixed(1)} ms` : '-';
+const etapa = (metricas, nombre) => ms(metricas?.[nombre]?.ms);
+
+export function formatearPanel({ espejo, fps }) {
+  const metricas = espejo.metricas?.() ?? {};
+  const maite = espejo.puente.ultimo();
+  return [
+    `fps         ${fps.toFixed(0)}`,
+    `FRAME       ${etapa(metricas, 'frame')}`,
+    `Face        ${etapa(metricas, 'face')}`,
+    `Hands       ${etapa(metricas, 'hands')}`,
+    `Pose        ${etapa(metricas, 'pose')}`,
+    `Mask read   ${etapa(metricas, 'maskRead')}`,
+    `Mask convert ${etapa(metricas, 'maskConvert')}`,
+    `Video compose ${etapa(metricas, 'compose')}`,
+    `Objects     ${etapa(metricas, 'objects')}`,
+    `UI          ${etapa(metricas, 'ui')}`,
+    `WebGL2      ${espejo.webgl2Disponible?.() ? 'si' : 'no'}`,
+    `perfil      ${espejo.perfilDeRendimiento?.() ?? 'completo'}`,
+    `estado      ${espejo.maquina.estado()}`,
+    `ofrecidas   ${espejo.maquina.opciones().join(' ') || '-'}`,
+    `carrera     ${espejo.maquina.carrera() ?? '-'}`,
+    `sesion      ${espejo.maquina.sesion()}`,
+    `modo        ${espejo.modo()}`,
+    `camara      ${espejo.estadoDeCamara().lista ? 'ok' : (espejo.estadoDeCamara().error ?? 'sin camara')}`,
+    `puntos      ${espejo.detector.cantidadDePuntos()}`,
+    `manos       ${espejo.manosCrudas()} vistas / ${espejo.manos().length} usadas`,
+    `radio mano  ${espejo.manos().map((m) => m.radio.toFixed(0)).join('  ') || '-'}`,
+    `eleccion    ${(espejo.progresoDeEleccion() * 100).toFixed(0)}%`,
+    `ficha       ${espejo.fichaActiva?.() ?? '-'}`,
+    `pose        ${espejo.poseCrudas()} / silueta ${espejo.pose()?.mascara ? 'si' : 'no'}`,
+    `humo        ${espejo.hayFondo() ? 'ok' : 'sin video'}`,
+    `maite       ${espejo.puente.activo() ? `${maite.estado} ${maite.enviado ?? ''} ${maite.ok === null ? '' : maite.ok ? 'ok' : 'FALLO'}` : 'apagado'}`,
+    `png faltan  ${espejo.banco.faltantes().length}`,
+    `avance      ${espejo.maquina.esManual() ? 'MANUAL' : 'automatico'}`,
+    'ESPACIO avanzar    A auto/manual',
+    '1-9,0,-,= carrera  R reiniciar',
+    'D demo             M malla',
+    'P cerrar',
+  ].join('\n');
+}
+
 export function instalarOperacion({
   espejo,
   tiempos,
@@ -102,36 +144,7 @@ export function instalarOperacion({
       fps.registrar(ahora);
       if (!visible) return;
 
-      const camara = espejo.estadoDeCamara();
-      const maite = espejo.puente.ultimo();
-      panel.textContent = [
-        `fps         ${fps.valor().toFixed(0)}`,
-        `perfil      ${espejo.perfilDeRendimiento?.() ?? 'completo'}`,
-        `estado      ${espejo.maquina.estado()}`,
-        `ofrecidas   ${espejo.maquina.opciones().join(' ') || '-'}`,
-        `carrera     ${espejo.maquina.carrera() ?? '-'}`,
-        `sesion      ${espejo.maquina.sesion()}`,
-        `modo        ${espejo.modo()}`,
-        `camara      ${camara.lista ? 'ok' : (camara.error ?? 'sin camara')}`,
-        `puntos      ${espejo.detector.cantidadDePuntos()}`,
-        `manos       ${espejo.manosCrudas()} vistas / ${espejo.manos().length} usadas`,
-        `radio mano  ${espejo.manos().map((m) => m.radio.toFixed(0)).join('  ') || '-'}`,
-        `eleccion    ${(espejo.progresoDeEleccion() * 100).toFixed(0)}%`,
-        `ficha       ${espejo.fichaActiva?.() ?? '-'}`,
-        `pose        ${espejo.poseCrudas()} / silueta ${espejo.pose()?.mascara ? 'si' : 'no'}`,
-        `humo        ${espejo.hayFondo() ? 'ok' : 'sin video'}`,
-        // Si las tablets no acompañan, esto dice de un vistazo si el espejo
-        // llego a avisarle a MAITE o si el problema esta del otro lado.
-        `maite       ${espejo.puente.activo() ? `${maite.estado} ${maite.enviado ?? ''} ${maite.ok === null ? '' : maite.ok ? 'ok' : 'FALLO'}` : 'apagado'}`,
-        `png faltan  ${espejo.banco.faltantes().length}`,
-        ``,
-        `avance      ${espejo.maquina.esManual() ? 'MANUAL' : 'automatico'}`,
-        ``,
-        `ESPACIO avanzar    A auto/manual`,
-        `1-9,0,-,= carrera  R reiniciar`,
-        `D demo             M malla`,
-        `P cerrar`,
-      ].join('\n');
+      panel.textContent = formatearPanel({ espejo, fps: fps.valor() });
     },
   };
 }
