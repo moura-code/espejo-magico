@@ -71,6 +71,7 @@ import {
   PESO_TITULO,
 } from './escena.js';
 import { instalarOperacion } from './operacion.js';
+import { crearMedidorDeEtapas } from './metricas.js';
 
 // ---------- lienzos ----------
 // La niebla va en su propia capa para componer todos los jirones laterales sin
@@ -88,6 +89,8 @@ const persona = { canvas: capaPersona, ctx: ctxPersona };
 // que se esta leyendo, que detras le tapaba la mano.
 const capaDelante = document.createElement('canvas');
 const delante = { canvas: capaDelante, ctx: capaDelante.getContext('2d') };
+const metricas = crearMedidorDeEtapas({ ventana: 60 });
+const webgl2Disponible = Boolean(document.createElement('canvas').getContext('webgl2'));
 
 let disposicion = calcularDisposicion(1, 1);
 
@@ -297,7 +300,10 @@ const tablero = crearTablero(CONFIG.tablero);
 // Las fichas de los objetos del fondo: cual se esta describiendo y cuanto se
 // ve cada una. Es el hermano tranquilo del sostenido: pregunta, no elige.
 const fichas = crearFichas(CONFIG.fichas);
-const silueta = crearSilueta({ crearLienzo: () => document.createElement('canvas') });
+const silueta = crearSilueta({
+  crearLienzo: () => document.createElement('canvas'),
+  medir: metricas.medir,
+});
 
 // Las escenas vectoriales de cada ingenieria, el respaldo cuando falta el PNG
 // del fondo. Se dibuja una sola vez por carrera y despues es un drawImage, igual
@@ -496,6 +502,8 @@ function cuadro(ahora) {
   // acumula solo.
   if (ahora - anterior < intervaloDibujo) return;
 
+  const inicioCuadro = performance.now();
+
   operacion.registrarCuadro(ahora);
 
   // Se acota el dt: si el navegador se traba un instante, un salto grande
@@ -579,7 +587,7 @@ function cuadro(ahora) {
       modo === 'demo'
         ? sintetica.detectar(ahora, disposicion)
         : analisis
-          ? detector.detectar(analisis, ahora, rectDeteccion)
+          ? metricas.medir('face', () => detector.detectar(analisis, ahora, rectDeteccion))
           : null;
 
     rostro = crudoRostro ? filtro.filtrar(crudoRostro) : null;
@@ -587,7 +595,7 @@ function cuadro(ahora) {
 
   if (tocaPose && analisis) {
     planificadorDeDetectores.registrar('pose', ahora);
-    pose = detectorDePose.detectar(analisis, ahora, rectDeteccion);
+    pose = metricas.medir('pose', () => detectorDePose.detectar(analisis, ahora, rectDeteccion));
     // La silueta cuesta una lectura de la GPU a la CPU, asi que solo se arma
     // cuando hay fondo que meterle atras a la persona.
     lienzoDeSilueta = conFondo(estadoAnterior, mostrada)
@@ -613,7 +621,7 @@ function cuadro(ahora) {
     planificadorDeDetectores.registrar('manos', ahora);
     // La palma que elige va filtrada: el temblor crudo la hace entrar y salir
     // del blanco varias veces por segundo y el anillo se llenaria a los saltos.
-    manos = detectorDeManos.detectar(analisis, ahora, rectDeteccion);
+    manos = metricas.medir('hands', () => detectorDeManos.detectar(analisis, ahora, rectDeteccion));
     manosSuaves = filtroDeManos.filtrar(manos, ahora);
   } else if (!manosSirven) {
     manos = [];
@@ -727,13 +735,17 @@ function cuadro(ahora) {
 
   const dormido = estado === ESTADOS.ATRACCION;
   if (video) {
-    dibujarVideoEspejado(ctx, video, rectangulo, disposicion, {
-      desenfoque: dormido ? 10 : 0,
-      brillo: dormido ? 0.45 : 1,
-    });
+    metricas.medir('compose', () =>
+      dibujarVideoEspejado(ctx, video, rectangulo, disposicion, {
+        desenfoque: dormido ? 10 : 0,
+        brillo: dormido ? 0.45 : 1,
+      }),
+    );
   } else {
-    ctx.fillStyle = '#101418';
-    ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
+    metricas.medir('compose', () => {
+      ctx.fillStyle = '#101418';
+      ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
+    });
   }
 
   // El fondo de la carrera entra por encima del espejo y la persona se vuelve a
@@ -784,16 +796,20 @@ function cuadro(ahora) {
     // apoya normalizado a el, y calcularlo aparte es como se separan los dos
     // caminos. Null quiere decir que no habia nada dibujable —ni foto, ni escena,
     // ni un video con su primer cuadro— y ahi entra el color plano.
-    const dibujado = dibujarFondo(ctx, escena, disposicion, alfaDelFondo);
+    const dibujado = metricas.medir('compose', () =>
+      dibujarFondo(ctx, escena, disposicion, alfaDelFondo),
+    );
 
     if (!dibujado) {
       // Ni foto ni escena: el color de la carrera. Es feo pero es legible, y el
       // nombre sigue entrando: una carrera sin fondo no rompe nada.
-      ctx.save();
-      ctx.globalAlpha = transicion.fondo * 0.8;
-      ctx.fillStyle = carrera.color;
-      ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
-      ctx.restore();
+      metricas.medir('compose', () => {
+        ctx.save();
+        ctx.globalAlpha = transicion.fondo * 0.8;
+        ctx.fillStyle = carrera.color;
+        ctx.fillRect(0, 0, disposicion.ancho, disposicion.alto);
+        ctx.restore();
+      });
     }
 
     // Los cuatro objetos del fondo: el que llega volando del carrusel a su
@@ -866,7 +882,9 @@ function cuadro(ahora) {
         alfa: transicion.escondidos,
         halo,
       };
-      dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre);
+      metricas.medir('objects', () =>
+        dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre),
+      );
       detras.push({ ...dibujo, leyendo: enFoco(escondido.id) });
     }
 
@@ -891,20 +909,24 @@ function cuadro(ahora) {
     // inclina sobre ese punto lo tapa, que es lo correcto.
     if (aterrizo) {
       const dibujo = { ...apoyado, alfa: transicion.elegido, halo: comoSeVe.halo };
-      dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre);
+      metricas.medir('objects', () =>
+        dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre),
+      );
       detras.push({ ...dibujo, leyendo: enFoco(0) });
     }
 
     if (hayRecorte) {
       ctx.save();
       ctx.globalAlpha = transicion.fondo;
-      dibujarPersonaRecortada(ctx, {
-        capa: persona,
-        video,
-        rectangulo,
-        silueta: lienzoDeSilueta,
-        disposicion,
-      });
+      metricas.medir('compose', () =>
+        dibujarPersonaRecortada(ctx, {
+          capa: persona,
+          video,
+          rectangulo,
+          silueta: lienzoDeSilueta,
+          disposicion,
+        }),
+      );
       ctx.restore();
 
       // EL QUE TIENE LA MANO ENCIMA VA TAMBIEN DELANTE DE LA PERSONA, y solo
@@ -913,16 +935,18 @@ function cuadro(ahora) {
       // ficha quedaria hablando de algo que no se ve. Recortado contra la
       // silueta, donde nada lo tapa no se dibuja dos veces y donde la mano lo
       // tapaba aparece encima, con su alfa de foco.
-      dibujarObjetosDelante(ctx, {
-        capa: delante,
-        persona,
-        disposicion,
-        objetos: detras
-          .filter((dibujo) => dibujo.leyendo > 0)
-          .map((dibujo) => ({ ...dibujo, alfa: dibujo.alfa * dibujo.leyendo })),
-        banco,
-        color: CONFIG.paleta.nombre,
-      });
+      metricas.medir('objects', () =>
+        dibujarObjetosDelante(ctx, {
+          capa: delante,
+          persona,
+          disposicion,
+          objetos: detras
+            .filter((dibujo) => dibujo.leyendo > 0)
+            .map((dibujo) => ({ ...dibujo, alfa: dibujo.alfa * dibujo.leyendo })),
+          banco,
+          color: CONFIG.paleta.nombre,
+        }),
+      );
     }
   }
 
@@ -994,35 +1018,41 @@ function cuadro(ahora) {
       // El disco de la carga se llena DEBAJO del objeto: encima le teñiria la
       // foto. En la ranura del elegido queda lleno y se apaga con el carrusel:
       // cortarlo en el cuadro en que se completa era un parpadeo.
-      dibujarDiscoDeCarga(ctx, {
-        ...donde,
-        progreso: progresoDelAnillo,
-        color: CONFIG.carga.color,
-        opacidad: CONFIG.carga.relleno,
-        radioFactor: CONFIG.carga.radioDelDisco,
-        alfa: alfaDelBlanco,
-      });
+      metricas.medir('objects', () =>
+        dibujarDiscoDeCarga(ctx, {
+          ...donde,
+          progreso: progresoDelAnillo,
+          color: CONFIG.carga.color,
+          opacidad: CONFIG.carga.relleno,
+          radioFactor: CONFIG.carga.radioDelDisco,
+          alfa: alfaDelBlanco,
+        }),
+      );
       if (!esElMostrado) {
-        dibujarObjeto(
-          ctx,
-          { definicion: blanco.definicion, ...donde, alfa: alfaDelBlanco },
-          banco,
-          CONFIG.paleta.nombre,
+        metricas.medir('objects', () =>
+          dibujarObjeto(
+            ctx,
+            { definicion: blanco.definicion, ...donde, alfa: alfaDelBlanco },
+            banco,
+            CONFIG.paleta.nombre,
+          ),
         );
       }
 
       // Un solo color de carga para las doce ingenierias. La opacidad del
       // carrusel multiplica la del anillo: se apaga con el en vez de quedarse
       // entero y cortarse de golpe al final.
-      dibujarAnilloDeProgreso(ctx, {
-        ...donde,
-        progreso: progresoDelAnillo,
-        color: CONFIG.carga.color,
-        pista: CONFIG.carga.pista,
-        trazo: CONFIG.carga.trazo,
-        brillo: CONFIG.carga.brillo,
-        alfa: alfaDelBlanco,
-      });
+      metricas.medir('objects', () =>
+        dibujarAnilloDeProgreso(ctx, {
+          ...donde,
+          progreso: progresoDelAnillo,
+          color: CONFIG.carga.color,
+          pista: CONFIG.carga.pista,
+          trazo: CONFIG.carga.trazo,
+          brillo: CONFIG.carga.brillo,
+          alfa: alfaDelBlanco,
+        }),
+      );
     }
   }
 
@@ -1032,17 +1062,19 @@ function cuadro(ahora) {
   // exactamente en ese rato: con el alfa del carrusel, el objeto se
   // desvaneceria en pleno vuelo.
   if (apoyado && !apoyado.aterrizo) {
-    dibujarObjeto(
-      ctx,
-      {
-        definicion: apoyado.definicion,
-        x: apoyado.x,
-        y: apoyado.y,
-        radio: apoyado.radio,
-        alfa: transicion.elegido,
-      },
-      banco,
-      CONFIG.paleta.nombre,
+    metricas.medir('objects', () =>
+      dibujarObjeto(
+        ctx,
+        {
+          definicion: apoyado.definicion,
+          x: apoyado.x,
+          y: apoyado.y,
+          radio: apoyado.radio,
+          alfa: transicion.elegido,
+        },
+        banco,
+        CONFIG.paleta.nombre,
+      ),
     );
   }
 
@@ -1053,12 +1085,14 @@ function cuadro(ahora) {
   // del fondo despues. Durante el vuelo se apaga con el carrusel y vuelve con
   // los escondidos, sin cortes: encendida mientras las manos no hacen nada
   // prometeria algo que no pasa.
-  dibujarManos(
-    ctx,
-    desvanecedorDeManos.actualizar(manosSuaves, ahora),
-    '#ffffff',
-    CONFIG.manos.senal,
-    Math.max(transicion.objetos, transicion.escondidos),
+  metricas.medir('ui', () =>
+    dibujarManos(
+      ctx,
+      desvanecedorDeManos.actualizar(manosSuaves, ahora),
+      '#ffffff',
+      CONFIG.manos.senal,
+      Math.max(transicion.objetos, transicion.escondidos),
+    ),
   );
 
   // Las fichas, encima de todo lo de la escena: el texto se tiene que leer.
@@ -1069,16 +1103,20 @@ function cuadro(ahora) {
     const alfa = (estadoFichas.alfas[objeto.id] ?? 0) * transicion.fondo;
     if (alfa <= 0) continue;
     const { opciones } = fichaDelObjeto(objeto, disposicion, CONFIG);
-    dibujarFicha(
-      ctx,
-      { nombre: objeto.definicion.nombre, descripcion: objeto.definicion.descripcion, alfa },
-      disposicion,
-      { ...opciones, colores: COLORES_DE_FICHA },
+    metricas.medir('ui', () =>
+      dibujarFicha(
+        ctx,
+        { nombre: objeto.definicion.nombre, descripcion: objeto.definicion.descripcion, alfa },
+        disposicion,
+        { ...opciones, colores: COLORES_DE_FICHA },
+      ),
     );
   }
 
   // Un solo color para el nombre de las doce: el de los nombres de MAITE.
-  dibujarNombreDeCarrera(ctx, carrera, disposicion, transicion.contenido, CONFIG.paleta.nombre);
+  metricas.medir('ui', () =>
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, transicion.contenido, CONFIG.paleta.nombre),
+  );
 
   // El humo va encima de todo: su trabajo es justamente tapar el momento en que
   // las nubes se abren y los objetos se ponen en su lugar.
@@ -1088,7 +1126,7 @@ function cuadro(ahora) {
     tiempos: CONFIG.tiempos,
     humo: CONFIG.humo,
   });
-  dibujarHumo(ctx, videoDeHumo, disposicion, humo, CONFIG.humo.opacidad);
+  metricas.medir('ui', () => dibujarHumo(ctx, videoDeHumo, disposicion, humo, CONFIG.humo.opacidad));
 
   nieblaActual = acercarNiebla(
     nieblaActual,
@@ -1098,8 +1136,10 @@ function cuadro(ahora) {
   );
   if (nieblaActual.apertura < 1) {
     ctxNiebla.clearRect(0, 0, disposicion.ancho, disposicion.alto);
-    niebla.dibujar(ctxNiebla, disposicion, nieblaActual);
-    ctx.drawImage(capaNiebla, 0, 0);
+    metricas.medir('ui', () => {
+      niebla.dibujar(ctxNiebla, disposicion, nieblaActual);
+      ctx.drawImage(capaNiebla, 0, 0);
+    });
   }
 
   // Aviso permanente del modo manual. No es para el operador: es para que nadie
@@ -1122,11 +1162,13 @@ function cuadro(ahora) {
   // 700 ms era un parpadeo, no una respiracion: apurado, se leia como un aviso
   // de error mas que como una invitacion. Entra despacio en el reposo y se va
   // rapido cuando alguien se sienta.
-  dibujarInvitacion(
-    ctx,
-    disposicion,
-    (Math.sin(ahora / 1400) + 1) / 2,
-    invitacion.actualizar(estado === ESTADOS.ATRACCION, ahora),
+  metricas.medir('ui', () =>
+    dibujarInvitacion(
+      ctx,
+      disposicion,
+      (Math.sin(ahora / 1400) + 1) / 2,
+      invitacion.actualizar(estado === ESTADOS.ATRACCION, ahora),
+    ),
   );
   // La consigna ensena el gesto, y es lo unico que lo hace. La de la eleccion
   // sale de abajo del humo —encendida de golpe encima del humo espeso era un
@@ -1134,17 +1176,22 @@ function cuadro(ahora) {
   // nada que agarrar. La de explorar entra con la escena entera y se va para
   // siempre la primera vez que alguien abre una ficha: el gesto ya se aprendio.
   if (estado === ESTADOS.EXPLORACION) {
-    dibujarConsigna(
-      ctx,
-      disposicion,
-      transicion.objetos * (1 - humo),
-      consignaDeEleccion({
-        detectorDisponible: Boolean(detectorDeManos),
-        ayudaVisible: ayudaDeEleccionVisible,
-      }),
+    metricas.medir('ui', () =>
+      dibujarConsigna(
+        ctx,
+        disposicion,
+        transicion.objetos * (1 - humo),
+        consignaDeEleccion({
+          detectorDisponible: Boolean(detectorDeManos),
+          ayudaVisible: ayudaDeEleccionVisible,
+        }),
+      ),
     );
   }
-  dibujarConsigna(ctx, disposicion, transicion.explorar, 'Pasá la mano sobre los objetos del fondo');
+  metricas.medir('ui', () =>
+    dibujarConsigna(ctx, disposicion, transicion.explorar, 'Pasá la mano sobre los objetos del fondo'),
+  );
+  metricas.registrar('frame', performance.now() - inicioCuadro);
 }
 
 window.espejo = {
@@ -1154,6 +1201,8 @@ window.espejo = {
   videosDeFondo,
   detector,
   puente,
+  metricas: () => metricas.instantanea(),
+  webgl2Disponible: () => webgl2Disponible,
   estadoDeCamara: () => estadoDeCamara,
   manos: () => manos,
   manosCrudas: () => detectorDeManos?.crudasDetectadas() ?? 0,
