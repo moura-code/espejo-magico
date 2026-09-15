@@ -8,9 +8,8 @@
     "test": "vitest run",
     "test:mirar": "vitest",
     "listo": "vitest run --config vitest.listo.config.js",
+    "catalogo": "node -e \"import('./servidor/catalogo.js').then(m => m.generarArchivoCatalogo())\"",
     "vendorizar": "node herramientas/vendorizar.mjs",
-    "generar-pngs": "node herramientas/generar-pngs.mjs",
-    "generar-fondos": "node herramientas/generar-fondos.mjs",
     "prepare": "sh scripts/setup-git-hooks.sh || echo hooks no activados",
     "planilla": "node herramientas/planilla.mjs"
   },

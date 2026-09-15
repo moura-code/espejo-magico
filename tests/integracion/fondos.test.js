@@ -20,15 +20,11 @@
 //     borde y "desaparecia" en las doce ingenierias.
 
 import { describe, it, expect } from 'vitest';
-import { readFile } from 'node:fs/promises';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { CONFIG } from '../../espejo/config.js';
 import { calcularDisposicion, calcularRectanguloVideo } from '../../espejo/escena.js';
 import { lugaresDelFondo, objetosDelFondo } from '../../espejo/escondites.js';
-
-const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+import { construirCatalogo } from '../../servidor/catalogo.js';
 
 // La medida en que se preparan los fondos (docs/contenido.md).
 const FOTO = { ancho: 1080, alto: 1920 };
@@ -45,9 +41,9 @@ const POR_DEFECTO = {
  * objetos de su carrera.
  */
 const todosLosFondos = async () => {
-  const { carreras } = JSON.parse(
-    await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'),
-  );
+  const { catalogo, errores } = await construirCatalogo();
+  if (errores.length > 0) throw new Error(`Errores en catálogo: ${errores.join(', ')}`);
+  const { carreras } = catalogo;
   return [
     ...carreras.flatMap((carrera) =>
       (carrera.fondos ?? []).map((fondo) => ({ nombre: fondo.img, fondo, objetos: carrera.objetos })),

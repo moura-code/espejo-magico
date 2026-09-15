@@ -1,0 +1,5 @@
+{
+  "nombre": "Osciloscopio",
+  "descripcion": "Dibuja cómo cambia una señal eléctrica en el tiempo. Deja ver ondas que duran millonésimas de segundo.",
+  "figura": "onda"
+}

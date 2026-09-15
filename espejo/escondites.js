@@ -121,7 +121,15 @@ export function aspectoDelObjeto(
  * de integracion; armada en cada lado, el espejo podia cambiar y las pruebas
  * seguir en verde.
  */
-export function objetosDelFondo({ objetos, fondo, rectangulo, pantalla, config }) {
+export function objetosDelFondo({
+  objetos,
+  elegido = null,
+  escondidos = null,
+  fondo,
+  rectangulo,
+  pantalla,
+  config,
+}) {
   // En una pantalla apaisada sobra lugar a los costados de la persona: los
   // objetos crecen `agrandarEnApaisado`. Se agranda la escala y no el radio ya
   // puesto, asi el margen contra el borde se mide con el tamaño que se dibuja.
@@ -133,14 +141,28 @@ export function objetosDelFondo({ objetos, fondo, rectangulo, pantalla, config }
       pantalla,
       config.fondo.margenDelLugar,
     );
-  const [lugar, ...escondites] = lugaresDelFondo(fondo, {
+  const [lugar, ...esconditesDefault] = lugaresDelFondo(fondo, {
     lugar: config.fondo.lugarPorDefecto,
     escondites: config.fondo.esconditesPorDefecto,
   });
-  const [primero, ...resto] = objetos;
+
+  if (escondidos) {
+    const objElegido = elegido ?? objetos?.[0] ?? null;
+    return [
+      { id: 0, definicion: objElegido, ...aPantalla(lugar) },
+      ...escondidos.map(({ definicion, lugar: escondite, indice: idx }, indice) => ({
+        id: indice + 1,
+        definicion,
+        indice: idx ?? indice,
+        ...aPantalla(escondite ?? esconditesDefault[indice] ?? lugar),
+      })),
+    ];
+  }
+
+  const [primero, ...resto] = objetos ?? [];
   return [
     { id: 0, definicion: primero, ...aPantalla(lugar) },
-    ...esconder(resto, escondites).map(({ definicion, lugar: escondite }, indice) => ({
+    ...esconder(resto, esconditesDefault).map(({ definicion, lugar: escondite }, indice) => ({
       id: indice + 1,
       definicion,
       indice,

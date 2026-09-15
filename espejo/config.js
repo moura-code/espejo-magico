@@ -327,7 +327,7 @@ export const CONFIG = {
   // El humo que entra al sentarse. Es un video blanco sobre negro, compuesto en
   // `screen`: el negro desaparece solo y no hace falta canal alfa.
   humo: {
-    ruta: 'assets/humo.mp4',
+    ruta: 'comun/humo.mp4',
     opacidad: 0.95,
 
     // Fraccion del estado HUMO que tarda en espesarse. El resto lo pasa tapando.

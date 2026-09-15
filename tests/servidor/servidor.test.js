@@ -118,4 +118,49 @@ describe('servidor', () => {
     expect(respuesta.status).toBe(200);
     expect(respuesta.headers.get('cache-control')).toContain('immutable');
   });
+
+  it('genera catalogo.json bajo demanda si no existe en disco', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-servidor-'));
+    const baseCarrera = join(raiz, 'contenido', 'carreras', 'computacion');
+    const baseObjeto = join(baseCarrera, 'objetos', 'chip');
+    const baseFondo = join(baseCarrera, 'fondos', 'aula');
+    await mkdir(baseObjeto, { recursive: true });
+    await mkdir(baseFondo, { recursive: true });
+
+    await writeFile(
+      join(baseCarrera, 'carrera.json'),
+      JSON.stringify({
+        nombre: 'Computación',
+        color: '#00E5A0',
+        maite: 'computacion',
+      }),
+    );
+    await writeFile(join(baseObjeto, 'imagen.png'), Buffer.from('png'));
+    await writeFile(
+      join(baseObjeto, 'metadata.json'),
+      JSON.stringify({
+        nombre: 'Microprocesador',
+        descripcion: 'Cerebro de silicio',
+        figura: 'chip',
+      }),
+    );
+    await writeFile(join(baseFondo, 'imagen.jpg'), Buffer.from('jpg'));
+    await writeFile(
+      join(baseFondo, 'metadata.json'),
+      JSON.stringify({
+        lugar: { x: 0.5, y: 0.5, escala: 1 },
+        escondites: [],
+      }),
+    );
+
+    servidor = crearServidor({ raiz });
+    const puerto = await servidor.escuchar(0);
+
+    const respuesta = await fetch(`http://localhost:${puerto}/contenido/catalogo.json`);
+    expect(respuesta.status).toBe(200);
+    const catalogo = await respuesta.json();
+    expect(catalogo.carreras).toHaveLength(1);
+    expect(catalogo.carreras[0].id).toBe('computacion');
+  });
 });
+

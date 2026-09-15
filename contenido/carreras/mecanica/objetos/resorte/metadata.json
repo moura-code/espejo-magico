@@ -1,0 +1,5 @@
+{
+  "nombre": "Resortes",
+  "descripcion": "Guardan energía al comprimirse y la devuelven al soltarse. Se calculan para cada carga, del bolígrafo al auto.",
+  "figura": "resorte"
+}
