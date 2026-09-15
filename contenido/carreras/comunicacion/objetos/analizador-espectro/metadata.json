@@ -1,0 +1,5 @@
+{
+  "nombre": "Analizador de espectros RF",
+  "descripcion": "Visualiza señales de radiofrecuencia y su potencia a lo largo del espectro electromagnético.",
+  "figura": "onda"
+}

@@ -1,0 +1,5 @@
+{
+  "nombre": "Llave de seguridad YubiKey",
+  "descripcion": "Llave física criptográfica para autenticación segura multifactor contra ataques de phishing.",
+  "figura": "servidor"
+}

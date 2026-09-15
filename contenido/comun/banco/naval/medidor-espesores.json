@@ -1,0 +1,5 @@
+{
+  "nombre": "Medidor de espesores ultrasónico",
+  "descripcion": "Emite ultrasonido para medir el desgaste y espesor residual de las chapas de acero del casco.",
+  "figura": "onda"
+}

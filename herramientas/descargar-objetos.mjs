@@ -10,7 +10,8 @@
 //   node herramientas/descargar-objetos.mjs descargar [--carrera=civil]
 //   node herramientas/descargar-objetos.mjs aplicar [--carrera=civil]
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -253,6 +254,141 @@ function cmdAplicar(filtroCarrera = null) {
 }
 
 /**
+ * Comando: incorporar
+ * Procesa las imágenes descargadas, genera imagen.png, archiva objetos viejos a banco/,
+ * coloca los nuevos en las carpetas de carreras y actualiza CREDITOS.md y catalogo.json.
+ */
+function cmdIncorporar(filtroCarrera = null) {
+  const candidatos = leerCandidatos();
+  console.log('\n=== Incorporando objetos candidatos al proyecto ===\n');
+
+  for (const c of candidatos) {
+    if (filtroCarrera && c.carrera !== filtroCarrera) continue;
+    console.log(`\n--- [${c.carrera}] ${c.carreraNombre} ---`);
+
+    const dirObjetosCarrera = resolve(RAIZ, `contenido/carreras/${c.carrera}/objetos`);
+    const dirBancoCarrera = resolve(RAIZ, `contenido/comun/banco/${c.carrera}`);
+    mkdirSync(dirBancoCarrera, { recursive: true });
+
+    // Archivar objetos existentes no activos
+    const nuevosActivosIds = c.objetos.filter((o) => o.activo).map((o) => o.id);
+    if (existsSync(dirObjetosCarrera)) {
+      const carpetasExistentes = readdirSync(dirObjetosCarrera, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map((d) => d.name);
+
+      for (const viejoId of carpetasExistentes) {
+        if (!nuevosActivosIds.includes(viejoId)) {
+          const rutaViejaImg = join(dirObjetosCarrera, viejoId, 'imagen.png');
+          const rutaViejaMeta = join(dirObjetosCarrera, viejoId, 'metadata.json');
+          if (existsSync(rutaViejaImg)) {
+            copyFileSync(rutaViejaImg, join(dirBancoCarrera, `${viejoId}.png`));
+          }
+          if (existsSync(rutaViejaMeta)) {
+            copyFileSync(rutaViejaMeta, join(dirBancoCarrera, `${viejoId}.json`));
+          }
+          rmSync(join(dirObjetosCarrera, viejoId), { recursive: true, force: true });
+          console.log(`  Archivado a banco: ${c.carrera}/${viejoId}`);
+        }
+      }
+    }
+
+    // Incorporar los 5 objetos
+    for (const o of c.objetos) {
+      const dirDescargas = join(DIR_DESCARGAS, c.carrera);
+      let archivoDescargado = null;
+      for (const ext of ['jpg', 'jpeg', 'png', 'gif']) {
+        const p = join(dirDescargas, `${o.id}.${ext}`);
+        if (existsSync(p)) {
+          archivoDescargado = p;
+          break;
+        }
+      }
+
+      if (!archivoDescargado) {
+        console.warn(`  [ALERTA] Archivo descargado no encontrado para ${c.carrera}/${o.id}`);
+        continue;
+      }
+
+      const meta = {
+        nombre: o.nombre,
+        descripcion: o.descripcion,
+        figura: o.figura,
+      };
+
+      if (o.activo) {
+        const dirObj = join(dirObjetosCarrera, o.id);
+        mkdirSync(dirObj, { recursive: true });
+        const rutaMeta = join(dirObj, 'metadata.json');
+        const rutaImg = join(dirObj, 'imagen.png');
+
+        writeFileSync(rutaMeta, JSON.stringify(meta, null, 2) + '\n', 'utf8');
+
+        execFileSync('python3', [
+          resolve(RAIZ, 'herramientas/procesar-imagenes.py'),
+          archivoDescargado,
+          rutaImg,
+        ]);
+        console.log(`  [ACTIVO] ${o.id} -> ${rutaImg}`);
+      } else {
+        const rutaMeta = join(dirBancoCarrera, `${o.id}.json`);
+        const rutaImg = join(dirBancoCarrera, `${o.id}.png`);
+
+        writeFileSync(rutaMeta, JSON.stringify(meta, null, 2) + '\n', 'utf8');
+
+        execFileSync('python3', [
+          resolve(RAIZ, 'herramientas/procesar-imagenes.py'),
+          archivoDescargado,
+          rutaImg,
+        ]);
+        console.log(`  [BANCO]  ${o.id} -> ${rutaImg}`);
+      }
+    }
+  }
+
+  // Actualizar CREDITOS.md
+  if (existsSync(RUTA_MANIFEST) && !filtroCarrera) {
+    const manifest = JSON.parse(readFileSync(RUTA_MANIFEST, 'utf8'));
+    let tablaCreditos = '| Archivo | Obra de origen | Autoría | Licencia |\n|---|---|---|---|\n';
+    for (const c of manifest) {
+      for (const o of c.objetos) {
+        if (!o.commons) continue;
+        const archivoDestino = o.activo
+          ? `${c.carrera}/${o.id}.png`
+          : `banco/${c.carrera}/${o.id}.png`;
+        const tituloLimpio = o.commons.titulo.replace(/^File:/, '');
+        const obra = `[${tituloLimpio}](${o.commons.paginaUrl})`;
+        const autor = o.commons.autor.replace(/\|/g, '/');
+        const licencia = o.commons.licencia;
+        tablaCreditos += `| \`${archivoDestino}\` | ${obra} | ${autor} | ${licencia} |\n`;
+      }
+    }
+
+    let creditosContenido = readFileSync(RUTA_CREDITOS, 'utf8');
+    const regexObjetos = /(## Objetos[\s\S]*?\| Archivo \|[\s\S]*?\n)(## Fondos)/;
+    if (regexObjetos.test(creditosContenido)) {
+      creditosContenido = creditosContenido.replace(
+        regexObjetos,
+        `## Objetos\n\nSon **60 fotografías** (48 activas en las 12 ingenierías y 12 en el banco de reserva). A cada una se le recortó el fondo y la transparencia sobrante y se limitó el lado mayor a 768 px.\n\n${tablaCreditos}\n$2`,
+      );
+      writeFileSync(RUTA_CREDITOS, creditosContenido, 'utf8');
+      console.log('\nCREDITOS.md actualizado con las obras de origen.');
+    }
+  }
+
+  // Actualizar catálogo generado
+  try {
+    execFileSync('node', [
+      '-e',
+      "import('./servidor/catalogo.js').then(m => m.generarArchivoCatalogo())",
+    ]);
+    console.log('\nCatálogo generado actualizado con éxito.');
+  } catch (e) {
+    console.error('Error actualizando catálogo:', e.message);
+  }
+}
+
+/**
  * Comando: creditos
  * Genera la tabla en formato Markdown para CREDITOS.md a partir del manifest.
  */
@@ -296,10 +432,13 @@ switch (comando) {
   case 'aplicar':
     cmdAplicar(argCarrera);
     break;
+  case 'incorporar':
+    cmdIncorporar(argCarrera);
+    break;
   case 'creditos':
     cmdCreditos();
     break;
   default:
-    console.log(`Comando desconocido: "${comando}". Opciones: info, buscar, descargar, aplicar, creditos`);
+    console.log(`Comando desconocido: "${comando}". Opciones: info, buscar, descargar, aplicar, incorporar, creditos`);
 }
 

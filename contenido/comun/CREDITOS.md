@@ -10,60 +10,72 @@ necesita red para usarlas.
 
 ## Objetos
 
-Son **40 fotografías**. A cada una se le recortó el fondo y la transparencia
-sobrante y se limitó el lado mayor a 768 px.
-
-Los demás PNG de `contenido/assets/` llegaron con el material propio del
-proyecto y no llevan atribución acá. Si alguno se reemplaza más adelante por una
-foto de terceros, su fila va en esta tabla: es lo que exige la licencia.
-
-Un PNG definitivo de diseño puede reemplazar a cualquiera de estos archivos en
-la misma ruta, sin tocar código.
+Son **60 fotografías** (48 activas en las 12 ingenierías y 12 en el banco de reserva). A cada una se le recortó el fondo y la transparencia sobrante y se limitó el lado mayor a 768 px.
 
 | Archivo | Obra de origen | Autoría | Licencia |
 |---|---|---|---|
-| `mecanica/engranaje.png` | [New school – old school – crankset.jpg](https://commons.wikimedia.org/wiki/File:New_school_%E2%80%93_old_school_%E2%80%93_crankset.jpg) | https://www.flickr.com/photos/jrees/ | CC BY 2.0 |
-| `mecanica/llave.png` | [Beta combinata 42.jpg](https://commons.wikimedia.org/wiki/File:Beta_combinata_42.jpg) | User:cav | Public domain |
-| `mecanica/martillo.png` | [Hammer-Fäustel-spanische Form-1500gr 1.JPG](https://commons.wikimedia.org/wiki/File:Hammer-F%C3%A4ustel-spanische_Form-1500gr_1.JPG) | Banffy | CC BY-SA 3.0 |
-| `mecanica/tuerca.png` | [Groß und klein 003 2022 07 15.jpg](https://commons.wikimedia.org/wiki/File:Gro%C3%9F_und_klein_003_2022_07_15.jpg) | Friedrich Haag | CC BY-SA 4.0 |
-| `mecanica/rodamiento.png` | [Radial-deep-groove-ball-bearing din625-t1 2rs.png](https://commons.wikimedia.org/wiki/File:Radial-deep-groove-ball-bearing_din625-t1_2rs.png) | Silberwolf | CC BY 2.5 |
-| `mecanica/resorte.png` | [Compression springs 20101109.jpg](https://commons.wikimedia.org/wiki/File:Compression_springs_20101109.jpg) | Batholith (talk) | Public domain |
-| `electrica/lampara.png` | [Gluehlampe 01 KMJ.jpg](https://commons.wikimedia.org/wiki/File:Gluehlampe_01_KMJ.jpg) | KMJ | CC BY-SA 3.0 |
-| `electrica/bateria.png` | [Duracell 9 Volt 0849.jpg](https://commons.wikimedia.org/wiki/File:Duracell_9_Volt_0849.jpg) | Ashley Pomeroy | CC BY 3.0 |
-| `electrica/enchufe.png` | [NEMA-AC-Power-Plugs.jpg](https://commons.wikimedia.org/wiki/File:NEMA-AC-Power-Plugs.jpg) | Evan-Amos | Public domain |
-| `electrica/multimetro.png` | [Digital Multimeter Aka.jpg](https://commons.wikimedia.org/wiki/File:Digital_Multimeter_Aka.jpg) | André Karwath aka Aka | CC BY-SA 2.5 |
-| `electrica/resistencia.png` | [Electronic-Axial-Lead-Resistors-Array.png](https://commons.wikimedia.org/wiki/File:Electronic-Axial-Lead-Resistors-Array.png) | User:Evan-Amos | Public domain |
-| `electrica/led.png` | [RGB LED 5mm.jpg](https://commons.wikimedia.org/wiki/File:RGB_LED_5mm.jpg) | Mister rf | CC BY-SA 4.0 |
-| `computacion/laptop.png` | [HP Pavilion dv2000 laptop.jpg](https://commons.wikimedia.org/wiki/File:HP_Pavilion_dv2000_laptop.jpg) | Aaron Patterson from Redding CA | CC BY 2.0 |
-| `computacion/teclado.png` | [Cherry-keyboard-big-Enter.jpg](https://commons.wikimedia.org/wiki/File:Cherry-keyboard-big-Enter.jpg) | Vugluskr | Public domain |
-| `computacion/mouse.png` | [A wireless computer mouse.jpg](https://commons.wikimedia.org/wiki/File:A_wireless_computer_mouse.jpg) | Pixloom | CC BY-SA 4.0 |
-| `computacion/procesador.png` | [HP-HP9000-PARISC-PA8500-CPU 005.jpg](https://commons.wikimedia.org/wiki/File:HP-HP9000-PARISC-PA8500-CPU_005.jpg) | Thomas Schanz | CC BY-SA 4.0 |
-| `computacion/memoria.png` | [1GB DDR1 400Mhz (3).jpg](https://commons.wikimedia.org/wiki/File:1GB_DDR1_400Mhz_(3).jpg) | Ryse93 | CC BY-SA 4.0 |
-| `computacion/placa.png` | [Sega-Genesis-Mk2-Motherboard-01.jpg](https://commons.wikimedia.org/wiki/File:Sega-Genesis-Mk2-Motherboard-01.jpg) | Evan-Amos | Public domain |
-| `fisico-matematico/calculadora.png` | [TI-84 Plus calculator HS1.jpg](https://commons.wikimedia.org/wiki/File:TI-84_Plus_calculator_HS1.jpg) | Hayden Schiff | CC BY 4.0 |
-| `fisico-matematico/regla.png` | [Container, ink, and pen (AM 1963.41-5).jpg](https://commons.wikimedia.org/wiki/File:Container,_ink,_and_pen_(AM_1963.41-5).jpg) | autoría desconocida (Auckland Museum) | CC BY 4.0 |
-| `fisico-matematico/compas.png` | [Compass (drawing tool).jpg](https://commons.wikimedia.org/wiki/File:Compass_(drawing_tool).jpg) | Dmitry Makeev | CC BY-SA 4.0 |
-| `fisico-matematico/prisma.png` | [Glass optical prism 003 (52277188063).jpg](https://commons.wikimedia.org/wiki/File:Glass_optical_prism_003_(52277188063).jpg) | Jan Helebrant | CC0 |
-| `fisico-matematico/iman.png` | [Horseshoe magnet by Zureks.jpg](https://commons.wikimedia.org/wiki/File:Horseshoe_magnet_by_Zureks.jpg) | Zureks | CC0 |
-| `fisico-matematico/osciloscopio.png` | [Tektronix 2467 analog oscilloscope (350 MHz).jpg](https://commons.wikimedia.org/wiki/File:Tektronix_2467_analog_oscilloscope_(350_MHz).jpg) | Department of Energy. National Nuclear Security Administration. Sandia National Laboratories. 3/1/2000 | Public domain |
-| `civil/cono.png` | [Road-cones,sankaku-cones,japan.JPG](https://commons.wikimedia.org/wiki/File:Road-cones,sankaku-cones,japan.JPG) | katorisi | CC BY 2.5 |
-| `civil/ladrillo.png` | [Brick.jpg](https://commons.wikimedia.org/wiki/File:Brick.jpg) | Andrewlister | Public domain |
-| `civil/nivel.png` | [Tool-level.jpg](https://commons.wikimedia.org/wiki/File:Tool-level.jpg) | Evan-Amos | Public domain |
-| `agrimensura/cinta-metrica.png` | [Stanley dynagrip 5 m × 19 mm 33-684 01.jpg](https://commons.wikimedia.org/wiki/File:Stanley_dynagrip_5_m_%C3%97_19_mm_33-684_01.jpg) | Coyau | CC BY-SA 3.0 |
-| `agrimensura/teodolito.png` | [Surveying instrument, Wild Heerbrugg, Switzerland - Röntgen-Gedächtnisstätte Würzburg - Würzburg, Germany - DSC04375.jpg](https://commons.wikimedia.org/wiki/File:Surveying_instrument,_Wild_Heerbrugg,_Switzerland_-_R%C3%B6ntgen-Ged%C3%A4chtnisst%C3%A4tte_W%C3%BCrzburg_-_W%C3%BCrzburg,_Germany_-_DSC04375.jpg) | Daderot | CC0 |
-| `civil/casco-obra.png` | [Hard hat 20111111.jpg](https://commons.wikimedia.org/wiki/File:Hard_hat_20111111.jpg) | Batholith (talk) | Public domain |
-| `quimica/frasco-reactivo.png` | [DURAN® laboratory bottle amber 100ml.jpg](https://commons.wikimedia.org/wiki/File:DURAN%C2%AE_laboratory_bottle_amber_100ml.jpg) | Lucasbosch | CC BY-SA 3.0 |
-| `quimica/probeta.png` | [Glass graduated cylinder-250ml 1.jpg](https://commons.wikimedia.org/wiki/File:Glass_graduated_cylinder-250ml_1.jpg) | Lilly_M | CC BY-SA 3.0 |
-| `quimica/pipeta.png` | [VIAFLO-electronic-pipettes.jpg](https://commons.wikimedia.org/wiki/File:VIAFLO-electronic-pipettes.jpg) | Labrat879 | CC BY-SA 4.0 |
-| `quimica/mortero.png` | [2023070211 Moerser weisser Hintergrund Draufsicht 2023.jpg](https://commons.wikimedia.org/wiki/File:2023070211_Moerser_weisser_Hintergrund_Draufsicht_2023.jpg) | VSchagow | CC BY 4.0 |
-| `quimica/microscopio.png` | [Microscope toy.jpg](https://commons.wikimedia.org/wiki/File:Microscope_toy.jpg) | Talita Oliveira | CC BY-SA 4.0 |
-| `quimica/vaso-precipitados.png` | [Becherglas mit farbiger Lösung.png](https://commons.wikimedia.org/wiki/File:Becherglas_mit_farbiger_L%C3%B6sung.png) | MediaLab TH Köln | CC BY-SA 4.0 |
-| `forestal/serrucho.png` | [Hand saw - small.jpg](https://commons.wikimedia.org/wiki/File:Hand_saw_-_small.jpg) | Mnemosine; obra derivada de Bigforrap | Public domain |
-| `produccion/calibre.png` | [TESA CCMA-P 150 mm 0.02 mm dial caliper.jpg](https://commons.wikimedia.org/wiki/File:TESA_CCMA-P_150_mm_0.02_mm_dial_caliper.jpg) | Lucasbosch | CC BY-SA 4.0 |
-| `produccion/escaner-codigo.png` | [HDWR HD2000 Wireless Barcode Reader.png](https://commons.wikimedia.org/wiki/File:HDWR_HD2000_Wireless_Barcode_Reader.png) | Andrzej Lenkowski | CC BY-SA 4.0 |
-| `naval/sextante.png` | [Sextant.jpg](https://commons.wikimedia.org/wiki/File:Sextant.jpg) | autoría no declarada en Commons | Public domain |
+| `civil/cono-abrams.png` | [Cono de Abrams 01.jpg](https://commons.wikimedia.org/wiki/File:Cono_de_Abrams_01.jpg) | No machine-readable author provided. Tano4595 assumed (based on copyright claims). | CC BY-SA 2.5 |
+| `civil/esclerometro-schmidt.png` | [Schmidt hammer testing.jpg](https://commons.wikimedia.org/wiki/File:Schmidt_hammer_testing.jpg) | Arjuncm3 | CC BY-SA 3.0 |
+| `civil/probeta-hormigon.png` | [Berlin belastungskoerper.jpg](https://commons.wikimedia.org/wiki/File:Berlin_belastungskoerper.jpg) | Dieter Brügmann | CC BY-SA 3.0 |
+| `civil/nivel-optico.png` | [Archaeologists using a dumpy level to survey a trench.jpg](https://commons.wikimedia.org/wiki/File:Archaeologists_using_a_dumpy_level_to_survey_a_trench.jpg) | LP B, Oxford Archaeology | CC BY 4.0 |
+| `banco/civil/viga-acero.png` | [I-Beam 002.JPG](https://commons.wikimedia.org/wiki/File:I-Beam_002.JPG) | Todd Murray | CC BY-SA 3.0 |
+| `alimentos/refractometro.png` | [Refractometer.jpg](https://commons.wikimedia.org/wiki/File:Refractometer.jpg) | Fernando G. (FGM) | CC BY-SA 3.0 |
+| `alimentos/placa-petri.png` | [Bacterial cell culture on agar plate ( DNA double helix conformation).jpg](https://commons.wikimedia.org/wiki/File:Bacterial_cell_culture_on_agar_plate_(_DNA_double_helix_conformation).jpg) | Syed Sajidul Islam | CC BY-SA 4.0 |
+| `alimentos/biorreactor.png` | [Labfors 4 with touchscreen.jpg](https://commons.wikimedia.org/wiki/File:Labfors_4_with_touchscreen.jpg) | El Carlos | CC BY-SA 3.0 |
+| `alimentos/boquilla-spray.png` | [Injector3.gif](https://commons.wikimedia.org/wiki/File:Injector3.gif) | WikipedianProlific at English Wikipedia | CC BY-SA 3.0 |
+| `banco/alimentos/medidor-ph.png` | [PH meter 2014.jpg](https://commons.wikimedia.org/wiki/File:PH_meter_2014.jpg) | Vis M | CC BY-SA 4.0 |
+| `produccion/tablero-kanban.png` | [Simple-kanban-board-.jpg](https://commons.wikimedia.org/wiki/File:Simple-kanban-board-.jpg) | Jeff.lasovski | CC BY-SA 3.0 |
+| `produccion/cronometro-industrial.png` | [Ca 1970 mechanical stopwatch by Herwins Switzerland.jpg](https://commons.wikimedia.org/wiki/File:Ca_1970_mechanical_stopwatch_by_Herwins_Switzerland.jpg) | R. Henrik Nilsson | CC BY 4.0 |
+| `produccion/lector-codigo.png` | [Barcode-scanner.jpg](https://commons.wikimedia.org/wiki/File:Barcode-scanner.jpg) | Desconocido | CC BY 1.0 |
+| `produccion/mapa-vsm.png` | [VSM6.JPG](https://commons.wikimedia.org/wiki/File:VSM6.JPG) | Foster24 | CC BY-SA 3.0 |
+| `banco/produccion/cinta-demarcacion.png` | [NSW Police tape in Sydenham.jpg](https://commons.wikimedia.org/wiki/File:NSW_Police_tape_in_Sydenham.jpg) | J03098 | CC BY 4.0 |
+| `electrica/pinza-amperimetrica.png` | [Clampmeter Fluke 337.jpg](https://commons.wikimedia.org/wiki/File:Clampmeter_Fluke_337.jpg) | Harke | Public domain |
+| `electrica/rele-termico.png` | [Symbol of thermal relay.JPG](https://commons.wikimedia.org/wiki/File:Symbol_of_thermal_relay.JPG) | Dmitry G | CC BY-SA 3.0 |
+| `electrica/megohmetro.png` | [M1101M.jpg](https://commons.wikimedia.org/wiki/File:M1101M.jpg) | Сергин Владимир Александрович | Public domain |
+| `electrica/transformador-toroidal.png` | [Toroidal Transformer Poynting Vector.jpg](https://commons.wikimedia.org/wiki/File:Toroidal_Transformer_Poynting_Vector.jpg) | Constant314 | CC0 |
+| `banco/electrica/contactor-trifasico.png` | [Contactor DIN IEK.jpg](https://commons.wikimedia.org/wiki/File:Contactor_DIN_IEK.jpg) | Kae | CC BY-SA 3.0 |
+| `agrimensura/estacion-total.png` | [Surveying prism and total station, for land surveying, in Shibuya-ku.jpg](https://commons.wikimedia.org/wiki/File:Surveying_prism_and_total_station,_for_land_surveying,_in_Shibuya-ku.jpg) | Syced | CC0 |
+| `agrimensura/prisma-topografico.png` | [Round prism and laser plummet on tripod.jpg](https://commons.wikimedia.org/wiki/File:Round_prism_and_laser_plummet_on_tripod.jpg) | Dave Fayram from Pacifica, United States | CC BY-SA 2.0 |
+| `agrimensura/antena-gnss.png` | [GNSS antenna.jpg](https://commons.wikimedia.org/wiki/File:GNSS_antenna.jpg) | Karlbrix | CC BY-SA 4.0 |
+| `agrimensura/mira-estadimetrica.png` | [Molitor rod, precise leveling, for Harris, Enfield, Mass., Oct. 31, 1929 - DPLA - 909b8943ca7a7451eab087543807d597.jpg](https://commons.wikimedia.org/wiki/File:Molitor_rod,_precise_leveling,_for_Harris,_Enfield,_Mass.,_Oct._31,_1929_-_DPLA_-_909b8943ca7a7451eab087543807d597.jpg) | Massachusetts. Metropolitan District Water Supply Commission, Remington, Carl A., 1902-1982, Remington, Carl A., 1902-1982 | Public domain |
+| `banco/agrimensura/brujula-brunton.png` | [Brunton.JPG](https://commons.wikimedia.org/wiki/File:Brunton.JPG) | Matt Affolter (QFL247) (talk) (Original uploaded by Matt Affolter (QFL247)) | CC BY-SA 3.0 |
+| `computacion/raspberry-pi.png` | [Raspberry Pi B Circuit Board.jpg](https://commons.wikimedia.org/wiki/File:Raspberry_Pi_B_Circuit_Board.jpg) | SimonWaldherr | CC BY-SA 4.0 |
+| `computacion/memoria-ram.png` | [Kingston DDR Memory Module.jpg](https://commons.wikimedia.org/wiki/File:Kingston_DDR_Memory_Module.jpg) | Matt Kieffer | CC BY-SA 2.0 |
+| `computacion/yubikey.png` | [YubiKey 5C NFC.jpg](https://commons.wikimedia.org/wiki/File:YubiKey_5C_NFC.jpg) | Daniel Aleksandersen | CC BY 4.0 |
+| `computacion/ssd-m2.png` | [256GB 2230 NVME SSD 1.jpg](https://commons.wikimedia.org/wiki/File:256GB_2230_NVME_SSD_1.jpg) | User5515 | CC0 |
+| `banco/computacion/cable-ttl.png` | [USB-to-Serial Bridge - µUSB-PA5.jpg](https://commons.wikimedia.org/wiki/File:USB-to-Serial_Bridge_-_%C2%B5USB-PA5.jpg) | SparkFun Electronics | CC BY 2.0 |
+| `comunicacion/empalmadora-fibra.png` | [Fujikura-Fusion Splicer 70S-02ASD.jpg](https://commons.wikimedia.org/wiki/File:Fujikura-Fusion_Splicer_70S-02ASD.jpg) | Asurnipal | CC BY-SA 4.0 |
+| `comunicacion/analizador-espectro.png` | [3D battery charger RF spectrum over time.jpg](https://commons.wikimedia.org/wiki/File:3D_battery_charger_RF_spectrum_over_time.jpg) | Spekki2000 | CC BY-SA 4.0 |
+| `comunicacion/bobina-fibra.png` | [Optical fiber cable-01ASD.jpg](https://commons.wikimedia.org/wiki/File:Optical_fiber_cable-01ASD.jpg) | Asurnipal | CC BY-SA 4.0 |
+| `comunicacion/antena-parabolica.png` | [Canberra Deep Dish Communications Complex - GPN-2000-000502.jpg](https://commons.wikimedia.org/wiki/File:Canberra_Deep_Dish_Communications_Complex_-_GPN-2000-000502.jpg) | NASA | Public domain |
+| `banco/comunicacion/atenuador-rf.png` | [RF Attenuator 30dB 5W.jpg](https://commons.wikimedia.org/wiki/File:RF_Attenuator_30dB_5W.jpg) | Joe Ravi | CC BY-SA 3.0 |
+| `fisico-matematico/interferometro.png` | [Michelson interferometer.png](https://commons.wikimedia.org/wiki/File:Michelson_interferometer.png) | Warren Leywon | CC BY-SA 4.0 |
+| `fisico-matematico/pendulo-torsion.png` | [Wilberforce pendulum.jpg](https://commons.wikimedia.org/wiki/File:Wilberforce_pendulum.jpg) | W. E. Dalby | Public domain |
+| `fisico-matematico/tubo-rayos-catodicos.png` | [Crookes tube two views.jpg](https://commons.wikimedia.org/wiki/File:Crookes_tube_two_views.jpg) | D-Kuru | CC BY-SA 3.0 at |
+| `fisico-matematico/regla-calculo.png` | [Faber Castell 67 54 Darmstadt slide rule 1.jpg](https://commons.wikimedia.org/wiki/File:Faber_Castell_67_54_Darmstadt_slide_rule_1.jpg) | Slashme | CC0 |
+| `banco/fisico-matematico/giroscopio.png` | [Ring laser gyroscope at MAKS-2011 airshow.jpg](https://commons.wikimedia.org/wiki/File:Ring_laser_gyroscope_at_MAKS-2011_airshow.jpg) | Nockson | CC BY-SA 3.0 |
+| `forestal/forcipula.png` | [American forests (17958492330).jpg](https://commons.wikimedia.org/wiki/File:American_forests_(17958492330).jpg) | Internet Archive Book Images | No restrictions |
+| `forestal/barrena-pressler.png` | [Using Increment Borer (53688372580).jpg](https://commons.wikimedia.org/wiki/File:Using_Increment_Borer_(53688372580).jpg) | BLM Alaska | Public domain |
+| `forestal/clinometro-suunto.png` | [20181206-FS-APACHE-SITGREAVES-LSC-1001.jpg](https://commons.wikimedia.org/wiki/File:20181206-FS-APACHE-SITGREAVES-LSC-1001.jpg) | U.S. Department of Agriculture | Public domain |
+| `forestal/rodaja-tronco.png` | [Dendrochronology - geograph.org.uk - 402577.jpg](https://commons.wikimedia.org/wiki/File:Dendrochronology_-_geograph.org.uk_-_402577.jpg) | ceridwen | CC BY-SA 2.0 |
+| `banco/forestal/cinta-diametrica.png` | [DTape Picture.JPG](https://commons.wikimedia.org/wiki/File:DTape_Picture.JPG) | VTmaddogVT (talk) | Public domain |
+| `mecanica/calibre-vernier.png` | [Mid 1990s Kanon vernier scale caliper resolution 0 05 mm made in Japan.jpg](https://commons.wikimedia.org/wiki/File:Mid_1990s_Kanon_vernier_scale_caliper_resolution_0_05_mm_made_in_Japan.jpg) | R. Henrik Nilsson | CC BY 4.0 |
+| `mecanica/micrometro.png` | [Micrometer (screw gauge).jpg](https://commons.wikimedia.org/wiki/File:Micrometer_(screw_gauge).jpg) | Riaz | CC BY-SA 4.0 |
+| `mecanica/engranaje-mecanizado.png` | [Bevel gear-tech drawing.png](https://commons.wikimedia.org/wiki/File:Bevel_gear-tech_drawing.png) | Original uploader was Jonasz at pl.wikipedia | CC BY-SA 3.0 |
+| `mecanica/rodamiento-despiezado.png` | [BearingVgrooveRaceway.jpg](https://commons.wikimedia.org/wiki/File:BearingVgrooveRaceway.jpg) | Auburn Ball Bearing Company | CC BY-SA 3.0 |
+| `banco/mecanica/llave-dinamometrica.png` | [Direct pawl clicker torque concept.png](https://commons.wikimedia.org/wiki/File:Direct_pawl_clicker_torque_concept.png) | Lead holder | CC BY-SA 4.0 |
+| `naval/modelo-casco.png` | [NewcastleTowingTank.jpg](https://commons.wikimedia.org/wiki/File:NewcastleTowingTank.jpg) | Xtrememachineuk at English Wikipedia | CC BY 2.5 |
+| `naval/helice-naval.png` | [Right-handed 3-blade bronze propeller & stainless steel rope cutter.jpg](https://commons.wikimedia.org/wiki/File:Right-handed_3-blade_bronze_propeller_%26_stainless_steel_rope_cutter.jpg) | Arrivisto | CC BY-SA 4.0 |
+| `naval/anodo-sacrificio.png` | [Electrode protecting a screw.jpg](https://commons.wikimedia.org/wiki/File:Electrode_protecting_a_screw.jpg) | Rémi Kaupp | CC BY-SA 3.0 |
+| `naval/inclinometro-mamparo.png` | [MuseeMarine-compas-p1000468.jpg](https://commons.wikimedia.org/wiki/File:MuseeMarine-compas-p1000468.jpg) | Rama | CeCILL |
+| `banco/naval/medidor-espesores.png` | [23 0061613 Convair Negative Image - Actual thickness versus ultrasonic thickness measurements (54052706595).jpg](https://commons.wikimedia.org/wiki/File:23_0061613_Convair_Negative_Image_-_Actual_thickness_versus_ultrasonic_thickness_measurements_(54052706595).jpg) | San Diego Air &amp; Space Museum Archives | Public domain |
+| `quimica/columna-vigreux.png` | [EB1911 - Liquid Gases - Fig. 8.—Apparatus for Fractional Distillation.jpg](https://commons.wikimedia.org/wiki/File:EB1911_-_Liquid_Gases_-_Fig._8.%E2%80%94Apparatus_for_Fractional_Distillation.jpg) | AnonymousUnknown author | Public domain |
+| `quimica/matraz-aforado.png` | [2 Liter Flask (NIH BioArt 779 - 792828).png](https://commons.wikimedia.org/wiki/File:2_Liter_Flask_(NIH_BioArt_779_-_792828).png) | Courtesy of NIAID
 
----
+Ryan Kissinger | Public domain |
+| `quimica/embudo-decantacion.png` | [Separatory funnel with oil and colored water.jpg](https://commons.wikimedia.org/wiki/File:Separatory_funnel_with_oil_and_colored_water.jpg) | PRHaney | CC BY-SA 3.0 |
+| `quimica/densimetro.png` | [Thinktank Birmingham - object 1956S00727.00004(1).jpg](https://commons.wikimedia.org/wiki/File:Thinktank_Birmingham_-_object_1956S00727.00004(1).jpg) | Birmingham Museums Trust | CC BY-SA 4.0 |
+| `banco/quimica/agitador-magnetico.png` | [RCT basic IKAMAG® safety control magnetic stirrer.jpg](https://commons.wikimedia.org/wiki/File:RCT_basic_IKAMAG%C2%AE_safety_control_magnetic_stirrer.jpg) | Lucasbosch | CC BY-SA 3.0 |
 
 ## Fondos retirados
 

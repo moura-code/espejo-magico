@@ -1,0 +1,5 @@
+{
+  "nombre": "Relé térmico de protección",
+  "descripcion": "Protege motores eléctricos desconectando el circuito ante sobrecargas prolongadas.",
+  "figura": "chip"
+}
