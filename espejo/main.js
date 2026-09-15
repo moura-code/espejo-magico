@@ -5,6 +5,7 @@
 
 import { CONFIG } from './config.js';
 import { cargarContenido, objetoDeCarrera, fondoActivo } from './contenido.js';
+import { crearSesionContenido } from './sesion.js';
 import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
@@ -137,6 +138,7 @@ aviso('cargando…');
 
 // ---------- contenido ----------
 const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
+const sesionContenido = crearSesionContenido({ contenido });
 const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
 const jugables = contenido.idsJugables();
 const idsOfrecidos = jugables.length > 0 ? jugables : contenido.ids;
@@ -363,7 +365,9 @@ function prepararOfrecidos(opciones) {
   ofrecidos = opciones
     .map((id) => {
       const carrera = contenido.obtener(id);
-      return carrera ? { id, carrera, definicion: objetoDeCarrera(carrera) } : null;
+      return carrera
+        ? { id, carrera, definicion: sesionContenido.representanteDe(id) }
+        : null;
     })
     .filter(Boolean);
 }
@@ -389,7 +393,7 @@ function atender(salida, ahora) {
       mostrada = carrera ?? null;
       objetoMostrado =
         ofrecidos.find((ofrecido) => ofrecido.id === evento.carrera)?.definicion ??
-        objetoDeCarrera(carrera);
+        sesionContenido.representanteDe(evento.carrera);
       const ranura = blancos.find((blanco) => blanco.id === evento.carrera);
       origenDelVuelo =
         ranura && ranura.alfa > 0 ? { x: ranura.x, y: ranura.y, radio: ranura.radio } : null;
@@ -404,6 +408,7 @@ function atender(salida, ahora) {
     if (evento.tipo !== 'entra') continue;
 
     if (evento.estado === ESTADOS.HUMO) {
+      sesionContenido.iniciar(salida.opciones);
       prepararOfrecidos(salida.opciones);
       eleccion.reiniciar();
       tablero.reiniciar();
@@ -415,6 +420,7 @@ function atender(salida, ahora) {
     }
 
     if (evento.estado === ESTADOS.ATRACCION) {
+      sesionContenido.reiniciar();
       ofrecidos = [];
       blancos = [];
       mostrada = null;
@@ -824,8 +830,11 @@ function cuadro(ahora) {
     // objeto crece en su lugar.
     const rectanguloDelFondo =
       dibujado ?? { x: 0, y: 0, ancho: disposicion.ancho, alto: disposicion.alto };
+    const disposicionCarrera = sesionContenido.disposicionDe(carrera.id, fondo);
     const [quieto, ...escondidos] = objetosDelFondo({
       objetos: carrera.objetos,
+      elegido: disposicionCarrera?.elegido ?? objetoMostrado,
+      escondidos: disposicionCarrera?.escondidos ?? null,
       fondo,
       rectangulo: rectanguloDelFondo,
       pantalla: disposicion,
