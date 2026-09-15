@@ -56,6 +56,8 @@
     import {
       calcularDisposicion,
       dibujarFondo,
+      dibujarTratamientoDeFondo,
+      dibujarConsigna,
       dibujarFicha,
       dibujarNombreDeCarrera,
       dibujarObjetoApoyado,
@@ -171,6 +173,8 @@
         }
       }
 
+      dibujarTratamientoDeFondo(ctx, disposicion, 1);
+
       // Los cuatro objetos y sus fichas salen de las mismas funciones que usa
       // el espejo (objetosDelFondo, fichaDelObjeto, aspectoDelObjeto), no de una
       // copia: ajustar un lado solo separaria en silencio lo que se ve aca de
@@ -226,6 +230,7 @@
         { ...opciones, colores: COLORES_DE_FICHA },
       );
       dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, CONFIG.paleta.nombre);
+      dibujarConsigna(ctx, disposicion, 1, 'Pasá la mano sobre los objetos del fondo');
 
       // Y se muestra achicado.
       const vista = lienzo.getContext('2d');
