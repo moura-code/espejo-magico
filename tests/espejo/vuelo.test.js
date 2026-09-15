@@ -74,6 +74,13 @@ describe('lugarEnPantalla', () => {
     expect(puesto.y).toBeCloseTo(960);
     expect(puesto.radio).toBeCloseTo(27);
   });
+
+  it('una foto apaisada en un monitor apaisado conserva la escala vertical de referencia', () => {
+    const rectangulo = calcularRectanguloVideo(1920, 1080, APAISADA.ancho, APAISADA.alto);
+    const puesto = lugarEnPantalla({ x: 0.25, y: 0.297, escala: 0.15 }, rectangulo, APAISADA, 1.25);
+    // Debe usar 9/16 de la altura visible (1080 × 9/16 = 607.5) y no 16/9
+    expect(puesto.radio).toBeCloseTo(45.5625);
+  });
 });
 
 describe('posicionEnVuelo', () => {

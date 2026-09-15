@@ -49,9 +49,10 @@ export function lugarEnPantalla(lugar, rectangulo, pantalla, margen = 1) {
     alto: Math.min(pantalla.alto, rectangulo.y + rectangulo.alto) - y,
   };
 
+  const relacionAspecto = Math.min(rectangulo.ancho / rectangulo.alto, 9 / 16);
   const anchoDeLaComposicion = Math.min(
     visible.ancho,
-    visible.alto * (rectangulo.ancho / rectangulo.alto),
+    visible.alto * relacionAspecto,
   );
   const radio = (lugar.escala * anchoDeLaComposicion) / 2;
   const aire = radio * Math.max(1, margen);
