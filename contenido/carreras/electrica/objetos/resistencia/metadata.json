@@ -1,0 +1,5 @@
+{
+  "nombre": "Resistencias",
+  "descripcion": "Limitan la corriente en un circuito. Sus anillos de colores son un código que indica cuántos ohmios tiene cada una.",
+  "figura": "resistencia"
+}

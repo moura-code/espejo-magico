@@ -1,0 +1,5 @@
+{
+  "nombre": "Router",
+  "descripcion": "Dirige los datos de una red: decide por qué camino viaja cada paquete hasta llegar a su destino.",
+  "figura": "servidor"
+}

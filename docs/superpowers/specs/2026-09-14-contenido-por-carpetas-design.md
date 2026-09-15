@@ -269,3 +269,4 @@ Desacoplado de la lógica de render y de la máquina de estados:
   - Valida tipografías, licencia y humo en `contenido/comun/`.
   - Valida que cualquier objeto nuevo agregado (ej. `teclado`) sea reconocido inmediatamente.
 - Pruebas existentes (`tests/integracion/atajos.test.js`, `fondos.test.js`, `fichas.test.js`, `sintaxis.test.js`): actualizadas para usar el nuevo catálogo y mantenerse en verde.
+

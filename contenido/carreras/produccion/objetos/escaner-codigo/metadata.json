@@ -1,0 +1,5 @@
+{
+  "nombre": "Lector de código de barras",
+  "descripcion": "Cada lectura registra qué entra y qué sale. Con esos datos se sigue un producto de la fábrica al cliente.",
+  "figura": "resistencia"
+}

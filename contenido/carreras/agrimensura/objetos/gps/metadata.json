@@ -1,0 +1,5 @@
+{
+  "nombre": "Receptor GPS",
+  "descripcion": "Calcula dónde está con las señales de varios satélites. Los de agrimensura llegan a precisión de centímetros.",
+  "figura": "chip"
+}

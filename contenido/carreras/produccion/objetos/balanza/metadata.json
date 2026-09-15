@@ -1,0 +1,5 @@
+{
+  "nombre": "Balanza",
+  "descripcion": "Controla que cada producto tenga el peso justo. Medir bien es la base del control de calidad.",
+  "figura": "sumatoria"
+}

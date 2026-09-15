@@ -1,0 +1,5 @@
+{
+  "nombre": "Placa madre",
+  "descripcion": "Conecta el procesador, la memoria y todo lo demás. Sus pistas de cobre llevan los datos de un chip a otro.",
+  "figura": "servidor"
+}
