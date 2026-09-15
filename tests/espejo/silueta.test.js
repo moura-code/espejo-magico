@@ -67,6 +67,21 @@ describe('crearSilueta', () => {
     ]);
   });
 
+  it('separa la lectura de confianza de la conversión a alfa', () => {
+    const etapas = [];
+    const silueta = crearSilueta({
+      crearLienzo: lienzoDeMentira,
+      medir: (nombre, fn) => {
+        etapas.push(nombre);
+        return fn();
+      },
+    });
+
+    silueta.actualizar(mascara(2, 1, [0, 255]));
+
+    expect(etapas).toEqual(['maskRead', 'maskConvert']);
+  });
+
   it('devuelve null sin mascara', () => {
     const silueta = crearSilueta({ crearLienzo: lienzoDeMentira });
     expect(silueta.actualizar(null)).toBeNull();

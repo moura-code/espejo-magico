@@ -136,3 +136,12 @@ describe('los imports apuntan a algo que existe', () => {
     expect(rotos).toEqual([]);
   }, 30000);
 });
+
+describe('el adaptador de operacion del espejo', () => {
+  it('expone metricas de render y la disponibilidad de WebGL2', async () => {
+    const fuente = await readFile(resolve(RAIZ, 'espejo/main.js'), 'utf8');
+
+    expect(fuente).toContain('metricas: () => metricas.instantanea()');
+    expect(fuente).toContain('webgl2Disponible: () => webgl2Disponible');
+  });
+});

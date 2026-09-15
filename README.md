@@ -72,7 +72,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | Comando | Para qué |
 |---|---|
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
-| `npm run listo` | ¿Se puede montar el stand? Verifica los PNG, los cuatro objetos de cada carrera con su nombre y su descripción, los tres fondos candidatos —con su `lugar`, los escondites de los otros tres objetos y el video de los que se mueven—, el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
+| `npm run listo` | ¿Se puede montar el stand? Verifica los PNG, los cuatro objetos de cada carrera con su nombre y su descripción, el fondo activo —con su `lugar` y los escondites de los otros tres objetos—, el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose. |
 | `npm run generar-pngs` | Genera el PNG de respaldo de los objetos que no tengan imagen (no pisa existentes). Necesita Chrome; no usa red. |
 | `npm run generar-fondos` | Genera el fondo de respaldo de cada carrera que no tenga imagen, dibujando con el Chrome local (sin red) el lugar donde se trabaja esa ingeniería. No pisa existentes. `herramientas/fondos.html` las muestra las doce juntas. |
@@ -115,7 +115,7 @@ sólo cableado: decide qué módulo habla con cuál y en qué orden se dibuja.
 
 **Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:**
 nombre, sus cuatro objetos con su nombre y su descripción (el primero es el del
-carrusel), los fondos candidatos con el lugar de cada objeto, y el id que esa
+carrusel), el fondo activo con el lugar de cada objeto, y el id que esa
 carrera tiene en MAITE. Agregar o cambiar una carrera no toca una línea de
 código. Las personas no están acá: las muestran las tablets. El color no
 distingue a las ingenierías: nombres, carga y fichas van en los colores de
@@ -128,13 +128,12 @@ figura → círculo dorado**: si un PNG falta, `npm run generar-pngs` rasteriza
 la figura vectorial de respaldo (`espejo/figuras.js`) sin pisar los existentes,
 y los definitivos de diseño reemplazan a cualquiera en la misma ruta, sin tocar
 código. Lo mismo para los fondos, con `npm run generar-fondos`, que dibuja la escena de
-cada ingeniería (`espejo/escenarios.js`). Cada carrera declara **tres fondos
-candidatos** —espacios con profundidad, sin gente y con un rincón oscuro donde
-apoyar el objeto: los criterios están en `docs/contenido.md`— y un candidato
-puede ser **un video** en vez de una foto quieta (declara `video` además de su `img`, que pasa a ser un cuadro del propio
-video: es lo que se ve mientras el video carga). `herramientas/fondos.html` los
-muestra tal como se verían —con la persona delante, el objeto apoyado en su
-lugar, el nombre al pie, y andando los que tienen video— para elegir mirando.
+cada ingeniería (`espejo/escenarios.js`). Por ahora cada carrera declara **un
+fondo activo** —un espacio con profundidad, sin gente y con un rincón oscuro
+donde apoyar el objeto: los criterios están en `docs/contenido.md`—. El catálogo
+conserva una lista para sumar candidatos después; cada candidato podrá ser **un
+video** en vez de una foto quieta (declara `video` además de su `img`, que pasa
+a ser un cuadro del propio video: es lo que se ve mientras carga).
 
 ### El puente a MAITE
 

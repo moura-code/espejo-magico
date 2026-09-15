@@ -65,7 +65,16 @@ la misma ruta, sin tocar código.
 
 ---
 
-## Fondos
+## Fondos retirados
+
+Las imágenes listadas en esta sección fueron retiradas del catálogo activo y
+del directorio `assets/fondos/` al reemplazarse por el set actual. Esta tabla se
+conserva únicamente como trazabilidad de las obras de Wikimedia Commons que
+habían sido utilizadas; no atribuye ni describe los fondos vigentes.
+
+Los fondos vigentes fueron entregados junto al proyecto y no incluyen datos de
+autoría, origen ni licencia. Si se distribuyen fuera del ámbito en que fueron
+entregados, esos datos deben incorporarse antes de publicarlos.
 
 Los fondos `-2` y `-3` de cada ingeniería son fotografías del lugar donde se
 trabaja esa ingeniería, **recortadas a 9:16, escaladas a 1080×1920 y

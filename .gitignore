@@ -1,4 +1,6 @@
 node_modules/
+.worktrees/
+imagenes_1920x1080/
 vendor/mediapipe/
 .perfil-chrome/
 .DS_Store

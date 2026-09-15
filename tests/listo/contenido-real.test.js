@@ -110,16 +110,16 @@ describe('contenido real', () => {
     expect(faltantes, 'corré npm run generar-fondos o dejá las imágenes reales').toEqual([]);
   });
 
-  // TRES OPCIONES DE VERDAD POR CARRERA, que es lo que la catedra compara en
-  // herramientas/fondos.html. El respaldo vectorial no cuenta: lo dibuja el
-  // codigo para que nada quede en negro, no para elegirlo.
-  it('cada carrera tiene tres fondos para elegir, sin contar el respaldo', async () => {
-    const flojas = [];
+  // Por ahora cada carrera tiene UNA escena definitiva. Conservamos `fondos`
+  // como lista para poder sumar candidatas despues, pero el stand no conserva
+  // las fotografias anteriores ni sus respaldos vectoriales.
+  it('cada carrera tiene una sola imagen de fondo activa', async () => {
+    const repetidas = [];
     for (const carrera of (await leer()).carreras) {
-      const reales = (carrera.fondos ?? []).filter((f) => !esRespaldoVectorial(carrera, f));
-      if (reales.length < 3) flojas.push(`${carrera.id} (${reales.length})`);
+      const declaradas = carrera.fondos ?? [];
+      if (declaradas.length !== 1) repetidas.push(`${carrera.id} (${declaradas.length})`);
     }
-    expect(flojas, 'estas carreras no llegan a tres fondos candidatos').toEqual([]);
+    expect(repetidas, 'cada carrera debe tener una sola imagen de fondo por ahora').toEqual([]);
   });
 
   // El objeto agarrado vuela a `lugar` y se queda ahi, integrado a la escena.

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   crearContadorFps,
+  formatearPanel,
   instalarOperacion,
   interpretarTecla,
 } from '../../espejo/operacion.js';
@@ -22,6 +23,32 @@ const IDS = [
   'forestal',
   'naval',
 ];
+
+const espejoDePrueba = {
+  contenido: { ids: IDS },
+  alternarMalla: vi.fn(),
+  estadoDeCamara: () => ({ lista: true }),
+  maquina: {
+    estado: () => 'EXPLORACION',
+    opciones: () => ['mecanica', 'civil'],
+    carrera: () => 'mecanica',
+    sesion: () => 1,
+    esManual: () => false,
+  },
+  modo: () => 'camara',
+  detector: { cantidadDePuntos: () => 478 },
+  manosCrudas: () => 1,
+  manos: () => [],
+  pose: () => null,
+  poseCrudas: () => 1,
+  progresoDeEleccion: () => 0.5,
+  hayFondo: () => true,
+  puente: {
+    activo: () => true,
+    ultimo: () => ({ estado: 'carrera', enviado: 'mecanica', ok: true }),
+  },
+  banco: { faltantes: () => [] },
+};
 
 describe('interpretarTecla', () => {
   it('las doce teclas fuerzan la carrera de esa posicion', () => {
@@ -101,6 +128,30 @@ describe('crearContadorFps', () => {
   });
 });
 
+describe('formatearPanel', () => {
+  it('muestra etapas medidas y disponibilidad WebGL2', () => {
+    const texto = formatearPanel({
+      fps: 57.8,
+      espejo: {
+        ...espejoDePrueba,
+        metricas: () => ({
+          frame: { ms: 16.4 }, face: { ms: 5.8 }, maskRead: { ms: 2.8 }, ui: { ms: 0.4 },
+        }),
+        webgl2Disponible: () => true,
+      },
+    });
+
+    expect(texto).toContain('FRAME       16.4 ms');
+    expect(texto).toContain('Mask read   2.8 ms');
+    expect(texto).toContain('WebGL2      si');
+  });
+
+  it('muestra un guion para las etapas sin muestras', () => {
+    expect(formatearPanel({ fps: 0, espejo: { ...espejoDePrueba, metricas: () => ({}) } }))
+      .toContain('Mask read   -');
+  });
+});
+
 describe('instalarOperacion', () => {
   it('conecta la tecla I y refleja el modo actualizado en el panel', () => {
     const escuchas = new Map();
@@ -113,31 +164,7 @@ describe('instalarOperacion', () => {
       createElement: () => panel,
       body: { appendChild: vi.fn() },
     };
-    const espejo = {
-      contenido: { ids: IDS },
-      alternarMalla: vi.fn(),
-      estadoDeCamara: () => ({ lista: true }),
-      maquina: {
-        estado: () => 'EXPLORACION',
-        opciones: () => ['mecanica', 'civil'],
-        carrera: () => 'mecanica',
-        sesion: () => 1,
-        esManual: () => false,
-      },
-      modo: () => 'camara',
-      detector: { cantidadDePuntos: () => 478 },
-      manosCrudas: () => 1,
-      manos: () => [],
-      pose: () => null,
-      poseCrudas: () => 1,
-      progresoDeEleccion: () => 0.5,
-      hayFondo: () => true,
-      puente: {
-        activo: () => true,
-        ultimo: () => ({ estado: 'carrera', enviado: 'mecanica', ok: true }),
-      },
-      banco: { faltantes: () => [] },
-    };
+    const espejo = { ...espejoDePrueba, alternarMalla: vi.fn() };
     const operacion = instalarOperacion({
       espejo,
       tiempos: { recargaCadaMs: 1000 },
@@ -165,8 +192,7 @@ describe('instalarOperacion', () => {
     };
     const panel = { style: {}, textContent: '' };
     const espejo = {
-      contenido: { ids: IDS },
-      estadoDeCamara: () => ({ lista: true }),
+      ...espejoDePrueba,
       maquina: {
         estado: () => 'EXPLORACION',
         opciones: () => [],
@@ -174,11 +200,6 @@ describe('instalarOperacion', () => {
         sesion: () => 3,
         esManual: () => false,
       },
-      modo: () => 'camara',
-      detector: { cantidadDePuntos: () => 478 },
-      manosCrudas: () => 0,
-      manos: () => [],
-      pose: () => null,
       poseCrudas: () => 0,
       progresoDeEleccion: () => 0,
       hayFondo: () => false,
