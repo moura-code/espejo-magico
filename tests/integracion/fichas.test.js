@@ -15,15 +15,12 @@
 // verde.
 
 import { describe, it, expect } from 'vitest';
-import { readFile } from 'node:fs/promises';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { CONFIG } from '../../espejo/config.js';
 import { calcularDisposicion, calcularRectanguloVideo, disponerFicha } from '../../espejo/escena.js';
 import { objetosDelFondo, fichaDelObjeto } from '../../espejo/escondites.js';
+import { construirCatalogo } from '../../servidor/catalogo.js';
 
-const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const ESPEJO = { ancho: 1080, alto: 1920 };
 const APAISADA = { ancho: 1920, alto: 1080 };
 
@@ -47,9 +44,9 @@ const tocaCirculo = (caja, { x, y, radio }) => {
  * pantalla: por defecto, la del espejo.
  */
 async function fichasDelCatalogo(pantalla = ESPEJO) {
-  const { carreras } = JSON.parse(
-    await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'),
-  );
+  const { catalogo, errores } = await construirCatalogo();
+  if (errores.length > 0) throw new Error(`Errores en catálogo: ${errores.join(', ')}`);
+  const { carreras } = catalogo;
   const rectangulo = calcularRectanguloVideo(1080, 1920, pantalla.ancho, pantalla.alto);
   const enPantalla = calcularDisposicion(pantalla.ancho, pantalla.alto);
 
