@@ -1,0 +1,1274 @@
+[
+  {
+    "carrera": "civil",
+    "carreraNombre": "Ingeniería Civil",
+    "objetos": [
+      {
+        "id": "cono-abrams",
+        "nombre": "Cono de Abrams",
+        "descripcion": "Mide la consistencia y trabajabilidad del hormigón fresco antes de volcarlo en obra.",
+        "figura": "viga",
+        "busqueda": "slump test cone",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Cono de Abrams 01.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/62/Cono_de_Abrams_01.jpg/960px-Cono_de_Abrams_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/6/62/Cono_de_Abrams_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Cono_de_Abrams_01.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "No machine-readable author provided. Tano4595 assumed (based on copyright claims).",
+          "licencia": "CC BY-SA 2.5",
+          "descripcion": "A \"slump cone\" used to measure the workability of fresh concrete"
+        }
+      },
+      {
+        "id": "esclerometro-schmidt",
+        "nombre": "Esclerómetro Schmidt",
+        "descripcion": "Estima la resistencia a compresión del hormigón endurecido midiendo el rebote del percutor.",
+        "figura": "tubo",
+        "busqueda": "Schmidt hammer concrete",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Schmidt hammer testing.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Schmidt_hammer_testing.jpg/960px-Schmidt_hammer_testing.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Schmidt_hammer_testing.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Schmidt_hammer_testing.jpg",
+          "ancho": 768,
+          "alto": 1324,
+          "mime": "image/jpeg",
+          "autor": "Arjuncm3",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Testing the compressive strength of a concrete cube using Schmidt hammer, incorrectly. The Hammer should be helf horizontally to avoid the effect of gravity on the reading."
+        }
+      },
+      {
+        "id": "probeta-hormigon",
+        "nombre": "Probeta cilíndrica de hormigón",
+        "descripcion": "Muestra cilíndrica normalizada ensayada a compresión para certificar la resistencia estructural.",
+        "figura": "tubo",
+        "busqueda": "concrete test cylinder",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Berlin belastungskoerper.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Berlin_belastungskoerper.jpg/960px-Berlin_belastungskoerper.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Berlin_belastungskoerper.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Berlin_belastungskoerper.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "Dieter Brügmann",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "the Schwerbelastungskörper (heavy weight compound) in Berlin near Dudenstraße (General-Pape-Straße/Loewenhardtdamm)"
+        }
+      },
+      {
+        "id": "nivel-optico",
+        "nombre": "Nivel topográfico de obra",
+        "descripcion": "Instrumento óptico de precisión para nivelar rasantes y alturas en obras de construcción.",
+        "figura": "teodolito",
+        "busqueda": "dumpy level optical level",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Archaeologists using a dumpy level to survey a trench.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Archaeologists_using_a_dumpy_level_to_survey_a_trench.jpg/960px-Archaeologists_using_a_dumpy_level_to_survey_a_trench.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/8/86/Archaeologists_using_a_dumpy_level_to_survey_a_trench.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Archaeologists_using_a_dumpy_level_to_survey_a_trench.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "LP B, Oxford Archaeology",
+          "licencia": "CC BY 4.0",
+          "descripcion": "One archaeologists looking through a dumpy level towards a another archaeologists at the end of a trnech."
+        }
+      },
+      {
+        "id": "viga-acero",
+        "nombre": "Viga de acero en I",
+        "descripcion": "Perfil estructural laminado en caliente diseñado para soportar grandes cargas de flexión.",
+        "figura": "viga",
+        "busqueda": "steel I-beam profile",
+        "activo": false,
+        "commons": {
+          "titulo": "File:I-Beam 002.JPG",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/4/40/I-Beam_002.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/4/40/I-Beam_002.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:I-Beam_002.JPG",
+          "ancho": 768,
+          "alto": 401,
+          "mime": "image/jpeg",
+          "autor": "Todd Murray",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "w:en:I-beam used for the load-bearing structure of a house."
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "alimentos",
+    "carreraNombre": "Ingeniería de Alimentos",
+    "objetos": [
+      {
+        "id": "refractometro",
+        "nombre": "Refractómetro óptico manual",
+        "descripcion": "Mide la refracción de la luz para calcular la concentración de azúcares y grados Brix.",
+        "figura": "pipeta",
+        "busqueda": "handheld refractometer Brix",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Refractometer.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Refractometer.jpg/960px-Refractometer.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Refractometer.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Refractometer.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "Fernando G. (FGM)",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Photo of a Handheld Refractometer used to measure sugar content (Brix level) of fruits. The image includes a view through the eyepice of the instrument, a small drop of orange juice was put over the measuring prism to take the picture."
+        }
+      },
+      {
+        "id": "placa-petri",
+        "nombre": "Placa de Petri con cultivo",
+        "descripcion": "Recipiente con agar nutritivo para cultivar microorganismos y controlar la inocuidad alimentaria.",
+        "figura": "molecula",
+        "busqueda": "petri dish bacterial culture agar",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Bacterial cell culture on agar plate ( DNA double helix conformation).jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Bacterial_cell_culture_on_agar_plate_%28_DNA_double_helix_conformation%29.jpg/960px-Bacterial_cell_culture_on_agar_plate_%28_DNA_double_helix_conformation%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/4/45/Bacterial_cell_culture_on_agar_plate_%28_DNA_double_helix_conformation%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Bacterial_cell_culture_on_agar_plate_(_DNA_double_helix_conformation).jpg",
+          "ancho": 768,
+          "alto": 735,
+          "mime": "image/jpeg",
+          "autor": "Syed Sajidul Islam",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "An agar plate is a Petri dish that contains agar as a solid growth medium plus nutrients, used to culture microorganisms. Sometimes selective compounds are added to influence growth, such as antibiotics"
+        }
+      },
+      {
+        "id": "biorreactor",
+        "nombre": "Biorreactor de laboratorio",
+        "descripcion": "Fermentador controlado para cultivar microorganismos o enzimas en procesos biotecnológicos.",
+        "figura": "matraz",
+        "busqueda": "benchtop bioreactor laboratory",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Labfors 4 with touchscreen.jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/3/32/Labfors_4_with_touchscreen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/3/32/Labfors_4_with_touchscreen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Labfors_4_with_touchscreen.jpg",
+          "ancho": 768,
+          "alto": 1024,
+          "mime": "image/jpeg",
+          "autor": "El Carlos",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Autoclavable benchtop bioreactor with touchscreen"
+        }
+      },
+      {
+        "id": "boquilla-spray",
+        "nombre": "Boquilla atomizadora",
+        "descripcion": "Pulveriza líquidos en gotas microscópicas para secar alimentos y producir polvos solubles.",
+        "figura": "gota",
+        "busqueda": "spray nozzle",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Injector3.gif",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/2/29/Injector3.gif?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/2/29/Injector3.gif?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Injector3.gif",
+          "ancho": 768,
+          "alto": 480,
+          "mime": "image/gif",
+          "autor": "WikipedianProlific at English Wikipedia",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "An animated cut away diagram of a typical fuel injector. Fuel injectors are used to spray controlled amounts of fuel into an internal combustion engine. A solenoid is activated when fuel is intended to be delivered to the engine, causing the plunger to become pulled toward the solenoid by magnetic force. This uncovers the valve opening, allowing fuel to flow into the atomiser and out the spray tip, as it is under pressure. A valve spring attached to the plunger returns the plunger to its original position when the solenoid is switched off. The route of fuel is shown in orange; grey/blue indicates no fuel present."
+        }
+      },
+      {
+        "id": "medidor-ph",
+        "nombre": "Medidor de pH de penetración",
+        "descripcion": "Electrodo de penetración que mide la acidez interna en carnes, lácteos y conservas.",
+        "figura": "tubo",
+        "busqueda": "pH meter",
+        "activo": false,
+        "commons": {
+          "titulo": "File:PH meter 2014.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/PH_meter_2014.jpg/960px-PH_meter_2014.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/f/f4/PH_meter_2014.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:PH_meter_2014.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "Vis M",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "pH meter. From Kottayam 2014"
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "produccion",
+    "carreraNombre": "Ingeniería de Producción",
+    "objetos": [
+      {
+        "id": "tablero-kanban",
+        "nombre": "Tablero Kanban",
+        "descripcion": "Organiza visualmente el flujo de trabajo en columnas para eliminar cuellos de botella.",
+        "figura": "plano",
+        "busqueda": "kanban board",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Simple-kanban-board-.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Simple-kanban-board-.jpg/960px-Simple-kanban-board-.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Simple-kanban-board-.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Simple-kanban-board-.jpg",
+          "ancho": 768,
+          "alto": 458,
+          "mime": "image/jpeg",
+          "autor": "Jeff.lasovski",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "A Scrum board suggesting to use Kanban"
+        }
+      },
+      {
+        "id": "cronometro-industrial",
+        "nombre": "Cronómetro industrial centesimal",
+        "descripcion": "Mide tiempos de operación en centésimas de minuto para optimizar métodos de manufactura.",
+        "figura": "motor",
+        "busqueda": "mechanical stopwatch",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Ca 1970 mechanical stopwatch by Herwins Switzerland.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3d/Ca_1970_mechanical_stopwatch_by_Herwins_Switzerland.jpg/960px-Ca_1970_mechanical_stopwatch_by_Herwins_Switzerland.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Ca_1970_mechanical_stopwatch_by_Herwins_Switzerland.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Ca_1970_mechanical_stopwatch_by_Herwins_Switzerland.jpg",
+          "ancho": 768,
+          "alto": 913,
+          "mime": "image/jpeg",
+          "autor": "R. Henrik Nilsson",
+          "licencia": "CC BY 4.0",
+          "descripcion": "Ca 1970 mechanical stopwatch by Herwins, Switzerland. Crystal diameter ca 4.5 cm. Weight ca 76 gr."
+        }
+      },
+      {
+        "id": "lector-codigo",
+        "nombre": "Lector de código de barras",
+        "descripcion": "Terminal portátil láser para rastrear piezas, lotes e inventarios en tiempo real.",
+        "figura": "chip",
+        "busqueda": "barcode scanner",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Barcode-scanner.jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/1/13/Barcode-scanner.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/1/13/Barcode-scanner.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Barcode-scanner.jpg",
+          "ancho": 768,
+          "alto": 860,
+          "mime": "image/jpeg",
+          "autor": "Desconocido",
+          "licencia": "CC BY 1.0",
+          "descripcion": ""
+        }
+      },
+      {
+        "id": "mapa-vsm",
+        "nombre": "Mapa de flujo de valor (VSM)",
+        "descripcion": "Diagrama de flujo de valor que mapea materiales e información para reducir desperdicios.",
+        "figura": "plano",
+        "busqueda": "value stream mapping diagram",
+        "activo": true,
+        "commons": {
+          "titulo": "File:VSM6.JPG",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/2/23/VSM6.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/2/23/VSM6.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:VSM6.JPG",
+          "ancho": 768,
+          "alto": 418,
+          "mime": "image/jpeg",
+          "autor": "Foster24",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Représentation du temps de défilement sur un VSM"
+        }
+      },
+      {
+        "id": "cinta-demarcacion",
+        "nombre": "Cinta de demarcación",
+        "descripcion": "Delimita áreas seguras de tránsito y zonas de trabajo según normas industriales.",
+        "figura": "curva",
+        "busqueda": "hazard tape",
+        "activo": false,
+        "commons": {
+          "titulo": "File:NSW Police tape in Sydenham.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/NSW_Police_tape_in_Sydenham.jpg/960px-NSW_Police_tape_in_Sydenham.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/a/a3/NSW_Police_tape_in_Sydenham.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:NSW_Police_tape_in_Sydenham.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "J03098",
+          "licencia": "CC BY 4.0",
+          "descripcion": "New South Wales Police Force barricade tape on a Sydenham street."
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "electrica",
+    "carreraNombre": "Ingeniería Eléctrica",
+    "objetos": [
+      {
+        "id": "pinza-amperimetrica",
+        "nombre": "Pinza amperimétrica",
+        "descripcion": "Mide corriente eléctrica en conductores activos de forma segura mediante inducción magnética.",
+        "figura": "resistencia",
+        "busqueda": "clamp meter current",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Clampmeter Fluke 337.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5c/Clampmeter_Fluke_337.jpg/960px-Clampmeter_Fluke_337.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Clampmeter_Fluke_337.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Clampmeter_Fluke_337.jpg",
+          "ancho": 768,
+          "alto": 1684,
+          "mime": "image/jpeg",
+          "autor": "Harke",
+          "licencia": "Public domain",
+          "descripcion": "Clamp meter AC/DC, type Fluke 337. Measuring range 0 to 999.9 A."
+        }
+      },
+      {
+        "id": "rele-termico",
+        "nombre": "Relé térmico de protección",
+        "descripcion": "Protege motores eléctricos desconectando el circuito ante sobrecargas prolongadas.",
+        "figura": "chip",
+        "busqueda": "thermal overload relay",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Symbol of thermal relay.JPG",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/0/09/Symbol_of_thermal_relay.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/0/09/Symbol_of_thermal_relay.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Symbol_of_thermal_relay.JPG",
+          "ancho": 768,
+          "alto": 512,
+          "mime": "image/jpeg",
+          "autor": "Dmitry G",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "symbol of thermal overload relay"
+        }
+      },
+      {
+        "id": "megohmetro",
+        "nombre": "Megóhmetro",
+        "descripcion": "Aplica alta tensión continua para medir la resistencia de aislación en cables y transformadores.",
+        "figura": "rayo",
+        "busqueda": "megohmmeter insulation tester",
+        "activo": true,
+        "commons": {
+          "titulo": "File:M1101M.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/M1101M.jpg/960px-M1101M.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/b/bd/M1101M.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:M1101M.jpg",
+          "ancho": 768,
+          "alto": 461,
+          "mime": "image/jpeg",
+          "autor": "Сергин Владимир Александрович",
+          "licencia": "Public domain",
+          "descripcion": "Megohmmeter"
+        }
+      },
+      {
+        "id": "transformador-toroidal",
+        "nombre": "Transformador toroidal",
+        "descripcion": "Sensor circular de corriente de alta precisión con mínimas pérdidas magnéticas.",
+        "figura": "motor",
+        "busqueda": "toroidal current transformer",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Toroidal Transformer Poynting Vector.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Toroidal_Transformer_Poynting_Vector.jpg/960px-Toroidal_Transformer_Poynting_Vector.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Toroidal_Transformer_Poynting_Vector.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Toroidal_Transformer_Poynting_Vector.jpg",
+          "ancho": 768,
+          "alto": 323,
+          "mime": "image/jpeg",
+          "autor": "Constant314",
+          "licencia": "CC0",
+          "descripcion": "Shows the development of the Poynting vector in a toroidal transformer where the B flux created by the primary current id completely segregated form the secondary winding."
+        }
+      },
+      {
+        "id": "contactor-trifasico",
+        "nombre": "Contactor trifásico",
+        "descripcion": "Interruptor electromagnético para maniobrar y arrancar motores industriales a distancia.",
+        "figura": "resistencia",
+        "busqueda": "contactor",
+        "activo": false,
+        "commons": {
+          "titulo": "File:Contactor DIN IEK.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Contactor_DIN_IEK.jpg/960px-Contactor_DIN_IEK.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Contactor_DIN_IEK.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Contactor_DIN_IEK.jpg",
+          "ancho": 768,
+          "alto": 910,
+          "mime": "image/jpeg",
+          "autor": "Kae",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Quality image\n\n\nThis image has been assessed using the Quality image guidelines and is considered a Quality image."
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "agrimensura",
+    "carreraNombre": "Ingeniería en Agrimensura",
+    "objetos": [
+      {
+        "id": "estacion-total",
+        "nombre": "Estación total",
+        "descripcion": "Mide ángulos y distancias con láser para levantamientos topográficos de alta precisión.",
+        "figura": "teodolito",
+        "busqueda": "total station surveying",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Surveying prism and total station, for land surveying, in Shibuya-ku.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Surveying_prism_and_total_station%2C_for_land_surveying%2C_in_Shibuya-ku.jpg/960px-Surveying_prism_and_total_station%2C_for_land_surveying%2C_in_Shibuya-ku.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/1/15/Surveying_prism_and_total_station%2C_for_land_surveying%2C_in_Shibuya-ku.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Surveying_prism_and_total_station,_for_land_surveying,_in_Shibuya-ku.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "Syced",
+          "licencia": "CC0",
+          "descripcion": "Surveying prism and total station, for land surveying, in Shibuya-ku"
+        }
+      },
+      {
+        "id": "prisma-topografico",
+        "nombre": "Prisma topográfico",
+        "descripcion": "Reflector de precisión montado en jalón que devuelve el haz láser a la estación total.",
+        "figura": "prisma",
+        "busqueda": "surveying retroreflector prism",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Round prism and laser plummet on tripod.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d5/Round_prism_and_laser_plummet_on_tripod.jpg/960px-Round_prism_and_laser_plummet_on_tripod.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Round_prism_and_laser_plummet_on_tripod.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Round_prism_and_laser_plummet_on_tripod.jpg",
+          "ancho": 768,
+          "alto": 1368,
+          "mime": "image/jpeg",
+          "autor": "Dave Fayram from Pacifica, United States",
+          "licencia": "CC BY-SA 2.0",
+          "descripcion": "A Leica round prism (see en:Retroreflector) with a target plate mounted on a laser plummet on a tribrach on a tripod."
+        }
+      },
+      {
+        "id": "antena-gnss",
+        "nombre": "Antena GNSS geodésica",
+        "descripcion": "Receptor satelital geodésico milimétrico para fijar coordenadas en la red nacional.",
+        "figura": "onda",
+        "busqueda": "GNSS antenna",
+        "activo": true,
+        "commons": {
+          "titulo": "File:GNSS antenna.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/GNSS_antenna.jpg/960px-GNSS_antenna.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/2/23/GNSS_antenna.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:GNSS_antenna.jpg",
+          "ancho": 768,
+          "alto": 363,
+          "mime": "image/jpeg",
+          "autor": "Karlbrix",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "Antenna for geodetic measurements with GNSS (GPS) located in Greenland"
+        }
+      },
+      {
+        "id": "mira-estadimetrica",
+        "nombre": "Mira estadimétrica",
+        "descripcion": "Regla graduada telescópica utilizada con el nivel óptico para medir desniveles de terreno.",
+        "figura": "plano",
+        "busqueda": "leveling rod surveying staff",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Molitor rod, precise leveling, for Harris, Enfield, Mass., Oct. 31, 1929 - DPLA - 909b8943ca7a7451eab087543807d597.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/85/Molitor_rod%2C_precise_leveling%2C_for_Harris%2C_Enfield%2C_Mass.%2C_Oct._31%2C_1929_-_DPLA_-_909b8943ca7a7451eab087543807d597.jpg/960px-Molitor_rod%2C_precise_leveling%2C_for_Harris%2C_Enfield%2C_Mass.%2C_Oct._31%2C_1929_-_DPLA_-_909b8943ca7a7451eab087543807d597.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/8/85/Molitor_rod%2C_precise_leveling%2C_for_Harris%2C_Enfield%2C_Mass.%2C_Oct._31%2C_1929_-_DPLA_-_909b8943ca7a7451eab087543807d597.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Molitor_rod,_precise_leveling,_for_Harris,_Enfield,_Mass.,_Oct._31,_1929_-_DPLA_-_909b8943ca7a7451eab087543807d597.jpg",
+          "ancho": 768,
+          "alto": 487,
+          "mime": "image/jpeg",
+          "autor": "Massachusetts. Metropolitan District Water Supply Commission, Remington, Carl A., 1902-1982, Remington, Carl A., 1902-1982",
+          "licencia": "Public domain",
+          "descripcion": "Massachusetts Metropolitan District Commission; Massachusetts Department of Conservation and RecreationPrint in album volume MDWSC, Real Estate, Swift River Watershed, Volume 24Photograph likely taken at the MDWSC Field Office, Chandler House, Enfield"
+        }
+      },
+      {
+        "id": "brujula-brunton",
+        "nombre": "Brújula Brunton",
+        "descripcion": "Brújula de bolsillo con clinómetro para medir rumbos, buzamientos y pendientes en campo.",
+        "figura": "plano",
+        "busqueda": "Brunton pocket transit compass",
+        "activo": false,
+        "commons": {
+          "titulo": "File:Brunton.JPG",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/Brunton.JPG/960px-Brunton.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/e/e1/Brunton.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Brunton.JPG",
+          "ancho": 768,
+          "alto": 546,
+          "mime": "image/jpeg",
+          "autor": "Matt Affolter (QFL247) (talk) (Original uploaded by Matt Affolter (QFL247))",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "A Brunton Pocket Transit, a specialized compass used by geologists and other field-based surveying over long distances. From left to right: The mirror, with line and sighter on top of the mirror, and window to look through the window; millimeter scale on side of mirror; hinge with angle measurement on side (set at ~50 degrees); the face, with azimuth degrees around the outside of the face measuring 0-359 degrees, the needle (with North hand pointed at 79 degrees); the bubble level; the inclinometer (set at ~30 degrees), a magnetic declination setting (green point on the outer ring, set to ~15 degrees); on the outside of the face is the damping button (with arm projecting from it seen in face); and finally, a sighting arm to the right."
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "computacion",
+    "carreraNombre": "Ingeniería en Computación",
+    "objetos": [
+      {
+        "id": "raspberry-pi",
+        "nombre": "Raspberry Pi",
+        "descripcion": "Computadora monoplaca completa utilizada en prototipado rápido, robótica e IoT.",
+        "figura": "chip",
+        "busqueda": "Raspberry Pi board circuit",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Raspberry Pi B Circuit Board.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Raspberry_Pi_B_Circuit_Board.jpg/960px-Raspberry_Pi_B_Circuit_Board.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Raspberry_Pi_B_Circuit_Board.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Raspberry_Pi_B_Circuit_Board.jpg",
+          "ancho": 768,
+          "alto": 768,
+          "mime": "image/jpeg",
+          "autor": "SimonWaldherr",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "Revision 2 Raspberry Pi B"
+        }
+      },
+      {
+        "id": "memoria-ram",
+        "nombre": "Módulo de memoria RAM",
+        "descripcion": "Módulo de memoria de alta velocidad donde el procesador almacena datos e instrucciones activas.",
+        "figura": "chip",
+        "busqueda": "DDR RAM memory module",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Kingston DDR Memory Module.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1f/Kingston_DDR_Memory_Module.jpg/960px-Kingston_DDR_Memory_Module.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Kingston_DDR_Memory_Module.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Kingston_DDR_Memory_Module.jpg",
+          "ancho": 768,
+          "alto": 434,
+          "mime": "image/jpeg",
+          "autor": "Matt Kieffer",
+          "licencia": "CC BY-SA 2.0",
+          "descripcion": "Kingston DDR Memory Module"
+        }
+      },
+      {
+        "id": "yubikey",
+        "nombre": "Llave de seguridad YubiKey",
+        "descripcion": "Llave física criptográfica para autenticación segura multifactor contra ataques de phishing.",
+        "figura": "servidor",
+        "busqueda": "YubiKey security key",
+        "activo": true,
+        "commons": {
+          "titulo": "File:YubiKey 5C NFC.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e6/YubiKey_5C_NFC.jpg/960px-YubiKey_5C_NFC.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/e/e6/YubiKey_5C_NFC.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:YubiKey_5C_NFC.jpg",
+          "ancho": 768,
+          "alto": 432,
+          "mime": "image/jpeg",
+          "autor": "Daniel Aleksandersen",
+          "licencia": "CC BY 4.0",
+          "descripcion": "YubiKey 5C NFC"
+        }
+      },
+      {
+        "id": "ssd-m2",
+        "nombre": "Unidad SSD M.2 NVMe",
+        "descripcion": "Unidad de almacenamiento en estado sólido NVMe ultrarrápida conectada por bus PCIe.",
+        "figura": "chip",
+        "busqueda": "M.2 NVMe SSD circuit",
+        "activo": true,
+        "commons": {
+          "titulo": "File:256GB 2230 NVME SSD 1.jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/c/c0/256GB_2230_NVME_SSD_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/c/c0/256GB_2230_NVME_SSD_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:256GB_2230_NVME_SSD_1.jpg",
+          "ancho": 768,
+          "alto": 867,
+          "mime": "image/jpeg",
+          "autor": "User5515",
+          "licencia": "CC0",
+          "descripcion": "256GB 2230 NVME SSD 1"
+        }
+      },
+      {
+        "id": "cable-ttl",
+        "nombre": "Cable conversor USB a TTL",
+        "descripcion": "Adaptador serie USB para comunicarse directamente con microcontroladores y depurar hardware.",
+        "figura": "onda",
+        "busqueda": "USB serial adapter",
+        "activo": false,
+        "commons": {
+          "titulo": "File:USB-to-Serial Bridge - µUSB-PA5.jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/9/92/USB-to-Serial_Bridge_-_%C2%B5USB-PA5.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/9/92/USB-to-Serial_Bridge_-_%C2%B5USB-PA5.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:USB-to-Serial_Bridge_-_%C2%B5USB-PA5.jpg",
+          "ancho": 768,
+          "alto": 768,
+          "mime": "image/jpeg",
+          "autor": "SparkFun Electronics",
+          "licencia": "CC BY 2.0",
+          "descripcion": "The microUSB Programming Adapter (μUSB-PA5) is a USB to RS-232 bridge converter which is very small and easy to use. It uses a mini-B type USB connector to connect to your PC and is based on the FTDI FT232RQ USB to Serial Bridge IC from FTDI.\nIt'll give you multi baud rate serial data up to 3M baud rate and access to additional signals such as flow control. The main 5 pin interface is a standard 2.54mm (0.1\") pitch female header, designed to connect directly to a majority of the 4D Systems modules.\n\nRX and TX signals are both 3.3V and 5V tolerant. This module replaces the variety of existing 4D serial bridges for the LCD kits that we carry. While a large range of 4D Systems modules are compatible with this programming adapter, some are not, for mechanical reasons."
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "comunicacion",
+    "carreraNombre": "Ingeniería en Sistemas de Comunicación",
+    "objetos": [
+      {
+        "id": "empalmadora-fibra",
+        "nombre": "Empalmadora de fibra óptica",
+        "descripcion": "Funde hilos de fibra óptica con un arco eléctrico logrando uniones con mínima atenuación.",
+        "figura": "onda",
+        "busqueda": "optical fiber fusion splicer",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Fujikura-Fusion Splicer 70S-02ASD.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/Fujikura-Fusion_Splicer_70S-02ASD.jpg/960px-Fujikura-Fusion_Splicer_70S-02ASD.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/5/59/Fujikura-Fusion_Splicer_70S-02ASD.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Fujikura-Fusion_Splicer_70S-02ASD.jpg",
+          "ancho": 768,
+          "alto": 432,
+          "mime": "image/jpeg",
+          "autor": "Asurnipal",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "Fujikura-Fusion Splicer 70S - Fiber optic cable splice at the Feldkircher Hut (Naturfreunde) in Vorarlberg, Austria for drinking water supply."
+        }
+      },
+      {
+        "id": "analizador-espectro",
+        "nombre": "Analizador de espectros RF",
+        "descripcion": "Visualiza señales de radiofrecuencia y su potencia a lo largo del espectro electromagnético.",
+        "figura": "onda",
+        "busqueda": "RF spectrum analyzer",
+        "activo": true,
+        "commons": {
+          "titulo": "File:3D battery charger RF spectrum over time.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/3D_battery_charger_RF_spectrum_over_time.jpg/960px-3D_battery_charger_RF_spectrum_over_time.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/0/08/3D_battery_charger_RF_spectrum_over_time.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:3D_battery_charger_RF_spectrum_over_time.jpg",
+          "ancho": 768,
+          "alto": 432,
+          "mime": "image/jpeg",
+          "autor": "Spekki2000",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "The 600 seconds RF spectrum over time from a battery charger recorded with a real time spectrum analyzer"
+        }
+      },
+      {
+        "id": "bobina-fibra",
+        "nombre": "Bobina de fibra óptica",
+        "descripcion": "Carrete de fibra óptica monomodo para enlaces de telecomunicaciones de alta velocidad.",
+        "figura": "onda",
+        "busqueda": "optical fiber cable",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Optical fiber cable-01ASD.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Optical_fiber_cable-01ASD.jpg/960px-Optical_fiber_cable-01ASD.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Optical_fiber_cable-01ASD.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Optical_fiber_cable-01ASD.jpg",
+          "ancho": 768,
+          "alto": 200,
+          "mime": "image/jpeg",
+          "autor": "Asurnipal",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "Optical fiber cable for signal transmission for burial in the ground. White maincores = empty cores, red and green maincores each with 12 signal single cores. In the middle the \"cablesoul\"."
+        }
+      },
+      {
+        "id": "antena-parabolica",
+        "nombre": "Antena parabólica",
+        "descripcion": "Concentra ondas electromagnéticas en su foco para enlaces inalámbricos punto a punto.",
+        "figura": "onda",
+        "busqueda": "microwave parabolic dish antenna feed horn",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Canberra Deep Dish Communications Complex - GPN-2000-000502.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Canberra_Deep_Dish_Communications_Complex_-_GPN-2000-000502.jpg/960px-Canberra_Deep_Dish_Communications_Complex_-_GPN-2000-000502.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/d/de/Canberra_Deep_Dish_Communications_Complex_-_GPN-2000-000502.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Canberra_Deep_Dish_Communications_Complex_-_GPN-2000-000502.jpg",
+          "ancho": 768,
+          "alto": 728,
+          "mime": "image/jpeg",
+          "autor": "NASA",
+          "licencia": "Public domain",
+          "descripcion": "View of 70m (230 ft.) spacecraft communication antenna at the Canberra Deep Space Communication Complex, located outside Canberra, Australia.  It is one of the three complexes which comprise NASA's Deep Space Network. The other complexes are located in Goldstone, California, and Madrid, Spain.  This is a parabolic antenna with Cassegrain feed.  It operates on X band (8 - 12 GHz) with extremely high gain of about 70 dBi.  The incoming microwaves bounce off the large dish and are focused on the small white convex secondary reflector, which reflects them into the feed horn at the center of the dish.      The receiver uses extremely low noise amplifiers such as cryogenically cooled masers or parametric amplifiers to detect the faint signals from spacecraft in the outer reaches of the Solar System.  The three flags in foreground are those of the nations hosting the three Deep Space Network sites."
+        }
+      },
+      {
+        "id": "atenuador-rf",
+        "nombre": "Atenuador coaxial RF",
+        "descripcion": "Reduce la potencia de una señal de alta frecuencia con precisión sin distorsionar su forma de onda.",
+        "figura": "resistencia",
+        "busqueda": "RF attenuator",
+        "activo": false,
+        "commons": {
+          "titulo": "File:RF Attenuator 30dB 5W.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9f/RF_Attenuator_30dB_5W.jpg/960px-RF_Attenuator_30dB_5W.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/9/9f/RF_Attenuator_30dB_5W.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:RF_Attenuator_30dB_5W.jpg",
+          "ancho": 768,
+          "alto": 512,
+          "mime": "image/jpeg",
+          "autor": "Joe Ravi",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "A 30dB, 5W, DC-18GHz RF power attenuator."
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "fisico-matematico",
+    "carreraNombre": "Ingeniería Físico-Matemática",
+    "objetos": [
+      {
+        "id": "interferometro",
+        "nombre": "Interferómetro de Michelson",
+        "descripcion": "Divide y recombina haces de luz para medir longitudes de onda con precisión nanométrica.",
+        "figura": "prisma",
+        "busqueda": "Michelson interferometer laboratory",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Michelson interferometer.png",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Michelson_interferometer.png/960px-Michelson_interferometer.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Michelson_interferometer.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Michelson_interferometer.png",
+          "ancho": 768,
+          "alto": 1037,
+          "mime": "image/png",
+          "autor": "Warren Leywon",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "This image demonstrates a simple but typical Michelson interferometer.The bright yellow line indicates the path of the light.Photo was taken at the laboratory of physics of the Anhui Normal University."
+        }
+      },
+      {
+        "id": "pendulo-torsion",
+        "nombre": "Péndulo de torsión",
+        "descripcion": "Dispositivo oscilante que mide fuerzas minúsculas mediante la torsión elástica de un hilo.",
+        "figura": "integral",
+        "busqueda": "torsion pendulum physics",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Wilberforce pendulum.jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/d/de/Wilberforce_pendulum.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/d/de/Wilberforce_pendulum.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Wilberforce_pendulum.jpg",
+          "ancho": 768,
+          "alto": 2132,
+          "mime": "image/jpeg",
+          "autor": "W. E. Dalby",
+          "licencia": "Public domain",
+          "descripcion": "Photo of a Wilberforce pendulum, a coupled mechanical oscillator consisting of a weight suspended from a helical spring that is free to both bob up and down and rotate back and forth about its vertical axis with torsional vibrations.  It is mounted on a stand for use in physics demonstrations.  The weight consists of two adjustable masses mounted on a horizontal threaded rod that can be screwed in or out to adjust the torsional vibration period of the weight."
+        }
+      },
+      {
+        "id": "tubo-rayos-catodicos",
+        "nombre": "Tubo de rayos catódicos",
+        "descripcion": "Tubo al vacío que desvía electrones con campos magnéticos demostrando su carga y masa.",
+        "figura": "tubo",
+        "busqueda": "Crookes tube cathode ray",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Crookes tube two views.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/Crookes_tube_two_views.jpg/960px-Crookes_tube_two_views.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Crookes_tube_two_views.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Crookes_tube_two_views.jpg",
+          "ancho": 768,
+          "alto": 803,
+          "mime": "image/jpeg",
+          "autor": "D-Kuru",
+          "licencia": "CC BY-SA 3.0 at",
+          "descripcion": "Two photos of a Crookes tube; one by ordinary light and one showing it in operation lit by its own fluorescence.  In operation several thousand volts of DC electricity is applied between the two electrodes in the tube. The electrode to the left is the cathode or negative electrode, the electrode in the L-shaped tube at bottom is the anode or positive electrode.  Electrons released by the cathode are attracted toward the positive space charge in center of the tube, created by the positive anode at bottom, and they accelerate down the tube to the right. Because of inertia, many electrons speed past the anode rather than actually hitting it.  They hit the glass wall of the tube, making the glass fluoresce green; after that, they eventually travel to the anode and leave the tube, passing through the wires and the power supply and back to the cathode. The cross-shaped metal plate blocks the electrons, casting a cross-shaped shadow on the glowing wall, demonstrating that the electrons travel in straight lines.  The cross can be folded down against the floor of the tube, showing it is the cause of the shadow. The shadow can be moved and distorted by holding a permanent magnet to the side of the tube, demonstrating the bending effect that magnetic fields exert on electron rays. This 'Maltese cross' demonstration form of Crookes tube was first made by Juliusz Plucker in 1869, and was very popular in classrooms around the turn of the century. Alterations to image: Cropped component images and combined into one image."
+        }
+      },
+      {
+        "id": "regla-calculo",
+        "nombre": "Regla de cálculo analógica",
+        "descripcion": "Instrumento analógico con escalas logarítmicas para multiplicar, dividir y calcular funciones.",
+        "figura": "pi",
+        "busqueda": "slide rule cursor scale",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Faber Castell 67 54 Darmstadt slide rule 1.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Faber_Castell_67_54_Darmstadt_slide_rule_1.jpg/960px-Faber_Castell_67_54_Darmstadt_slide_rule_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/9/90/Faber_Castell_67_54_Darmstadt_slide_rule_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Faber_Castell_67_54_Darmstadt_slide_rule_1.jpg",
+          "ancho": 768,
+          "alto": 470,
+          "mime": "image/jpeg",
+          "autor": "Slashme",
+          "licencia": "CC0",
+          "descripcion": "Faber Castell 67/54 slide rule with Darmstadt style scales, closeup view of cursor"
+        }
+      },
+      {
+        "id": "giroscopio",
+        "nombre": "Giroscopio mecánico",
+        "descripcion": "Rueda giratoria montada en suspensión cardánica que mantiene su orientación en el espacio.",
+        "figura": "curva",
+        "busqueda": "gyroscope brass",
+        "activo": false,
+        "commons": {
+          "titulo": "File:Ring laser gyroscope at MAKS-2011 airshow.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Ring_laser_gyroscope_at_MAKS-2011_airshow.jpg/960px-Ring_laser_gyroscope_at_MAKS-2011_airshow.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Ring_laser_gyroscope_at_MAKS-2011_airshow.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Ring_laser_gyroscope_at_MAKS-2011_airshow.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "Nockson",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Ring laser gyroscope produced by Ukrainian \"Arsenal\" factory on display at MAKS-2011 airshow"
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "forestal",
+    "carreraNombre": "Ingeniería Forestal",
+    "objetos": [
+      {
+        "id": "forcipula",
+        "nombre": "Forcípula forestal",
+        "descripcion": "Instrumento calibrado con dos brazos paralelos para medir el diámetro de troncos en pie.",
+        "figura": "plano",
+        "busqueda": "forestry caliper tree diameter",
+        "activo": true,
+        "commons": {
+          "titulo": "File:American forests (17958492330).jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/47/American_forests_%2817958492330%29.jpg/960px-American_forests_%2817958492330%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/4/47/American_forests_%2817958492330%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:American_forests_(17958492330).jpg",
+          "ancho": 768,
+          "alto": 565,
+          "mime": "image/jpeg",
+          "autor": "Internet Archive Book Images",
+          "licencia": "No restrictions",
+          "descripcion": "Title: American forests\nIdentifier: americanforests10natiuoft (find matches)\nYear: [1] (s)\nAuthors: National Irrigation Association (U. S. ); New Jersey Forestry Association; South Jersey Woodmen's Association; American Forestry Association\nSubjects: Forests and forestry -- Periodicals\nPublisher: Washington (etc. ) American Forestry Association (etc. )\nContributing Library: Robarts - University of Toronto\nDigitizing Sponsor: MSN\n\nView Book Page: Book Viewer\nAbout This Book: Catalog Entry\nView All Images: All Images From Book\nClick here to view book online to see this illustration in context in a browseable online version of this book.\n\nText Appearing Before Image: \n1904 FORESTRY AND IRRIGATION . 207\nText Appearing After Image: \nCOUNTING KINGS OP ANNUAL GROWTH WITH A LENS. pines and one at Washington—under different departments and having no official connection. An explanation of the work of the tropical bureau was given in Forestry and Irrigation for April by Mr. Wilhelm Klemme. The work of the Bureau at Wash- ington is divided conveniently as fol- lows : Into preparation of working plans, surveys of forest reserves, the extension of forest areas by planting and otherwise, and investigation of for- est products. Each of these branches of work corresponds to an official divis- ion of similar name. The most extensiv^e branch of activity is the preparation of working plans for large tracts of forested lands. A work- ing plan, it may be said, is a carefully thought out scheme for the treatment of a specified area of woodland, based on a study of past and present condi- tions of growth and designed so to sup- plement and aid natural conditions that the forest shall continually produce and yield the largest quantity and the best quality of wood possible. In order to make such a plan, two main facts must be ascertained—the present amoiuit of w^ood standing and the amount of increase by growth each year. The observations which mu.st be made are of two kinds, known as forest sur- veys and stem analyses. fey means of the former the diameter of the trees on about one-twentieth of the total area is actually measutedwith large calipers. All the trees are cali- pered 33 feet on each side of compass lines run across the forest, either parallel or in a zigzag manner from one side to the other. Calipering thus for a mile along the line covers 8 acres. From such records may be' obtained an aver- age of the entire area, which is believed to vary by not more than one-tenth from the actual stand. Wherever the com- pass lines cross streams, strike the edge of the timber, or traverse slopes, notes of the distances are taken, which are the data by which a very fairly accurate timber map is drawn. Attention is also given to the value of streams for driving, the chances for splash-dams, camp sites, railways, and roads, and a mass of information is thus collected which may prove of the greatest\n\nNote About Images\n\nPlease note that these images are extracted from scanned page images that may have been digitally enhanced for readability - coloration and appearance of these illustrations may not perfectly resemble the original work."
+        }
+      },
+      {
+        "id": "barrena-pressler",
+        "nombre": "Barrena de Pressler",
+        "descripcion": "Extractor cilíndrico hueco que extrae una muestra del tronco para estudiar su crecimiento.",
+        "figura": "tubo",
+        "busqueda": "increment borer",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Using Increment Borer (53688372580).jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Using_Increment_Borer_%2853688372580%29.jpg/960px-Using_Increment_Borer_%2853688372580%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/5/56/Using_Increment_Borer_%2853688372580%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Using_Increment_Borer_(53688372580).jpg",
+          "ancho": 768,
+          "alto": 512,
+          "mime": "image/jpeg",
+          "autor": "BLM Alaska",
+          "licencia": "Public domain",
+          "descripcion": "Three students learn how to use Forestry tools. Photo by BLM."
+        }
+      },
+      {
+        "id": "clinometro-suunto",
+        "nombre": "Clinómetro óptico Suunto",
+        "descripcion": "Instrumento óptico compacto para medir la inclinación y calcular la altura total de árboles.",
+        "figura": "teodolito",
+        "busqueda": "Suunto clinometer hypsometer",
+        "activo": true,
+        "commons": {
+          "titulo": "File:20181206-FS-APACHE-SITGREAVES-LSC-1001.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/20181206-FS-APACHE-SITGREAVES-LSC-1001.jpg/960px-20181206-FS-APACHE-SITGREAVES-LSC-1001.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/1/10/20181206-FS-APACHE-SITGREAVES-LSC-1001.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:20181206-FS-APACHE-SITGREAVES-LSC-1001.jpg",
+          "ancho": 768,
+          "alto": 512,
+          "mime": "image/jpeg",
+          "autor": "U.S. Department of Agriculture",
+          "licencia": "Public domain",
+          "descripcion": "U.S. Department of Agriculture (USDA) Forest Service (FS) Apache-Sitgreaves National Forests, Lakeside Ranger District Forestry Timber Crew Foreman Will Sari demonstrates timber cruising (measuring tree diameter, tree height, and identifying defects) [with a Suunto hypsometer] to assess the volume and the quality of a Ponderosa Pine tree, for the Fleming timber sale near Lakeside, AZ, on Dec 6, 2018. \nThis is part of the broader Four Forest Restoration Initiative, which is intended to treat more than 2.4 million acres of ponderosa pine forest across northern Arizona. \n\nCurrent activity includes the use of a feller buncher to cut and then stack trees. A feller buncher then drags the trees to a worksite.  There the tree branches are removed in seconds, and the delimbed tree trunk is cut to the desired length for sale by the contractor to lumber mills. The disposition of treetops and tree logs too big for the mill remain the contractor's responsibility. Post-harvest piling of slash/branches/brush are burned when fuels have cured, and weather conditions allow  The ultimate goal of the timber sale is to improve forest health and reduce the potential for high-intensity wildfires that could threaten lives, property, and natural resources. The Four Forest Restoration Initiative seeks to increase resilience in the fire-adapted ponderosa pine forest by reducing tree stand densities to a more historical level, which eventually reduces the potential for uncharacteristic wildfire. This work also offers greater protection for residents living in and adjacent to the wildland-urban interface, where developments and forested areas merge. \n\nUSDA Photo by Lance Cheung."
+        }
+      },
+      {
+        "id": "rodaja-tronco",
+        "nombre": "Rodaja transversal de tronco",
+        "descripcion": "Sección transversal pulida que revela el historial biológico y los anillos anuales del árbol.",
+        "figura": "rodamiento",
+        "busqueda": "tree trunk cross section dendrochronology",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Dendrochronology - geograph.org.uk - 402577.jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/3/33/Dendrochronology_-_geograph.org.uk_-_402577.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/3/33/Dendrochronology_-_geograph.org.uk_-_402577.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Dendrochronology_-_geograph.org.uk_-_402577.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "ceridwen",
+          "licencia": "CC BY-SA 2.0",
+          "descripcion": "Dendrochronology I counted 26 rings on this Sitka spruce trunk but since they were planted here in 1971 and felled in the early C21, it should have been more like 30."
+        }
+      },
+      {
+        "id": "cinta-diametrica",
+        "nombre": "Cinta métrica diamétrica",
+        "descripcion": "Cinta graduada en múltiplos de pi para calcular el diámetro del tronco a partir de su perímetro.",
+        "figura": "curva",
+        "busqueda": "diameter tape forestry",
+        "activo": false,
+        "commons": {
+          "titulo": "File:DTape Picture.JPG",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/DTape_Picture.JPG/960px-DTape_Picture.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/0/0a/DTape_Picture.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:DTape_Picture.JPG",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "VTmaddogVT (talk)",
+          "licencia": "Public domain",
+          "descripcion": "A common Diameter Tape used by foresters and loggers in the United States, that has a diameter side and a conventional foot scale  on the other side."
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "mecanica",
+    "carreraNombre": "Ingeniería Industrial Mecánica",
+    "objetos": [
+      {
+        "id": "calibre-vernier",
+        "nombre": "Calibre pie de rey vernier",
+        "descripcion": "Instrumento de taller con nonio para medir espesores, diámetros interiores y profundidades.",
+        "figura": "llave",
+        "busqueda": "vernier caliper stainless",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Mid 1990s Kanon vernier scale caliper resolution 0 05 mm made in Japan.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Mid_1990s_Kanon_vernier_scale_caliper_resolution_0_05_mm_made_in_Japan.jpg/960px-Mid_1990s_Kanon_vernier_scale_caliper_resolution_0_05_mm_made_in_Japan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/8/84/Mid_1990s_Kanon_vernier_scale_caliper_resolution_0_05_mm_made_in_Japan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Mid_1990s_Kanon_vernier_scale_caliper_resolution_0_05_mm_made_in_Japan.jpg",
+          "ancho": 768,
+          "alto": 321,
+          "mime": "image/jpeg",
+          "autor": "R. Henrik Nilsson",
+          "licencia": "CC BY 4.0",
+          "descripcion": "Bestool-Kanon vernier caliper in hardened stainless steel, manufactured in Japan, min 1990s. Equipped with a Nernier (nonius) scale providing a resolution of 0.05 mm (1/20 mm) and 1/128 inch, with dual main scales in millimetres and inches. Marked “Pat. No. 946933”. Approx. 23*7.5*0.6 cm as shown in the photo. Weight c. 133 g."
+        }
+      },
+      {
+        "id": "micrometro",
+        "nombre": "Micrómetro de exteriores",
+        "descripcion": "Mide espesores con precisión centesimal o milesimal mediante un tornillo calibrado.",
+        "figura": "llave",
+        "busqueda": "micrometer",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Micrometer (screw gauge).jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Micrometer_%28screw_gauge%29.jpg/960px-Micrometer_%28screw_gauge%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/7/76/Micrometer_%28screw_gauge%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Micrometer_(screw_gauge).jpg",
+          "ancho": 768,
+          "alto": 432,
+          "mime": "image/jpeg",
+          "autor": "Riaz",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "Screw Gauge"
+        }
+      },
+      {
+        "id": "engranaje-mecanizado",
+        "nombre": "Engranaje mecanizado",
+        "descripcion": "Rueda dentada de acero rectificado que transmite potencia y movimiento entre ejes rotatorios.",
+        "figura": "engranaje",
+        "busqueda": "bevel gear",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Bevel gear-tech drawing.png",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Bevel_gear-tech_drawing.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Bevel_gear-tech_drawing.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Bevel_gear-tech_drawing.png",
+          "ancho": 768,
+          "alto": 731,
+          "mime": "image/png",
+          "autor": "Original uploader was Jonasz at pl.wikipedia",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Przekładnia stożkowa"
+        }
+      },
+      {
+        "id": "rodamiento-despiezado",
+        "nombre": "Rodamiento rígido de bolas",
+        "descripcion": "Conjunto de pistas y bolas de acero que reduce la fricción en componentes mecánicos rotatorios.",
+        "figura": "rodamiento",
+        "busqueda": "ball bearing cutaway section",
+        "activo": true,
+        "commons": {
+          "titulo": "File:BearingVgrooveRaceway.jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/a/ad/BearingVgrooveRaceway.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/a/ad/BearingVgrooveRaceway.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:BearingVgrooveRaceway.jpg",
+          "ancho": 768,
+          "alto": 954,
+          "mime": "image/jpeg",
+          "autor": "Auburn Ball Bearing Company",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Cutaway of ball bearings in a v-groove raceway showing four points of contact."
+        }
+      },
+      {
+        "id": "llave-dinamometrica",
+        "nombre": "Llave dinamométrica",
+        "descripcion": "Aplica un par de apriete exacto a bulones y tuercas evitando roturas y deformaciones.",
+        "figura": "llave",
+        "busqueda": "torque wrench ratchet",
+        "activo": false,
+        "commons": {
+          "titulo": "File:Direct pawl clicker torque concept.png",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/24/Direct_pawl_clicker_torque_concept.png/960px-Direct_pawl_clicker_torque_concept.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/2/24/Direct_pawl_clicker_torque_concept.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Direct_pawl_clicker_torque_concept.png",
+          "ancho": 768,
+          "alto": 217,
+          "mime": "image/png",
+          "autor": "Lead holder",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "A basic view of the workings of a clicker type torque wrench. This particular type is probably the simplest, it uses a cubic pawl as the detente directly in contact with the drive head and spring cam."
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "naval",
+    "carreraNombre": "Ingeniería Naval",
+    "objetos": [
+      {
+        "id": "modelo-casco",
+        "nombre": "Modelo a escala de casco",
+        "descripcion": "Modelo a escala de la proa y obra viva ensayado en canal hidrodinámico para reducir resistencia.",
+        "figura": "motor",
+        "busqueda": "ship hull model towing tank",
+        "activo": true,
+        "commons": {
+          "titulo": "File:NewcastleTowingTank.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/NewcastleTowingTank.jpg/960px-NewcastleTowingTank.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/8/89/NewcastleTowingTank.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:NewcastleTowingTank.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "Xtrememachineuk at English Wikipedia",
+          "licencia": "CC BY 2.5",
+          "descripcion": "The hull of a model ship photographed in the towing tank of Newcastle University."
+        }
+      },
+      {
+        "id": "helice-naval",
+        "nombre": "Hélice marina de bronce",
+        "descripcion": "Hélice de bronce fundido con palas diseñadas para generar empuje hidrodinámico sin cavitación.",
+        "figura": "motor",
+        "busqueda": "bronze ship propeller 4 blades",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Right-handed 3-blade bronze propeller & stainless steel rope cutter.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Right-handed_3-blade_bronze_propeller_%26_stainless_steel_rope_cutter.jpg/960px-Right-handed_3-blade_bronze_propeller_%26_stainless_steel_rope_cutter.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/5/54/Right-handed_3-blade_bronze_propeller_%26_stainless_steel_rope_cutter.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Right-handed_3-blade_bronze_propeller_%26_stainless_steel_rope_cutter.jpg",
+          "ancho": 768,
+          "alto": 835,
+          "mime": "image/jpeg",
+          "autor": "Arrivisto",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "Right-handed 3-blade bronze  propeller &amp; stainless steel rope cutter"
+        }
+      },
+      {
+        "id": "anodo-sacrificio",
+        "nombre": "Ánodo de sacrificio de zinc",
+        "descripcion": "Bloque de zinc metálico que se corroe intencionalmente para proteger el casco de acero del buque.",
+        "figura": "ladrillo",
+        "busqueda": "sacrificial zinc anode boat hull",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Electrode protecting a screw.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/38/Electrode_protecting_a_screw.jpg/960px-Electrode_protecting_a_screw.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/3/38/Electrode_protecting_a_screw.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Electrode_protecting_a_screw.jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "Rémi Kaupp",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "Zinc sacrificial anode (rounded object screwed to underside of hull) used to prevent corrosion on the screw in a boat by cathodic protection."
+        }
+      },
+      {
+        "id": "inclinometro-mamparo",
+        "nombre": "Inclinómetro de mamparo",
+        "descripcion": "Instrumento fijado al mamparo que mide los ángulos de escora del buque en navegación.",
+        "figura": "curva",
+        "busqueda": "clinometer ship",
+        "activo": true,
+        "commons": {
+          "titulo": "File:MuseeMarine-compas-p1000468.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/MuseeMarine-compas-p1000468.jpg/960px-MuseeMarine-compas-p1000468.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/0/05/MuseeMarine-compas-p1000468.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:MuseeMarine-compas-p1000468.jpg",
+          "ancho": 768,
+          "alto": 1024,
+          "mime": "image/jpeg",
+          "autor": "Rama",
+          "licencia": "CeCILL",
+          "descripcion": "Ship's compass binnacle"
+        }
+      },
+      {
+        "id": "medidor-espesores",
+        "nombre": "Medidor de espesores ultrasónico",
+        "descripcion": "Emite ultrasonido para medir el desgaste y espesor residual de las chapas de acero del casco.",
+        "figura": "onda",
+        "busqueda": "ultrasonic thickness",
+        "activo": false,
+        "commons": {
+          "titulo": "File:23 0061613 Convair Negative Image - Actual thickness versus ultrasonic thickness measurements (54052706595).jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/7/76/23_0061613_Convair_Negative_Image_-_Actual_thickness_versus_ultrasonic_thickness_measurements_%2854052706595%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/7/76/23_0061613_Convair_Negative_Image_-_Actual_thickness_versus_ultrasonic_thickness_measurements_%2854052706595%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:23_0061613_Convair_Negative_Image_-_Actual_thickness_versus_ultrasonic_thickness_measurements_(54052706595).jpg",
+          "ancho": 768,
+          "alto": 518,
+          "mime": "image/jpeg",
+          "autor": "San Diego Air &amp; Space Museum Archives",
+          "licencia": "Public domain",
+          "descripcion": "88257093 :Piction ID--Actual thickness versus ultrasonic thickness measurements"
+        }
+      }
+    ]
+  },
+  {
+    "carrera": "quimica",
+    "carreraNombre": "Ingeniería Química",
+    "objetos": [
+      {
+        "id": "columna-vigreux",
+        "nombre": "Columna Vigreux",
+        "descripcion": "Tubo con puntas de vidrio internas que aumenta los platos teóricos en destilaciones fraccionadas.",
+        "figura": "tubo",
+        "busqueda": "fractional distillation",
+        "activo": true,
+        "commons": {
+          "titulo": "File:EB1911 - Liquid Gases - Fig. 8.—Apparatus for Fractional Distillation.jpg",
+          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/d/dc/EB1911_-_Liquid_Gases_-_Fig._8.%E2%80%94Apparatus_for_Fractional_Distillation.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/d/dc/EB1911_-_Liquid_Gases_-_Fig._8.%E2%80%94Apparatus_for_Fractional_Distillation.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:EB1911_-_Liquid_Gases_-_Fig._8.%E2%80%94Apparatus_for_Fractional_Distillation.jpg",
+          "ancho": 768,
+          "alto": 533,
+          "mime": "image/jpeg",
+          "autor": "AnonymousUnknown author",
+          "licencia": "Public domain",
+          "descripcion": "Apparatus for Fractional Distillation"
+        }
+      },
+      {
+        "id": "matraz-aforado",
+        "nombre": "Matraz aforado",
+        "descripcion": "Recipiente volumétrico de precisión calibrado para preparar soluciones químicas de concentración exacta.",
+        "figura": "matraz",
+        "busqueda": "volumetric flask glass liquid",
+        "activo": true,
+        "commons": {
+          "titulo": "File:2 Liter Flask (NIH BioArt 779 - 792828).png",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/2_Liter_Flask_%28NIH_BioArt_779_-_792828%29.png/960px-2_Liter_Flask_%28NIH_BioArt_779_-_792828%29.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/6/64/2_Liter_Flask_%28NIH_BioArt_779_-_792828%29.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:2_Liter_Flask_(NIH_BioArt_779_-_792828).png",
+          "ancho": 768,
+          "alto": 1272,
+          "mime": "image/png",
+          "autor": "Courtesy of NIAID\n\nRyan Kissinger",
+          "licencia": "Public domain",
+          "descripcion": "2 liter glass Erlenmeyer flask with yellow liquid and volumetric markings."
+        }
+      },
+      {
+        "id": "embudo-decantacion",
+        "nombre": "Embudo de decantación",
+        "descripcion": "Separa líquidos inmiscibles de distinta densidad mediante una llave de paso inferior.",
+        "figura": "matraz",
+        "busqueda": "separatory funnel",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Separatory funnel with oil and colored water.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Separatory_funnel_with_oil_and_colored_water.jpg/960px-Separatory_funnel_with_oil_and_colored_water.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Separatory_funnel_with_oil_and_colored_water.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Separatory_funnel_with_oil_and_colored_water.jpg",
+          "ancho": 768,
+          "alto": 1486,
+          "mime": "image/jpeg",
+          "autor": "PRHaney",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "A separatory funnel demonstrating the separation of oil and colored water."
+        }
+      },
+      {
+        "id": "densimetro",
+        "nombre": "Densímetro de inmersión",
+        "descripcion": "Flotador de vidrio lastrado que mide la densidad relativa de un líquido según el principio de Arquímedes.",
+        "figura": "pipeta",
+        "busqueda": "hydrometer specific gravity glass",
+        "activo": true,
+        "commons": {
+          "titulo": "File:Thinktank Birmingham - object 1956S00727.00004(1).jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Thinktank_Birmingham_-_object_1956S00727.00004%281%29.jpg/960px-Thinktank_Birmingham_-_object_1956S00727.00004%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Thinktank_Birmingham_-_object_1956S00727.00004%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Thinktank_Birmingham_-_object_1956S00727.00004(1).jpg",
+          "ancho": 768,
+          "alto": 576,
+          "mime": "image/jpeg",
+          "autor": "Birmingham Museums Trust",
+          "licencia": "CC BY-SA 4.0",
+          "descripcion": "Baums floats for measuring specific gravity. Circular shaped wooden box, which has patterned, raised circles on the top. The lid can be removed to reveal  eleven glass floats, which are globular in shape, with a balance below. Each is numbered, with a corresponding paper label next to them. Each float fits into a holes, which is lined with green textile. On the underside of the lid, there is a paper adhesive label, which is marked 'Forbes Altrea, Glassblower &amp; Optician, 162 High Street, Edinburgh, If it be proof the bead will sink to the bottom', this has a chart determining which float should be used for which alcoholic liquid. Specific gravity was used both to determine the alcoholic strength of drinks and to set the taxation to be paid, excise duty, on the drink.  It was important that hydrometers could not be made to give false readings and ones like these sealed glass floats would have been more reliable.\nEditing Undertaken: Auto Levels, Auto Contrast, Unsharp Mask"
+        }
+      },
+      {
+        "id": "agitador-magnetico",
+        "nombre": "Agitador magnético con calefactor",
+        "descripcion": "Mezcla reactivos homogéneamente mediante un imán rotatorio mientras controla la temperatura.",
+        "figura": "mechero",
+        "busqueda": "magnetic stirrer",
+        "activo": false,
+        "commons": {
+          "titulo": "File:RCT basic IKAMAG® safety control magnetic stirrer.jpg",
+          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/RCT_basic_IKAMAG%C2%AE_safety_control_magnetic_stirrer.jpg/960px-RCT_basic_IKAMAG%C2%AE_safety_control_magnetic_stirrer.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/4/4b/RCT_basic_IKAMAG%C2%AE_safety_control_magnetic_stirrer.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+          "paginaUrl": "https://commons.wikimedia.org/wiki/File:RCT_basic_IKAMAG%C2%AE_safety_control_magnetic_stirrer.jpg",
+          "ancho": 768,
+          "alto": 384,
+          "mime": "image/jpeg",
+          "autor": "Lucasbosch",
+          "licencia": "CC BY-SA 3.0",
+          "descripcion": "IKA RCT basic magnetic stirrer with heating plate."
+        }
+      }
+    ]
+  }
+]

@@ -91,6 +91,8 @@ Cada carrera tiene **cuatro objetos** en subcarpetas de `objetos/`. Cada carpeta
 En cada sesión, el espejo selecciona **un objeto al azar para el carrusel** de entre los cuatro disponibles, y distribuye los tres restantes al azar en los escondites del fondo activo. No hay objeto principal fijo ni orden manual.
 
 > **Objetos en el banco:** Los PNG que no se usan activamente se conservan en `contenido/comun/banco/` para reemplazos futuros. Para cambiar o agregar un objeto basta con crear o modificar su carpeta en `objetos/`.
+>
+> **Catálogo de candidatos automatizado:** En `contenido/comun/objetos-candidatos.json` se definen 60 objetos específicos (5 por ingeniería) con nombres, figuras de reserva, descripciones $\le 130$ caracteres y consultas de búsqueda para Wikimedia Commons. La herramienta `npm run objetos` (`herramientas/descargar-objetos.mjs`) permite consultar (`info`), buscar (`buscar`), descargar (`descargar`) y aplicar la estructura de metadatos (`aplicar`).
 
 ---
 
