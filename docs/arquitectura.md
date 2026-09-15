@@ -58,11 +58,15 @@ seguros, y `file://` no lo es. Por eso el espejo se abre siempre por `localhost`
 
 ## 3. Desglose de Módulos y Responsabilidades
 
-### 3.1. Servidor Local (`servidor/servidor.js`)
-Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias de producción:** sólo importa módulos `node:`. Ni una línea de lógica de la experiencia vive acá.
+### 3.1. Servidor y Generador de Catálogo (`servidor/`)
+Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias de producción:** sólo importa módulos `node:`.
 - **MIMEs soportados:** HTML, JS, CSS, JSON, PNG, JPG, WebP, MP4, WASM (`application/wasm`) y `.task` (`application/octet-stream`).
 - **Cache:** `immutable` de un año para `/vendor/` (los modelos de MediaPipe, versionados y pesados); `no-cache` con ETag para todo lo demás, para que un PNG nuevo de diseño se vea sin vaciar el cache.
-- **Rangos:** soporta `Range` sobre `.mp4`, incluidos archivos de 0 bytes, que responden 200 vacío o 416 según corresponda. Es corrección HTTP genérica, no algo que la experiencia use hoy.
+- **Rangos:** soporta `Range` sobre `.mp4`, incluidos archivos de 0 bytes, que responden 200 vacío o 416 según corresponda.
+- **Generación de catálogo:** ante el arranque o si se solicita `/contenido/catalogo.json` y no existe en disco, construye y escribe el catálogo normalizado a partir de las carpetas de `contenido/carreras/`.
+  - `descubrimiento.js`: Descubre la estructura física de carreras, objetos y fondos de manera determinista.
+  - `validador.js`: Valida integridad de campos, longitudes, colores y archivos faltantes con rutas exactas.
+  - `catalogo.js`: Genera el archivo normalizado `contenido/catalogo.json`.
 
 ### 3.2. Aplicación del Espejo (`espejo/`)
 
@@ -89,9 +93,10 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `sorteo.js` | Gestor de sorteo aleatorio con **bolsa barajada sin repetición contigua**. `siguientes(n)` entrega el orden del carrusel: todas las jugables, barajadas por sesión. |
 | `niebla.js` | Animación de las nubes que cubren el espejo durante el reposo. Se apartan **hacia los costados**, no en círculo: cada jirón queda fijado a su mitad de pantalla al crearse y viaja hasta el borde exterior. La transición tiene una sola magnitud (`apertura`). |
 | `figuras.js` | Sistema de fallback vectorial en Canvas 2D (36 figuras dibujadas por código para cuando no existen archivos PNG). |
-| `imagenes.js` | Gestor y precargador de imágenes con fallback elegante. Antes del arranque carga sólo los objetos del carrusel; fondo y objetos escondidos se piden al elegir la carrera. |
+| `imagenes.js` | Gestor y precargador de imágenes con fallback elegante. Carga inicialmente los objetos candidatos de las carreras ofrecidas en el carrusel. |
 | `videos.js` | Carga de videos en el navegador (con tope, para que uno que no contesta no frene el arranque) y el banco de **fondos con movimiento**: los carga de a uno después de arrancar y garantiza que **suene uno solo**, el de la ingeniería que se está mostrando. |
-| `contenido.js` | Carga y valida `contenido/carreras.json` al inicio. El primero de `objetos` es el que va al carrusel (`objetoDeCarrera`) y los demás se esconden en el fondo (`escondidosDeCarrera`). |
+| `contenido.js` | Carga y valida `contenido/catalogo.json` al inicio. |
+| `sesion.js` | Gestión de la asignación de contenido por sesión (`crearSesionContenido`): sortea un objeto para el carrusel y distribuye los restantes en los escondites del fondo activo. |
 | `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Fondo de la carrera → Objetos escondidos y apoyado → Persona recortada → Carrusel con su carga → Objeto en vuelo → Señal de manos → Fichas → Nombre al pie → Humo → Niebla → Invitación y consignas). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza), y de dónde va cada ficha (`disponerFicha`). |
 | `operacion.js` | Atajos de teclado (incluida `TECLAS_CARRERA`, la fila de números completa: una tecla por carrera), panel HUD de métricas/FPS y recarga periódica de mantenimiento. |
 

@@ -72,11 +72,10 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | Comando | Para qué |
 |---|---|
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
-| `npm run listo` | ¿Se puede montar el stand? Verifica los PNG, los cuatro objetos de cada carrera con su nombre y su descripción, el fondo activo —con su `lugar` y los escondites de los otros tres objetos—, el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
+| `npm run listo` | ¿Se puede montar el stand? Verifica la estructura de `contenido/carreras/`, los cuatro objetos por ingeniería con su nombre y descripción, el fondo activo con sus coordenadas, el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose. |
-| `npm run generar-pngs` | Genera el PNG de respaldo de los objetos que no tengan imagen (no pisa existentes). Necesita Chrome; no usa red. |
-| `npm run generar-fondos` | Genera el fondo de respaldo de cada carrera que no tenga imagen, dibujando con el Chrome local (sin red) el lugar donde se trabaja esa ingeniería. No pisa existentes. `herramientas/fondos.html` las muestra las doce juntas. |
-| `npm start` | Levanta el servidor local. |
+| `npm run catalogo` | Construye y genera `contenido/catalogo.json` a partir de la estructura física de carpetas. |
+| `npm start` | Levanta el servidor local (genera el catálogo si falta y sirve el espejo). |
 | `npm run planilla` | Rearma `docs/planilla-de-tareas.csv` y `.md` desde el historial de git del espejo y de MAITE: las tareas de cada integrante con horas estimadas. Conserva las horas reales ya cargadas. |
 
 ## Atajos, en la PC del espejo
@@ -100,9 +99,9 @@ nombre y de la carga que se miraron. Las tres se abren desde `npm start`.
 ## Cómo está armado
 
 ```
-servidor/    archivos estáticos, y nada más. Sin lógica de negocio.
+servidor/    archivos estáticos y generador de catálogo normalizado
 espejo/      la aplicación entera
-contenido/   carreras.json y los PNG de los objetos
+contenido/   carreras/ (carpetas por carrera, objetos y fondos), comun/ y catalogo.json generado
 docs/        arquitectura, contenido, despliegue y guía de operación del stand
 ```
 
@@ -113,27 +112,28 @@ una ingeniería y `tablero.js` sólo conoce anillos y círculos. Por eso la máq
 estados y el sostenido se prueban enteros sin cámara ni pantalla. `main.js` es
 sólo cableado: decide qué módulo habla con cuál y en qué orden se dibuja.
 
-**Todo lo que distingue una carrera de otra vive en `contenido/carreras.json`:**
-nombre, sus cuatro objetos con su nombre y su descripción (el primero es el del
-carrusel), el fondo activo con el lugar de cada objeto, y el id que esa
-carrera tiene en MAITE. Agregar o cambiar una carrera no toca una línea de
-código. Las personas no están acá: las muestran las tablets. El color no
-distingue a las ingenierías: nombres, carga y fichas van en los colores de
-MAITE, en `espejo/config.js`.
+**La estructura física de carpetas es la fuente de verdad del contenido:**
+Dentro de `contenido/carreras/<id>/`, cada ingeniería tiene su `carrera.json`
+(nombre, color, id de MAITE y fondo activo opcional). Sus objetos viven en
+`objetos/<id>/` (`imagen.png` y `metadata.json` con nombre, descripción y
+figura vectorial de respaldo) y sus fondos en `fondos/<id>/` (`imagen.jpg`,
+`video.mp4` opcional y `metadata.json` con `lugar` y `escondites`).
+
+El servidor y los scripts generan un `contenido/catalogo.json` normalizado (ignorado
+en git), y en cada sesión el espejo selecciona al azar uno de los objetos para el
+carrusel y distribuye los restantes en los escondites del fondo. Agregar o cambiar
+un contenido consiste simplemente en crear o reemplazar archivos en las carpetas.
 
 Los objetos son fotografías reales con el fondo recortado; las que salieron de
 Wikimedia Commons llevan autor, origen y licencia en
-`contenido/assets/CREDITOS.md`. El orden de preferencia al dibujar es **PNG →
-figura → círculo dorado**: si un PNG falta, `npm run generar-pngs` rasteriza
-la figura vectorial de respaldo (`espejo/figuras.js`) sin pisar los existentes,
-y los definitivos de diseño reemplazan a cualquiera en la misma ruta, sin tocar
-código. Lo mismo para los fondos, con `npm run generar-fondos`, que dibuja la escena de
-cada ingeniería (`espejo/escenarios.js`). Por ahora cada carrera declara **un
-fondo activo** —un espacio con profundidad, sin gente y con un rincón oscuro
-donde apoyar el objeto: los criterios están en `docs/contenido.md`—. El catálogo
-conserva una lista para sumar candidatos después; cada candidato podrá ser **un
-video** en vez de una foto quieta (declara `video` además de su `img`, que pasa
-a ser un cuadro del propio video: es lo que se ve mientras carga).
+`contenido/comun/CREDITOS.md`. El orden de preferencia al dibujar es **PNG →
+figura vectorial → círculo dorado**: si un PNG falta en tiempo de ejecución, el
+espejo dibuja la figura vectorial de respaldo (`espejo/figuras.js`). Lo mismo para los
+fondos: si una foto falta, se dibuja en tiempo real la escena vectorial de la ingeniería
+(`espejo/escenarios.js`). Por ahora cada carrera tiene un fondo activo (un espacio con
+profundidad, sin gente y con un rincón oscuro donde apoyar el objeto: los criterios
+están en `docs/contenido.md`). Los candidatos pueden incluir `video.mp4` para fondos
+con movimiento.
 
 ### El puente a MAITE
 

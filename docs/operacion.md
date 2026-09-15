@@ -50,7 +50,7 @@ Cerrar Chrome con `Alt` + `F4` y después la ventana negra del servidor.
 | `Ctrl` + `R` | Recarga todo |
 
 Es la fila de números entera, de izquierda a derecha: doce teclas para las doce
-carreras, en el mismo orden en que están escritas en `contenido/carreras.json`.
+carreras, en el mismo orden en que están registradas en el catálogo.
 
 
 ---
@@ -105,8 +105,8 @@ la línea `manos` tiene que mostrar la mano y la línea `ficha`, el objeto que s
 está describiendo. Si la mano se ve y la ficha no se abre, avisar al equipo
 técnico: se agranda el blanco con `fichas.radioFactor` en `espejo/config.js`.
 Si la mano no llega —pasa con gente sentada lejos y los objetos de arriba—, el
-equipo técnico los baja: son los lugares de cada fondo en
-`contenido/carreras.json`, y se eligen mirando `herramientas/fondos.html`.
+equipo técnico los baja: son los lugares de cada fondo en su
+`metadata.json` (dentro de `contenido/carreras/<id>/fondos/<fondo>/`), y se eligen mirando `herramientas/fondos.html`.
 
 **Las tablets no cambian cuando alguien elige.**
 Apretar `P` y mirar la línea `maite`. Si dice `ok`, el espejo avisó bien y el
@@ -116,7 +116,7 @@ gente filmada — no es una falla.
 
 **Falta alguna ingeniería en el carrusel.**
 Sólo se ofrecen las que tienen su par en las tablets (`maite` en
-`carreras.json`). Hoy son las doce; una carrera con `maite: null` queda escrita
+`carrera.json`). Hoy son las doce; una carrera con `maite: null` queda escrita
 pero en silencio hasta que tenga su video.
 
 **La pantalla quedó en negro o dice "cargando…".**
@@ -157,15 +157,13 @@ matices.
 
 | Qué | Dónde |
 |---|---|
-| Dibujos de cada carrera | `contenido/assets/<carrera>/` |
-| Fondos de cada ingeniería | `contenido/assets/fondos/` |
-| Nombres, objetos con sus descripciones y fondos | `contenido/carreras.json` |
+| Objetos y sus fotos | `contenido/carreras/<carrera>/objetos/<objeto>/` (`imagen.png` y `metadata.json`) |
+| Fondos de cada ingeniería | `contenido/carreras/<carrera>/fondos/<fondo>/` (`imagen.jpg`, `video.mp4` y `metadata.json`) |
+| Datos de la carrera y fondo activo | `contenido/carreras/<carrera>/carrera.json` |
+| Recursos comunes (humo, fuentes) | `contenido/comun/` |
 | Duraciones, colores y ajustes finos | `espejo/config.js` |
 
-Para corregir el nombre de una carrera, la descripción de un objeto, cuál de sus
-objetos va al carrusel (el primero de `objetos`) o cuál de sus fondos se muestra
-(el primero de `fondos`), se edita `contenido/carreras.json` y listo: no hay que
-tocar una línea de código.
+Para corregir el nombre de una carrera o activar otro fondo se edita `contenido/carreras/<carrera>/carrera.json`. Para modificar un objeto o sus coordenadas en el fondo, se edita su `metadata.json` correspondiente. No hay que tocar código.
 
 ---
 

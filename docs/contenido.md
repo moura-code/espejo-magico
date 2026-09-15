@@ -8,102 +8,93 @@ Agregar o cambiar una carrera no requiere modificar código JavaScript.
 
 ---
 
-## 1. Estructura de `contenido/carreras.json`
+## 1. Estructura física del contenido
 
-El catálogo contiene doce carreras. Cada una dentro de la lista `"carreras"`:
+El contenido no se mantiene en un archivo manual global. La **estructura física de carpetas** en `contenido/` es la única fuente de verdad:
+
+```
+contenido/
+  carreras/
+    computacion/
+      carrera.json
+      objetos/
+        computadora/
+          imagen.png
+          metadata.json
+        procesador/
+          imagen.png
+          metadata.json
+        placa/
+          imagen.png
+          metadata.json
+        mouse/
+          imagen.png
+          metadata.json
+      fondos/
+        aula/
+          imagen.jpg
+          video.mp4 (opcional)
+          metadata.json
+  comun/
+    humo.mp4
+    tipografias/
+      Muffaroo-Regular.ttf
+      Muffaroo-LEEME.txt
+    CREDITOS.md
+    banco/
+  catalogo.json (generado automáticamente, ignorado en git)
+```
+
+El archivo `contenido/catalogo.json` es derivado y normalizado. Se genera con `npm run catalogo`, o automáticamente al arrancar el servidor con `npm start` o `npm run dev`.
+
+---
+
+## 2. Archivos y metadatos por carrera
+
+### `carrera.json`
+Ubicado en `contenido/carreras/<id>/carrera.json`:
 
 ```json
 {
-  "id": "computacion",
   "nombre": "Ingeniería en Computación",
   "color": "#00E5A0",
   "maite": "sistemas",
-  "fondos": [
-    {
-      "img": "assets/fondos/computacion-2.jpg",
-      "lugar": { "x": 0.834, "y": 0.22, "escala": 0.24 },
-      "escondites": [
-        { "x": 0.166, "y": 0.22, "escala": 0.24 },
-        { "x": 0.834, "y": 0.43, "escala": 0.24 },
-        { "x": 0.166, "y": 0.43, "escala": 0.24 }
-      ]
-    },
-    { "img": "assets/fondos/computacion.png" }
-  ],
-  "objetos": [
-    {
-      "img": "assets/computacion/laptop.png", "figura": "laptop", "escala": 0.2,
-      "nombre": "Computadora",
-      "descripcion": "Hardware y software trabajando juntos. En Computación se aprende a programarla para resolver problemas reales."
-    },
-    {
-      "img": "assets/computacion/procesador.png", "figura": "chip", "escala": 0.16,
-      "nombre": "Procesador",
-      "descripcion": "Ejecuta miles de millones de instrucciones por segundo con transistores más chicos que un virus."
-    },
-    { "img": "assets/computacion/placa.png", "figura": "servidor", "escala": 0.2, "nombre": "Placa madre", "descripcion": "…" },
-    { "img": "assets/computacion/mouse.png", "figura": "chip", "escala": 0.14, "nombre": "Mouse", "descripcion": "…" }
-  ]
+  "fondo": "aula"
 }
 ```
 
-La computadora es la que gira en el carrusel y vuela a `lugar`; el procesador,
-la placa y el mouse esperan escondidos en los tres `escondites`, en ese orden.
-
----
-
-## 2. Definición de campos por carrera
-
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `id` | `string` | Identificador único sin acentos ni espacios (`mecanica`, `forestal`, `quimica`). |
-| `nombre` | `string` | Nombre oficial completo. Se ve al pie, en una o dos líneas, mientras se muestra la carrera. |
-| `color` | `string` | Color hexadecimal (`#rrggbb`), distinto para cada carrera. **Ya no tiñe el nombre ni la carga**: la cátedra pidió que el color no distinga a las ingenierías, y los dos van en el dorado de MAITE (`CONFIG.paleta`, ver §6). Queda para la escena vectorial de respaldo. |
+| `nombre` | `string` | Nombre oficial completo. Se ve al pie mientras se muestra la carrera. |
+| `color` | `string` | Color hexadecimal (`#rrggbb`). Queda para la escena vectorial de respaldo. |
 | `maite` | `string \| null` | El id que **esta misma carrera tiene en el proyecto MAITE**. Ver §7. |
-| `fondos` | `array` | Los fondos candidatos: `{ img, video?, lugar, escondites }`. El espejo muestra **el primero**; elegir es reordenar. `lugar` es dónde se apoya el objeto del carrusel y `escondites` dónde esperan los otros tres, normalizados a la imagen. `video` es opcional y hace que el fondo se mueva. Ver §3. |
-| `objetos` | `array` | Los **cuatro** objetos que identifican a la carrera, cada uno con su `nombre` y su `descripcion`. El primero va al carrusel; los otros tres se esconden en el fondo. |
+| `fondo` | `string` (opcional) | ID del fondo en `fondos/` que se desea activar. Si se omite, se usa el primero por orden alfabético. |
 
-No hay `persona`: las personas de cada ingeniería las muestran las tablets de
-MAITE, y el espejo muestra la ingeniería. Tampoco hay `objeto` —el representante
-fijo de antes—: el espejo lo rechaza con la receta, porque ahora el representante
-es el primero de `objetos`.
+### Los objetos (`objetos/<id>/`)
 
-### Los objetos
+Cada carrera tiene **cuatro objetos** en subcarpetas de `objetos/`. Cada carpeta contiene su `imagen.png` y su `metadata.json`:
 
-Cada carrera tiene **cuatro objetos** que la identifican. **El primero** es el que
-la representa en el carrusel que gira alrededor de la persona, y el que vuela a
-su lugar en el fondo cuando lo agarra; **los otros tres** ya están en el fondo,
-escondidos en sus `escondites`, meciéndose apenas para que se los pueda
-encontrar. Elegir cuál va al carrusel es reordenar la lista, igual que con los
-fondos.
+```json
+{
+  "nombre": "Procesador",
+  "descripcion": "Ejecuta miles de millones de instrucciones por segundo con transistores más chicos que un virus.",
+  "figura": "chip"
+}
+```
 
-- **`img`**: ruta al PNG con fondo transparente (`assets/mecanica/engranaje.png`).
-- **`nombre`**: cómo se llama el objeto. Es el título de su ficha.
-- **`descripcion`**: una o dos oraciones, **hasta 130 caracteres**, que dicen qué
-  es y qué tiene que ver con la ingeniería. Es lo que se lee al pasar la mano por
-  encima, de pie o sentado a un metro y medio: corta, concreta y para alguien
-  que todavía está en el liceo. `npm run listo` exige el nombre y la descripción
-  de los cuatro.
+- **`imagen.png`**: imagen del objeto con fondo transparente.
+- **`nombre`**: título de la ficha.
+- **`descripcion`**: una o dos oraciones, **hasta 130 caracteres**, sobre el objeto y su relación con la carrera.
 - **`figura`**: nombre de la figura vectorial de reserva en `espejo/figuras.js`.
-- **`escala`**: se conserva del catálogo anterior; el tamaño del objeto en el
-  carrusel lo fija `CONFIG.tablero.radioObjetoFactor` —proporcional a la
-  distancia a la que está sentada la persona— y en el fondo, la `escala` del
-  lugar o del escondite.
 
-Los objetos que se eligieron salen de los 73 PNG del proyecto, mirando cuáles se
-entienden de lejos y cuáles identifican de verdad a cada carrera (un casco de
-obra dice Civil; un martillo no dice nada). Los PNG que no se usan quedan en su
-carpeta como banco para reemplazar: cambiar un objeto es cambiar su `img`, su
-`nombre` y su `descripcion`.
+**Selección por sesión:**
+En cada sesión, el espejo selecciona **un objeto al azar para el carrusel** de entre los cuatro disponibles, y distribuye los tres restantes al azar en los escondites del fondo activo. No hay objeto principal fijo ni orden manual.
 
-> **Ojo con los objetos finos o alargados** —una probeta, un compás, una
-> maqueta de barco—: se dibujan dentro del círculo de su escala, así que se ven
-> más chicos que uno redondo. Si alguno no se encuentra, se agranda la `escala`
-> de su escondite.
+> **Objetos en el banco:** Los PNG que no se usan activamente se conservan en `contenido/comun/banco/` para reemplazos futuros. Para cambiar o agregar un objeto basta con crear o modificar su carpeta en `objetos/`.
 
 ---
 
-## 3. Fondos (`assets/fondos/`)
+## 3. Fondos (`fondos/<id>/`)
 
 El fondo aparece **detrás de la persona**: el espejo recorta su silueta con la
 segmentación de MediaPipe y la vuelve a dibujar encima, así queda dentro de su
@@ -134,19 +125,28 @@ criterios, y se descubrieron mirando los que no funcionaban:
 Si en el futuro se incorpora un fondo de video, debe tener **poco movimiento**:
 la persona y el objeto encima no pueden competir con el escenario.
 
-### Candidatos, `lugar` y `escondites`
+### Carpetas, `lugar` y `escondites`
 
-Cada carrera declara `fondos`, una lista extensible. **Por ahora contiene una
-sola imagen real**, que es la que muestra el espejo; `npm run listo` verifica
-que exista. Cuando se incorporen alternativas, se agregan a la lista y el
-espejo mostrará la primera. El `.png` que genera `npm run generar-fondos` sigue
-siendo un respaldo del código, no una opción para elegir.
+Cada carrera contiene una o más subcarpetas dentro de `fondos/`. Cada carpeta representa un candidato de fondo y contiene:
+- `imagen.jpg` (o `.png`): la imagen de la escena.
+- `video.mp4` (opcional): video en loop para fondos con movimiento.
+- `metadata.json`: coordenadas de ubicación:
 
-Cada candidato **esconde los cuatro objetos** de su ingeniería:
+```json
+{
+  "lugar": { "x": 0.834, "y": 0.22, "escala": 0.24 },
+  "escondites": [
+    { "x": 0.166, "y": 0.22, "escala": 0.24 },
+    { "x": 0.834, "y": 0.43, "escala": 0.24 },
+    { "x": 0.166, "y": 0.43, "escala": 0.24 }
+  ]
+}
+```
+
+Cada fondo ubica los cuatro objetos de su ingeniería:
 
 - **`lugar`**: dónde se apoya el objeto del carrusel, el que llega volando.
-- **`escondites`**: dónde esperan los otros tres, **en el mismo orden que
-  `objetos`**: el segundo objeto va al primer escondite, y así.
+- **`escondites`**: dónde esperan los otros tres objetos no seleccionados para el carrusel. En cada sesión, estos tres objetos se distribuyen al azar entre los escondites disponibles.
 
 Todos van **normalizados a la imagen** (`x` e `y` de 0 a 1, `escala` es el
 diámetro como fracción del ancho de la imagen). El set actual es 1920×1080 y el
@@ -366,7 +366,7 @@ hueco en el carrusel y no entiende por qué ahí no pasa nada.
 
 ---
 
-## 5. El humo (`assets/humo.mp4`)
+## 5. El humo (`contenido/comun/humo.mp4`)
 
 El video que entra al sentarse. Es **blanco sobre negro** y se compone en modo
 `screen`, así que el negro desaparece solo y no hace falta canal alfa (el mp4 no
@@ -379,7 +379,7 @@ silenciosa el día del evento no la mira nadie.
 
 ---
 
-## 6. La tipografía (`assets/tipografias/`)
+## 6. La tipografía (`contenido/comun/tipografias/`)
 
 El nombre de la ingeniería se dibuja en **Muffaroo**, la tipografía que muestran
 de verdad las tablets de MAITE: su `style.css` base declara Germania One, pero
@@ -409,7 +409,7 @@ lado a lado, andando, en `http://localhost:8080/herramientas/colores.html`. Para
 cambiar la elegida se cambia `CONFIG.paleta` o `CONFIG.carga`.
 
 Para reemplazarla hay que tocar tres lugares: el archivo en
-`contenido/assets/tipografias/`, el `@font-face` de `espejo/espejo.html` y las
+`contenido/comun/tipografias/`, el `@font-face` de `espejo/espejo.html` y las
 constantes `TITULO_SOLO` / `FAMILIA_TITULO` de `espejo/escena.js`. Si la nueva
 tiene negrita de verdad, ahí se puede subir `PESO_TITULO`.
 
