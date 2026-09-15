@@ -157,6 +157,57 @@ export function dibujarFondo(ctx, fuente, disposicion, alfa = 1) {
 }
 
 /**
+ * Tratamiento comun para que las fotos de carreras distintas se lean como una
+ * misma instalacion. El velo azul baja el ruido de color, la vineta reserva el
+ * centro y la luz tibia separa a la persona sin dibujarle un contorno falso.
+ */
+export function dibujarTratamientoDeFondo(ctx, disposicion, alfa = 1) {
+  if (alfa <= 0) return;
+
+  const { ancho, alto } = disposicion;
+  const corto = Math.min(ancho, alto);
+  const visible = Math.min(1, alfa);
+
+  ctx.save();
+
+  ctx.globalAlpha = visible * 0.18;
+  ctx.fillStyle = '#07111f';
+  ctx.fillRect(0, 0, ancho, alto);
+
+  const vineta = ctx.createRadialGradient(
+    ancho / 2,
+    alto * 0.42,
+    corto * 0.18,
+    ancho / 2,
+    alto * 0.42,
+    Math.max(ancho, alto) * 0.78,
+  );
+  vineta.addColorStop(0, 'rgba(0,0,0,0)');
+  vineta.addColorStop(0.58, 'rgba(0,0,0,0.05)');
+  vineta.addColorStop(1, 'rgba(0,0,0,0.72)');
+  ctx.globalAlpha = visible;
+  ctx.fillStyle = vineta;
+  ctx.fillRect(0, 0, ancho, alto);
+
+  const aura = ctx.createRadialGradient(
+    ancho / 2,
+    alto * 0.4,
+    0,
+    ancho / 2,
+    alto * 0.4,
+    corto * 0.48,
+  );
+  aura.addColorStop(0, 'rgba(240,220,160,0.14)');
+  aura.addColorStop(0.55, 'rgba(240,220,160,0.05)');
+  aura.addColorStop(1, 'rgba(240,220,160,0)');
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = aura;
+  ctx.fillRect(0, 0, ancho, alto);
+
+  ctx.restore();
+}
+
+/**
  * La persona recortada del espejo, para pegarla encima del fondo de la carrera.
  *
  * `capa` es un lienzo aparte que el llamador reusa entre cuadros: el recorte
@@ -423,10 +474,23 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, colo
 
   const degradado = ctx.createLinearGradient(0, alto - pie.alto, 0, alto);
   degradado.addColorStop(0, 'rgba(5, 8, 14, 0)');
-  degradado.addColorStop(0.55, 'rgba(5, 8, 14, 0.88)');
-  degradado.addColorStop(1, 'rgba(5, 8, 14, 0.96)');
+  degradado.addColorStop(0.28, 'rgba(5, 8, 14, 0.62)');
+  degradado.addColorStop(0.62, 'rgba(5, 8, 14, 0.94)');
+  degradado.addColorStop(1, 'rgba(5, 8, 14, 0.98)');
   ctx.fillStyle = degradado;
   ctx.fillRect(0, alto - pie.alto, ancho, pie.alto);
+
+  // Una linea corta basta para que el pie se lea como una pieza editorial y
+  // no como texto suelto sobre el cuerpo. Usa el mismo dorado que el nombre.
+  const yDeLaLinea = alto - pie.alto * 0.8;
+  ctx.beginPath();
+  ctx.moveTo(ancho * 0.39, yDeLaLinea);
+  ctx.lineTo(ancho * 0.61, yDeLaLinea);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, disposicion.unidad * 0.0025);
+  ctx.globalAlpha = Math.min(1, alfa) * 0.58;
+  ctx.stroke();
+  ctx.globalAlpha = Math.min(1, alfa);
 
   ctx.textAlign = 'center';
   ctx.shadowColor = 'rgba(0,0,0,0.85)';
@@ -476,6 +540,23 @@ export function dibujarObjetoApoyado(
     ctx.save();
     ctx.globalAlpha = Math.min(1, alfa) * halo;
     resplandor(ctx, x, y, radio * 2.2, color);
+    ctx.restore();
+
+    // Las fotos recortadas vienen de fuentes distintas. Esta base comun evita
+    // que parezcan stickers sueltos y, a la vez, marca el area interactiva sin
+    // agregar texto ni otro icono alrededor de la persona.
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, alfa);
+    ctx.fillStyle = 'rgba(5,8,14,0.58)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(2, radio * 0.035);
+    ctx.shadowColor = 'rgba(0,0,0,0.42)';
+    ctx.shadowBlur = radio * 0.32;
+    ctx.beginPath();
+    ctx.arc(x, y, radio * 1.14, 0, TAU);
+    ctx.fill();
+    ctx.globalAlpha = Math.min(1, alfa) * 0.52;
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -665,9 +746,6 @@ export function dibujarConsigna(
   ctx.save();
   ctx.globalAlpha = Math.min(1, alfa) * 0.9;
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#ffffff';
-  ctx.shadowColor = 'rgba(0,0,0,0.85)';
-  ctx.shadowBlur = 20;
   // La consigna va en la sans a proposito: es la unica instruccion de toda la
   // experiencia y tiene que entenderse de un vistazo, desde lejos y de costado.
   const tamano = Math.round(texto.tamanoFrase * 1.15);
@@ -675,6 +753,35 @@ export function dibujarConsigna(
   const lineas = partirEnLineas(frase, ancho * 0.85, (linea) => ctx.measureText(linea).width);
   const paso = tamano * 1.2;
   const base = alto * 0.93;
+
+  // La pastilla separa la instruccion del titulo y evita que dependa de una
+  // zona oscura concreta de cada fotografia. Es deliberadamente compacta: el
+  // pie sigue perteneciendo a la escena, no a una interfaz de botones.
+  const rellenoX = tamano * 1.05;
+  const rellenoY = tamano * 0.48;
+  const anchoDelTexto = Math.max(...lineas.map((linea) => ctx.measureText(linea).width));
+  const altoDelTexto = tamano + (lineas.length - 1) * paso;
+  const panel = {
+    x: (ancho - Math.min(ancho * 0.88, anchoDelTexto + rellenoX * 2)) / 2,
+    y: base - altoDelTexto - rellenoY,
+    ancho: Math.min(ancho * 0.88, anchoDelTexto + rellenoX * 2),
+    alto: altoDelTexto + rellenoY * 1.65,
+    radio: tamano * 0.72,
+  };
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = tamano * 0.7;
+  ctx.fillStyle = 'rgba(5,8,14,0.72)';
+  ctx.beginPath();
+  trazarPanel(ctx, panel);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(240,220,160,0.22)';
+  ctx.lineWidth = Math.max(1, tamano * 0.045);
+  ctx.stroke();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0,0,0,0.85)';
+  ctx.shadowBlur = 20;
   lineas.forEach((linea, i) => {
     ctx.fillText(linea, ancho / 2, base - (lineas.length - 1 - i) * paso);
   });

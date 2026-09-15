@@ -55,6 +55,7 @@ import {
   calcularRectanguloVideo,
   dibujarVideoEspejado,
   dibujarFondo,
+  dibujarTratamientoDeFondo,
   dibujarPersonaRecortada,
   dibujarObjeto,
   dibujarObjetoApoyado,
@@ -818,6 +819,13 @@ function cuadro(ahora) {
         ctx.restore();
       });
     }
+
+    // Las fotos vienen de espacios y condiciones de luz distintas. El mismo
+    // tratamiento sobre todas les da una atmósfera comun y abre una zona clara
+    // en el centro para que la persona se separe del fondo.
+    acumuladorDeDibujo.medir('compose', () =>
+      dibujarTratamientoDeFondo(ctx, disposicion, transicion.fondo),
+    );
 
     // Los cuatro objetos del fondo: el que llega volando del carrusel a su
     // lugar y los otros tres en sus escondites, cada uno con su id —su lugar en

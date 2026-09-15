@@ -20,6 +20,7 @@ import {
   dibujarObjetoApoyado,
   dibujarObjetosDelante,
   dibujarPersonaRecortada,
+  dibujarTratamientoDeFondo,
   disponerFicha,
   medidasDe,
   partirEnLineas,
@@ -388,6 +389,19 @@ describe('dibujarFondo', () => {
   });
 });
 
+describe('dibujarTratamientoDeFondo', () => {
+  it('unifica la foto con tinte, vineta y una luz central para la persona', () => {
+    const ctx = crearCtxFalso();
+    const disposicion = calcularDisposicion(1080, 1920);
+
+    dibujarTratamientoDeFondo(ctx, disposicion, 0.75);
+
+    expect(soloDe(ctx, 'fillRect')).toHaveLength(3);
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
+});
+
 describe('medidasDe', () => {
   it('mide una foto por width y height', () => {
     expect(medidasDe(imagen(800, 600))).toEqual({ ancho: 800, alto: 600 });
@@ -606,6 +620,15 @@ describe('dibujarNombreDeCarrera', () => {
     expect(soloDe(ctx, 'fillRect')).toHaveLength(1);
   });
 
+  it('separa el pie de la escena con una linea dorada antes del nombre', () => {
+    const ctx = crearCtxFalso();
+    dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, '#f0dca0');
+
+    const orden = ctx.llamadas.map(([que]) => que);
+    expect(orden.indexOf('stroke')).toBeGreaterThanOrEqual(0);
+    expect(orden.indexOf('stroke')).toBeLessThan(orden.indexOf('fillText'));
+  });
+
   // La catedra pidio no distinguir las ingenierias por color: el nombre va en
   // el que se le pide —el de los nombres en las tablets de MAITE—, nunca en el
   // de la carrera.
@@ -647,6 +670,15 @@ describe('dibujarObjetoApoyado', () => {
     const orden = ctx.llamadas.map(([que]) => que);
     expect(orden.indexOf('fill')).toBeGreaterThanOrEqual(0);
     expect(orden.indexOf('fill')).toBeLessThan(orden.indexOf('drawImage'));
+  });
+
+  it('integra el recorte sobre una base oscura con un borde comun', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjetoApoyado(ctx, apoyado, bancoCon({ 'assets/civil/grua.png': imagen() }), '#FF8A3D');
+
+    const orden = ctx.llamadas.map(([que]) => que);
+    expect(orden.indexOf('stroke')).toBeGreaterThanOrEqual(0);
+    expect(orden.indexOf('stroke')).toBeLessThan(orden.indexOf('drawImage'));
   });
 
   it('inclina el objeto con el giro pedido', () => {
@@ -1006,6 +1038,15 @@ describe('las dos tipografias', () => {
     expect(soloDe(ctx, 'fillText').map(([, texto]) => texto)).toEqual([
       'Pasá la mano sobre los objetos del fondo',
     ]);
+  });
+
+  it('apoya la consigna sobre una pastilla oscura antes de escribirla', () => {
+    const ctx = crearCtxFalso();
+    dibujarConsigna(ctx, disposicion, 1, 'Pasá la mano sobre los objetos del fondo');
+
+    const orden = ctx.llamadas.map(([que]) => que);
+    expect(orden.indexOf('fill')).toBeGreaterThanOrEqual(0);
+    expect(orden.indexOf('fill')).toBeLessThan(orden.indexOf('fillText'));
   });
 
   it('parte una ayuda larga para que no se recorte en una pantalla angosta', () => {
