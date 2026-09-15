@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { readFile } from 'node:fs/promises';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { FIGURAS, dibujarFigura, figurasDisponibles, hayFigura } from '../../espejo/figuras.js';
-
-const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+import { construirCatalogo } from '../../servidor/catalogo.js';
 
 /**
  * Contexto de dibujo falso. Anota que se llamo y hasta donde llegaron las
@@ -147,11 +143,10 @@ describe('dibujarFigura', () => {
   });
 });
 
-describe('carreras.json contra el registro de figuras', () => {
+describe('catálogo contra el registro de figuras', () => {
   it('cada objeto declara una figura que existe', async () => {
-    const datos = JSON.parse(
-      await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'),
-    );
+    const { catalogo } = await construirCatalogo();
+    const datos = catalogo;
 
     const desconocidas = [];
     for (const carrera of datos.carreras) {

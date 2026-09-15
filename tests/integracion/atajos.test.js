@@ -7,17 +7,14 @@
 // verlo porque usa su propio fixture; esta lo mira contra el contenido real.
 
 import { describe, it, expect } from 'vitest';
-import { readFile } from 'node:fs/promises';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { interpretarTecla, TECLAS_CARRERA } from '../../espejo/operacion.js';
-
-const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+import { construirCatalogo } from '../../servidor/catalogo.js';
 
 const idsDeCarreras = async () => {
-  const crudo = await readFile(resolve(RAIZ, 'contenido/carreras.json'), 'utf8');
-  return JSON.parse(crudo).carreras.map((carrera) => carrera.id);
+  const { catalogo, errores } = await construirCatalogo();
+  if (errores.length > 0) throw new Error(`Errores en catálogo: ${errores.join(', ')}`);
+  return catalogo.carreras.map((carrera) => carrera.id);
 };
 
 describe('atajos de carrera', () => {

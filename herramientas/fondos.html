@@ -6,7 +6,7 @@
   <style>
     @font-face {
       font-family: 'Muffaroo';
-      src: url('/contenido/assets/tipografias/Muffaroo-Regular.ttf') format('truetype');
+      src: url('/contenido/comun/tipografias/Muffaroo-Regular.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
     }
@@ -41,7 +41,7 @@
        abriendose por turno y el nombre al pie, con las mismas funciones que usa
        el espejo. La catedra elige mirando. -->
   <h1>Los fondos de cada ingeniería</h1>
-  <p>El primero de cada fila es el <b class="activo">activo</b>: el espejo muestra ese. Para elegir otro, reordená <b>fondos</b> en <b>contenido/carreras.json</b>. Cada fondo esconde los <b>cuatro objetos</b> de su ingeniería: el del carrusel se apoya en <b>lugar</b> y los otros tres en <b>escondites</b>, en el mismo orden que <b>objetos</b>, todos en la periferia. Las fichas se abren por turno, como cuando alguien pasa la mano por encima.</p>
+  <p>El fondo <b class="activo">activo</b> es el configurado en <b>carrera.json</b> (o el primero por orden alfabético). En el espejo, cada sesión elige un objeto al azar para el carrusel y distribuye los restantes en los escondites. Acá se muestra una vista previa con los objetos en orden.</p>
   <p><label><input type="checkbox" id="zona"> Mostrar la zona de la persona y la del nombre, donde no puede ir ningún objeto</label></p>
   <div id="carreras"></div>
 

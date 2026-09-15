@@ -1,17 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   dibujarEscenario,
   crearBancoDeEscenarios,
   ESCENARIOS,
 } from '../../espejo/escenarios.js';
+import { construirCatalogo } from '../../servidor/catalogo.js';
 
-const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const CARRERAS = JSON.parse(
-  readFileSync(resolve(RAIZ, 'contenido/carreras.json'), 'utf8'),
-).carreras;
+const { catalogo } = await construirCatalogo();
+const CARRERAS = catalogo.carreras;
 
 const ANCHO = 1080;
 const ALTO = 1920;

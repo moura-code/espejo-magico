@@ -96,7 +96,7 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 | Tecla | Acción | Descripción |
 |---|---|---|
 | `P` | **Panel HUD de Estado** | Muestra u oculta métricas en vivo: FPS, estado, carreras ofrecidas, carrera elegida, cámara, manos, progreso del sostenido, ficha abierta, silueta, humo, **último envío a MAITE** y PNG faltantes. |
-| `1`–`9`, `0`, `-`, `=` | **Forzar Carrera** | Salta directamente a la revelación de la ingeniería correspondiente, y le avisa a MAITE. Es la fila de números entera: una tecla por carrera, en el orden de `carreras.json`. |
+| `1`–`9`, `0`, `-`, `=` | **Forzar Carrera** | Salta directamente a la revelación de la ingeniería correspondiente, y le avisa a MAITE. Es la fila de números entera: una tecla por carrera, en el orden del catálogo. |
 | `A` | **Modo Auto / Manual** | Alterna entre avance automático por reloj y avance manual por teclado. |
 | `ESPACIO` / `Enter` | **Avanzar Estado** | Avanza manualmente al siguiente estado (útil en pruebas o demostraciones). |
 | `D` | **Modo Demo** | Simula un rostro en movimiento sin requerir cámara real, y **el puntero del mouse hace de mano**: se elige sosteniéndolo sobre un objeto del carrusel y se abren las fichas pasándolo sobre los objetos del fondo. |
@@ -119,7 +119,7 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 - Si dice "MediaPipe no cargó", falta `npm run vendorizar` (el único paso que necesita Internet). Abrir la consola con F12 para ver el detalle.
 
 ### Aparecen íconos o círculos dorados en lugar de las fotos de los objetos
-- Presionar `P` y observar la línea `png faltan`. Significa que los archivos PNG aún no se han subido a `contenido/assets/`. Es un comportamiento previsto de reserva (*fallback*); el espejo funcionará normalmente utilizando figuras vectoriales de código.
+- Presionar `P` y observar la línea `png faltan`. Significa que los archivos PNG aún no se han copiado a `contenido/carreras/<carrera>/objetos/<objeto>/imagen.png`. Es un comportamiento previsto de reserva (*fallback*); el espejo funcionará normalmente utilizando figuras vectoriales de código.
 
 ### La experiencia se siente lenta o con tirones
 1. Presionar `P` y revisar los `fps`.
@@ -135,14 +135,14 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 
 ### Las fichas de los objetos del fondo no se abren, o se abren solas
 1. Presionar `P`: la línea `manos` tiene que mostrar la mano vista, y la línea `ficha` el objeto que se está describiendo.
-2. Si la mano se ve pero la ficha no se abre, la mano no llega al objeto: los objetos del fondo van en los costados, y a veces hay que estirar el brazo. Se agranda el blanco con `CONFIG.fichas.radioFactor`. Si no llega a los de arriba, se bajan sus lugares en `contenido/carreras.json`, mirando `herramientas/fondos.html`: `tests/integracion/fondos.test.js` supone a la persona donde la pone la zona de la persona —la cara en la mitad de arriba del espejo, los hombros a la mitad— con 380 px de hombros; si en el stand la gente queda más abajo en el cuadro (se ve con `M`), se ajustan juntas la zona y los lugares, o se sube la cámara.
+2. Si la mano se ve pero la ficha no se abre, la mano no llega al objeto: los objetos del fondo van en los costados, y a veces hay que estirar el brazo. Se agranda el blanco con `CONFIG.fichas.radioFactor`. Si no llega a los de arriba, se bajan sus lugares en `metadata.json` dentro de `contenido/carreras/<id>/fondos/<fondo>/`, mirando `herramientas/fondos.html`: `tests/integracion/fondos.test.js` supone a la persona donde la pone la zona de la persona —la cara en la mitad de arriba del espejo, los hombros a la mitad— con 380 px de hombros; si en el stand la gente queda más abajo en el cuadro (se ve con `M`), se ajustan juntas la zona y los lugares, o se sube la cámara.
 3. Si se abren al pasar la mano camino a otro lado, subir `CONFIG.fichas.msParaMostrar`; si se cierran mientras alguien lee, subir `CONFIG.fichas.msDeGracia`.
 
 ### Las tablets no acompañan al espejo
 1. Presionar `P` y mirar la línea `maite`.
    - `carrera <id> ok` — el espejo avisó bien; el problema está del lado de las tablets.
    - `carrera <id> FALLO` — MAITE no está levantado, se cayó, o le falta el middleware de CORS en `MAITE/server.js`.
-   - `sin-par-en-maite` — esa carrera tiene `maite: null` en `carreras.json`. No es una falla.
+   - `sin-par-en-maite` — esa carrera tiene `maite: null` en su `carrera.json`. No es una falla.
    - `apagado` — `CONFIG.maite.activo` está en `false`.
 2. Comprobar a mano que MAITE responde: abrir `http://localhost:3000/control` en otra pestaña.
 3. El espejo **nunca** se rompe por esto: si las tablets no están, la experiencia sigue igual.

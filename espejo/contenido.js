@@ -18,7 +18,7 @@ const esTextoUtil = (valor) => typeof valor === 'string' && valor.trim().length 
  */
 function validarObjeto(objeto, donde, figurasValidas, errores) {
   if (!objeto.img) errores.push(`${donde} sin "img"`);
-  if (typeof objeto.escala !== 'number' || objeto.escala <= 0) {
+  if (objeto.escala !== undefined && (typeof objeto.escala !== 'number' || objeto.escala <= 0)) {
     errores.push(`${donde} "escala" tiene que ser un numero mayor que cero`);
   }
   if (figurasValidas && objeto.figura && !figurasValidas.includes(objeto.figura)) {
@@ -175,11 +175,16 @@ export function escondidosDeCarrera(carrera) {
  * candidatos es reordenar la lista en carreras.json.
  */
 export function fondoActivo(carrera) {
-  return carrera?.fondos?.[0] ?? null;
+  if (!carrera?.fondos?.length) return null;
+  if (carrera.fondoActivo) {
+    const encontrado = carrera.fondos.find((f) => f.id === carrera.fondoActivo);
+    if (encontrado) return encontrado;
+  }
+  return carrera.fondos[0] ?? null;
 }
 
 export async function cargarContenido({
-  ruta = '/contenido/carreras.json',
+  ruta = '/contenido/catalogo.json',
   traer = fetch,
   ...comprobaciones
 } = {}) {
@@ -189,7 +194,7 @@ export async function cargarContenido({
   const datos = await respuesta.json();
   const errores = validarContenido(datos, comprobaciones);
   if (errores.length > 0) {
-    throw new Error(`carreras.json invalido:\n  - ${errores.join('\n  - ')}`);
+    throw new Error(`catalogo invalido:\n  - ${errores.join('\n  - ')}`);
   }
 
   const porId = new Map(datos.carreras.map((carrera) => [carrera.id, carrera]));
@@ -212,10 +217,10 @@ export async function cargarContenido({
 
     obtener: (id) => porId.get(id) ?? null,
 
-    // Para mostrar el carrusel solo hace falta el primer objeto de cada
-    // carrera. Fondos y objetos escondidos se piden cuando alguien elige.
+    // Para mostrar el carrusel se precargan los objetos de las carreras ofrecidas.
+    // Fondos y objetos de otras carreras se piden cuando alguien elige.
     imagenesIniciales: (ids = datos.carreras.map((carrera) => carrera.id)) =>
-      ids.map((id) => objetoDeCarrera(porId.get(id))?.img).filter(Boolean),
+      ids.flatMap((id) => porId.get(id)?.objetos.map((objeto) => objeto.img) ?? []).filter(Boolean),
     imagenesDeCarrera: (id) => imagenesDe(porId.get(id)),
 
     // Todos los objetos —el del carrusel y los que se esconden en el fondo— y

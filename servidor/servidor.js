@@ -7,6 +7,7 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { generarArchivoCatalogo } from './catalogo.js';
 
 const RAIZ_POR_DEFECTO = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -66,6 +67,13 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       return;
     }
     try {
+      if (ruta === '/contenido/catalogo.json') {
+        try {
+          await stat(absoluta);
+        } catch {
+          await generarArchivoCatalogo({ raiz });
+        }
+      }
       const datos = await stat(absoluta);
       if (!datos.isFile()) throw new Error('No es un archivo');
 
@@ -137,6 +145,11 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  try {
+    await generarArchivoCatalogo();
+  } catch (error) {
+    console.error('Aviso: No se pudo generar catalogo.json al iniciar:', error.message);
+  }
   const servidor = crearServidor();
   const puerto = await servidor.escuchar(Number(process.env.PUERTO) || 8080);
   console.log(`Espejo servido en http://localhost:${puerto}/espejo/espejo.html`);

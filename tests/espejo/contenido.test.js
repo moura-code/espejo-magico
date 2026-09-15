@@ -259,9 +259,20 @@ describe('escondidosDeCarrera', () => {
 });
 
 describe('fondoActivo', () => {
-  it('es el primero de la lista: elegir es reordenar', () => {
-    const carrera = { fondos: [{ img: 'uno.png' }, { img: 'dos.png' }] };
-    expect(fondoActivo(carrera)).toEqual({ img: 'uno.png' });
+  it('es el primero de la lista si no se indica fondoActivo', () => {
+    const carrera = { fondos: [{ id: 'uno', img: 'uno.png' }, { id: 'dos', img: 'dos.png' }] };
+    expect(fondoActivo(carrera)).toEqual({ id: 'uno', img: 'uno.png' });
+  });
+
+  it('respeta fondoActivo si esta especificado', () => {
+    const carrera = {
+      fondoActivo: 'dos',
+      fondos: [
+        { id: 'uno', img: 'uno.png' },
+        { id: 'dos', img: 'dos.png' },
+      ],
+    };
+    expect(fondoActivo(carrera)).toEqual({ id: 'dos', img: 'dos.png' });
   });
 
   it('es null sin fondos', () => {
@@ -351,6 +362,7 @@ describe('cargarContenido', () => {
 
     expect(contenido.imagenesIniciales?.()).toEqual([
       'assets/civil/grua.png',
+      'assets/civil/casco.png',
       'assets/naval/barco.png',
     ]);
     expect(contenido.imagenesDeCarrera?.('civil')).toEqual([

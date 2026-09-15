@@ -11,3 +11,6 @@ Thumbs.db
 # en este repo: sin esta línea, un `git add -A` se lleva sus videos y su
 # node_modules. El espejo le habla por HTTP (ver CONFIG.maite), nada más.
 MAITE/
+
+# Catálogo generado automáticamente a partir de la estructura de carpetas
+contenido/catalogo.json
