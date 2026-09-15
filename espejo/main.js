@@ -827,8 +827,8 @@ function cuadro(ahora) {
       dibujarTratamientoDeFondo(ctx, disposicion, transicion.fondo),
     );
 
-    // Los cuatro objetos del fondo: el que llega volando del carrusel a su
-    // lugar y los otros tres en sus escondites, cada uno con su id —su lugar en
+    // Los cinco objetos del fondo: el que llega volando del carrusel a su
+    // lugar y los otros cuatro en sus escondites, cada uno con su id —su lugar en
     // `objetos`—. Los lugares van normalizados a la foto que se dibujo (o al
     // lienzo entero si no se dibujo ninguna), y objetosDelFondo los mide contra
     // lo que se ve de ella, con la misma cuenta que usan

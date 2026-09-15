@@ -1,0 +1,5 @@
+{
+  "nombre": "Cable conversor USB a TTL",
+  "descripcion": "Adaptador serie USB para comunicarse directamente con microcontroladores y depurar hardware.",
+  "figura": "onda"
+}

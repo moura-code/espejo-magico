@@ -11,8 +11,7 @@
     "catalogo": "node -e \"import('./servidor/catalogo.js').then(m => m.generarArchivoCatalogo())\"",
     "vendorizar": "node herramientas/vendorizar.mjs",
     "prepare": "sh scripts/setup-git-hooks.sh || echo hooks no activados",
-    "planilla": "node herramientas/planilla.mjs",
-    "objetos": "node herramientas/descargar-objetos.mjs"
+    "planilla": "node herramientas/planilla.mjs"
   },
   "devDependencies": {
     "@mediapipe/tasks-vision": "^1.0.0",

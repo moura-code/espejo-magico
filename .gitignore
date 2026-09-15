@@ -18,3 +18,6 @@ contenido/catalogo.json
 # Descargas intermedias de objetos antes de recortar y procesar
 contenido/comun/banco/descargas/
 
+__pycache__/
+*.pyc
+

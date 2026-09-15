@@ -89,7 +89,7 @@
         "descripcion": "Perfil estructural laminado en caliente diseñado para soportar grandes cargas de flexión.",
         "figura": "viga",
         "busqueda": "steel I-beam profile",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:I-Beam 002.JPG",
           "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/4/40/I-Beam_002.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
@@ -110,104 +110,44 @@
     "carreraNombre": "Ingeniería de Alimentos",
     "objetos": [
       {
-        "id": "refractometro",
-        "nombre": "Refractómetro óptico manual",
-        "descripcion": "Mide la refracción de la luz para calcular la concentración de azúcares y grados Brix.",
-        "figura": "pipeta",
-        "busqueda": "handheld refractometer Brix",
-        "activo": true,
-        "commons": {
-          "titulo": "File:Refractometer.jpg",
-          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Refractometer.jpg/960px-Refractometer.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Refractometer.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Refractometer.jpg",
-          "ancho": 768,
-          "alto": 576,
-          "mime": "image/jpeg",
-          "autor": "Fernando G. (FGM)",
-          "licencia": "CC BY-SA 3.0",
-          "descripcion": "Photo of a Handheld Refractometer used to measure sugar content (Brix level) of fruits. The image includes a view through the eyepice of the instrument, a small drop of orange juice was put over the measuring prism to take the picture."
-        }
-      },
-      {
         "id": "placa-petri",
-        "nombre": "Placa de Petri con cultivo",
-        "descripcion": "Recipiente con agar nutritivo para cultivar microorganismos y controlar la inocuidad alimentaria.",
+        "nombre": "Placa de Petri",
+        "descripcion": "Permite aislar y contar colonias bacterianas para certificar la inocuidad microbiológica de los alimentos.",
         "figura": "molecula",
-        "busqueda": "petri dish bacterial culture agar",
-        "activo": true,
-        "commons": {
-          "titulo": "File:Bacterial cell culture on agar plate ( DNA double helix conformation).jpg",
-          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Bacterial_cell_culture_on_agar_plate_%28_DNA_double_helix_conformation%29.jpg/960px-Bacterial_cell_culture_on_agar_plate_%28_DNA_double_helix_conformation%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/4/45/Bacterial_cell_culture_on_agar_plate_%28_DNA_double_helix_conformation%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Bacterial_cell_culture_on_agar_plate_(_DNA_double_helix_conformation).jpg",
-          "ancho": 768,
-          "alto": 735,
-          "mime": "image/jpeg",
-          "autor": "Syed Sajidul Islam",
-          "licencia": "CC BY-SA 4.0",
-          "descripcion": "An agar plate is a Petri dish that contains agar as a solid growth medium plus nutrients, used to culture microorganisms. Sometimes selective compounds are added to influence growth, such as antibiotics"
-        }
+        "busqueda": "petri dish laboratory",
+        "activo": true
       },
       {
-        "id": "biorreactor",
-        "nombre": "Biorreactor de laboratorio",
-        "descripcion": "Fermentador controlado para cultivar microorganismos o enzimas en procesos biotecnológicos.",
-        "figura": "matraz",
-        "busqueda": "benchtop bioreactor laboratory",
-        "activo": true,
-        "commons": {
-          "titulo": "File:Labfors 4 with touchscreen.jpg",
-          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/3/32/Labfors_4_with_touchscreen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/3/32/Labfors_4_with_touchscreen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Labfors_4_with_touchscreen.jpg",
-          "ancho": 768,
-          "alto": 1024,
-          "mime": "image/jpeg",
-          "autor": "El Carlos",
-          "licencia": "CC BY-SA 3.0",
-          "descripcion": "Autoclavable benchtop bioreactor with touchscreen"
-        }
+        "id": "espectrofotometro",
+        "nombre": "Espectrofotómetro",
+        "descripcion": "Cuantifica compuestos y colorantes en jugos y aceites midiendo la absorción de luz en longitudes de onda exactas.",
+        "figura": "prisma",
+        "busqueda": "spectrophotometer laboratory",
+        "activo": true
       },
       {
-        "id": "boquilla-spray",
-        "nombre": "Boquilla atomizadora",
-        "descripcion": "Pulveriza líquidos en gotas microscópicas para secar alimentos y producir polvos solubles.",
-        "figura": "gota",
-        "busqueda": "spray nozzle",
-        "activo": true,
-        "commons": {
-          "titulo": "File:Injector3.gif",
-          "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/2/29/Injector3.gif?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/2/29/Injector3.gif?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-          "paginaUrl": "https://commons.wikimedia.org/wiki/File:Injector3.gif",
-          "ancho": 768,
-          "alto": 480,
-          "mime": "image/gif",
-          "autor": "WikipedianProlific at English Wikipedia",
-          "licencia": "CC BY-SA 3.0",
-          "descripcion": "An animated cut away diagram of a typical fuel injector. Fuel injectors are used to spray controlled amounts of fuel into an internal combustion engine. A solenoid is activated when fuel is intended to be delivered to the engine, causing the plunger to become pulled toward the solenoid by magnetic force. This uncovers the valve opening, allowing fuel to flow into the atomiser and out the spray tip, as it is under pressure. A valve spring attached to the plunger returns the plunger to its original position when the solenoid is switched off. The route of fuel is shown in orange; grey/blue indicates no fuel present."
-        }
-      },
-      {
-        "id": "medidor-ph",
-        "nombre": "Medidor de pH de penetración",
-        "descripcion": "Electrodo de penetración que mide la acidez interna en carnes, lácteos y conservas.",
+        "id": "centrifuga",
+        "nombre": "Centrífuga de laboratorio",
+        "descripcion": "Separa fases líquidas y sólidos suspendidos acelerando la sedimentación para analizar grasas y proteínas lácteas.",
         "figura": "tubo",
-        "busqueda": "pH meter",
-        "activo": false,
-        "commons": {
-          "titulo": "File:PH meter 2014.jpg",
-          "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/PH_meter_2014.jpg/960px-PH_meter_2014.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-          "urlOriginal": "https://upload.wikimedia.org/wikipedia/commons/f/f4/PH_meter_2014.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-          "paginaUrl": "https://commons.wikimedia.org/wiki/File:PH_meter_2014.jpg",
-          "ancho": 768,
-          "alto": 576,
-          "mime": "image/jpeg",
-          "autor": "Vis M",
-          "licencia": "CC BY-SA 4.0",
-          "descripcion": "pH meter. From Kottayam 2014"
-        }
+        "busqueda": "laboratory centrifuge",
+        "activo": true
+      },
+      {
+        "id": "equipo-coccion",
+        "nombre": "Placa de inducción térmica",
+        "descripcion": "Calienta mezclas con control térmico riguroso para estudiar pasteurización y evaporación en pequeña escala.",
+        "figura": "mechero",
+        "busqueda": "induction cooking laboratory",
+        "activo": true
+      },
+      {
+        "id": "refractometro",
+        "nombre": "Refractómetro digital",
+        "descripcion": "Mide el índice de refracción para determinar al instante los grados Brix y la concentración de azúcar en jugos.",
+        "figura": "pipeta",
+        "busqueda": "digital refractometer brix",
+        "activo": true
       }
     ]
   },
@@ -301,7 +241,7 @@
         "descripcion": "Delimita áreas seguras de tránsito y zonas de trabajo según normas industriales.",
         "figura": "curva",
         "busqueda": "hazard tape",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:NSW Police tape in Sydenham.jpg",
           "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/NSW_Police_tape_in_Sydenham.jpg/960px-NSW_Police_tape_in_Sydenham.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
@@ -407,7 +347,7 @@
         "descripcion": "Interruptor electromagnético para maniobrar y arrancar motores industriales a distancia.",
         "figura": "resistencia",
         "busqueda": "contactor",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:Contactor DIN IEK.jpg",
           "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Contactor_DIN_IEK.jpg/960px-Contactor_DIN_IEK.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
@@ -513,7 +453,7 @@
         "descripcion": "Brújula de bolsillo con clinómetro para medir rumbos, buzamientos y pendientes en campo.",
         "figura": "plano",
         "busqueda": "Brunton pocket transit compass",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:Brunton.JPG",
           "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/Brunton.JPG/960px-Brunton.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
@@ -619,7 +559,7 @@
         "descripcion": "Adaptador serie USB para comunicarse directamente con microcontroladores y depurar hardware.",
         "figura": "onda",
         "busqueda": "USB serial adapter",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:USB-to-Serial Bridge - µUSB-PA5.jpg",
           "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/9/92/USB-to-Serial_Bridge_-_%C2%B5USB-PA5.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
@@ -725,7 +665,7 @@
         "descripcion": "Reduce la potencia de una señal de alta frecuencia con precisión sin distorsionar su forma de onda.",
         "figura": "resistencia",
         "busqueda": "RF attenuator",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:RF Attenuator 30dB 5W.jpg",
           "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9f/RF_Attenuator_30dB_5W.jpg/960px-RF_Attenuator_30dB_5W.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
@@ -831,7 +771,7 @@
         "descripcion": "Rueda giratoria montada en suspensión cardánica que mantiene su orientación en el espacio.",
         "figura": "curva",
         "busqueda": "gyroscope brass",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:Ring laser gyroscope at MAKS-2011 airshow.jpg",
           "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Ring_laser_gyroscope_at_MAKS-2011_airshow.jpg/960px-Ring_laser_gyroscope_at_MAKS-2011_airshow.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
@@ -937,7 +877,7 @@
         "descripcion": "Cinta graduada en múltiplos de pi para calcular el diámetro del tronco a partir de su perímetro.",
         "figura": "curva",
         "busqueda": "diameter tape forestry",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:DTape Picture.JPG",
           "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/DTape_Picture.JPG/960px-DTape_Picture.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
@@ -1043,7 +983,7 @@
         "descripcion": "Aplica un par de apriete exacto a bulones y tuercas evitando roturas y deformaciones.",
         "figura": "llave",
         "busqueda": "torque wrench ratchet",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:Direct pawl clicker torque concept.png",
           "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/24/Direct_pawl_clicker_torque_concept.png/960px-Direct_pawl_clicker_torque_concept.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
@@ -1149,7 +1089,7 @@
         "descripcion": "Emite ultrasonido para medir el desgaste y espesor residual de las chapas de acero del casco.",
         "figura": "onda",
         "busqueda": "ultrasonic thickness",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:23 0061613 Convair Negative Image - Actual thickness versus ultrasonic thickness measurements (54052706595).jpg",
           "urlDescarga": "https://upload.wikimedia.org/wikipedia/commons/7/76/23_0061613_Convair_Negative_Image_-_Actual_thickness_versus_ultrasonic_thickness_measurements_%2854052706595%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
@@ -1255,7 +1195,7 @@
         "descripcion": "Mezcla reactivos homogéneamente mediante un imán rotatorio mientras controla la temperatura.",
         "figura": "mechero",
         "busqueda": "magnetic stirrer",
-        "activo": false,
+        "activo": true,
         "commons": {
           "titulo": "File:RCT basic IKAMAG® safety control magnetic stirrer.jpg",
           "urlDescarga": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/RCT_basic_IKAMAG%C2%AE_safety_control_magnetic_stirrer.jpg/960px-RCT_basic_IKAMAG%C2%AE_safety_control_magnetic_stirrer.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",

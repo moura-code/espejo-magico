@@ -1,7 +1,7 @@
 // Donde caen los objetos de cada fondo, contra el contenido real.
 //
-// Cada fondo tiene cuatro objetos: el que llega volando del carrusel a su
-// `lugar` y los otros tres en sus `escondites`. Las fotos se preparan en
+// Cada fondo tiene cinco objetos: el que llega volando del carrusel a su
+// `lugar` y los otros cuatro en sus `escondites`. Las fotos se preparan en
 // 1080x1920, la medida del espejo vertical, y los lugares se eligen mirando a
 // esa medida (herramientas/fondos.html). Esta prueba fija lo que tiene que valer
 // para todos, con el catalogo y la CONFIG de verdad, y con la misma cuenta con
@@ -14,7 +14,7 @@
 //     fichas;
 //   - los blancos de la mano de dos objetos no se tocan: yendo a buscar uno no
 //     se abre el de al lado;
-//   - la mano de la persona llega a los cuatro, con margen;
+//   - la mano de la persona llega a los cinco, con margen;
 //   - en un monitor apaisado —desarrollo— todos aparecen en pantalla y siguen
 //     sin pisarse. Fue un bug de verdad: el objeto volaba a un punto arriba del
 //     borde y "desaparecia" en las doce ingenierias.
@@ -118,10 +118,11 @@ describe('los objetos de los fondos reales', () => {
   // quedaria debajo del cartel justo mientras se lee.
   it('ninguno sube a la franja del cartel de las fichas', async () => {
     const [cabeza] = CONFIG.fondo.zonaDeLaPersona;
+    const franja = CONFIG.fondo.franjaCartel ?? cabeza.y0;
     const altos = [];
     for (const caso of await todosLosFondos()) {
       puestosEn(caso, ESPEJO).forEach((puesto, i) => {
-        if (puesto.y - puesto.radio < cabeza.y0 * ESPEJO.alto) altos.push(`${caso.nombre} [${i}]`);
+        if (puesto.y - puesto.radio < franja * ESPEJO.alto) altos.push(`${caso.nombre} [${i}]`);
       });
     }
     expect(altos, 'estos objetos quedan debajo del cartel').toEqual([]);
@@ -182,7 +183,7 @@ describe('los objetos de los fondos reales', () => {
   // se llega, pero entonces tampoco valdria la zona. Si en el stand la gente
   // queda mas abajo en el cuadro, se recalibran juntas la zona y los lugares
   // (docs/operacion.md).
-  it('la mano de la persona llega a los cuatro, con margen', async () => {
+  it('la mano de la persona llega a los cinco, con margen', async () => {
     const [, cuerpo] = CONFIG.fondo.zonaDeLaPersona;
     const hombros = { x: ESPEJO.ancho / 2, y: cuerpo.y0 * ESPEJO.alto, ancho: 380 };
     const brazo = CONFIG.tablero.radioFactor * hombros.ancho;

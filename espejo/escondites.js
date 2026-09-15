@@ -2,8 +2,8 @@
 // escondidos. Donde va cada uno y como se mueven. Solo numeros: no dibuja, no
 // sabe que es una ingenieria ni que existe un lienzo.
 //
-// Cada ingenieria trae cuatro objetos. El primero es el del carrusel: la
-// persona lo agarra y vuela a `lugar`. Los otros tres ya estan en el fondo,
+// Cada ingenieria trae cinco objetos. El primero es el del carrusel: la
+// persona lo agarra y vuela a `lugar`. Los otros cuatro ya estan en el fondo,
 // cada uno en su escondite, integrados a la escena y meciendose apenas: ese
 // movimiento es lo unico que los delata, y es el que pidio la catedra para
 // que se los pueda encontrar.
@@ -183,7 +183,7 @@ export function fichaDelObjeto(objeto, pantalla, config) {
   return {
     circulo: { x: objeto.x, y: objeto.y, radio: objeto.radio * (1 + config.escondidos.resalte) },
     opciones: {
-      hasta: pantalla.alto * cabeza.y0,
+      hasta: pantalla.alto * (config.fondo.franjaCartel ?? cabeza.y0),
       tipografia: config.fichas.tipografia,
     },
   };

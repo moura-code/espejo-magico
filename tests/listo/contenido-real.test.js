@@ -71,15 +71,15 @@ describe('contenido real', () => {
     expect(datos.carreras.map((c) => c.id).sort()).toEqual([...IDS_ESPERADOS].sort());
   });
 
-  // CUATRO OBJETOS POR INGENIERIA, CADA UNO CON SU FICHA: uno para el carrusel
-  // y tres escondidos en el fondo, como pidio la catedra. Sin nombre o sin
-  // descripcion, pasar la mano por encima no dice nada; y una descripcion larga
-  // no entra en la ficha sin taparle media pantalla a la persona.
-  it('cada carrera tiene cuatro objetos, cada uno con su nombre y una descripcion corta', async () => {
+  // CINCO OBJETOS POR INGENIERIA, CADA UNO CON SU FICHA: uno para el carrusel
+  // y cuatro en el arco del fondo. Sin nombre o sin descripcion, pasar la mano
+  // por encima no dice nada; y una descripcion larga no entra en la ficha sin
+  // taparle media pantalla a la persona.
+  it('cada carrera tiene cinco objetos, cada uno con su nombre y una descripcion corta', async () => {
     const flojos = [];
     for (const carrera of (await obtenerCatalogo()).carreras) {
-      if (carrera.objetos.length !== 4) {
-        flojos.push(`${carrera.id} tiene ${carrera.objetos.length} objetos, no cuatro`);
+      if (carrera.objetos.length !== 5) {
+        flojos.push(`${carrera.id} tiene ${carrera.objetos.length} objetos, no cinco`);
       }
       for (const objeto of carrera.objetos) {
         if (!objeto.nombre?.trim()) flojos.push(`${objeto.img} sin "nombre"`);

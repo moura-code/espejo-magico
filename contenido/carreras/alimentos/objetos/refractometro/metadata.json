@@ -1,5 +1,5 @@
 {
-  "nombre": "Refractómetro óptico manual",
-  "descripcion": "Mide la refracción de la luz para calcular la concentración de azúcares y grados Brix.",
+  "nombre": "Refractómetro digital",
+  "descripcion": "Mide el índice de refracción para determinar al instante los grados Brix y la concentración de azúcar en jugos.",
   "figura": "pipeta"
 }
