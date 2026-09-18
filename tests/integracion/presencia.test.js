@@ -166,6 +166,28 @@ describe('estabilidad de la sesion', () => {
     expect(vuelta.ahora - SE_VA).toBeLessThanOrEqual(10000);
   });
 
+  // EL RELEVO DE LA FILA, que es la otra mitad de lo anterior: volver a la
+  // pantalla inicial no sirve de nada si despues no arranca con el que sigue.
+  // Entre una persona y la otra el cuerpo NUNCA se deja de ver —el que se
+  // levanta todavia esta en cuadro cuando el que sigue se sienta—, asi que la
+  // ausencia que rearma la maquina no se observa jamas: el espejo se quedaba
+  // en la pantalla de espera con alguien sentado enfrente, para siempre.
+  it('el que sigue en la fila arranca su sesion aunque el cuerpo nunca se deje de ver', () => {
+    const SE_VA = 20000;
+    const LLEGA = 34000; // ya volvio al reposo y paso el enfriamiento
+    const { visitados, maquina } = correr({
+      hayRostroEn: (ahora) => ahora < SE_VA || ahora >= LLEGA,
+      hayPoseEn: () => true,
+      hasta: 60000,
+      elegir: true,
+    });
+
+    // Dos entradas al humo son dos sorteos: uno por persona.
+    expect(cuantos(visitados, ESTADOS.HUMO)).toBe(2);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
+    expect(maquina.sesion()).toBe(2);
+  });
+
   // Pero el colchon tiene que seguir: girar la cabeza un momento para hablar con
   // alguien no puede costarle a nadie la ingenieria que esta mirando.
   it('girar la cabeza un momento no corta nada', () => {

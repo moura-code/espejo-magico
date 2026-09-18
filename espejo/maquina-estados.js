@@ -191,6 +191,25 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
         inicioDeSesion !== null && ahora - inicioDeSesion >= tiempos.sesionMaxima;
       const transcurrido = ahora - desde;
 
+      /**
+       * Cierra porque la presencia que sostenia la sesion se fue, y deja el
+       * espejo LISTO para el que sigue.
+       *
+       * Esperar una ausencia antes de arrancar otra vez tiene sentido cuando la
+       * sesion termino con la persona todavia sentada. Cuando termino PORQUE la
+       * presencia se fue, esa ausencia ya ocurrio —es lo que la cerro— y pedir
+       * otra es esperar algo que en la fila no pasa: entre una persona y la
+       * siguiente el cuerpo no se deja de ver un solo cuadro (el que se levanta
+       * todavia esta en cuadro cuando el que sigue se sienta), asi que
+       * `hayPersona` nunca baja y el espejo se quedaba en la pantalla de espera
+       * con alguien sentado enfrente. El enfriamiento sigue siendo lo que evita
+       * que quien se esta yendo dispare una sesion de espaldas.
+       */
+      const liberar = (destino) => {
+        listaParaNuevaSesion = true;
+        ir(destino, ahora, eventos);
+      };
+
       switch (estado) {
         case ESTADOS.ATRACCION:
           // Volver a atraccion no convierte al mismo visitante en una sesion
@@ -224,7 +243,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
             // El enganche exige rostro continuo. El reloj propio deja intacto
             // `desde`, que es lo que mide la transicion visual del estado.
             rostroContinuoDesde = null;
-            if (sePerdioElRostro) ir(ESTADOS.ATRACCION, ahora, eventos);
+            if (sePerdioElRostro) liberar(ESTADOS.ATRACCION);
             break;
           }
 
@@ -239,7 +258,8 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
           break;
 
         case ESTADOS.HUMO:
-          if (seFue || sePerdioElRostro || pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
+          if (seFue || sePerdioElRostro) liberar(ESTADOS.CIERRE);
+          else if (pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
           else if (transcurrido >= tiempos.humo) ir(ESTADOS.EXPLORACION, ahora, eventos);
           break;
 
@@ -248,7 +268,11 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
         // gesto, primero recibe una ayuda y despues el espejo se libera: no se
         // le puede asignar una carrera al azar.
         case ESTADOS.EXPLORACION:
-          if (seFue || sePerdioElRostro || pasoElTope) {
+          if (seFue || sePerdioElRostro) {
+            liberar(ESTADOS.CIERRE);
+            break;
+          }
+          if (pasoElTope) {
             ir(ESTADOS.CIERRE, ahora, eventos);
             break;
           }
