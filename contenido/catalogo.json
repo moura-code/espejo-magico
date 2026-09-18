@@ -1,0 +1,940 @@
+{
+  "carreras": [
+    {
+      "id": "agrimensura",
+      "nombre": "Ingeniería en Agrimensura",
+      "color": "#8D6E63",
+      "maite": "agrimensura",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/agrimensura/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "estacion-total",
+          "img": "carreras/agrimensura/objetos/estacion-total/imagen.png",
+          "nombre": "Estación total",
+          "descripcion": "Instrumento electro-óptico para medición precisa de ángulos y distancias en levantamientos topográficos.",
+          "figura": "teodolito"
+        },
+        {
+          "id": "mira-estadal",
+          "img": "carreras/agrimensura/objetos/mira-estadal/imagen.png",
+          "nombre": "Mira estadal",
+          "descripcion": "Regla graduada vertical para medir desniveles y determinar alturas relativas junto a un nivel óptico.",
+          "figura": "plano"
+        },
+        {
+          "id": "nivel-automatico",
+          "img": "carreras/agrimensura/objetos/nivel-automatico/imagen.png",
+          "nombre": "Nivel óptico automático",
+          "descripcion": "Instrumento topográfico con compensador interno para definir líneas de puntería horizontales exactas.",
+          "figura": "teodolito"
+        },
+        {
+          "id": "prisma-topografico",
+          "img": "carreras/agrimensura/objetos/prisma-topografico/imagen.png",
+          "nombre": "Prisma topográfico",
+          "descripcion": "Reflector de vidrio de alta precisión que devuelve la señal láser a la estación total para medir distancias.",
+          "figura": "prisma"
+        },
+        {
+          "id": "receptor-gnss",
+          "img": "carreras/agrimensura/objetos/receptor-gnss/imagen.png",
+          "nombre": "Receptor GNSS geodésico",
+          "descripcion": "Antena satelital RTK de precisión centimétrica para posicionamiento geográfico y cartografía territorial.",
+          "figura": "pi"
+        }
+      ]
+    },
+    {
+      "id": "alimentos",
+      "nombre": "Ingeniería de Alimentos",
+      "color": "#EF5350",
+      "maite": "alimentos",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/alimentos/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "centrifuga",
+          "img": "carreras/alimentos/objetos/centrifuga/imagen.png",
+          "nombre": "Centrífuga de laboratorio",
+          "descripcion": "Separa fases líquidas y sólidos suspendidos acelerando la sedimentación para analizar grasas y proteínas lácteas.",
+          "figura": "tubo"
+        },
+        {
+          "id": "equipo-coccion",
+          "img": "carreras/alimentos/objetos/equipo-coccion/imagen.png",
+          "nombre": "Placa de inducción térmica",
+          "descripcion": "Calienta mezclas con control térmico riguroso para estudiar pasteurización y evaporación en pequeña escala.",
+          "figura": "mechero"
+        },
+        {
+          "id": "espectrofotometro",
+          "img": "carreras/alimentos/objetos/espectrofotometro/imagen.png",
+          "nombre": "Espectrofotómetro",
+          "descripcion": "Cuantifica compuestos y colorantes en jugos y aceites midiendo la absorción de luz en longitudes de onda exactas.",
+          "figura": "prisma"
+        },
+        {
+          "id": "placa-petri",
+          "img": "carreras/alimentos/objetos/placa-petri/imagen.png",
+          "nombre": "Placa de Petri",
+          "descripcion": "Permite aislar y contar colonias bacterianas para certificar la inocuidad microbiológica de los alimentos.",
+          "figura": "molecula"
+        },
+        {
+          "id": "refractometro",
+          "img": "carreras/alimentos/objetos/refractometro/imagen.png",
+          "nombre": "Refractómetro digital",
+          "descripcion": "Mide el índice de refracción para determinar al instante los grados Brix y la concentración de azúcar en jugos.",
+          "figura": "pipeta"
+        }
+      ]
+    },
+    {
+      "id": "civil",
+      "nombre": "Ingeniería Civil",
+      "color": "#FF8A3D",
+      "maite": "civil",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/civil/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "casco-seguridad",
+          "img": "carreras/civil/objetos/casco-seguridad/imagen.png",
+          "nombre": "Casco de seguridad",
+          "descripcion": "Elemento de protección personal indispensable para la seguridad de operarios e ingenieros en obra.",
+          "figura": "grua"
+        },
+        {
+          "id": "cono-abrams",
+          "img": "carreras/civil/objetos/cono-abrams/imagen.png",
+          "nombre": "Cono de Abrams",
+          "descripcion": "Molde troncocónico con varilla para medir la consistencia y trabajabilidad del hormigón fresco.",
+          "figura": "tubo"
+        },
+        {
+          "id": "hormigonera",
+          "img": "carreras/civil/objetos/hormigonera/imagen.png",
+          "nombre": "Hormigonera portátil",
+          "descripcion": "Tambor rotativo para la mezcla homogénea de áridos, cemento, agua y aditivos en obras civiles.",
+          "figura": "engranaje"
+        },
+        {
+          "id": "puente-atirantado",
+          "img": "carreras/civil/objetos/puente-atirantado/imagen.png",
+          "nombre": "Puente atirantado",
+          "descripcion": "Estructura de ingeniería vial con tirantes de acero anclados a pilones para salvar grandes luces.",
+          "figura": "puente"
+        },
+        {
+          "id": "viga-acero",
+          "img": "carreras/civil/objetos/viga-acero/imagen.png",
+          "nombre": "Viga de acero estructural",
+          "descripcion": "Perfil laminado de alta resistencia mecánica a flexión empleado en pórticos y grandes estructuras.",
+          "figura": "viga"
+        }
+      ]
+    },
+    {
+      "id": "computacion",
+      "nombre": "Ingeniería en Computación",
+      "color": "#00E5A0",
+      "maite": "sistemas",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/computacion/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "algoritmo",
+          "img": "carreras/computacion/objetos/algoritmo/imagen.png",
+          "nombre": "Diagrama de algoritmo",
+          "descripcion": "Representación lógica de pasos finitos y decisiones para la resolución estructurada de problemas.",
+          "figura": "llaves"
+        },
+        {
+          "id": "arbol-binario",
+          "img": "carreras/computacion/objetos/arbol-binario/imagen.png",
+          "nombre": "Árbol binario de datos",
+          "descripcion": "Estructura jerárquica no lineal optimizada para búsquedas rápidas, ordenación y almacenamiento de datos.",
+          "figura": "curva"
+        },
+        {
+          "id": "base-datos",
+          "img": "carreras/computacion/objetos/base-datos/imagen.png",
+          "nombre": "Base de datos relacional",
+          "descripcion": "Sistema de gestión estructurado para almacenamiento persistente, transacciones ACID y consultas SQL.",
+          "figura": "chip"
+        },
+        {
+          "id": "laptop",
+          "img": "carreras/computacion/objetos/laptop/imagen.png",
+          "nombre": "Laptop de ingeniería",
+          "descripcion": "Equipo portátil de desarrollo de software, arquitectura de sistemas, simulación y compilación de código.",
+          "figura": "laptop"
+        },
+        {
+          "id": "servidor",
+          "img": "carreras/computacion/objetos/servidor/imagen.png",
+          "nombre": "Servidor blade",
+          "descripcion": "Unidad de cómputo para centros de datos empresariales, virtualización, nube y procesamiento masivo.",
+          "figura": "servidor"
+        }
+      ]
+    },
+    {
+      "id": "comunicacion",
+      "nombre": "Ingeniería en Sistemas de Comunicación",
+      "color": "#E040FB",
+      "maite": "comunicacion",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/comunicacion/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "analizador-espectro",
+          "img": "carreras/comunicacion/objetos/analizador-espectro/imagen.png",
+          "nombre": "Analizador de espectro RF",
+          "descripcion": "Instrumento para medir la potencia y distribución frecuencial de ondas electromagnéticas y señales.",
+          "figura": "onda"
+        },
+        {
+          "id": "antena-parabolica",
+          "img": "carreras/comunicacion/objetos/antena-parabolica/imagen.png",
+          "nombre": "Antena parabólica",
+          "descripcion": "Reflector parabólico directivo para enlaces terrestres y satelitales de alta ganancia en microondas.",
+          "figura": "onda"
+        },
+        {
+          "id": "bobina-fibra",
+          "img": "carreras/comunicacion/objetos/bobina-fibra/imagen.png",
+          "nombre": "Bobina de fibra óptica",
+          "descripcion": "Guía de ondas de vidrio ultrapuro para transmisión de datos a gran velocidad mediante pulsos de luz.",
+          "figura": "curva"
+        },
+        {
+          "id": "satelite-comunicaciones",
+          "img": "carreras/comunicacion/objetos/satelite-comunicaciones/imagen.png",
+          "nombre": "Satélite de comunicaciones",
+          "descripcion": "Plataforma espacial para retransmisión de señales de voz, televisión y conectividad global de datos.",
+          "figura": "dron"
+        },
+        {
+          "id": "torre-telecomunicaciones",
+          "img": "carreras/comunicacion/objetos/torre-telecomunicaciones/imagen.png",
+          "nombre": "Torre de telecomunicaciones",
+          "descripcion": "Mástil estructurado para soporte de antenas de telefonía móvil, enlaces de microondas y radiodifusión.",
+          "figura": "onda"
+        }
+      ]
+    },
+    {
+      "id": "electrica",
+      "nombre": "Ingeniería Eléctrica",
+      "color": "#FFD23F",
+      "maite": "electronica",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/electrica/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "cadena-aisladores",
+          "img": "carreras/electrica/objetos/cadena-aisladores/imagen.png",
+          "nombre": "Cadena de aisladores",
+          "descripcion": "Conjunto de discos de porcelana o vidrio para soportar conductores de alta tensión sin fugas eléctricas.",
+          "figura": "resistencia"
+        },
+        {
+          "id": "motor-trifasico",
+          "img": "carreras/electrica/objetos/motor-trifasico/imagen.png",
+          "nombre": "Motor trifásico de inducción",
+          "descripcion": "Máquina eléctrica que convierte energía eléctrica trifásica en par mecánico mediante campos magnéticos.",
+          "figura": "motor"
+        },
+        {
+          "id": "multimetro",
+          "img": "carreras/electrica/objetos/multimetro/imagen.png",
+          "nombre": "Multímetro digital",
+          "descripcion": "Instrumento portátil para medir tensión, corriente, resistencia y continuidad en circuitos eléctricos.",
+          "figura": "rayo"
+        },
+        {
+          "id": "panel-solar",
+          "img": "carreras/electrica/objetos/panel-solar/imagen.png",
+          "nombre": "Panel solar fotovoltaico",
+          "descripcion": "Módulo semiconductor que transforma la radiación solar incidente directamente en energía eléctrica limpia.",
+          "figura": "panel-solar"
+        },
+        {
+          "id": "transformador-trifasico",
+          "img": "carreras/electrica/objetos/transformador-trifasico/imagen.png",
+          "nombre": "Transformador trifásico",
+          "descripcion": "Equipo electromagnético para elevar o reducir los niveles de tensión en redes de transmisión y distribución.",
+          "figura": "rayo"
+        }
+      ]
+    },
+    {
+      "id": "fisico-matematico",
+      "nombre": "Ingeniería Físico-Matemática",
+      "color": "#A78BFA",
+      "maite": "fisico_matematica",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/fisico-matematico/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "giroscopio",
+          "img": "carreras/fisico-matematico/objetos/giroscopio/imagen.png",
+          "nombre": "Giroscopio de precisión",
+          "descripcion": "Dispositivo mecánico para estudiar la conservación del momento angular y la precesión giroscópica.",
+          "figura": "atomo"
+        },
+        {
+          "id": "osciloscopio",
+          "img": "carreras/fisico-matematico/objetos/osciloscopio/imagen.png",
+          "nombre": "Osciloscopio digital",
+          "descripcion": "Instrumento que grafica señales eléctricas variables en el tiempo para análisis de formas de onda.",
+          "figura": "onda"
+        },
+        {
+          "id": "pendulo-foucault",
+          "img": "carreras/fisico-matematico/objetos/pendulo-foucault/imagen.png",
+          "nombre": "Péndulo de Foucault",
+          "descripcion": "Péndulo esférico largo cuyo plano de oscilación rota demostrando de forma directa la rotación terrestre.",
+          "figura": "pi"
+        },
+        {
+          "id": "prisma-optico",
+          "img": "carreras/fisico-matematico/objetos/prisma-optico/imagen.png",
+          "nombre": "Prisma óptico",
+          "descripcion": "Elemento de vidrio que refracta y descompone la luz blanca en sus diferentes longitudes de onda visibles.",
+          "figura": "prisma"
+        },
+        {
+          "id": "superficie-3d",
+          "img": "carreras/fisico-matematico/objetos/superficie-3d/imagen.png",
+          "nombre": "Superficie matemática 3D",
+          "descripcion": "Modelo geométrico tridimensional para el estudio de variedades diferenciales, curvatura y topología.",
+          "figura": "integral"
+        }
+      ]
+    },
+    {
+      "id": "forestal",
+      "nombre": "Ingeniería Forestal",
+      "color": "#66BB6A",
+      "maite": "forestal",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/forestal/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "autocargador",
+          "img": "carreras/forestal/objetos/autocargador/imagen.png",
+          "nombre": "Autocargador forestal",
+          "descripcion": "Tractor articulado con grúa hidráulica y caja de carga para extracción de madera desde el bosque.",
+          "figura": "grua"
+        },
+        {
+          "id": "dron-multiespectral",
+          "img": "carreras/forestal/objetos/dron-multiespectral/imagen.png",
+          "nombre": "Dron multiespectral",
+          "descripcion": "Aeronave no tripulada con sensores ópticos para inventario forestal y evaluación del vigor de copas.",
+          "figura": "dron"
+        },
+        {
+          "id": "forcipula",
+          "img": "carreras/forestal/objetos/forcipula/imagen.png",
+          "nombre": "Forcípula forestal",
+          "descripcion": "Calibre de gran formato para medir el diámetro a la altura del pecho (DAP) de árboles en pie.",
+          "figura": "viga"
+        },
+        {
+          "id": "motosierra",
+          "img": "carreras/forestal/objetos/motosierra/imagen.png",
+          "nombre": "Motosierra profesional",
+          "descripcion": "Herramienta motorizada de cadena dentada para apeo, desrame y tronzado en operaciones forestales.",
+          "figura": "engranaje"
+        },
+        {
+          "id": "plantin",
+          "img": "carreras/forestal/objetos/plantin/imagen.png",
+          "nombre": "Plantín forestal en tubete",
+          "descripcion": "Ejemplar juvenil cultivado en vivero con sustrato controlado para plantación en campo y reforestación.",
+          "figura": "gota"
+        }
+      ]
+    },
+    {
+      "id": "mecanica",
+      "nombre": "Ingeniería Industrial Mecánica",
+      "color": "#4FC3F7",
+      "maite": "industrial_mecanica",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/mecanica/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "bomba-centrifuga",
+          "img": "carreras/mecanica/objetos/bomba-centrifuga/imagen.png",
+          "nombre": "Bomba centrífuga",
+          "descripcion": "Máquina hidráulica rotodinámica que transforma energía mecánica en presión para impulsar fluidos.",
+          "figura": "piston"
+        },
+        {
+          "id": "llave-dinamometrica",
+          "img": "carreras/mecanica/objetos/llave-dinamometrica/imagen.png",
+          "nombre": "Llave dinamométrica",
+          "descripcion": "Herramienta manual calibrada para aplicar un par de apriete exacto en uniones roscadas críticas.",
+          "figura": "llave"
+        },
+        {
+          "id": "motor-seccionado",
+          "img": "carreras/mecanica/objetos/motor-seccionado/imagen.png",
+          "nombre": "Motor de combustión interna",
+          "descripcion": "Corte didáctico de cilindros, pistones y cigüeñal para visualizar el ciclo termodinámico de potencia.",
+          "figura": "motor"
+        },
+        {
+          "id": "rotor-turbina",
+          "img": "carreras/mecanica/objetos/rotor-turbina/imagen.png",
+          "nombre": "Rotor de turbina",
+          "descripcion": "Conjunto rotativo de álabes aerodinámicos para expansión de vapor o gas y generación de potencia mecánica.",
+          "figura": "rodamiento"
+        },
+        {
+          "id": "torno-cnc",
+          "img": "carreras/mecanica/objetos/torno-cnc/imagen.png",
+          "nombre": "Torno CNC industrial",
+          "descripcion": "Máquina herramienta computarizada para mecanizado de revolución de alta velocidad y tolerancias micrométricas.",
+          "figura": "engranaje"
+        }
+      ]
+    },
+    {
+      "id": "naval",
+      "nombre": "Ingeniería Naval",
+      "color": "#5C6BC0",
+      "maite": "naval",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/naval/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "ancla",
+          "img": "carreras/naval/objetos/ancla/imagen.png",
+          "nombre": "Ancla tipo Hall",
+          "descripcion": "Dispositivo de acero forjado con brazos basculantes para asegurar buques al lecho marino por gravedad.",
+          "figura": "grua"
+        },
+        {
+          "id": "helice",
+          "img": "carreras/naval/objetos/helice/imagen.png",
+          "nombre": "Hélice marina de bronce",
+          "descripcion": "Propulsor de cuatro palas hidrodinámicas de aleación marina para generar empuje hacia adelante del casco.",
+          "figura": "engranaje"
+        },
+        {
+          "id": "remolcador",
+          "img": "carreras/naval/objetos/remolcador/imagen.png",
+          "nombre": "Remolcador portuario",
+          "descripcion": "Embarcación de gran potencia y maniobrabilidad para asistir el atraque y desatraque de grandes buques.",
+          "figura": "puente"
+        },
+        {
+          "id": "rov",
+          "img": "carreras/naval/objetos/rov/imagen.png",
+          "nombre": "Vehículo submarino ROV",
+          "descripcion": "Robot submarino operado a distancia con cámaras y propulsores para inspección subacuática de cascos.",
+          "figura": "robot"
+        },
+        {
+          "id": "timon",
+          "img": "carreras/naval/objetos/timon/imagen.png",
+          "nombre": "Rueda de timón",
+          "descripcion": "Mando de navegación para accionar la pala del timón y controlar el rumbo y la maniobrabilidad del barco.",
+          "figura": "rodamiento"
+        }
+      ]
+    },
+    {
+      "id": "produccion",
+      "nombre": "Ingeniería de Producción",
+      "color": "#26C6DA",
+      "maite": "produccion",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/produccion/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "brazo-robotico",
+          "img": "carreras/produccion/objetos/brazo-robotico/imagen.png",
+          "nombre": "Brazo robótico articulado",
+          "descripcion": "Manipulador industrial de seis grados de libertad para soldadura, pintura, ensamblaje y paletizado rápido.",
+          "figura": "robot"
+        },
+        {
+          "id": "calibre-digital",
+          "img": "carreras/produccion/objetos/calibre-digital/imagen.png",
+          "nombre": "Calibre digital vernier",
+          "descripcion": "Instrumento de metrología dimensional con pantalla LCD para control de tolerancias en piezas manufacturadas.",
+          "figura": "viga"
+        },
+        {
+          "id": "cinta-transportadora",
+          "img": "carreras/produccion/objetos/cinta-transportadora/imagen.png",
+          "nombre": "Cinta transportadora",
+          "descripcion": "Sistema de transporte continuo para movimiento automatizado de materiales y productos en plantas fabriles.",
+          "figura": "rodamiento"
+        },
+        {
+          "id": "engranaje-industrial",
+          "img": "carreras/produccion/objetos/engranaje-industrial/imagen.png",
+          "nombre": "Engranaje industrial",
+          "descripcion": "Rueda dentada de acero templado para transmisión de potencia mecánica y sincronización en líneas de ensamble.",
+          "figura": "engranaje"
+        },
+        {
+          "id": "pallet",
+          "img": "carreras/produccion/objetos/pallet/imagen.png",
+          "nombre": "Pallet con carga",
+          "descripcion": "Unidad de carga para almacenamiento, logística interna y transporte de mercaderías.",
+          "figura": "ladrillo"
+        }
+      ]
+    },
+    {
+      "id": "quimica",
+      "nombre": "Ingeniería Química",
+      "color": "#FF5D8F",
+      "maite": "quimica",
+      "fondoActivo": "principal",
+      "fondos": [
+        {
+          "id": "principal",
+          "img": "carreras/quimica/fondos/principal/imagen.jpg",
+          "video": null,
+          "lugar": {
+            "x": 0.18,
+            "y": 0.28,
+            "escala": 0.2
+          },
+          "escondites": [
+            {
+              "x": 0.82,
+              "y": 0.28,
+              "escala": 0.2
+            },
+            {
+              "x": 0.5,
+              "y": 0.2,
+              "escala": 0.2
+            },
+            {
+              "x": 0.15,
+              "y": 0.48,
+              "escala": 0.2
+            },
+            {
+              "x": 0.85,
+              "y": 0.48,
+              "escala": 0.2
+            }
+          ]
+        }
+      ],
+      "objetos": [
+        {
+          "id": "bomba-peristaltica",
+          "img": "carreras/quimica/objetos/bomba-peristaltica/imagen.png",
+          "nombre": "Bomba peristáltica",
+          "descripcion": "Bomba de desplazamiento positivo para dosificación precisa y estéril de fluidos corrosivos o sensibles.",
+          "figura": "mechero"
+        },
+        {
+          "id": "columna-destilacion",
+          "img": "carreras/quimica/objetos/columna-destilacion/imagen.png",
+          "nombre": "Columna de destilación",
+          "descripcion": "Unidad cilíndrica vertical para separación de mezclas multicomponentes por diferencia de volatilidad relativa.",
+          "figura": "tubo"
+        },
+        {
+          "id": "intercambiador-placas",
+          "img": "carreras/quimica/objetos/intercambiador-placas/imagen.png",
+          "nombre": "Intercambiador de placas",
+          "descripcion": "Equipo compacto de placas corrugadas para transferencia térmica eficiente entre corrientes de proceso.",
+          "figura": "prisma"
+        },
+        {
+          "id": "matraz-erlenmeyer",
+          "img": "carreras/quimica/objetos/matraz-erlenmeyer/imagen.png",
+          "nombre": "Matraz Erlenmeyer",
+          "descripcion": "Recipiente cónico de vidrio borosilicato ideal para mezclas, calentamiento uniforme y titulaciones analíticas.",
+          "figura": "matraz"
+        },
+        {
+          "id": "reactor-agitado",
+          "img": "carreras/quimica/objetos/reactor-agitado/imagen.png",
+          "nombre": "Reactor químico agitado",
+          "descripcion": "Recipiente con agitación mecánica y camisa térmica para reacciones homogéneas en fase líquida bajo control.",
+          "figura": "molecula"
+        }
+      ]
+    }
+  ]
+}
