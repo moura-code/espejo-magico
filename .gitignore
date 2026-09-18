@@ -23,3 +23,6 @@ __pycache__/
 
 # Certificados TLS locales generados para acceso LAN
 .certificados/
+
+# HTML temporal de generación de catálogo
+catalogo-objetos.html
