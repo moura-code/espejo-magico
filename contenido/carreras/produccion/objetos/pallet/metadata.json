@@ -1,5 +1,5 @@
 {
-  "nombre": "Pallet",
-  "descripcion": "La base de la logística: planificar cómo se mueven y se guardan las cargas ahorra tiempo, espacio y dinero.",
-  "figura": "viga"
+  "nombre": "Pallet con carga",
+  "descripcion": "Unidad de carga para almacenamiento, logística interna y transporte de mercaderías.",
+  "figura": "ladrillo"
 }

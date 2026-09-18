@@ -1,0 +1,555 @@
+[
+  {
+    "carrera": "civil",
+    "carreraNombre": "Ingeniería Civil",
+    "objetos": [
+      {
+        "id": "cono-abrams",
+        "nombre": "Cono de Abrams",
+        "descripcion": "Mide la consistencia y trabajabilidad del hormigón fresco antes de volcarlo en obra.",
+        "figura": "viga",
+        "busqueda": "slump test cone",
+        "activo": true
+      },
+      {
+        "id": "esclerometro-schmidt",
+        "nombre": "Esclerómetro Schmidt",
+        "descripcion": "Estima la resistencia a compresión del hormigón endurecido midiendo el rebote del percutor.",
+        "figura": "tubo",
+        "busqueda": "Schmidt hammer concrete",
+        "activo": true
+      },
+      {
+        "id": "probeta-hormigon",
+        "nombre": "Probeta cilíndrica de hormigón",
+        "descripcion": "Muestra cilíndrica normalizada ensayada a compresión para certificar la resistencia estructural.",
+        "figura": "tubo",
+        "busqueda": "concrete test cylinder",
+        "activo": true
+      },
+      {
+        "id": "nivel-optico",
+        "nombre": "Nivel topográfico de obra",
+        "descripcion": "Instrumento óptico de precisión para nivelar rasantes y alturas en obras de construcción.",
+        "figura": "teodolito",
+        "busqueda": "dumpy level optical level",
+        "activo": true
+      },
+      {
+        "id": "viga-acero",
+        "nombre": "Viga de acero en I",
+        "descripcion": "Perfil estructural laminado en caliente diseñado para soportar grandes cargas de flexión.",
+        "figura": "viga",
+        "busqueda": "steel I-beam profile",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "alimentos",
+    "carreraNombre": "Ingeniería de Alimentos",
+    "objetos": [
+      {
+        "id": "refractometro",
+        "nombre": "Refractómetro óptico manual",
+        "descripcion": "Mide la refracción de la luz para calcular la concentración de azúcares y grados Brix.",
+        "figura": "pipeta",
+        "busqueda": "handheld refractometer Brix",
+        "activo": true
+      },
+      {
+        "id": "placa-petri",
+        "nombre": "Placa de Petri con cultivo",
+        "descripcion": "Recipiente con agar nutritivo para cultivar microorganismos y controlar la inocuidad alimentaria.",
+        "figura": "molecula",
+        "busqueda": "petri dish bacterial culture agar",
+        "activo": true
+      },
+      {
+        "id": "biorreactor",
+        "nombre": "Biorreactor de laboratorio",
+        "descripcion": "Fermentador controlado para cultivar microorganismos o enzimas en procesos biotecnológicos.",
+        "figura": "matraz",
+        "busqueda": "benchtop bioreactor laboratory",
+        "activo": true
+      },
+      {
+        "id": "boquilla-spray",
+        "nombre": "Boquilla atomizadora",
+        "descripcion": "Pulveriza líquidos en gotas microscópicas para secar alimentos y producir polvos solubles.",
+        "figura": "gota",
+        "busqueda": "spray nozzle industrial stainless",
+        "activo": true
+      },
+      {
+        "id": "medidor-ph",
+        "nombre": "Medidor de pH de penetración",
+        "descripcion": "Electrodo de penetración que mide la acidez interna en carnes, lácteos y conservas.",
+        "figura": "tubo",
+        "busqueda": "food pH meter spear electrode",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "produccion",
+    "carreraNombre": "Ingeniería de Producción",
+    "objetos": [
+      {
+        "id": "tablero-kanban",
+        "nombre": "Tablero Kanban",
+        "descripcion": "Organiza visualmente el flujo de trabajo en columnas para eliminar cuellos de botella.",
+        "figura": "plano",
+        "busqueda": "kanban board cards physical",
+        "activo": true
+      },
+      {
+        "id": "cronometro-industrial",
+        "nombre": "Cronómetro industrial centesimal",
+        "descripcion": "Mide tiempos de operación en centésimas de minuto para optimizar métodos de manufactura.",
+        "figura": "motor",
+        "busqueda": "mechanical stopwatch 100 decimal",
+        "activo": true
+      },
+      {
+        "id": "lector-codigo",
+        "nombre": "Lector de código de barras",
+        "descripcion": "Terminal portátil láser para rastrear piezas, lotes e inventarios en tiempo real.",
+        "figura": "chip",
+        "busqueda": "barcode scanner handheld gun",
+        "activo": true
+      },
+      {
+        "id": "mapa-vsm",
+        "nombre": "Mapa de flujo de valor (VSM)",
+        "descripcion": "Diagrama de flujo de valor que mapea materiales e información para reducir desperdicios.",
+        "figura": "plano",
+        "busqueda": "value stream mapping diagram",
+        "activo": true
+      },
+      {
+        "id": "cinta-demarcacion",
+        "nombre": "Cinta de demarcación",
+        "descripcion": "Delimita áreas seguras de tránsito y zonas de trabajo según normas industriales.",
+        "figura": "curva",
+        "busqueda": "hazard warning tape roll",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "electrica",
+    "carreraNombre": "Ingeniería Eléctrica",
+    "objetos": [
+      {
+        "id": "pinza-amperimetrica",
+        "nombre": "Pinza amperimétrica",
+        "descripcion": "Mide corriente eléctrica en conductores activos de forma segura mediante inducción magnética.",
+        "figura": "resistencia",
+        "busqueda": "clamp meter current",
+        "activo": true
+      },
+      {
+        "id": "rele-termico",
+        "nombre": "Relé térmico de protección",
+        "descripcion": "Protege motores eléctricos desconectando el circuito ante sobrecargas prolongadas.",
+        "figura": "chip",
+        "busqueda": "thermal overload relay",
+        "activo": true
+      },
+      {
+        "id": "megohmetro",
+        "nombre": "Megóhmetro",
+        "descripcion": "Aplica alta tensión continua para medir la resistencia de aislación en cables y transformadores.",
+        "figura": "rayo",
+        "busqueda": "megohmmeter insulation tester",
+        "activo": true
+      },
+      {
+        "id": "transformador-toroidal",
+        "nombre": "Transformador toroidal",
+        "descripcion": "Sensor circular de corriente de alta precisión con mínimas pérdidas magnéticas.",
+        "figura": "motor",
+        "busqueda": "toroidal current transformer",
+        "activo": true
+      },
+      {
+        "id": "contactor-trifasico",
+        "nombre": "Contactor trifásico",
+        "descripcion": "Interruptor electromagnético para maniobrar y arrancar motores industriales a distancia.",
+        "figura": "resistencia",
+        "busqueda": "industrial contactor three-phase",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "agrimensura",
+    "carreraNombre": "Ingeniería en Agrimensura",
+    "objetos": [
+      {
+        "id": "estacion-total",
+        "nombre": "Estación total",
+        "descripcion": "Mide ángulos y distancias con láser para levantamientos topográficos de alta precisión.",
+        "figura": "teodolito",
+        "busqueda": "total station surveying",
+        "activo": true
+      },
+      {
+        "id": "prisma-topografico",
+        "nombre": "Prisma topográfico",
+        "descripcion": "Reflector de precisión montado en jalón que devuelve el haz láser a la estación total.",
+        "figura": "prisma",
+        "busqueda": "surveying retroreflector prism",
+        "activo": true
+      },
+      {
+        "id": "antena-gnss",
+        "nombre": "Antena GNSS geodésica",
+        "descripcion": "Receptor satelital geodésico milimétrico para fijar coordenadas en la red nacional.",
+        "figura": "onda",
+        "busqueda": "geodetic GNSS antenna surveying",
+        "activo": true
+      },
+      {
+        "id": "mira-estadimetrica",
+        "nombre": "Mira estadimétrica",
+        "descripcion": "Regla graduada telescópica utilizada con el nivel óptico para medir desniveles de terreno.",
+        "figura": "plano",
+        "busqueda": "leveling rod surveying staff",
+        "activo": true
+      },
+      {
+        "id": "brujula-brunton",
+        "nombre": "Brújula Brunton",
+        "descripcion": "Brújula de bolsillo con clinómetro para medir rumbos, buzamientos y pendientes en campo.",
+        "figura": "plano",
+        "busqueda": "Brunton pocket transit compass",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "computacion",
+    "carreraNombre": "Ingeniería en Computación",
+    "objetos": [
+      {
+        "id": "raspberry-pi",
+        "nombre": "Raspberry Pi",
+        "descripcion": "Computadora monoplaca completa utilizada en prototipado rápido, robótica e IoT.",
+        "figura": "chip",
+        "busqueda": "Raspberry Pi board circuit",
+        "activo": true
+      },
+      {
+        "id": "memoria-ram",
+        "nombre": "Módulo de memoria RAM",
+        "descripcion": "Módulo de memoria de alta velocidad donde el procesador almacena datos e instrucciones activas.",
+        "figura": "chip",
+        "busqueda": "DDR RAM memory module",
+        "activo": true
+      },
+      {
+        "id": "yubikey",
+        "nombre": "Llave de seguridad YubiKey",
+        "descripcion": "Llave física criptográfica para autenticación segura multifactor contra ataques de phishing.",
+        "figura": "servidor",
+        "busqueda": "YubiKey security key",
+        "activo": true
+      },
+      {
+        "id": "ssd-m2",
+        "nombre": "Unidad SSD M.2 NVMe",
+        "descripcion": "Unidad de almacenamiento en estado sólido NVMe ultrarrápida conectada por bus PCIe.",
+        "figura": "chip",
+        "busqueda": "M.2 NVMe SSD circuit",
+        "activo": true
+      },
+      {
+        "id": "cable-ttl",
+        "nombre": "Cable conversor USB a TTL",
+        "descripcion": "Adaptador serie USB para comunicarse directamente con microcontroladores y depurar hardware.",
+        "figura": "onda",
+        "busqueda": "USB to TTL UART serial adapter",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "comunicacion",
+    "carreraNombre": "Ingeniería en Sistemas de Comunicación",
+    "objetos": [
+      {
+        "id": "empalmadora-fibra",
+        "nombre": "Empalmadora de fibra óptica",
+        "descripcion": "Funde hilos de fibra óptica con un arco eléctrico logrando uniones con mínima atenuación.",
+        "figura": "onda",
+        "busqueda": "optical fiber fusion splicer",
+        "activo": true
+      },
+      {
+        "id": "analizador-espectro",
+        "nombre": "Analizador de espectros RF",
+        "descripcion": "Visualiza señales de radiofrecuencia y su potencia a lo largo del espectro electromagnético.",
+        "figura": "onda",
+        "busqueda": "RF spectrum analyzer",
+        "activo": true
+      },
+      {
+        "id": "bobina-fibra",
+        "nombre": "Bobina de fibra óptica",
+        "descripcion": "Carrete de fibra óptica monomodo para enlaces de telecomunicaciones de alta velocidad.",
+        "figura": "onda",
+        "busqueda": "fiber optic cable spool drum",
+        "activo": true
+      },
+      {
+        "id": "antena-parabolica",
+        "nombre": "Antena parabólica",
+        "descripcion": "Concentra ondas electromagnéticas en su foco para enlaces inalámbricos punto a punto.",
+        "figura": "onda",
+        "busqueda": "microwave parabolic dish antenna feed horn",
+        "activo": true
+      },
+      {
+        "id": "atenuador-rf",
+        "nombre": "Atenuador coaxial RF",
+        "descripcion": "Reduce la potencia de una señal de alta frecuencia con precisión sin distorsionar su forma de onda.",
+        "figura": "resistencia",
+        "busqueda": "coaxial RF attenuator heatsink",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "fisico-matematico",
+    "carreraNombre": "Ingeniería Físico-Matemática",
+    "objetos": [
+      {
+        "id": "interferometro",
+        "nombre": "Interferómetro de Michelson",
+        "descripcion": "Divide y recombina haces de luz para medir longitudes de onda con precisión nanométrica.",
+        "figura": "prisma",
+        "busqueda": "Michelson interferometer laboratory",
+        "activo": true
+      },
+      {
+        "id": "pendulo-torsion",
+        "nombre": "Péndulo de torsión",
+        "descripcion": "Dispositivo oscilante que mide fuerzas minúsculas mediante la torsión elástica de un hilo.",
+        "figura": "integral",
+        "busqueda": "torsion pendulum physics",
+        "activo": true
+      },
+      {
+        "id": "tubo-rayos-catodicos",
+        "nombre": "Tubo de rayos catódicos",
+        "descripcion": "Tubo al vacío que desvía electrones con campos magnéticos demostrando su carga y masa.",
+        "figura": "tubo",
+        "busqueda": "Crookes tube cathode ray",
+        "activo": true
+      },
+      {
+        "id": "regla-calculo",
+        "nombre": "Regla de cálculo analógica",
+        "descripcion": "Instrumento analógico con escalas logarítmicas para multiplicar, dividir y calcular funciones.",
+        "figura": "pi",
+        "busqueda": "slide rule cursor scale",
+        "activo": true
+      },
+      {
+        "id": "giroscopio",
+        "nombre": "Giroscopio mecánico",
+        "descripcion": "Rueda giratoria montada en suspensión cardánica que mantiene su orientación en el espacio.",
+        "figura": "curva",
+        "busqueda": "mechanical gyroscope brass",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "forestal",
+    "carreraNombre": "Ingeniería Forestal",
+    "objetos": [
+      {
+        "id": "forcipula",
+        "nombre": "Forcípula forestal",
+        "descripcion": "Instrumento calibrado con dos brazos paralelos para medir el diámetro de troncos en pie.",
+        "figura": "plano",
+        "busqueda": "forestry caliper tree diameter",
+        "activo": true
+      },
+      {
+        "id": "barrena-pressler",
+        "nombre": "Barrena de Pressler",
+        "descripcion": "Extractor cilíndrico hueco que extrae una muestra del tronco para estudiar su crecimiento.",
+        "figura": "tubo",
+        "busqueda": "Pressler increment borer tree core",
+        "activo": true
+      },
+      {
+        "id": "clinometro-suunto",
+        "nombre": "Clinómetro óptico Suunto",
+        "descripcion": "Instrumento óptico compacto para medir la inclinación y calcular la altura total de árboles.",
+        "figura": "teodolito",
+        "busqueda": "Suunto clinometer hypsometer",
+        "activo": true
+      },
+      {
+        "id": "rodaja-tronco",
+        "nombre": "Rodaja transversal de tronco",
+        "descripcion": "Sección transversal pulida que revela el historial biológico y los anillos anuales del árbol.",
+        "figura": "rodamiento",
+        "busqueda": "tree trunk cross section dendrochronology",
+        "activo": true
+      },
+      {
+        "id": "cinta-diametrica",
+        "nombre": "Cinta métrica diamétrica",
+        "descripcion": "Cinta graduada en múltiplos de pi para calcular el diámetro del tronco a partir de su perímetro.",
+        "figura": "curva",
+        "busqueda": "tree diameter tape forestry",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "mecanica",
+    "carreraNombre": "Ingeniería Industrial Mecánica",
+    "objetos": [
+      {
+        "id": "calibre-vernier",
+        "nombre": "Calibre pie de rey vernier",
+        "descripcion": "Instrumento de taller con nonio para medir espesores, diámetros interiores y profundidades.",
+        "figura": "llave",
+        "busqueda": "vernier caliper stainless",
+        "activo": true
+      },
+      {
+        "id": "micrometro",
+        "nombre": "Micrómetro de exteriores",
+        "descripcion": "Mide espesores con precisión centesimal o milesimal mediante un tornillo calibrado.",
+        "figura": "llave",
+        "busqueda": "outside micrometer 0-25mm",
+        "activo": true
+      },
+      {
+        "id": "engranaje-mecanizado",
+        "nombre": "Engranaje mecanizado",
+        "descripcion": "Rueda dentada de acero rectificado que transmite potencia y movimiento entre ejes rotatorios.",
+        "figura": "engranaje",
+        "busqueda": "bevel gear helical gear machined",
+        "activo": true
+      },
+      {
+        "id": "rodamiento-despiezado",
+        "nombre": "Rodamiento rígido de bolas",
+        "descripcion": "Conjunto de pistas y bolas de acero que reduce la fricción en componentes mecánicos rotatorios.",
+        "figura": "rodamiento",
+        "busqueda": "ball bearing cutaway section",
+        "activo": true
+      },
+      {
+        "id": "llave-dinamometrica",
+        "nombre": "Llave dinamométrica",
+        "descripcion": "Aplica un par de apriete exacto a bulones y tuercas evitando roturas y deformaciones.",
+        "figura": "llave",
+        "busqueda": "torque wrench ratchet",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "naval",
+    "carreraNombre": "Ingeniería Naval",
+    "objetos": [
+      {
+        "id": "modelo-casco",
+        "nombre": "Modelo a escala de casco",
+        "descripcion": "Modelo a escala de la proa y obra viva ensayado en canal hidrodinámico para reducir resistencia.",
+        "figura": "motor",
+        "busqueda": "ship hull model towing tank",
+        "activo": true
+      },
+      {
+        "id": "helice-naval",
+        "nombre": "Hélice marina de bronce",
+        "descripcion": "Hélice de bronce fundido con palas diseñadas para generar empuje hidrodinámico sin cavitación.",
+        "figura": "motor",
+        "busqueda": "bronze ship propeller 4 blades",
+        "activo": true
+      },
+      {
+        "id": "anodo-sacrificio",
+        "nombre": "Ánodo de sacrificio de zinc",
+        "descripcion": "Bloque de zinc metálico que se corroe intencionalmente para proteger el casco de acero del buque.",
+        "figura": "ladrillo",
+        "busqueda": "sacrificial zinc anode boat hull",
+        "activo": true
+      },
+      {
+        "id": "inclinometro-mamparo",
+        "nombre": "Inclinómetro de mamparo",
+        "descripcion": "Instrumento fijado al mamparo que mide los ángulos de escora del buque en navegación.",
+        "figura": "curva",
+        "busqueda": "marine clinometer bulkhead inclinometer",
+        "activo": true
+      },
+      {
+        "id": "medidor-espesores",
+        "nombre": "Medidor de espesores ultrasónico",
+        "descripcion": "Emite ultrasonido para medir el desgaste y espesor residual de las chapas de acero del casco.",
+        "figura": "onda",
+        "busqueda": "ultrasonic thickness gauge probe",
+        "activo": false
+      }
+    ]
+  },
+  {
+    "carrera": "quimica",
+    "carreraNombre": "Ingeniería Química",
+    "objetos": [
+      {
+        "id": "columna-vigreux",
+        "nombre": "Columna Vigreux",
+        "descripcion": "Tubo con puntas de vidrio internas que aumenta los platos teóricos en destilaciones fraccionadas.",
+        "figura": "tubo",
+        "busqueda": "Vigreux column fractional distillation",
+        "activo": true
+      },
+      {
+        "id": "matraz-aforado",
+        "nombre": "Matraz aforado",
+        "descripcion": "Recipiente volumétrico de precisión calibrado para preparar soluciones químicas de concentración exacta.",
+        "figura": "matraz",
+        "busqueda": "volumetric flask glass liquid",
+        "activo": true
+      },
+      {
+        "id": "embudo-decantacion",
+        "nombre": "Embudo de decantación",
+        "descripcion": "Separa líquidos inmiscibles de distinta densidad mediante una llave de paso inferior.",
+        "figura": "matraz",
+        "busqueda": "separatory funnel stopcock glass",
+        "activo": true
+      },
+      {
+        "id": "densimetro",
+        "nombre": "Densímetro de inmersión",
+        "descripcion": "Flotador de vidrio lastrado que mide la densidad relativa de un líquido según el principio de Arquímedes.",
+        "figura": "pipeta",
+        "busqueda": "hydrometer specific gravity glass",
+        "activo": true
+      },
+      {
+        "id": "agitador-magnetico",
+        "nombre": "Agitador magnético con calefactor",
+        "descripcion": "Mezcla reactivos homogéneamente mediante un imán rotatorio mientras controla la temperatura.",
+        "figura": "mechero",
+        "busqueda": "laboratory magnetic stirrer hotplate",
+        "activo": false
+      }
+    ]
+  }
+]
+

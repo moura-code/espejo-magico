@@ -1,17 +1,152 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtemp, writeFile, mkdir } from 'node:fs/promises';
+import { mkdtemp, writeFile, mkdir, readFile, rm } from 'node:fs/promises';
+import { execFile, spawnSync } from 'node:child_process';
+import { get } from 'node:https';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { crearServidor, interpretarRango } from '../../servidor/servidor.js';
+import { promisify } from 'node:util';
+import {
+  crearServidor,
+  cargarCertificadosHttps,
+  interpretarRango,
+  obtenerUrlsDeAcceso,
+  resolverRutasCertificados,
+} from '../../servidor/servidor.js';
 
 let servidor = null;
+const directoriosTemporales = [];
+const ejecutar = promisify(execFile);
+const hayOpenSsl = spawnSync('openssl', ['version']).status === 0;
 
 afterEach(async () => {
   if (servidor) await servidor.cerrar();
   servidor = null;
+  await Promise.all(directoriosTemporales.splice(0).map((ruta) => rm(ruta, { recursive: true })));
 });
 
 describe('servidor', () => {
+  it('usa las rutas HTTPS predeterminadas dentro del proyecto', () => {
+    expect(resolverRutasCertificados({}, '/proyecto')).toEqual({
+      certificado: '/proyecto/.certificados/espejo.pem',
+      clave: '/proyecto/.certificados/espejo-key.pem',
+    });
+  });
+
+  it('rechaza una configuración que define solo una ruta TLS', () => {
+    expect(() =>
+      resolverRutasCertificados({ HTTPS_CERT: '/certificado.pem' }, '/proyecto'),
+    ).toThrow('HTTPS_CERT y HTTPS_KEY deben definirse juntas');
+  });
+
+  it('carga el certificado y la clave indicados por el operador', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-certificados-'));
+    directoriosTemporales.push(raiz);
+    const certificado = join(raiz, 'cert.pem');
+    const clave = join(raiz, 'key.pem');
+    await writeFile(certificado, 'certificado de prueba');
+    await writeFile(clave, 'clave de prueba');
+
+    await expect(cargarCertificadosHttps({ certificado, clave })).resolves.toEqual({
+      cert: Buffer.from('certificado de prueba'),
+      key: Buffer.from('clave de prueba'),
+    });
+  });
+
+  it('indica cómo preparar HTTPS cuando falta un archivo TLS', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-certificados-'));
+    directoriosTemporales.push(raiz);
+
+    await expect(
+      cargarCertificadosHttps({
+        certificado: join(raiz, 'inexistente.pem'),
+        clave: join(raiz, 'inexistente-key.pem'),
+      }),
+    ).rejects.toThrow('npm run preparar:https');
+  });
+
+  it('muestra las IPv4 LAN en las que expone el servicio y excluye loopback', () => {
+    const interfaces = {
+      lo: [{ address: '127.0.0.1', family: 'IPv4', internal: true }],
+      ethernet: [{ address: '192.168.1.35', family: 'IPv4', internal: false }],
+      wifi: [
+        { address: '10.0.0.22', family: 4, internal: false },
+        { address: 'fe80::1234', family: 'IPv6', internal: false },
+      ],
+    };
+
+    expect(obtenerUrlsDeAcceso(8080, interfaces)).toEqual([
+      'http://localhost:8080/espejo/espejo.html',
+      'http://192.168.1.35:8080/espejo/espejo.html',
+      'http://10.0.0.22:8080/espejo/espejo.html',
+    ]);
+  });
+
+  it('anuncia URLs https cuando el servidor usa TLS', () => {
+    expect(
+      obtenerUrlsDeAcceso(
+        8080,
+        { ethernet: [{ address: '192.168.1.35', family: 'IPv4', internal: false }] },
+        '0.0.0.0',
+        'https',
+      ),
+    ).toEqual([
+      'https://localhost:8080/espejo/espejo.html',
+      'https://192.168.1.35:8080/espejo/espejo.html',
+    ]);
+  });
+
+  it.runIf(hayOpenSsl)('sirve la experiencia mediante una conexión TLS real', async () => {
+    const raiz = await mkdtemp(join(tmpdir(), 'espejo-https-'));
+    directoriosTemporales.push(raiz);
+    const certificado = join(raiz, 'cert.pem');
+    const clave = join(raiz, 'key.pem');
+    await ejecutar('openssl', [
+      'req',
+      '-x509',
+      '-newkey',
+      'rsa:2048',
+      '-nodes',
+      '-keyout',
+      clave,
+      '-out',
+      certificado,
+      '-days',
+      '1',
+      '-subj',
+      '/CN=localhost',
+    ]);
+
+    servidor = crearServidor({
+      tls: {
+        cert: await readFile(certificado),
+        key: await readFile(clave),
+      },
+    });
+    const puerto = await servidor.escuchar(0, '127.0.0.1');
+
+    const estado = await new Promise((resolve, reject) => {
+      get(
+        { hostname: '127.0.0.1', port: puerto, path: '/', rejectUnauthorized: false },
+        (respuesta) => {
+          respuesta.resume();
+          respuesta.on('end', () => resolve(respuesta.statusCode));
+        },
+      ).on('error', reject);
+    });
+
+    expect(estado).toBe(200);
+  });
+
+  it('escucha explícitamente en el host solicitado', async () => {
+    servidor = crearServidor();
+    const puerto = await servidor.escuchar(0, '127.0.0.2');
+
+    const respuesta = await fetch(`http://127.0.0.2:${puerto}/`);
+
+    expect(respuesta.status).toBe(200);
+    await expect(fetch(`http://127.0.0.1:${puerto}/`)).rejects.toThrow();
+  });
+
   it('interpreta rangos completos, abiertos y de sufijo', () => {
     expect(interpretarRango('bytes=10-19', 100)).toEqual({ inicio: 10, fin: 19 });
     expect(interpretarRango('bytes=90-', 100)).toEqual({ inicio: 90, fin: 99 });
@@ -163,4 +298,3 @@ describe('servidor', () => {
     expect(catalogo.carreras[0].id).toBe('computacion');
   });
 });
-

@@ -294,6 +294,10 @@ export function dibujarObjeto(ctx, { definicion, x, y, radio, alfa = 1, giro = 0
   ctx.shadowBlur = radio * 0.4;
 
   if (imagen) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, radio, 0, Math.PI * 2);
+    ctx.clip();
     const lado = radio * 2;
     const escala = lado / Math.max(imagen.width, imagen.height);
     ctx.drawImage(
@@ -303,6 +307,7 @@ export function dibujarObjeto(ctx, { definicion, x, y, radio, alfa = 1, giro = 0
       imagen.width * escala,
       imagen.height * escala,
     );
+    ctx.restore();
   } else if (!dibujarFigura(ctx, definicion.figura, radio, color)) {
     dibujarSustituto(ctx, radio, color);
   }

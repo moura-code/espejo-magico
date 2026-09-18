@@ -14,3 +14,12 @@ MAITE/
 
 # Catálogo generado automáticamente a partir de la estructura de carpetas
 contenido/catalogo.json
+
+# Descargas intermedias de objetos antes de recortar y procesar
+contenido/comun/banco/descargas/
+
+__pycache__/
+*.pyc
+
+# Certificados TLS locales generados para acceso LAN
+.certificados/

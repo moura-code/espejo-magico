@@ -365,20 +365,23 @@ export const CONFIG = {
     // nombre. `escala` es el diametro como fraccion del ancho de la imagen.
     // Justo debajo de la franja del cartel de las fichas, con aire para crecer
     // mientras se lee: mas arriba quedaria debajo del cartel.
-    lugarPorDefecto: { x: 0.166, y: 0.22, escala: 0.24 },
+    lugarPorDefecto: { x: 0.18, y: 0.28, escala: 0.20 },
 
-    // Y donde esperan los otros tres objetos cuando el fondo no declara sus
-    // `escondites` —el respaldo vectorial, una carrera sin fondos—: el otro
-    // rincon de arriba y, a cada lado, uno a la altura de los hombros. Es la
-    // misma grilla que usan las fotos: dos columnas pegadas a la zona de la
-    // cabeza y dos filas tan separadas que los blancos de la mano no se tocan.
+    // Y donde esperan los otros cuatro objetos cuando el fondo no declara sus
+    // `escondites` —el respaldo vectorial, una carrera sin fondos—: forman el
+    // arco en herradura que rodea a la persona (arriba a la derecha, en la
+    // cima sobre la cabeza, y a los dos costados a la altura del pecho/hombros).
     // tests/integracion/fondos.test.js y fichas.test.js la vigilan con las doce
     // ingenierias.
     esconditesPorDefecto: [
-      { x: 0.834, y: 0.22, escala: 0.24 },
-      { x: 0.166, y: 0.43, escala: 0.24 },
-      { x: 0.834, y: 0.43, escala: 0.24 },
+      { x: 0.82, y: 0.28, escala: 0.20 },
+      { x: 0.50, y: 0.20, escala: 0.20 },
+      { x: 0.15, y: 0.48, escala: 0.20 },
+      { x: 0.85, y: 0.48, escala: 0.20 },
     ],
+
+    // Franja de arriba del lienzo reservada para el cartel de lectura de las fichas.
+    franjaCartel: 0.14,
 
     // Donde esta la persona, normalizado al espejo vertical: la cabeza y los
     // hombros. Ningun objeto del fondo va ahi —la catedra pidio la periferia,
@@ -386,8 +389,8 @@ export const CONFIG = {
     // tests/integracion/fondos.test.js lo vigila con el catalogo real, y
     // herramientas/fondos.html la dibuja para elegir lugares mirando.
     zonaDeLaPersona: [
-      { x0: 0.3, x1: 0.7, y0: 0.14, y1: 0.5 }, // la cabeza
-      { x0: 0.18, x1: 0.82, y0: 0.5, y1: 1 }, // los hombros y el cuerpo
+      { x0: 0.30, x1: 0.70, y0: 0.26, y1: 0.50 }, // la cabeza
+      { x0: 0.25, x1: 0.75, y0: 0.50, y1: 1.0 }, // los hombros y el cuerpo
     ],
 
     // Margen minimo del objeto apoyado al borde del lienzo, en radios y desde
