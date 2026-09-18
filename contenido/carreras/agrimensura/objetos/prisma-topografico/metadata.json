@@ -1,5 +1,5 @@
 {
   "nombre": "Prisma topográfico",
-  "descripcion": "Reflector de precisión montado en jalón que devuelve el haz láser a la estación total.",
+  "descripcion": "Reflector de vidrio de alta precisión que devuelve la señal láser a la estación total para medir distancias.",
   "figura": "prisma"
 }

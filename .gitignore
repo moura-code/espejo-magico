@@ -21,3 +21,5 @@ contenido/comun/banco/descargas/
 __pycache__/
 *.pyc
 
+# Certificados TLS locales generados para acceso LAN
+.certificados/

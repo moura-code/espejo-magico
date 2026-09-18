@@ -1,5 +1,5 @@
 {
-  "nombre": "Giroscopio mecánico",
-  "descripcion": "Rueda giratoria montada en suspensión cardánica que mantiene su orientación en el espacio.",
-  "figura": "curva"
+  "nombre": "Giroscopio de precisión",
+  "descripcion": "Dispositivo mecánico para estudiar la conservación del momento angular y la precesión giroscópica.",
+  "figura": "atomo"
 }

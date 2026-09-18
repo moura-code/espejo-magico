@@ -1,0 +1,5 @@
+{
+  "nombre": "Receptor GNSS geodésico",
+  "descripcion": "Antena satelital RTK de precisión centimétrica para posicionamiento geográfico y cartografía territorial.",
+  "figura": "pi"
+}

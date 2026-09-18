@@ -2,9 +2,11 @@
 // navegador de una sola PC: no hay estado que compartir con nadie, asi que aca
 // no vive ni una linea de logica de la experiencia.
 
-import { createServer } from 'node:http';
+import { createServer as createHttpServer } from 'node:http';
+import { createServer as createHttpsServer } from 'node:https';
 import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
+import { networkInterfaces } from 'node:os';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generarArchivoCatalogo } from './catalogo.js';
@@ -24,6 +26,57 @@ const TIPOS_MIME = {
   '.wasm': 'application/wasm',
   '.task': 'application/octet-stream',
 };
+
+export function resolverRutasCertificados(entorno = process.env, raiz = process.cwd()) {
+  if (Boolean(entorno.HTTPS_CERT) !== Boolean(entorno.HTTPS_KEY)) {
+    throw new Error('HTTPS_CERT y HTTPS_KEY deben definirse juntas');
+  }
+  return {
+    certificado: resolve(raiz, entorno.HTTPS_CERT || '.certificados/espejo.pem'),
+    clave: resolve(raiz, entorno.HTTPS_KEY || '.certificados/espejo-key.pem'),
+  };
+}
+
+export async function cargarCertificadosHttps({ certificado, clave }) {
+  try {
+    const [cert, key] = await Promise.all([readFile(certificado), readFile(clave)]);
+    return { cert, key };
+  } catch (error) {
+    throw new Error(
+      `No se pudieron leer el certificado (${certificado}) y la clave (${clave}). ` +
+        'Ejecutá npm run preparar:https.',
+      { cause: error },
+    );
+  }
+}
+
+export function obtenerUrlsDeAcceso(
+  puerto,
+  interfaces = networkInterfaces(),
+  host = '0.0.0.0',
+  protocolo = 'http',
+) {
+  const ruta = '/espejo/espejo.html';
+  if (host !== '0.0.0.0') {
+    const nombre = host === '127.0.0.1' ? 'localhost' : host;
+    return [`${protocolo}://${nombre}:${puerto}${ruta}`];
+  }
+
+  const direccionesLan = Object.values(interfaces)
+    .flatMap((direcciones) => direcciones ?? [])
+    .filter(
+      ({ address, family, internal }) =>
+        !internal && (family === 'IPv4' || family === 4) && address,
+    )
+    .map(({ address }) => address);
+
+  return [
+    `${protocolo}://localhost:${puerto}${ruta}`,
+    ...new Set(
+      direccionesLan.map((direccion) => `${protocolo}://${direccion}:${puerto}${ruta}`),
+    ),
+  ];
+}
 
 export function interpretarRango(encabezado, tamano) {
   const coincidencia = /^bytes=(\d*)-(\d*)$/.exec(encabezado ?? '');
@@ -52,8 +105,8 @@ export function interpretarRango(encabezado, tamano) {
   return { inicio, fin: Math.min(fin, tamano - 1) };
 }
 
-export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
-  const servidorHttp = createServer(async (pedido, respuesta) => {
+export function crearServidor({ raiz = RAIZ_POR_DEFECTO, tls } = {}) {
+  const atender = async (pedido, respuesta) => {
     if (pedido.method !== 'GET' && pedido.method !== 'HEAD') {
       respuesta.writeHead(405, { Allow: 'GET, HEAD' }).end();
       return;
@@ -129,11 +182,14 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
       if (respuesta.headersSent) respuesta.destroy();
       else respuesta.writeHead(404).end('No encontrado');
     }
-  });
+  };
+  const servidorHttp = tls ? createHttpsServer(tls, atender) : createHttpServer(atender);
 
   return {
-    escuchar: (puerto) =>
-      new Promise((ok) => servidorHttp.listen(puerto, () => ok(servidorHttp.address().port))),
+    escuchar: (puerto, host = '0.0.0.0') =>
+      new Promise((ok) =>
+        servidorHttp.listen(puerto, host, () => ok(servidorHttp.address().port)),
+      ),
     cerrar: () =>
       new Promise((ok) => {
         // Sin esto una conexion keep-alive de un pedido anterior deja el cierre
@@ -146,11 +202,23 @@ export function crearServidor({ raiz = RAIZ_POR_DEFECTO } = {}) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
-    await generarArchivoCatalogo();
+    try {
+      await generarArchivoCatalogo();
+    } catch (error) {
+      console.error('Aviso: No se pudo generar catalogo.json al iniciar:', error.message);
+    }
+    const tls = await cargarCertificadosHttps(resolverRutasCertificados());
+    const servidor = crearServidor({ tls });
+    const host = process.env.HOST || '0.0.0.0';
+    const puerto = await servidor.escuchar(Number(process.env.PUERTO) || 8080, host);
+    console.log(`Espejo HTTPS escuchando en ${host}:${puerto}`);
+    console.log('Abrir en:');
+    for (const url of obtenerUrlsDeAcceso(puerto, networkInterfaces(), host, 'https')) {
+      console.log(`  ${url}`);
+    }
+    console.log('Los dispositivos deben confiar en la autoridad local de mkcert.');
   } catch (error) {
-    console.error('Aviso: No se pudo generar catalogo.json al iniciar:', error.message);
+    console.error(`No se pudo iniciar el Espejo: ${error.message}`);
+    process.exitCode = 1;
   }
-  const servidor = crearServidor();
-  const puerto = await servidor.escuchar(Number(process.env.PUERTO) || 8080);
-  console.log(`Espejo servido en http://localhost:${puerto}/espejo/espejo.html`);
 }

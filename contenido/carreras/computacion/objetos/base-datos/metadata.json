@@ -1,0 +1,5 @@
+{
+  "nombre": "Base de datos relacional",
+  "descripcion": "Sistema de gestión estructurado para almacenamiento persistente, transacciones ACID y consultas SQL.",
+  "figura": "chip"
+}

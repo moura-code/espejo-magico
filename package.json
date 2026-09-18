@@ -11,6 +11,7 @@
     "catalogo": "node -e \"import('./servidor/catalogo.js').then(m => m.generarArchivoCatalogo())\"",
     "vendorizar": "node herramientas/vendorizar.mjs",
     "prepare": "sh scripts/setup-git-hooks.sh || echo hooks no activados",
+    "https:preparar": "node scripts/preparar-https.mjs",
     "planilla": "node herramientas/planilla.mjs"
   },
   "devDependencies": {

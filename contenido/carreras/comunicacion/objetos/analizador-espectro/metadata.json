@@ -1,5 +1,5 @@
 {
-  "nombre": "Analizador de espectros RF",
-  "descripcion": "Visualiza señales de radiofrecuencia y su potencia a lo largo del espectro electromagnético.",
+  "nombre": "Analizador de espectro RF",
+  "descripcion": "Instrumento para medir la potencia y distribución frecuencial de ondas electromagnéticas y señales.",
   "figura": "onda"
 }
