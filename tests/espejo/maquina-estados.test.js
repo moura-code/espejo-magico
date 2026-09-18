@@ -370,6 +370,24 @@ describe('la red de seguridad de la fila', () => {
     const siguiente = maquina.actualizar({ hayRostro: true, ahora: 30200 });
     expect(siguiente.estado).toBe(ESTADOS.ENGANCHE);
   });
+
+  // La otra mitad de la regla anterior. Esperar una ausencia tiene sentido
+  // cuando la sesion termino con la persona todavia sentada; cuando termino
+  // PORQUE la presencia se fue, la ausencia ya ocurrio —es lo que la cerro— y
+  // pedir otra deja el espejo tomado por alguien que ya no esta. Pasa siempre
+  // que el cuerpo se siga viendo en el relevo, que es el caso normal de la fila:
+  // el que se levanta sigue en cuadro cuando el que sigue se sienta.
+  it('tras cerrar porque se fue el rostro no pide otra ausencia para el que sigue', () => {
+    const maquina = hastaExplorar();
+    maquina.mirar('civil', 6100);
+
+    // Se pierde la cara, pero el cuerpo nunca se deja de ver.
+    avanzar(maquina, 6200, 30000, false, { hayPersona: true });
+    expect(maquina.estado()).toBe(ESTADOS.ATRACCION);
+
+    const siguiente = avanzar(maquina, 30100, 31000, true, { hayPersona: true });
+    expect(entra(siguiente.eventos, ESTADOS.ENGANCHE)).toHaveLength(1);
+  });
 });
 
 describe('el enganche', () => {
