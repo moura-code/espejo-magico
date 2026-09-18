@@ -120,7 +120,7 @@
       {
         "id": "espectrofotometro",
         "nombre": "Espectrofotómetro",
-        "descripcion": "Cuantifica compuestos y colorantes en jugos y aceites midiendo la absorción de luz en longitudes de onda exactas.",
+        "descripcion": "Mide la cantidad de luz que absorben las sustancias a determinada longitud de onda, permitiendo cuantificar infinidad de compuestos (colorantes, vitaminas, proteínas, contaminantes, etc.).",
         "figura": "prisma",
         "busqueda": "spectrophotometer laboratory",
         "activo": true
@@ -144,7 +144,7 @@
       {
         "id": "refractometro",
         "nombre": "Refractómetro digital",
-        "descripcion": "Mide el índice de refracción para determinar al instante los grados Brix y la concentración de azúcar en jugos.",
+        "descripcion": "Mide el índice de refracción para determinar al instante los sólidos disueltos. Se usa para medir la concentración de azúcares en salsas, mermeladas y jugos.",
         "figura": "pipeta",
         "busqueda": "digital refractometer brix",
         "activo": true
