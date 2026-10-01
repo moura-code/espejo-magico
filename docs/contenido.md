@@ -104,7 +104,49 @@ ingeniería en vez de tapada por ella. Y el objeto con el que agarró la carrera
 **vuela a su lugar dentro del fondo** y se queda ahí, flotando apenas, detrás de
 la persona.
 
+### Los fondos se generan (`npm run escenas`)
+
+**Los cinco instrumentos de cada ingeniería no se dibujan encima del fondo:
+están pintados adentro de él.** El fondo de cada carrera lo genera
+`herramientas/escenas.py`, local, en la GPU de la máquina de desarrollo. Son dos
+pasos:
+
+1. **La escena.** El lugar donde se trabaja esa ingeniería, vertical 9:16 y con
+   el centro vacío. Se generan varias candidatas y se queda la mejor, **medida y
+   no a ojo**: cuánto suman sus cinco sitios y cuán despejado está el centro.
+2. **Los objetos, adentro.** Uno por uno, se le pide al modelo que *pinte* el
+   instrumento dentro de un recorte de la propia foto. Ahí está la integración
+   de verdad: el objeto sale con la luz, la sombra de contacto y el reflejo de
+   esa mesada, porque el modelo la está mirando mientras lo dibuja. Comparando
+   la ventana antes y después sale la **silueta** del objeto, y esa máscara es
+   la que el espejo usa para recortarlo del fondo cuando la mano pasa encima.
+
+Dos cosas que se aprendieron perdiendo objetos, y que la herramienta ahora
+vigila sola:
+
+- **La escena tiene que estar vacía donde van los objetos.** En un estante con
+  doscientos frascos, un instrumento más es invisible. Los prompts piden mesadas
+  y estantes limpios a propósito.
+- **Cada sitio necesita superficie debajo, aire arriba y tono medio.** Un matraz
+  de vidrio pintado sobre una alacena blanca no lo encuentra nadie. La
+  herramienta puntúa cada punto candidato por esas tres cosas y elige el mejor
+  de cada zona; si un objeto sale con una silueta demasiado chica, lo vuelve a
+  intentar con otra semilla y lo avisa en la consola (`<-- revisar`).
+
+**Dónde puede ir cada objeto no lo decide el gusto**: son las cinco `ZONAS` de
+la herramienta, que son la intersección de todo lo que exige el espejo —fuera de
+la zona de la persona, arriba del pie con el nombre, al alcance del brazo y sin
+que dos blancos de la mano se toquen— ya resuelta. Los cinco se eligen juntos,
+porque dos zonas vecinas pueden tener su mejor punto pegado.
+
+`npm run escenas` es un paso de **autoría**, no del evento: baja modelos la
+primera vez y necesita un entorno con `torch`/`diffusers` (índice `cu128` para
+GPU Blackwell; el VAE `madebyollin/sdxl-vae-fp16-fix` no es opcional, sin él
+cada imagen tarda minutos). Lo que se versiona y va al stand son los archivos
+que deja: `imagen.jpg`, `recortes/<n>.png` y `metadata.json`.
+
 ### Qué hace que un fondo sirva
+
 
 El fondo no es una ilustración: es un **escenario** que tiene que aguantar dos
 cosas encima, una persona recortada y un objeto apoyado. De ahí salen los cinco
@@ -132,6 +174,9 @@ la persona y el objeto encima no pueden competir con el escenario.
 Cada carrera contiene una o más subcarpetas dentro de `fondos/`. Cada carpeta representa un candidato de fondo y contiene:
 - `imagen.jpg` (o `.png`): la imagen de la escena.
 - `video.mp4` (opcional): video en loop para fondos con movimiento.
+- `recortes/<n>.png` (fondo generado): la silueta de cada objeto, recortada a su
+  caja, en el orden de `objetos`. Es lo que deja levantar el objeto de la foto;
+  sin ella la escena se ve igual y la mano pasa por encima sin que pase nada.
 - `metadata.json`: coordenadas de ubicación:
 
 ```json

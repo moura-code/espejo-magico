@@ -174,6 +174,34 @@ export function validarEstructura(carrerasCrudas, { figurasValidas = null } = {}
             );
           }
         }
+
+        // Los recortes son lo que distingue a un fondo generado: la mascara con
+        // la que se pinto cada objeto adentro de la foto y la caja donde vive.
+        // Van uno por objeto y en su orden; de a menos, el espejo se queda sin
+        // saber que pedazo levantar y la mano pasa por encima sin que pase nada.
+        if (meta.recortes !== undefined && meta.recortes !== null) {
+          if (!Array.isArray(meta.recortes)) {
+            errores.push(`${rutaFondo}/metadata.json: "recortes" tiene que ser una lista`);
+          } else {
+            if (meta.recortes.length !== objetos.length) {
+              errores.push(
+                `${rutaFondo}/metadata.json: declara ${meta.recortes.length} recortes y la carrera tiene ${objetos.length} objetos`,
+              );
+            }
+            meta.recortes.forEach((recorte, k) => {
+              const cual = `${rutaFondo}/metadata.json recortes[${k}]`;
+              if (!esTextoUtil(recorte?.archivo)) {
+                errores.push(`${cual}: falta "archivo"`);
+              }
+              const caja = recorte?.caja;
+              if (!Array.isArray(caja) || caja.length !== 4 || !caja.every(entreCeroYUno)) {
+                errores.push(`${cual}: "caja" tiene que ser [x0, y0, x1, y1] entre 0 y 1`);
+              } else if (!(caja[2] > caja[0]) || !(caja[3] > caja[1])) {
+                errores.push(`${cual}: "caja" esta dada vuelta o vacia`);
+              }
+            });
+          }
+        }
       }
     }
   }

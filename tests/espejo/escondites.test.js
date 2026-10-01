@@ -3,6 +3,7 @@ import {
   lugaresDelFondo,
   esconder,
   balanceo,
+  latidoDelObjeto,
   aspectoDelObjeto,
   objetosDelFondo,
   fichaDelObjeto,
@@ -306,5 +307,95 @@ describe('fichaDelObjeto', () => {
     expect(circulo.radio).toBeCloseTo(76 * 1.14);
     expect(opciones.hasta).toBeCloseTo(0.14 * 1920);
     expect(opciones.tipografia).toBe(CONFIG_FALSA.fichas.tipografia);
+  });
+});
+
+// El latido reemplaza al vaiven cuando el objeto vive ADENTRO de la foto: ahi
+// no se puede mecer —son pixeles de la escena— y lo unico que lo delata es un
+// resplandor que respira debajo.
+describe('latidoDelObjeto', () => {
+  const LATIDO = { halo: 0.1, amplitud: 0.5, periodoMs: 4000, variacion: 0.2 };
+
+  it('respira alrededor de su halo y nunca se apaga del todo', () => {
+    const valores = [];
+    for (let ahora = 0; ahora <= 8000; ahora += 50) {
+      valores.push(latidoDelObjeto(ahora, 0, LATIDO));
+    }
+    expect(Math.min(...valores)).toBeCloseTo(0.05, 5);
+    expect(Math.max(...valores)).toBeCloseTo(0.15, 5);
+    expect(Math.min(...valores)).toBeGreaterThan(0);
+  });
+
+  // Cinco latiendo al unisono se leen como una animacion pegada encima, no como
+  // cosas que estan ahi: es el mismo motivo que el desfase del balanceo.
+  it('cada objeto late a su ritmo y arranca en otro punto', () => {
+    const enCero = [0, 1, 2, 3, 4].map((i) => latidoDelObjeto(0, i, LATIDO));
+    expect(new Set(enCero.map((v) => v.toFixed(6))).size).toBe(5);
+
+    const unPeriodo = (i) => LATIDO.periodoMs * (1 + LATIDO.variacion * i);
+    expect(unPeriodo(1)).toBeGreaterThan(unPeriodo(0));
+    expect(unPeriodo(4)).toBeGreaterThan(unPeriodo(3));
+  });
+
+  // Sin saltos: un resplandor a los tirones se lee como un parpadeo.
+  it('es continuo', () => {
+    let anterior = latidoDelObjeto(0, 2, LATIDO);
+    for (let ahora = 16; ahora <= 6000; ahora += 16) {
+      const actual = latidoDelObjeto(ahora, 2, LATIDO);
+      expect(Math.abs(actual - anterior)).toBeLessThan(0.01);
+      anterior = actual;
+    }
+  });
+});
+
+// Un fondo generado trae los objetos pintados adentro y la mascara de cada uno.
+// El recorte tiene que viajar con su objeto: sin el, el espejo no sabe que
+// pedazo de la foto levantar cuando la mano pasa por encima.
+describe('objetosDelFondo con recortes', () => {
+  const conRecortes = {
+    lugar: { x: 0.2, y: 0.3, escala: 0.16 },
+    escondites: [{ x: 0.8, y: 0.3, escala: 0.16 }],
+    recortes: [
+      { img: 'a.png', caja: [0.1, 0.2, 0.3, 0.4] },
+      { img: 'b.png', caja: [0.7, 0.2, 0.9, 0.4] },
+    ],
+  };
+  const puestos = () =>
+    objetosDelFondo({
+      objetos: [{ nombre: 'uno' }, { nombre: 'dos' }],
+      fondo: conRecortes,
+      rectangulo: { x: 0, y: 0, ancho: 1000, alto: 1000 },
+      pantalla: { ancho: 1000, alto: 1000 },
+      config: {
+        fondo: {
+          lugarPorDefecto: POR_DEFECTO.lugar,
+          esconditesPorDefecto: POR_DEFECTO.escondites,
+          margenDelLugar: 1,
+          agrandarEnApaisado: 1,
+        },
+      },
+    });
+
+  it('cada objeto lleva su recorte, en el orden de los lugares', () => {
+    expect(puestos().map((o) => o.recorte?.img)).toEqual(['a.png', 'b.png']);
+  });
+
+  it('sin recortes declarados, cada objeto lo deja en null', () => {
+    const sinRecortes = { ...conRecortes, recortes: undefined };
+    const puestosSinRecortes = objetosDelFondo({
+      objetos: [{ nombre: 'uno' }, { nombre: 'dos' }],
+      fondo: sinRecortes,
+      rectangulo: { x: 0, y: 0, ancho: 1000, alto: 1000 },
+      pantalla: { ancho: 1000, alto: 1000 },
+      config: {
+        fondo: {
+          lugarPorDefecto: POR_DEFECTO.lugar,
+          esconditesPorDefecto: POR_DEFECTO.escondites,
+          margenDelLugar: 1,
+          agrandarEnApaisado: 1,
+        },
+      },
+    });
+    expect(puestosSinRecortes.map((o) => o.recorte)).toEqual([null, null]);
   });
 });

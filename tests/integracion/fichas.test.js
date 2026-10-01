@@ -1,23 +1,34 @@
 // Las fichas de los objetos del fondo, con el catalogo y la CONFIG de verdad.
 //
-// La ficha va en un cartel ancho arriba de la cabeza (disponerFicha). Todas las
-// del catalogo tienen que cumplir lo mismo: entrar enteras en esa franja sin
-// bajar hasta la cara, con la letra que pide la config —achicarse es el
-// seguro, no el plan—, con el nombre y cada renglon adentro del panel, y sin
-// tapar a ninguno de los objetos del fondo, tampoco al que se esta leyendo, que
-// crece. Al costado de su objeto, en la franja angosta de la periferia, "Lector
-// de código de barras" se salia de la pantalla, una de cada seis fichas tapaba
-// a un vecino y con la letra grande ya no entraban.
+// Hay dos clases de ficha, y cual le toca a cada objeto lo decide el fondo
+// (fichaDelObjeto). Las dos tienen que cumplir lo mismo en lo que importa: la
+// descripcion entera adentro del panel, con la letra que pide la config
+// —achicarse es el seguro, no el plan—, y sin tapar a ninguno de los objetos
+// del fondo, tampoco al que se esta leyendo.
+//
+//   - EN EL CARTEL DE ARRIBA DE LA CABEZA, cuando los objetos son PNGs sueltos
+//     repartidos por la periferia. Es la unica franja que no le tapa la cara a
+//     nadie: al costado de su objeto, "Lector de código de barras" se salia de
+//     la pantalla, una de cada seis fichas tapaba a un vecino y con la letra
+//     grande ya no entraban.
+//   - DEBAJO DE SU OBJETO, cuando el objeto vive adentro de la foto (un fondo
+//     generado). Ahi de cual habla ya no hay que adivinarlo —el objeto se
+//     levanta de la escena— pero el texto tiene que estar pegado a el, y el
+//     cartel se corre hacia el centro si abajo le tapa al vecino de la columna.
 //
 // Los objetos y lo que se le pasa a la ficha salen de las mismas funciones que
-// usa el espejo (objetosDelFondo y fichaDelObjeto): armados aca por separado,
-// el espejo podia cambiar el margen o el radio de la ficha y esto seguia en
-// verde.
+// usa el espejo (objetosDelFondo, fichaDelObjeto y disponerFichaDeObjeto):
+// armados aca por separado, el espejo podia cambiar el margen o el radio de la
+// ficha y esto seguia en verde.
 
 import { describe, it, expect } from 'vitest';
 
 import { CONFIG } from '../../espejo/config.js';
-import { calcularDisposicion, calcularRectanguloVideo, disponerFicha } from '../../espejo/escena.js';
+import {
+  calcularDisposicion,
+  calcularRectanguloVideo,
+  disponerFichaDeObjeto,
+} from '../../espejo/escena.js';
 import { objetosDelFondo, fichaDelObjeto } from '../../espejo/escondites.js';
 import { construirCatalogo } from '../../servidor/catalogo.js';
 
@@ -61,13 +72,15 @@ async function fichasDelCatalogo(pantalla = ESPEJO) {
         config: CONFIG,
       });
       for (const objeto of delFondo) {
-        const { circulo, opciones } = fichaDelObjeto(objeto, pantalla, CONFIG);
+        const otros = delFondo.filter((otro) => otro.id !== objeto.id);
+        const { circulo, opciones } = fichaDelObjeto(objeto, pantalla, CONFIG, otros);
         casos.push({
           nombre: `${fondo.img} · ${objeto.definicion.nombre}`,
+          debajo: Boolean(opciones.ancla),
           objeto: circulo,
-          otros: delFondo.filter((otro) => otro.id !== objeto.id),
+          otros,
           hasta: opciones.hasta,
-          ficha: disponerFicha(objeto.definicion, enPantalla, medir, opciones),
+          ficha: disponerFichaDeObjeto(objeto.definicion, enPantalla, medir, opciones),
         });
       }
     }
@@ -81,18 +94,54 @@ describe('las fichas del catalogo real', () => {
     expect(sinFicha.map((caso) => caso.nombre)).toEqual([]);
   });
 
-  // La franja de arriba de la cabeza es la unica que no le tapa la cara a
-  // nadie. En un monitor apaisado —donde se desarrolla— la composicion entra
-  // mas chica y el cartel con ella, y tiene que cumplir lo mismo.
+  // En un monitor apaisado —donde se desarrolla— la composicion entra mas chica
+  // y el cartel con ella, y tiene que cumplir lo mismo.
   for (const [donde, pantalla] of [
     ['en el espejo', ESPEJO],
     ['en un monitor apaisado', APAISADA],
   ]) {
-    it(`${donde}, entran enteras arriba sin bajar hasta la cara`, async () => {
-      const afuera = (await fichasDelCatalogo(pantalla)).filter(({ hasta, ficha: { caja } }) => {
-        return caja.x < 0 || caja.x + caja.ancho > pantalla.ancho || caja.y < 0 || caja.y + caja.alto > hasta;
+    it(`${donde}, entran enteras en la pantalla`, async () => {
+      const afuera = (await fichasDelCatalogo(pantalla)).filter(({ ficha: { caja } }) => {
+        return (
+          caja.x < 0 ||
+          caja.x + caja.ancho > pantalla.ancho ||
+          caja.y < 0 ||
+          caja.y + caja.alto > pantalla.alto
+        );
       });
       expect(afuera.map((caso) => caso.nombre)).toEqual([]);
+    });
+
+    // La franja de arriba de la cabeza es la unica que no le tapa la cara a
+    // nadie: la ficha del cartel no puede bajar de ahi.
+    it(`${donde}, las del cartel no bajan hasta la cara`, async () => {
+      const bajas = (await fichasDelCatalogo(pantalla))
+        .filter((caso) => !caso.debajo)
+        .filter(({ hasta, ficha: { caja } }) => caja.y + caja.alto > hasta);
+      expect(bajas.map((caso) => caso.nombre)).toEqual([]);
+    });
+
+    // EL PIE ES DEL NOMBRE DE LA INGENIERIA, y se dibuja despues que las
+    // fichas: una ficha que baje hasta ahi queda con medio texto tapado.
+    it(`${donde}, ninguna baja hasta el nombre de la ingenieria`, async () => {
+      const { pie } = calcularDisposicion(pantalla.ancho, pantalla.alto);
+      const bajas = (await fichasDelCatalogo(pantalla)).filter(
+        ({ ficha: { caja } }) => caja.y + caja.alto > pantalla.alto - pie.alto,
+      );
+      expect(bajas.map((caso) => caso.nombre)).toEqual([]);
+    });
+
+    // La ficha que va debajo tiene que quedar PEGADA a su objeto: si se fuera
+    // al otro extremo de la pantalla seria el cartel de arriba, pero peor.
+    it(`${donde}, las de debajo quedan al lado de su objeto`, async () => {
+      const lejos = (await fichasDelCatalogo(pantalla))
+        .filter((caso) => caso.debajo)
+        .filter(({ objeto, ficha: { caja } }) => {
+          const cercaX = Math.max(caja.x, Math.min(objeto.x, caja.x + caja.ancho));
+          const cercaY = Math.max(caja.y, Math.min(objeto.y, caja.y + caja.alto));
+          return Math.hypot(objeto.x - cercaX, objeto.y - cercaY) > objeto.radio * 2.2;
+        });
+      expect(lejos.map((caso) => caso.nombre)).toEqual([]);
     });
 
     // Tapar al objeto que describe deja a la ficha hablando de algo que no se
@@ -109,12 +158,16 @@ describe('las fichas del catalogo real', () => {
     });
   }
 
-  // Achicar la letra es el seguro de disponerFicha para una descripcion que no
-  // entra. Con el catalogo de verdad no puede hacer falta: si hiciera, la letra
-  // de la config estaria prometiendo algo que el espejo no muestra.
+  // Achicar la letra es el seguro para una descripcion que no entra. Con el
+  // catalogo de verdad no puede hacer falta: si hiciera, la letra de la config
+  // estaria prometiendo algo que el espejo no muestra.
   it('en el espejo van con la letra que pide la config, sin achicarse', async () => {
-    const pedida = Math.round(calcularDisposicion(1080, 1920).texto.tamanoFrase * CONFIG.fichas.tipografia.texto);
-    const achicadas = (await fichasDelCatalogo()).filter(({ ficha }) => px(ficha.fuenteTexto) !== pedida);
+    const pedida = Math.round(
+      calcularDisposicion(1080, 1920).texto.tamanoFrase * CONFIG.fichas.tipografia.texto,
+    );
+    const achicadas = (await fichasDelCatalogo()).filter(
+      ({ ficha }) => px(ficha.fuenteTexto) !== pedida,
+    );
     expect(achicadas.map((caso) => caso.nombre)).toEqual([]);
   });
 

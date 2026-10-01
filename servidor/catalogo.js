@@ -41,6 +41,15 @@ export async function construirCatalogo({
         video: f.rutaVideo,
         lugar: f.metadata.lugar,
         escondites: f.metadata.escondites,
+        // Los recortes de un fondo generado: la mascara de cada objeto que vive
+        // adentro de la foto y la caja donde vive, normalizada a la imagen. El
+        // metadata declara solo el nombre del archivo; la ruta se arma aca, como
+        // la de la imagen y la del video, para que el espejo reciba siempre
+        // rutas servibles y nadie las concatene por su cuenta.
+        recortes: (f.metadata.recortes ?? null)?.map((recorte) => ({
+          img: `${carrera.rutaRelativa}/fondos/${f.id}/${recorte.archivo}`,
+          caja: recorte.caja,
+        })),
       })),
       objetos: carrera.objetos.map((o) => ({
         id: o.id,

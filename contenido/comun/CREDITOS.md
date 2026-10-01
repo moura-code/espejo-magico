@@ -77,6 +77,33 @@ Ryan Kissinger | Public domain |
 | `quimica/densimetro.png` | [Thinktank Birmingham - object 1956S00727.00004(1).jpg](https://commons.wikimedia.org/wiki/File:Thinktank_Birmingham_-_object_1956S00727.00004(1).jpg) | Birmingham Museums Trust | CC BY-SA 4.0 |
 | `banco/quimica/agitador-magnetico.png` | [RCT basic IKAMAG® safety control magnetic stirrer.jpg](https://commons.wikimedia.org/wiki/File:RCT_basic_IKAMAG%C2%AE_safety_control_magnetic_stirrer.jpg) | Lucasbosch | CC BY-SA 3.0 |
 
+## Fondos (los vigentes)
+
+Los doce fondos activos —`carreras/<id>/fondos/escena/`— **no son fotografías:
+se generan localmente** con `npm run escenas` (`herramientas/escenas.py`), a
+partir de modelos de difusión abiertos que corren en la máquina de desarrollo.
+No hay red en tiempo de ejecución: lo que va al stand son los archivos ya
+generados.
+
+Los modelos usados y sus licencias:
+
+| Modelo | Para qué | Licencia |
+|---|---|---|
+| [`SG161222/RealVisXL_V5.0`](https://huggingface.co/SG161222/RealVisXL_V5.0) | La escena de cada ingeniería | CreativeML Open RAIL++-M |
+| [`diffusers/stable-diffusion-xl-1.0-inpainting-0.1`](https://huggingface.co/diffusers/stable-diffusion-xl-1.0-inpainting-0.1) | Pintar cada instrumento adentro de la escena | CreativeML Open RAIL++-M |
+| [`madebyollin/sdxl-vae-fp16-fix`](https://huggingface.co/madebyollin/sdxl-vae-fp16-fix) | Decodificar en fp16 (sin él cada imagen tarda minutos) | MIT |
+
+FLUX.1 (`schnell` y `dev`) quedó afuera a propósito: sus repositorios están
+cerrados detrás de una aceptación de licencia, y la de `dev` es *non-commercial*.
+La Open RAIL++-M no restringe el uso, sí prohíbe una lista de usos dañinos que
+no aplican acá.
+
+Los **objetos** que giran en el carrusel siguen siendo las fotografías de
+Wikimedia Commons de la sección anterior: son los que se muestran sueltos, sobre
+el espejo, y los que vuelan a su lugar.
+
+---
+
 ## Fondos retirados
 
 Las imágenes listadas en esta sección fueron retiradas del catálogo activo y

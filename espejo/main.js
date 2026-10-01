@@ -30,7 +30,12 @@ import { crearEleccion } from './eleccion.js';
 import { crearTablero } from './tablero.js';
 import { crearSilueta } from './silueta.js';
 import { posicionEnVuelo } from './vuelo.js';
-import { aspectoDelObjeto, objetosDelFondo, fichaDelObjeto } from './escondites.js';
+import {
+  aspectoDelObjeto,
+  latidoDelObjeto,
+  objetosDelFondo,
+  fichaDelObjeto,
+} from './escondites.js';
 import { crearFichas } from './fichas.js';
 import { crearPuente } from './maite.js';
 import { alfaDeHumo } from './humo.js';
@@ -60,6 +65,8 @@ import {
   dibujarObjeto,
   dibujarObjetoApoyado,
   dibujarObjetosDelante,
+  dibujarRecorte,
+  dibujarLatido,
   dibujarAnilloDeProgreso,
   dibujarDiscoDeCarga,
   dibujarFicha,
@@ -91,6 +98,13 @@ const persona = { canvas: capaPersona, ctx: ctxPersona };
 // que se esta leyendo, que detras le tapaba la mano.
 const capaDelante = document.createElement('canvas');
 const delante = { canvas: capaDelante, ctx: capaDelante.getContext('2d') };
+// Y una tercera para sacar un objeto de adentro de la foto: recortarlo necesita
+// sus propias dos pasadas (la foto y despues su mascara en `destination-in`) y
+// no puede usar la capa de arriba, que es justamente adonde va a parar. No se
+// ajusta con la ventana: dibujarRecorte la lleva a la medida del objeto, que es
+// lo que hace barato el `destination-in`.
+const capaRecorte = document.createElement('canvas');
+const capaDeObjeto = { canvas: capaRecorte, ctx: capaRecorte.getContext('2d') };
 const metricas = crearMedidorDeEtapas({ ventana: 60 });
 const acumuladorDeDibujo = crearAcumuladorDeEtapas();
 const webgl2Disponible = Boolean(document.createElement('canvas').getContext('webgl2'));
@@ -887,9 +901,76 @@ function cuadro(ahora) {
     // al que se esta leyendo.
     const detras = [];
 
-    // Los escondidos van DETRAS de la persona, integrados a la escena, y se
-    // mecen apenas: es lo unico que los delata.
+    // CON UN FONDO GENERADO LOS OBJETOS YA ESTAN EN LA FOTO. Se pintaron adentro
+    // de la escena (herramientas/escenas.py), con la luz, la sombra de contacto
+    // y el reflejo de esa mesada: no hay ningun PNG que dibujar encima, y por eso
+    // en reposo aca no se dibuja ninguno. Lo unico que se agrega es su latido
+    // —el resplandor tenue que los delata, que reemplaza al vaiven, porque un
+    // objeto pintado adentro de la foto no se puede mecer— y, cuando la mano lo
+    // toca, el objeto RECORTADO DE LA PROPIA FOTO, levantado e iluminado.
+    //
+    // Se recorta de la FOTO del fondo, no de lo que se haya dibujado: si la
+    // imagen todavia no cargo, lo que hay abajo es la escena vectorial de
+    // respaldo, que no tiene ningun instrumento adentro. Sin foto se cae entero
+    // al comportamiento de siempre —los PNG sueltos, meciendose— en vez de
+    // quedarse con objetos invisibles hasta que alguien los toca.
+    const fuenteDelFondo = dibujado ? (videoDeFondo ?? imagenDeFondo ?? null) : null;
+    const hayRecortes = Boolean(fondo?.recortes?.length) && Boolean(fuenteDelFondo);
+
+    // Como se dibuja un objeto del fondo: si tiene recorte, sacandolo de la foto;
+    // si no, con su PNG, como siempre. Se decide por objeto y no por fondo para
+    // que un recorte que falte caiga al PNG en vez de dejar un hueco.
+    const pintarDelFondo = (destino, objeto) => {
+      const mascara = objeto.recorte ? banco.obtener(objeto.recorte.img) : null;
+      if (!mascara || !fuenteDelFondo) {
+        dibujarObjeto(destino, objeto, banco, CONFIG.paleta.nombre);
+        return;
+      }
+      dibujarRecorte(
+        destino,
+        {
+          fuente: fuenteDelFondo,
+          mascara,
+          caja: objeto.recorte.caja,
+          rectangulo: rectanguloDelFondo,
+          // Crece y se ilumina siguiendo a la mano, no de golpe: es el mismo
+          // `leyendo` con el que entra su ficha.
+          crecer: 1 + (CONFIG.recortes.crecer - 1) * objeto.leyendo,
+          brillo: CONFIG.recortes.brillo * objeto.leyendo,
+          alfa: objeto.alfa,
+        },
+        capaDeObjeto,
+      );
+    };
+
+    // El resplandor que delata a un objeto escondido en la foto: respira
+    // mientras nadie lo toca y se queda fijo, mas fuerte, cuando lo estan
+    // leyendo. Va debajo de la persona, como el objeto.
+    const latir = ({ x, y, radio, id, indice = 0 }, alfa) => {
+      const leyendo = enFoco(id);
+      const intensidad =
+        alfa *
+        Math.max(
+          latidoDelObjeto(ahora, indice, CONFIG.recortes.latido) * (1 - leyendo),
+          CONFIG.recortes.haloAlLeer * leyendo,
+        );
+      dibujarLatido(ctx, { x, y, radio, intensidad, color: CONFIG.paleta.nombre });
+    };
+
+    // Los escondidos van DETRAS de la persona, integrados a la escena. Con PNGs
+    // se mecen apenas, que es lo unico que los delata; pintados adentro de la
+    // foto no pueden mecerse y los delata el latido.
     for (const escondido of escondidos) {
+      if (hayRecortes) {
+        const dibujo = { ...escondido, alfa: transicion.escondidos, leyendo: enFoco(escondido.id) };
+        acumuladorDeDibujo.medir('objects', () => {
+          latir(escondido, dibujo.alfa);
+          if (dibujo.leyendo > 0) pintarDelFondo(ctx, dibujo);
+        });
+        detras.push(dibujo);
+        continue;
+      }
+
       const { dy, giro, radio, halo } = aspecto(escondido);
       const dibujo = {
         definicion: escondido.definicion,
@@ -907,13 +988,14 @@ function cuadro(ahora) {
     }
 
     // El que llego volando vuela quieto y sin halo; al aterrizar arranca a
-    // flotar y le entra el halo, de a poco.
-    const comoSeVe = aterrizo
-      ? aspecto(
-          { id: 0, radio: enVuelo.radio },
-          { esElegido: true, desdeElAterrizaje: ahora - miraDesde - CONFIG.tiempos.vuelo },
-        )
-      : { dy: 0, giro: 0, radio: enVuelo.radio, halo: 0 };
+    // flotar y le entra el halo, de a poco. En un fondo generado no flota: ahi
+    // abajo esta el mismo objeto pintado en la foto, y el PNG tiene que caer
+    // justo encima para fundirse con el.
+    const desdeElAterrizaje = ahora - miraDesde - CONFIG.tiempos.vuelo;
+    const comoSeVe =
+      aterrizo && !hayRecortes
+        ? aspecto({ id: 0, radio: enVuelo.radio }, { esElegido: true, desdeElAterrizaje })
+        : { dy: 0, giro: 0, radio: enVuelo.radio, halo: 0 };
     apoyado = {
       definicion: objetoMostrado,
       x: enVuelo.x,
@@ -926,11 +1008,33 @@ function cuadro(ahora) {
     // Apoyado, va DETRAS de la persona: integrado a la escena. Si la persona se
     // inclina sobre ese punto lo tapa, que es lo correcto.
     if (aterrizo) {
-      const dibujo = { ...apoyado, alfa: transicion.elegido, halo: comoSeVe.halo };
-      acumuladorDeDibujo.medir('objects', () =>
-        dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre),
-      );
-      detras.push({ ...dibujo, leyendo: enFoco(0) });
+      if (hayRecortes) {
+        // EL PNG QUE LLEGO VOLANDO SE FUNDE CON EL QUE YA ESTABA PINTADO AHI.
+        // Los dos no son identicos, asi que dejar de dibujarlo de golpe al
+        // aterrizar seria un salto justo en el cuadro mas mirado.
+        const t = Math.min(1, Math.max(0, desdeElAterrizaje / CONFIG.recortes.msDeFusion));
+        const fundido = 1 - t * t * (3 - 2 * t);
+        const dibujo = { ...quieto, alfa: transicion.elegido, leyendo: enFoco(0) };
+        acumuladorDeDibujo.medir('objects', () => {
+          latir(quieto, dibujo.alfa);
+          if (dibujo.leyendo > 0) pintarDelFondo(ctx, dibujo);
+          if (fundido > 0) {
+            dibujarObjeto(
+              ctx,
+              { ...apoyado, alfa: transicion.elegido * fundido },
+              banco,
+              CONFIG.paleta.nombre,
+            );
+          }
+        });
+        detras.push(dibujo);
+      } else {
+        const dibujo = { ...apoyado, alfa: transicion.elegido, halo: comoSeVe.halo };
+        acumuladorDeDibujo.medir('objects', () =>
+          dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre),
+        );
+        detras.push({ ...dibujo, leyendo: enFoco(0) });
+      }
     }
 
     if (hayRecorte) {
@@ -963,6 +1067,7 @@ function cuadro(ahora) {
             .map((dibujo) => ({ ...dibujo, alfa: dibujo.alfa * dibujo.leyendo })),
           banco,
           color: CONFIG.paleta.nombre,
+          pintar: pintarDelFondo,
         }),
       );
     }
@@ -1120,7 +1225,12 @@ function cuadro(ahora) {
   for (const objeto of delFondo) {
     const alfa = (estadoFichas.alfas[objeto.id] ?? 0) * transicion.fondo;
     if (alfa <= 0) continue;
-    const { opciones } = fichaDelObjeto(objeto, disposicion, CONFIG);
+    const { opciones } = fichaDelObjeto(
+      objeto,
+      disposicion,
+      CONFIG,
+      delFondo.filter((otro) => otro.id !== objeto.id),
+    );
     acumuladorDeDibujo.medir('ui', () =>
       dibujarFicha(
         ctx,

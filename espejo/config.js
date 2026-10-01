@@ -453,6 +453,37 @@ export const CONFIG = {
     calmaAlLeer: 0.7,
   },
 
+  // Los objetos que viven ADENTRO de la foto, en los fondos generados
+  // (herramientas/escenas.py). No hay PNG que dibujar encima: el instrumento ya
+  // esta pintado en la escena, con su sombra y su reflejo. Lo que se calibra
+  // aca es como se lo saca de ahi cuando la mano pasa por arriba.
+  recortes: {
+    // Cuanto crece el objeto levantado, y cuanto se ilumina. Crece desde su
+    // propio centro: asi se separa del hueco que deja sin correrse de lugar.
+    // Poco a proposito —es un objeto de la escena, no un icono—, pero lo justo
+    // para que no se confunda con su propio agujero, que tiene su misma forma.
+    crecer: 1.16,
+    brillo: 0.18,
+
+    // El resplandor que lo delata mientras nadie lo toca. Reemplaza al vaiven
+    // de los objetos sueltos: un objeto pintado adentro de la foto no se puede
+    // mecer. `halo` es el medio del latido y `amplitud` cuanto se abre a cada
+    // lado; `variacion` hace que cada uno lata a su ritmo, porque cinco al
+    // unisono se leen como una animacion pegada encima.
+    //
+    // Muy tenue: si se leyera como un boton alrededor del objeto volveriamos al
+    // sticker que estos fondos existen para sacar.
+    latido: { halo: 0.1, amplitud: 0.55, periodoMs: 4600, variacion: 0.19 },
+
+    // El que se esta leyendo late fijo, sin respirar: ya se sabe cual es.
+    haloAlLeer: 0.3,
+
+    // Lo que tarda el PNG que llego volando en fundirse con el objeto que ya
+    // estaba pintado en su lugar. Los dos no son identicos, asi que dejar de
+    // dibujarlo de golpe al aterrizar seria un salto en el cuadro mas mirado.
+    msDeFusion: 450,
+  },
+
   // La ficha de cada objeto del fondo: al pasar la mano por encima se abre su
   // nombre y una descripcion corta.
   //
@@ -489,6 +520,14 @@ export const CONFIG = {
     // larga del catalogo tiene que entrar ahi en tres renglones. Si no entrara,
     // la ficha achica la letra sola, y tests/integracion/fichas.test.js avisa.
     tipografia: { texto: 1, titulo: 1.5 },
+
+    // La ficha que va DEBAJO de su objeto (fondos generados): su ancho en
+    // fraccion de la composicion, y el aire entre el objeto y el cartel en
+    // radios del objeto. El ancho es el compromiso: mas angosta parte la
+    // descripcion en seis renglones, mas ancha le tapa el objeto vecino.
+    // tests/integracion/fichas.test.js exige las dos cosas con el catalogo real.
+    anchoDebajo: 0.42,
+    huecoDebajo: 0.3,
   },
 
   // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio

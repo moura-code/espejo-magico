@@ -250,12 +250,21 @@ export function dibujarPersonaRecortada(ctx, { capa, video, rectangulo, silueta,
  * tapa no se dibuja dos veces, ni su sombra ni los bordes del PNG, y donde la
  * mano lo tapaba aparece encima de ella. `objetos` son como los de
  * dibujarObjeto, cada uno con su alfa.
+ *
+ * `pintar` es como se dibuja cada uno. Por defecto es el PNG; los fondos
+ * generados pasan el que recorta el objeto de la propia foto. La capa y el
+ * recorte contra la persona son los mismos en los dos casos, y por eso esto no
+ * sabe cual de los dos le toco.
  */
-export function dibujarObjetosDelante(ctx, { capa, persona, disposicion, objetos, banco, color }) {
+export function dibujarObjetosDelante(
+  ctx,
+  { capa, persona, disposicion, objetos, banco, color, pintar = null },
+) {
   if (objetos.length === 0) return;
   const { ancho, alto } = disposicion;
   capa.ctx.clearRect(0, 0, ancho, alto);
-  for (const objeto of objetos) dibujarObjeto(capa.ctx, objeto, banco, color);
+  const dibujarUno = pintar ?? ((destino, objeto) => dibujarObjeto(destino, objeto, banco, color));
+  for (const objeto of objetos) dibujarUno(capa.ctx, objeto);
 
   capa.ctx.save();
   capa.ctx.globalCompositeOperation = 'destination-in';
@@ -263,6 +272,117 @@ export function dibujarObjetosDelante(ctx, { capa, persona, disposicion, objetos
   capa.ctx.restore();
 
   ctx.drawImage(capa.canvas, 0, 0);
+}
+
+/**
+ * Donde cae en pantalla una caja normalizada a la imagen del fondo. `caja` es
+ * `[x0, y0, x1, y1]` y `rectangulo` es donde se dibujo la foto (lo devuelve
+ * dibujarFondo). Es la misma cuenta que lugarEnPantalla hace para un punto, y
+ * por el mismo motivo sale de aca y no del llamador: calcularla dos veces es la
+ * receta conocida de que el recorte se separe de la foto de la que sale.
+ */
+export function cajaEnPantalla(caja, rectangulo) {
+  const [x0, y0, x1, y1] = caja;
+  return {
+    x: rectangulo.x + x0 * rectangulo.ancho,
+    y: rectangulo.y + y0 * rectangulo.alto,
+    ancho: (x1 - x0) * rectangulo.ancho,
+    alto: (y1 - y0) * rectangulo.alto,
+  };
+}
+
+/**
+ * Un objeto que YA ESTA EN LA FOTO, recortado de ella.
+ *
+ * Los fondos generados (herramientas/escenas.py) traen los cinco instrumentos
+ * pintados ADENTRO de la escena, con la luz, la sombra de contacto y el reflejo
+ * de esa mesada. No hay ningun PNG que dibujar encima, y por eso en reposo aca
+ * no se dibuja nada: el objeto ya se ve, es parte de la foto.
+ *
+ * Lo unico que hace falta es poder SACARLO de la foto cuando la mano pasa por
+ * arriba —para levantarlo, iluminarlo y ponerlo delante de la persona—, y para
+ * eso cada objeto trae su `mascara`: la silueta con la que se lo pinto. Se
+ * recorta de `fuente`, que es la MISMA foto o el mismo video que se dibujo de
+ * fondo; asi el pedazo que se levanta es exactamente el que estaba ahi.
+ *
+ * `capa` es un lienzo aparte, como el de la persona: el recorte necesita dos
+ * pasadas —la foto y despues la mascara en `destination-in`— y hacerlas sobre
+ * el lienzo principal se llevaria puesto todo lo que ya esta dibujado.
+ *
+ * `crecer` y `brillo` son lo que lo despega de su propio hueco: crece desde su
+ * centro, de manera que el objeto se separa del agujero que deja sin correrse
+ * de lugar.
+ */
+export function dibujarRecorte(
+  ctx,
+  { fuente, mascara, caja, rectangulo, crecer = 1, brillo = 0, alfa = 1 },
+  capa,
+) {
+  if (!fuente || !mascara || !caja || !capa || alfa <= 0) return;
+  const medidas = medidasDe(fuente);
+  if (!medidas) return;
+
+  const destino = cajaEnPantalla(caja, rectangulo);
+  const ancho = Math.ceil(destino.ancho);
+  const alto = Math.ceil(destino.alto);
+  if (ancho < 2 || alto < 2) return;
+
+  // La capa se ajusta al objeto, no a la pantalla: el `destination-in` de abajo
+  // toca el lienzo ENTERO, y sobre uno de 1080x1920 son dos millones de pixeles
+  // por cuadro para recortar algo que mide doscientos. Cambiar la medida
+  // ademas lo deja limpio, que es justo lo que hace falta.
+  const [x0, y0, x1, y1] = caja;
+  if (capa.canvas.width !== ancho || capa.canvas.height !== alto) {
+    capa.canvas.width = ancho;
+    capa.canvas.height = alto;
+  } else {
+    capa.ctx.clearRect(0, 0, ancho, alto);
+  }
+  capa.ctx.drawImage(
+    fuente,
+    x0 * medidas.ancho,
+    y0 * medidas.alto,
+    (x1 - x0) * medidas.ancho,
+    (y1 - y0) * medidas.alto,
+    0,
+    0,
+    ancho,
+    alto,
+  );
+  capa.ctx.save();
+  capa.ctx.globalCompositeOperation = 'destination-in';
+  capa.ctx.drawImage(mascara, 0, 0, ancho, alto);
+  capa.ctx.restore();
+
+  const cx = destino.x + destino.ancho / 2;
+  const cy = destino.y + destino.alto / 2;
+  const w = ancho * crecer;
+  const h = alto * crecer;
+
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, alfa);
+  // El brillo es lo que dice "este". Sin el, el objeto levantado se confunde
+  // con el hueco del que salio, que tiene exactamente su forma.
+  if (brillo > 0) ctx.filter = `brightness(${1 + brillo})`;
+  ctx.drawImage(capa.canvas, 0, 0, ancho, alto, cx - w / 2, cy - h / 2, w, h);
+  ctx.restore();
+}
+
+/**
+ * El resplandor que delata a un objeto escondido en la foto. Es lo que
+ * reemplaza al vaiven de los PNG: un objeto pintado adentro de la escena no se
+ * puede mecer, y sin ninguna señal nadie sabe que ahi hay algo para tocar.
+ *
+ * Va DEBAJO de la persona y muy tenue: si se leyera como un boton alrededor del
+ * objeto volveriamos al sticker que este fondo existe para sacar.
+ */
+export function dibujarLatido(ctx, { x, y, radio, intensidad, color }) {
+  if (!(intensidad > 0) || !(radio > 0)) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = Math.min(1, intensidad);
+  resplandor(ctx, x, y, radio * 1.9, color);
+  ctx.restore();
 }
 
 function dibujarSustituto(ctx, radio, color) {
@@ -839,8 +959,140 @@ export function disponerFicha(textos, disposicion, medir, { hasta, tipografia } 
   return ficha;
 }
 
+/**
+ * La ficha de un objeto del fondo, puesta donde le corresponde. Es el par de
+ * `fichaDelObjeto` (escondites.js), que es quien decide cual de las dos: con
+ * `ancla` va pegada debajo del objeto, y sin ella en el cartel de arriba de la
+ * cabeza. La eleccion vive en un solo lado y la usan el espejo, la herramienta
+ * y las pruebas; armada por separado en cada uno, el espejo podia cambiar y las
+ * pruebas seguir en verde.
+ */
+export function disponerFichaDeObjeto(textos, disposicion, medir, opciones = {}) {
+  return opciones.ancla
+    ? disponerFichaDebajo(textos, disposicion, medir, { objeto: opciones.ancla, ...opciones })
+    : disponerFicha(textos, disposicion, medir, opciones);
+}
+
+/**
+ * La ficha DEBAJO de su objeto, que es donde va cuando el objeto vive adentro
+ * de la foto.
+ *
+ * El cartel ancho de arriba de la cabeza existia porque los objetos eran PNGs
+ * grandes pegados en la periferia y no habia forma de poner texto al lado sin
+ * tapar al vecino. Con el objeto integrado a la escena el problema cambia: de
+ * cual habla ya no hay que adivinarlo —el objeto se levanta de la foto y se
+ * ilumina— pero el texto tiene que estar PEGADO a el, si no la mirada va y
+ * vuelve entre dos puntos lejanos de la pantalla.
+ *
+ * Va centrada bajo el objeto y acotada a la pantalla. Si abajo no entra, se
+ * pasa arriba; y si tampoco, se achica la letra, igual que la de arriba de la
+ * cabeza. `tests/integracion/fichas.test.js` lo vigila con el catalogo real.
+ */
+export function disponerFichaDebajo(
+  textos,
+  disposicion,
+  medir,
+  { objeto, otros = [], tipografia, anchoFactor = 0.46, hueco = 0.3 } = {},
+) {
+  if (!tipografia || !objeto) {
+    throw new Error('disponerFichaDebajo necesita la tipografia y el objeto');
+  }
+  const { ancho, alto, unidad } = disposicion;
+  const anchoPedido = Math.max(unidad * 0.3, unidad * anchoFactor);
+  const aire = objeto.radio * hueco;
+
+  // DONDE PUEDE PARARSE, en orden de preferencia. Debajo y centrada es lo que
+  // se lee mejor —el texto cuelga de la cosa—, pero en la columna de la
+  // periferia hay otro objeto mas abajo y el cartel se lo comeria: la persona
+  // iria a buscar algo que la propia ficha le tapo. Por eso la segunda opcion
+  // corre el cartel HACIA EL CENTRO, que es la unica franja sin objetos; y si
+  // abajo no hay lugar, las mismas dos arriba.
+  const haciaElCentro = objeto.x <= ancho / 2 ? 1 : -1;
+  const lugares = (caja) => {
+    const abajo = objeto.y + objeto.radio + aire;
+    const arriba = objeto.y - objeto.radio - aire - caja.alto;
+    const aLaAltura = objeto.y - caja.alto / 2;
+    const centrada = objeto.x - caja.ancho / 2;
+    const corrida =
+      haciaElCentro > 0
+        ? objeto.x + objeto.radio + aire
+        : objeto.x - objeto.radio - aire - caja.ancho;
+    return [
+      { x: centrada, y: abajo },
+      { x: corrida, y: abajo },
+      { x: corrida, y: aLaAltura },
+      { x: centrada, y: arriba },
+      { x: corrida, y: arriba },
+    ];
+  };
+
+  // EL PIE ES ZONA PROHIBIDA. Ahi va el nombre de la ingenieria, sobre su
+  // degradado, y se dibuja DESPUES que las fichas: una ficha que baje hasta ahi
+  // queda con medio texto tapado por el nombre. Pasaba con los dos objetos de
+  // abajo, que son los que mas cerca estan del pie.
+  const pisoUtil = alto - (disposicion.pie?.alto ?? 0);
+  const limpia = (caja) =>
+    caja.y >= 0 &&
+    caja.y + caja.alto <= pisoUtil &&
+    !tocaAlgunCirculo(caja, [objeto, ...otros]);
+
+  for (let achique = 1; achique > 0.55; achique -= 0.07) {
+    const base = armarFicha(textos, disposicion, medir, tipografia, achique, anchoPedido);
+    if (!base) return null;
+    const margen = base.caja.y; // el que armarFicha ya calculo
+    let primera = null;
+    for (const { x, y } of lugares(base.caja)) {
+      const caja = {
+        ...base.caja,
+        x: Math.min(Math.max(margen, x), ancho - margen - base.caja.ancho),
+        // Acotada a la pantalla SIEMPRE: aunque ninguna posicion quede limpia y
+        // haya que mostrarla igual, una ficha con el texto cortado por el borde
+        // no se lee.
+        y: Math.min(Math.max(0, y), Math.max(0, alto - base.caja.alto)),
+      };
+      primera ??= caja;
+      if (limpia(caja)) return moverFicha(base, caja.x - base.caja.x, caja.y - base.caja.y);
+    }
+    // Con la letra mas chica el cartel es mas bajo y puede entrar donde no
+    // entraba. Si ni achicandose encuentra lugar, se muestra igual en el primer
+    // sitio: una ficha que no aparece es peor que una que pisa un borde.
+    if (achique <= 0.62) {
+      return moverFicha(base, primera.x - base.caja.x, primera.y - base.caja.y);
+    }
+  }
+  return null;
+}
+
+/** Si la caja toca alguno de los circulos. */
+function tocaAlgunCirculo(caja, circulos) {
+  return circulos.some(({ x, y, radio }) => {
+    const cercaX = Math.max(caja.x, Math.min(x, caja.x + caja.ancho));
+    const cercaY = Math.max(caja.y, Math.min(y, caja.y + caja.alto));
+    return Math.hypot(x - cercaX, y - cercaY) < radio;
+  });
+}
+
+/** La misma ficha, corrida. Todo lo que lleva coordenadas se mueve junto. */
+function moverFicha(ficha, dx, dy) {
+  if (!ficha || (dx === 0 && dy === 0)) return ficha;
+  const correr = (linea) => ({ ...linea, x: linea.x + dx, y: linea.y + dy });
+  return {
+    ...ficha,
+    caja: { ...ficha.caja, x: ficha.caja.x + dx, y: ficha.caja.y + dy },
+    titulo: ficha.titulo ? { ...ficha.titulo, lineas: ficha.titulo.lineas.map(correr) } : null,
+    lineas: ficha.lineas.map(correr),
+  };
+}
+
 /** La ficha armada con la letra pedida, por `achique` (1 es la pedida). */
-function armarFicha({ nombre, descripcion } = {}, disposicion, medir, tipografia, achique) {
+function armarFicha(
+  { nombre, descripcion } = {},
+  disposicion,
+  medir,
+  tipografia,
+  achique,
+  anchoPedido = null,
+) {
   const hayNombre = esTexto(nombre);
   const hayDescripcion = esTexto(descripcion);
   if (!hayNombre && !hayDescripcion) return null;
@@ -860,8 +1112,9 @@ function armarFicha({ nombre, descripcion } = {}, disposicion, medir, tipografia
   const fuenteTexto = `400 ${tamanoTexto}px ${FAMILIA_TEXTO}`;
 
   // A lo ancho de la composicion: en el espejo, la pantalla entera; en un
-  // monitor apaisado, la franja del medio, donde esta la persona.
-  const anchoCaja = Math.min(ancho, unidad) - margen * 2;
+  // monitor apaisado, la franja del medio, donde esta la persona. La ficha que
+  // va debajo de su objeto pide un ancho menor, para no taparle el vecino.
+  const anchoCaja = Math.min(ancho, anchoPedido ?? unidad) - margen * 2;
   const util = anchoCaja - relleno * 2;
 
   // El nombre va entero si entra; si no, en dos renglones, y si aun asi un
@@ -919,8 +1172,14 @@ function armarFicha({ nombre, descripcion } = {}, disposicion, medir, tipografia
 
 /**
  * La ficha de un objeto del fondo: su nombre y una descripcion corta, en un
- * cartel oscuro arriba de la cabeza. Se enciende con `alfa` y baja apenas al
- * entrar, como un cartel que se descuelga.
+ * cartel oscuro. Se enciende con `alfa` y baja apenas al entrar, como un cartel
+ * que se descuelga.
+ *
+ * Donde va depende del fondo. Con `ancla` —el objeto ya puesto en pantalla— va
+ * pegada debajo de el, que es lo que corresponde cuando el objeto vive adentro
+ * de la foto y se levanta de ella. Sin `ancla`, en el cartel ancho de arriba de
+ * la cabeza, que es la unica franja libre cuando los objetos son PNGs grandes
+ * repartidos por la periferia.
  *
  * Los colores son los de MAITE: el titulo en el de los nombres y el texto en el
  * de los textos de las tablets, sobre un panel del mismo negro. El titulo va en
@@ -931,7 +1190,7 @@ export function dibujarFicha(
   ctx,
   { nombre, descripcion, alfa = 1 },
   disposicion,
-  { colores, hasta, tipografia },
+  { colores, hasta, tipografia, ancla = null, anchoFactor, hueco },
 ) {
   if (alfa <= 0 || (!esTexto(nombre) && !esTexto(descripcion))) return;
 
@@ -942,7 +1201,17 @@ export function dibujarFicha(
     ctx.font = fuente;
     return ctx.measureText(texto).width;
   };
-  const ficha = disponerFicha({ nombre, descripcion }, disposicion, medir, { hasta, tipografia });
+  const ficha = disponerFichaDeObjeto({ nombre, descripcion }, disposicion, medir, {
+    ancla,
+    hasta,
+    tipografia,
+    anchoFactor,
+    hueco,
+  });
+  if (!ficha) {
+    ctx.restore();
+    return;
+  }
 
   const visible = Math.min(1, alfa);
   const suave = visible * visible * (3 - 2 * visible);

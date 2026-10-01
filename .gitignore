@@ -23,3 +23,8 @@ __pycache__/
 
 # Certificados TLS locales generados para acceso LAN
 
+
+# Escenas vacias intermedias de herramientas/escenas.py (lo que se versiona
+# es el fondo ya poblado, en fondos/escena/)
+contenido/escenas-base/
+contenido/escenas-contacto.jpg
