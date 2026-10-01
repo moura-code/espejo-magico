@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lugarEnPantalla, posicionEnVuelo, flotacion } from '../../espejo/vuelo.js';
+import { lugarEnLaFoto, lugarEnPantalla, posicionEnVuelo, flotacion } from '../../espejo/vuelo.js';
 import { calcularRectanguloVideo } from '../../espejo/escena.js';
 
 describe('lugarEnPantalla', () => {
@@ -80,6 +80,42 @@ describe('lugarEnPantalla', () => {
     const puesto = lugarEnPantalla({ x: 0.25, y: 0.297, escala: 0.15 }, rectangulo, APAISADA, 1.25);
     // Debe usar 9/16 de la altura visible (1080 × 9/16 = 607.5) y no 16/9
     expect(puesto.radio).toBeCloseTo(45.5625);
+  });
+});
+
+describe('lugarEnLaFoto', () => {
+  const ESPEJO = { ancho: 1080, alto: 1920 };
+  const APAISADA = { ancho: 1920, alto: 1080 };
+  const lugar = { x: 0.25, y: 0.297, escala: 0.15 };
+
+  // En la pantalla para la que se preparo la foto no hay nada que recomponer:
+  // las dos cuentas dan lo mismo, y por eso en el espejo no se noto nunca.
+  it('en el espejo da lo mismo que lugarEnPantalla', () => {
+    const rectangulo = calcularRectanguloVideo(1080, 1920, ESPEJO.ancho, ESPEJO.alto);
+    const enLaFoto = lugarEnLaFoto(lugar, rectangulo);
+    const enPantalla = lugarEnPantalla(lugar, rectangulo, ESPEJO, 1.25);
+    expect(enLaFoto.x).toBeCloseTo(enPantalla.x);
+    expect(enLaFoto.y).toBeCloseTo(enPantalla.y);
+    expect(enLaFoto.radio).toBeCloseTo(enPantalla.radio);
+  });
+
+  // EL BUG DE LA MANO QUE NO TOCABA NADA. En apaisado la foto se dibuja
+  // cubriendo y el objeto pintado se ve donde cae ese punto de la foto, con el
+  // tamaño de la foto: el blanco va ahi, no en la composicion recompuesta.
+  it('en un monitor apaisado cae donde se dibujo ese punto de la foto', () => {
+    const rectangulo = calcularRectanguloVideo(1080, 1920, APAISADA.ancho, APAISADA.alto);
+    const puesto = lugarEnLaFoto({ x: 0.85, y: 0.55, escala: 0.17 }, rectangulo);
+    expect(puesto.x).toBeCloseTo(1632); // 0.85 × 1920
+    expect(puesto.y).toBeCloseTo(-1166.67 + 0.55 * 3413.33, 1);
+    expect(puesto.radio).toBeCloseTo((0.17 * 1920) / 2); // la escala, sobre la foto dibujada
+  });
+
+  // El objeto pintado no se mueve: correr su blanco contra el borde lo pondria
+  // al lado de lo que se ve. Si la foto lo deja afuera, el blanco queda afuera.
+  it('no se corre contra el borde aunque la foto lo deje afuera', () => {
+    const rectangulo = calcularRectanguloVideo(1080, 1920, APAISADA.ancho, APAISADA.alto);
+    const puesto = lugarEnLaFoto({ x: 0.5, y: 0.2, escala: 0.16 }, rectangulo);
+    expect(puesto.y).toBeLessThan(0);
   });
 });
 

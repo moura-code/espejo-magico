@@ -6,8 +6,10 @@ import {
   TITULO_SOLO,
   calcularDisposicion,
   calcularRecorteVisible,
+  calcularRectanguloDelFondo,
   calcularRectanguloVideo,
   cajaEnPantalla,
+  crearRellenoDelFondo,
   disponerFichaDebajo,
   disponerFichaDeObjeto,
   dibujarAnilloDeProgreso,
@@ -358,18 +360,55 @@ describe('dibujarFondo', () => {
     expect(rectangulo).toEqual({ x, y, ancho, alto });
   });
 
-  // El fondo se dibuja cubriendo, no estirado: una foto apaisada deformada para
-  // entrar en una pantalla vertical se nota de lejos.
-  it('cubre la pantalla conservando la relacion de la imagen', () => {
+  // La foto entra ENTERA y sin estirar: una foto deformada se nota de lejos, y
+  // una foto recortada se lleva los objetos pintados en el pedazo que no se ve.
+  it('entra entera en la pantalla conservando la relacion de la imagen', () => {
     const ctx = crearCtxFalso();
     expect(dibujarFondo(ctx, imagen(1920, 1080), disposicion, 1)).not.toBeNull();
 
     const [, , x, y, ancho, alto] = soloDe(ctx, 'drawImage')[0];
     expect(ancho / alto).toBeCloseTo(1920 / 1080, 3);
-    expect(x).toBeLessThanOrEqual(0.001);
-    expect(y).toBeLessThanOrEqual(0.001);
-    expect(x + ancho).toBeGreaterThanOrEqual(1080 - 0.001);
-    expect(y + alto).toBeGreaterThanOrEqual(1920 - 0.001);
+    expect(x).toBeGreaterThanOrEqual(-0.001);
+    expect(y).toBeGreaterThanOrEqual(-0.001);
+    expect(x + ancho).toBeLessThanOrEqual(1080 + 0.001);
+    expect(y + alto).toBeLessThanOrEqual(1920 + 0.001);
+  });
+
+  // Lo que la foto deja libre se cubre con el relleno —la misma foto
+  // desenfocada—, y solo eso: debajo de la foto no se dibuja, porque mientras
+  // el fondo entra se veria a traves de ella.
+  it('cubre con el relleno solo lo que la foto deja libre, antes que la foto', () => {
+    const ctx = crearCtxFalso();
+    const apaisada = calcularDisposicion(1920, 1080);
+    const lienzoDeRelleno = { width: 1920, height: 1080 };
+    const relleno = { obtener: () => lienzoDeRelleno };
+    const rectangulo = dibujarFondo(ctx, imagen(1080, 1920), apaisada, 0.5, relleno);
+
+    const dibujos = soloDe(ctx, 'drawImage');
+    const delRelleno = dibujos.filter(([, fuente]) => fuente === lienzoDeRelleno);
+    expect(delRelleno).toHaveLength(2);
+    expect(dibujos.at(-1)[1]).not.toBe(lienzoDeRelleno);
+    // Izquierda y derecha de la foto, del mismo pedazo del relleno.
+    expect(delRelleno[0].slice(2)).toEqual([0, 0, rectangulo.x, 1080, 0, 0, rectangulo.x, 1080]);
+    const derecha = rectangulo.x + rectangulo.ancho;
+    expect(delRelleno[1].slice(2, 4)).toEqual([derecha, 0]);
+    expect(delRelleno[1][4]).toBeCloseTo(1920 - derecha);
+  });
+
+  // En el espejo la foto llena la pantalla: desenfocar un relleno que no se ve
+  // seria trabajo por nada.
+  it('si la foto llena la pantalla, no pide el relleno', () => {
+    const ctx = crearCtxFalso();
+    let pedidos = 0;
+    const relleno = {
+      obtener: () => {
+        pedidos += 1;
+        return { width: 1, height: 1 };
+      },
+    };
+    dibujarFondo(ctx, imagen(1080, 1920), disposicion, 1, relleno);
+    expect(pedidos).toBe(0);
+    expect(soloDe(ctx, 'drawImage')).toHaveLength(1);
   });
 
   // Un fondo con movimiento se dibuja igual que una foto. Si midiera por
@@ -389,6 +428,103 @@ describe('dibujarFondo', () => {
     const ctx = crearCtxFalso();
     expect(dibujarFondo(ctx, videoDe(0, 0), disposicion, 1)).toBeNull();
     expect(ctx.llamadas).toEqual([]);
+  });
+});
+
+describe('calcularRectanguloDelFondo', () => {
+  // En el espejo la foto y la pantalla tienen la misma proporcion: la foto la
+  // llena exacta, igual que cuando se dibujaba cubriendo.
+  it('en una pantalla de su misma proporcion la llena exacta', () => {
+    expect(calcularRectanguloDelFondo(1080, 1920, 1080, 1920)).toEqual({
+      x: 0,
+      y: 0,
+      ancho: 1080,
+      alto: 1920,
+    });
+    expect(calcularRectanguloDelFondo(1080, 1920, 540, 960)).toEqual({
+      x: 0,
+      y: 0,
+      ancho: 540,
+      alto: 960,
+    });
+  });
+
+  // EL ZOOM DE LA NOTEBOOK. Cubriendo una pantalla apaisada, la foto vertical
+  // se agrandaba al ancho y solo se veia su franja del medio: los objetos
+  // pintados arriba quedaban afuera. Ahora entra a lo alto, centrada.
+  it('en una pantalla apaisada entra a lo alto, centrada', () => {
+    const rectangulo = calcularRectanguloDelFondo(1080, 1920, 1920, 1080);
+    expect(rectangulo.alto).toBeCloseTo(1080);
+    expect(rectangulo.ancho).toBeCloseTo(607.5);
+    expect(rectangulo.y).toBeCloseTo(0);
+    expect(rectangulo.x).toBeCloseTo((1920 - 607.5) / 2);
+  });
+
+  it('en una pantalla mas angosta entra a lo ancho, centrada', () => {
+    const rectangulo = calcularRectanguloDelFondo(1080, 1920, 1080, 2400);
+    expect(rectangulo.ancho).toBeCloseTo(1080);
+    expect(rectangulo.alto).toBeCloseTo(1920);
+    expect(rectangulo.x).toBeCloseTo(0);
+    expect(rectangulo.y).toBeCloseTo(240);
+  });
+});
+
+describe('crearRellenoDelFondo', () => {
+  const lienzoFalso = () => {
+    const ctx = crearCtxFalso();
+    return { width: 0, height: 0, ctx, getContext: () => ctx };
+  };
+
+  // Los costados son la misma foto, agrandada hasta cubrir, desenfocada y mas
+  // oscura: se leen como la escena que sigue, no como una banda negra.
+  it('dibuja la foto cubriendo la pantalla, desenfocada y oscurecida', () => {
+    let creado = null;
+    const relleno = crearRellenoDelFondo({
+      crearLienzo: () => (creado = lienzoFalso()),
+      desenfoque: 0.03,
+      brillo: 0.5,
+    });
+    const foto = imagen(1080, 1920);
+    const lienzo = relleno.obtener(foto, { ancho: 1920, alto: 1080 });
+
+    expect(lienzo).toBe(creado);
+    expect([lienzo.width, lienzo.height]).toEqual([1920, 1080]);
+    const [[, fuente, x, y, ancho, alto]] = soloDe(lienzo.ctx, 'drawImage');
+    expect(fuente).toBe(foto);
+    // Cubre, y un poco mas: el desenfoque mira mas alla del borde.
+    expect(x).toBeLessThan(0);
+    expect(y).toBeLessThan(0);
+    expect(x + ancho).toBeGreaterThan(1920);
+    expect(y + alto).toBeGreaterThan(1080);
+    expect(ancho / alto).toBeCloseTo(1080 / 1920, 3);
+  });
+
+  // Desenfocar una foto entera es caro: se hace una vez por foto y por medida
+  // de ventana, no en cada cuadro.
+  it('lo hace una sola vez por foto y por medida', () => {
+    let creados = 0;
+    const relleno = crearRellenoDelFondo({
+      crearLienzo: () => {
+        creados += 1;
+        return lienzoFalso();
+      },
+      desenfoque: 0.03,
+      brillo: 0.5,
+    });
+    const foto = imagen(1080, 1920);
+    const primero = relleno.obtener(foto, { ancho: 1920, alto: 1080 });
+    relleno.obtener(foto, { ancho: 1920, alto: 1080 });
+    expect(soloDe(primero.ctx, 'drawImage')).toHaveLength(1);
+
+    relleno.obtener(foto, { ancho: 1512, alto: 982 });
+    relleno.obtener(imagen(1080, 1920), { ancho: 1512, alto: 982 });
+    expect(soloDe(primero.ctx, 'drawImage')).toHaveLength(3);
+    expect(creados).toBe(1);
+  });
+
+  it('sin nada que medir no hay relleno', () => {
+    const relleno = crearRellenoDelFondo({ crearLienzo: lienzoFalso, desenfoque: 0.03, brillo: 0.5 });
+    expect(relleno.obtener(videoDe(0, 0), { ancho: 1920, alto: 1080 })).toBeNull();
   });
 });
 
@@ -615,12 +751,25 @@ describe('dibujarNombreDeCarrera', () => {
     expect(textos[0][3]).toBeLessThan(textos[1][3]);
   });
 
-  // El texto blanco o de color sobre un fondo con una zona clara es ilegible.
-  // El degradado de abajo es lo unico que lo sostiene.
-  it('pone el degradado que despega el nombre del fondo', () => {
+  // El texto de color sobre una zona clara del fondo es ilegible, y algo lo
+  // tiene que despegar. Era una franja a lo ancho que subia hasta casi el negro:
+  // se comia un tercio del fondo y le oscurecia el cuerpo a la persona. Ahora es
+  // una sombra que se desvanece solo detras de las letras, como la de las
+  // tablets de MAITE.
+  it('despega el nombre con una sombra detras de las letras, sin franja a lo ancho', () => {
     const ctx = crearCtxFalso();
     dibujarNombreDeCarrera(ctx, carrera, disposicion, 1);
-    expect(soloDe(ctx, 'fillRect')).toHaveLength(1);
+
+    expect(soloDe(ctx, 'fillRect')).toEqual([]);
+    const orden = ctx.llamadas.map(([que, estilo]) => (que === 'fill' ? `fill:${estilo}` : que));
+    expect(orden.indexOf('fill:degradado')).toBeGreaterThanOrEqual(0);
+    expect(orden.indexOf('fill:degradado')).toBeLessThan(orden.indexOf('fillText'));
+
+    // La sombra es una elipse de radio 1 escalada al texto: ni de lejos el
+    // ancho de la pantalla.
+    const [[, radioX, radioY]] = soloDe(ctx, 'scale');
+    expect(radioX * 2).toBeLessThan(disposicion.ancho * 0.6);
+    expect(radioY * 2).toBeLessThan(disposicion.pie.alto);
   });
 
   it('separa el pie de la escena con una linea dorada antes del nombre', () => {

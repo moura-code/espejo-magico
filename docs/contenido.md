@@ -238,12 +238,13 @@ se mueve mirando en `herramientas/fondos.html`, y las pruebas dicen si todavía
 entra.
 
 Si el espejo corre en una pantalla de otra proporción —un monitor apaisado
-mientras se desarrolla—, la foto se ve recortada a su franja del medio. Ahí el
-espejo mide los lugares contra lo que se ve de la foto: la composición entera se
-conserva, a la escala de la persona, y nada se pisa que no se pisara en el
-espejo vertical. Los objetos, eso sí, crecen un poco más
-(`fondo.agrandarEnApaisado`): a la escala de la composición se veían chiquitos,
-con lugar de sobra a los costados de la persona.
+mientras se desarrolla—, la foto entra entera, a lo alto, y a los costados va la
+misma foto desenfocada y oscurecida. Los objetos pintados se ven donde cae la
+foto y el espejo pone el blanco de la mano exactamente ahí: en la notebook se
+prueban los cinco, como en el espejo vertical. Los objetos sueltos (un fondo sin
+objetos pintados) se miden contra lo que se ve del fondo, a la escala de la
+persona, y crecen un poco más (`fondo.agrandarEnApaisado`): a la escala de la
+composición se veían chiquitos.
 
 ```json
 "fondos": [

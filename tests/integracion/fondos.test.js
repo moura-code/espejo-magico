@@ -15,14 +15,21 @@
 //   - los blancos de la mano de dos objetos no se tocan: yendo a buscar uno no
 //     se abre el de al lado;
 //   - la mano de la persona llega a los cinco, con margen;
+//   - el blanco de la mano de un objeto pintado adentro de la foto esta donde
+//     se ve el objeto, en cualquier pantalla;
 //   - en un monitor apaisado —desarrollo— todos aparecen en pantalla y siguen
-//     sin pisarse. Fue un bug de verdad: el objeto volaba a un punto arriba del
-//     borde y "desaparecia" en las doce ingenierias.
+//     sin pisarse. Fue un bug de verdad, dos veces: el objeto volaba a un punto
+//     arriba del borde y "desaparecia" en las doce ingenierias, y despues los
+//     pintados en la foto quedaban afuera porque la foto cubria la pantalla.
 
 import { describe, it, expect } from 'vitest';
 
 import { CONFIG } from '../../espejo/config.js';
-import { calcularDisposicion, calcularRectanguloVideo } from '../../espejo/escena.js';
+import {
+  calcularDisposicion,
+  calcularRectanguloDelFondo,
+  cajaEnPantalla,
+} from '../../espejo/escena.js';
 import { lugaresDelFondo, objetosDelFondo } from '../../espejo/escondites.js';
 import { construirCatalogo } from '../../servidor/catalogo.js';
 
@@ -30,6 +37,8 @@ import { construirCatalogo } from '../../servidor/catalogo.js';
 const FOTO = { ancho: 1080, alto: 1920 };
 const ESPEJO = { ancho: 1080, alto: 1920 };
 const APAISADA = { ancho: 1920, alto: 1080 };
+// La ventana de una notebook, donde se prueba: otra proporcion que la del monitor.
+const NOTEBOOK = { ancho: 1512, alto: 982 };
 const POR_DEFECTO = {
   lugar: CONFIG.fondo.lugarPorDefecto,
   escondites: CONFIG.fondo.esconditesPorDefecto,
@@ -52,12 +61,22 @@ const todosLosFondos = async () => {
   ];
 };
 
+/**
+ * Donde queda dibujada la foto de ese fondo, con la misma cuenta que
+ * dibujarFondo. Sin fondo, el espejo dibuja la escena vectorial, que se hace a
+ * la medida de la pantalla y la llena.
+ */
+const fotoEn = (fondo, pantalla) =>
+  fondo
+    ? calcularRectanguloDelFondo(FOTO.ancho, FOTO.alto, pantalla.ancho, pantalla.alto)
+    : { x: 0, y: 0, ancho: pantalla.ancho, alto: pantalla.alto };
+
 /** Los objetos de un fondo en esa pantalla, puestos como los pone el espejo. */
 const puestosEn = ({ fondo, objetos }, pantalla) =>
   objetosDelFondo({
     objetos,
     fondo,
-    rectangulo: calcularRectanguloVideo(FOTO.ancho, FOTO.alto, pantalla.ancho, pantalla.alto),
+    rectangulo: fotoEn(fondo, pantalla),
     pantalla,
     config: CONFIG,
   });
@@ -147,8 +166,11 @@ describe('los objetos de los fondos reales', () => {
     expect(pisados).toEqual([]);
   });
 
-  // En apaisado los objetos crecen (`fondo.agrandarEnApaisado`), y el tope es
-  // el mismo que en el espejo: que yendo a buscar uno no se abra el de al lado.
+  // En apaisado los objetos sueltos crecen (`fondo.agrandarEnApaisado`), y el
+  // tope es el mismo que en el espejo: que yendo a buscar uno no se abra el de
+  // al lado. Los pintados adentro de la foto aparecen porque la foto entra
+  // entera: cubriendo la pantalla, solo se veia su franja del medio y los de
+  // arriba de todo quedaban afuera con esa parte de la foto.
   it('en un monitor apaisado, todos aparecen en pantalla y sus blancos no se tocan', async () => {
     const problemas = [];
     for (const caso of await todosLosFondos()) {
@@ -165,6 +187,31 @@ describe('los objetos de los fondos reales', () => {
       }
     }
     expect(problemas).toEqual([]);
+  });
+
+  // LA MANO VA A BUSCAR LO QUE VE. Con un fondo generado el objeto esta pintado
+  // adentro de la foto, y se ve donde cae la foto: el blanco de la mano —y con
+  // el su latido y su ficha— tiene que estar ahi. Fue un bug de verdad: en la
+  // notebook el blanco se recomponia sobre lo que se ve, como el de un PNG
+  // suelto, y la mano apoyada sobre el reactor de quimica no abria su ficha.
+  // En el espejo vertical las dos cuentas coinciden y no se notaba.
+  it('en cualquier pantalla, el blanco de la mano cae sobre el objeto pintado', async () => {
+    const corridos = [];
+    for (const caso of await todosLosFondos()) {
+      if (!caso.fondo?.recortes?.length) continue;
+      for (const pantalla of [ESPEJO, APAISADA, NOTEBOOK]) {
+        const rectangulo = fotoEn(caso.fondo, pantalla);
+        puestosEn(caso, pantalla).forEach((puesto, i) => {
+          const caja = cajaEnPantalla(puesto.recorte.caja, rectangulo);
+          const centro = { x: caja.x + caja.ancho / 2, y: caja.y + caja.alto / 2 };
+          const distancia = Math.hypot(centro.x - puesto.x, centro.y - puesto.y);
+          if (distancia > puesto.radio * CONFIG.fichas.radioFactor) {
+            corridos.push(`${caso.nombre} [${i}] en ${pantalla.ancho}x${pantalla.alto}: a ${Math.round(distancia)} px`);
+          }
+        });
+      }
+    }
+    expect(corridos, 'el blanco de estos objetos no esta sobre el objeto que se ve').toEqual([]);
   });
 
   // AL ALCANCE DE LA MANO. La periferia tira para arriba y para los costados, y

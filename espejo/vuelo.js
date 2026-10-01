@@ -64,6 +64,31 @@ export function lugarEnPantalla(lugar, rectangulo, pantalla, margen = 1) {
 }
 
 /**
+ * Donde cae un lugar que esta PINTADO ADENTRO de la foto (un fondo generado por
+ * herramientas/escenas.py). Ahi no hay composicion que conservar: el objeto se
+ * ve donde cae la foto y del tamaño con que se dibujo, y el blanco de la mano,
+ * el latido y la ficha tienen que ir ahi. Es la misma cuenta que cajaEnPantalla
+ * (escena.js) hace con la caja de su recorte, sobre el mismo `rectangulo`: el
+ * que devolvio quien dibujo la foto.
+ *
+ * lugarEnPantalla no sirve para esto: recompone la escena vertical sobre lo que
+ * se ve —es lo correcto para un PNG suelto, que se dibuja donde se lo ponga— y
+ * fuera del 9:16 esa composicion ya no coincide con la foto. En la notebook el
+ * blanco quedaba lejos del objeto que la persona veia, y la mano apoyada encima
+ * no abria su ficha. En el espejo las dos cuentas dan lo mismo.
+ *
+ * No se corre contra el borde: el objeto pintado no se mueve, y un blanco
+ * corrido seria un blanco al lado de lo que se ve.
+ */
+export function lugarEnLaFoto(lugar, rectangulo) {
+  return {
+    x: rectangulo.x + lugar.x * rectangulo.ancho,
+    y: rectangulo.y + lugar.y * rectangulo.alto,
+    radio: (lugar.escala * rectangulo.ancho) / 2,
+  };
+}
+
+/**
  * Donde esta el objeto a mitad del viaje. `t` va de 0 (en la ranura) a 1 (en
  * su lugar); el tamaño se interpola a la vez, para que el objeto parezca
  * alejarse hacia la escena en vez de deslizarse por encima.

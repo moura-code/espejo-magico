@@ -360,6 +360,14 @@ export const CONFIG = {
     opacidadSinMascara: 0.75,
     oscurecerVideo: 0.55, // cuanto se apaga el espejo debajo del fondo sin mascara
 
+    // La foto entra entera (los objetos estan pintados adentro), y en una
+    // pantalla de otra proporcion —la notebook— no la llena. Lo que queda libre
+    // es la misma foto agrandada, desenfocada y oscurecida: la escena que sigue
+    // fuera de foco, no una banda negra. `desenfoque` es el radio en fraccion
+    // del lado corto de la pantalla; `brillo`, cuanto queda de su luz. En el
+    // espejo vertical la foto llena la pantalla y esto no se dibuja.
+    relleno: { desenfoque: 0.035, brillo: 0.5 },
+
     // Donde se apoya el objeto cuando el fondo no declara su `lugar`:
     // normalizado a la imagen, arriba a la izquierda, lejos de la cara y del
     // nombre. `escala` es el diametro como fraccion del ancho de la imagen.

@@ -14,7 +14,7 @@
 // tests/integracion/fondos.test.js vigila que ninguno caiga en la zona de la
 // persona ni en la del nombre.
 
-import { flotacion, lugarEnPantalla } from './vuelo.js';
+import { flotacion, lugarEnLaFoto, lugarEnPantalla } from './vuelo.js';
 
 const GRADO = Math.PI / 180;
 
@@ -148,16 +148,10 @@ export function objetosDelFondo({
   config,
 }) {
   // En una pantalla apaisada sobra lugar a los costados de la persona: los
-  // objetos crecen `agrandarEnApaisado`. Se agranda la escala y no el radio ya
-  // puesto, asi el margen contra el borde se mide con el tamaño que se dibuja.
+  // objetos sueltos crecen `agrandarEnApaisado`. Se agranda la escala y no el
+  // radio ya puesto, asi el margen contra el borde se mide con el tamaño que se
+  // dibuja.
   const agrandar = pantalla.ancho > pantalla.alto ? config.fondo.agrandarEnApaisado : 1;
-  const aPantalla = (lugar) =>
-    lugarEnPantalla(
-      { ...lugar, escala: lugar.escala * agrandar },
-      rectangulo,
-      pantalla,
-      config.fondo.margenDelLugar,
-    );
   const [lugar, ...esconditesDefault] = lugaresDelFondo(fondo, {
     lugar: config.fondo.lugarPorDefecto,
     escondites: config.fondo.esconditesPorDefecto,
@@ -167,31 +161,45 @@ export function objetosDelFondo({
   // pinto adentro de la foto y la caja donde vive, normalizada a la imagen. Va
   // en el mismo orden que los lugares —`lugar` primero y despues los
   // escondites—, que es el orden de `objetos`.
-  const recorteDe = (indice) => fondo?.recortes?.[indice] ?? null;
+  //
+  // Y decide donde va: uno PINTADO ADENTRO DE LA FOTO se ve donde cae la foto,
+  // y su blanco va ahi (lugarEnLaFoto); uno suelto se dibuja donde se lo ponga,
+  // y se lo ubica sobre lo que se ve de la foto (lugarEnPantalla). Con la cuenta
+  // de los sueltos, en la notebook la mano apoyada sobre el objeto no lo tocaba.
+  const poner = (indice, unLugar) => {
+    const recorte = fondo?.recortes?.[indice] ?? null;
+    const puesto = recorte
+      ? lugarEnLaFoto(unLugar, rectangulo)
+      : lugarEnPantalla(
+          { ...unLugar, escala: unLugar.escala * agrandar },
+          rectangulo,
+          pantalla,
+          config.fondo.margenDelLugar,
+        );
+    return { recorte, ...puesto };
+  };
 
   if (escondidos) {
     const objElegido = elegido ?? objetos?.[0] ?? null;
     return [
-      { id: 0, definicion: objElegido, recorte: recorteDe(0), ...aPantalla(lugar) },
+      { id: 0, definicion: objElegido, ...poner(0, lugar) },
       ...escondidos.map(({ definicion, lugar: escondite, indice: idx }, indice) => ({
         id: indice + 1,
         definicion,
         indice: idx ?? indice,
-        recorte: recorteDe(indice + 1),
-        ...aPantalla(escondite ?? esconditesDefault[indice] ?? lugar),
+        ...poner(indice + 1, escondite ?? esconditesDefault[indice] ?? lugar),
       })),
     ];
   }
 
   const [primero, ...resto] = objetos ?? [];
   return [
-    { id: 0, definicion: primero, recorte: recorteDe(0), ...aPantalla(lugar) },
+    { id: 0, definicion: primero, ...poner(0, lugar) },
     ...esconder(resto, esconditesDefault).map(({ definicion, lugar: escondite }, indice) => ({
       id: indice + 1,
       definicion,
       indice,
-      recorte: recorteDe(indice + 1),
-      ...aPantalla(escondite),
+      ...poner(indice + 1, escondite),
     })),
   ];
 }

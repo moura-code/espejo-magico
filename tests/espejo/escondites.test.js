@@ -398,4 +398,40 @@ describe('objetosDelFondo con recortes', () => {
     });
     expect(puestosSinRecortes.map((o) => o.recorte)).toEqual([null, null]);
   });
+
+  // EL BLANCO VA DONDE SE VE EL OBJETO. Uno pintado adentro de la foto se ve
+  // donde cae la foto, y en apaisado la foto se dibuja cubriendo: su blanco va
+  // ahi, con el tamaño de la foto y sin agrandarse. El suelto, en cambio, se
+  // dibuja donde se lo pone y sigue recompuesto sobre lo que se ve.
+  it('en apaisado, el pintado va donde cae la foto y el suelto se recompone', () => {
+    const apaisada = { ancho: 1920, alto: 1080 };
+    // La foto de 1080x1920 cubriendo esa pantalla.
+    const cubre = { x: 0, y: (1080 - 3413.33) / 2, ancho: 1920, alto: 3413.33 };
+    const config = {
+      fondo: {
+        lugarPorDefecto: POR_DEFECTO.lugar,
+        esconditesPorDefecto: POR_DEFECTO.escondites,
+        margenDelLugar: 1.25,
+        agrandarEnApaisado: 1.25,
+      },
+    };
+    const [pintado, suelto] = objetosDelFondo({
+      objetos: [{ nombre: 'uno' }, { nombre: 'dos' }],
+      // Solo el primero trae recorte: el segundo es un PNG suelto.
+      fondo: { ...conRecortes, recortes: conRecortes.recortes.slice(0, 1) },
+      rectangulo: cubre,
+      pantalla: apaisada,
+      config,
+    });
+
+    expect(pintado.x).toBeCloseTo(0.2 * 1920);
+    expect(pintado.y).toBeCloseTo(cubre.y + 0.3 * cubre.alto);
+    expect(pintado.radio).toBeCloseTo((0.16 * 1920) / 2);
+
+    expect(suelto.recorte).toBeNull();
+    expect(suelto.x).toBeCloseTo(0.8 * 1920);
+    expect(suelto.y).toBeCloseTo(0.3 * 1080);
+    // La composicion vertical a la altura de la pantalla, agrandada.
+    expect(suelto.radio).toBeCloseTo((0.16 * 1.25 * (1080 * 9) / 16) / 2);
+  });
 });

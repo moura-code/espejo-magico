@@ -26,7 +26,7 @@ import { describe, it, expect } from 'vitest';
 import { CONFIG } from '../../espejo/config.js';
 import {
   calcularDisposicion,
-  calcularRectanguloVideo,
+  calcularRectanguloDelFondo,
   disponerFichaDeObjeto,
 } from '../../espejo/escena.js';
 import { objetosDelFondo, fichaDelObjeto } from '../../espejo/escondites.js';
@@ -58,7 +58,7 @@ async function fichasDelCatalogo(pantalla = ESPEJO) {
   const { catalogo, errores } = await construirCatalogo();
   if (errores.length > 0) throw new Error(`Errores en catálogo: ${errores.join(', ')}`);
   const { carreras } = catalogo;
-  const rectangulo = calcularRectanguloVideo(1080, 1920, pantalla.ancho, pantalla.alto);
+  const rectangulo = calcularRectanguloDelFondo(1080, 1920, pantalla.ancho, pantalla.alto);
   const enPantalla = calcularDisposicion(pantalla.ancho, pantalla.alto);
 
   const casos = [];

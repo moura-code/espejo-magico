@@ -14,8 +14,8 @@ export function calcularDisposicion(ancho, alto) {
     vertical,
     unidad,
 
-    // El pie: el nombre de la ingenieria, sobre un degradado que lo despega del
-    // fondo. Es el mismo lugar donde las tablets de MAITE ponen su texto, para
+    // El pie: el nombre de la ingenieria, sobre una sombra ceñida al texto que lo
+    // despega del fondo. Es el mismo lugar donde las tablets de MAITE ponen su texto, para
     // que espejo y tablets se lean como una sola cosa, y no puede ir al medio,
     // que es donde esta la cara. `base` es la linea de base del ultimo renglon.
     pie: {
@@ -126,7 +126,36 @@ export function medidasDe(fuente) {
 }
 
 /**
- * Cubre el lienzo con una imagen sin deformarla. Lo que sobra se recorta.
+ * Donde entra la foto del fondo: ENTERA, sin deformarla y centrada.
+ *
+ * No cubre la pantalla como el video de la camara, y es a proposito: los
+ * objetos de un fondo generado estan pintados ADENTRO de la foto, y cubrir una
+ * pantalla de otra proporcion recorta justo donde estan. En la notebook la
+ * foto vertical se agrandaba al ancho, solo se veia su franja del medio y los
+ * objetos de arriba quedaban afuera. En el espejo la foto y la pantalla tienen
+ * la misma proporcion, y entera o cubriendo es lo mismo.
+ */
+export function calcularRectanguloDelFondo(fotoAncho, fotoAlto, ancho, alto) {
+  if (!fotoAncho || !fotoAlto) return { x: 0, y: 0, ancho, alto };
+
+  const escala = Math.min(ancho / fotoAncho, alto / fotoAlto);
+  const anchoDibujo = fotoAncho * escala;
+  const altoDibujo = fotoAlto * escala;
+
+  return {
+    x: (ancho - anchoDibujo) / 2,
+    y: (alto - altoDibujo) / 2,
+    ancho: anchoDibujo,
+    alto: altoDibujo,
+  };
+}
+
+/**
+ * Pone la foto del fondo entera en el lienzo, sin deformarla
+ * (calcularRectanguloDelFondo). Si en esa pantalla no la llena, lo que queda
+ * libre se cubre con `relleno` —crearRellenoDelFondo: la misma foto
+ * desenfocada—, y solo eso: debajo de la foto no, porque mientras el fondo entra
+ * se veria a traves de ella.
  *
  * `fuente` puede ser una foto o un video: un fondo con movimiento se dibuja
  * exactamente igual, cuadro a cuadro, y por eso el resto de la escena no se
@@ -138,22 +167,79 @@ export function medidasDe(fuente) {
  * receta conocida de que los dos caminos se separen y el objeto termine en otro
  * lado del que se dibujo el fondo.
  */
-export function dibujarFondo(ctx, fuente, disposicion, alfa = 1) {
+export function dibujarFondo(ctx, fuente, disposicion, alfa = 1, relleno = null) {
   const medidas = medidasDe(fuente);
   if (!medidas || alfa <= 0) return null;
 
-  const rectangulo = calcularRectanguloVideo(
-    medidas.ancho,
-    medidas.alto,
-    disposicion.ancho,
-    disposicion.alto,
-  );
+  const { ancho, alto } = disposicion;
+  const rectangulo = calcularRectanguloDelFondo(medidas.ancho, medidas.alto, ancho, alto);
+  const derecha = rectangulo.x + rectangulo.ancho;
+  const abajo = rectangulo.y + rectangulo.alto;
+  // Lo que la foto deja libre: los costados en una pantalla mas ancha que ella,
+  // arriba y abajo en una mas angosta. Medio pixel no es un hueco.
+  const huecos = [
+    { x: 0, y: 0, ancho: rectangulo.x, alto },
+    { x: derecha, y: 0, ancho: ancho - derecha, alto },
+    { x: rectangulo.x, y: 0, ancho: rectangulo.ancho, alto: rectangulo.y },
+    { x: rectangulo.x, y: abajo, ancho: rectangulo.ancho, alto: alto - abajo },
+  ].filter((hueco) => hueco.ancho >= 0.5 && hueco.alto >= 0.5);
 
   ctx.save();
   ctx.globalAlpha = Math.min(1, alfa);
+  const lienzoDeRelleno = huecos.length > 0 ? relleno?.obtener(fuente, disposicion) : null;
+  if (lienzoDeRelleno) {
+    for (const hueco of huecos) {
+      const { x, y, ancho: anchoHueco, alto: altoHueco } = hueco;
+      ctx.drawImage(lienzoDeRelleno, x, y, anchoHueco, altoHueco, x, y, anchoHueco, altoHueco);
+    }
+  }
   ctx.drawImage(fuente, rectangulo.x, rectangulo.y, rectangulo.ancho, rectangulo.alto);
   ctx.restore();
   return rectangulo;
+}
+
+/**
+ * Lo que va donde la foto del fondo no llega: la misma foto, agrandada hasta
+ * cubrir la pantalla, desenfocada y oscurecida. Se lee como la escena que sigue
+ * fuera de foco, no como una banda negra al costado.
+ *
+ * Desenfocar una foto entera es caro, asi que se hace UNA vez por foto y por
+ * medida de ventana, en un lienzo aparte (`crearLienzo` se inyecta, como en
+ * crearBancoDeEscenarios), y cada cuadro es un drawImage. Con un fondo con
+ * movimiento queda el cuadro del primer pedido: fuera de foco no se nota.
+ *
+ * `desenfoque` es el radio en fraccion del lado corto de la pantalla; `brillo`,
+ * cuanto queda de la luz de la foto.
+ */
+export function crearRellenoDelFondo({ crearLienzo, desenfoque, brillo }) {
+  let lienzo = null;
+  let fuenteDibujada = null;
+
+  return {
+    obtener(fuente, { ancho, alto }) {
+      if (lienzo && fuente === fuenteDibujada && lienzo.width === ancho && lienzo.height === alto) {
+        return lienzo;
+      }
+      const medidas = medidasDe(fuente);
+      if (!medidas) return null;
+
+      lienzo ??= crearLienzo();
+      lienzo.width = ancho;
+      lienzo.height = alto;
+      const ctx = lienzo.getContext('2d');
+      // El desenfoque mira mas alla del borde, donde no hay nada, y lo
+      // oscureceria: la foto se pone un poco mas grande que la pantalla.
+      const radio = desenfoque * Math.min(ancho, alto);
+      const cubre = calcularRectanguloVideo(medidas.ancho, medidas.alto, ancho + radio * 4, alto + radio * 4);
+      ctx.save();
+      ctx.filter = `blur(${radio}px) brightness(${brillo})`;
+      ctx.drawImage(fuente, cubre.x - radio * 2, cubre.y - radio * 2, cubre.ancho, cubre.alto);
+      ctx.restore();
+
+      fuenteDibujada = fuente;
+      return lienzo;
+    },
+  };
 }
 
 /**
@@ -277,9 +363,11 @@ export function dibujarObjetosDelante(
 /**
  * Donde cae en pantalla una caja normalizada a la imagen del fondo. `caja` es
  * `[x0, y0, x1, y1]` y `rectangulo` es donde se dibujo la foto (lo devuelve
- * dibujarFondo). Es la misma cuenta que lugarEnPantalla hace para un punto, y
- * por el mismo motivo sale de aca y no del llamador: calcularla dos veces es la
- * receta conocida de que el recorte se separe de la foto de la que sale.
+ * dibujarFondo). Es la misma cuenta que lugarEnLaFoto (vuelo.js) hace para un
+ * punto —el blanco de la mano del mismo objeto—, y por el mismo motivo sale de
+ * aca y no del llamador: calcularla dos veces es la receta conocida de que el
+ * recorte se separe de la foto de la que sale. NO es la de lugarEnPantalla, que
+ * recompone la escena para los objetos sueltos: fuera del 9:16 se separan.
  */
 export function cajaEnPantalla(caja, rectangulo) {
   const [x0, y0, x1, y1] = caja;
@@ -579,10 +667,14 @@ export const PESO_TITULO = 400;
 /**
  * El nombre de la ingenieria, al pie, donde antes iba el de la persona.
  *
- * Va sobre un degradado que sube desde el borde de abajo. Sin el, el nombre cae
- * encima del fondo de la carrera y se vuelve ilegible en cuanto el fondo tiene
- * una zona clara. Un nombre largo va en dos renglones antes que achicarse hasta
- * lo ilegible; y si aun asi no entra, se achica.
+ * Va sobre una sombra que se desvanece SOLO DETRAS DE LAS LETRAS. Sin nada, el
+ * nombre cae encima del fondo de la carrera y se vuelve ilegible en cuanto el
+ * fondo tiene una zona clara; con una franja a lo ancho —lo que habia antes,
+ * subiendo desde el borde hasta casi el negro— se leia, pero se comia un tercio
+ * del fondo y le oscurecia el cuerpo a la persona. Es la misma idea que la
+ * sombra de las tablets de MAITE (temas/tablet-3.css): una elipse anclada al
+ * texto. Un nombre largo va en dos renglones antes que achicarse hasta lo
+ * ilegible; y si aun asi no entra, se achica.
  *
  * `color` es el mismo para las doce: la catedra pidio no distinguir las
  * ingenierias por color, y el que se usa es el de los nombres en las tablets
@@ -597,13 +689,40 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, colo
   ctx.save();
   ctx.globalAlpha = Math.min(1, alfa);
 
-  const degradado = ctx.createLinearGradient(0, alto - pie.alto, 0, alto);
-  degradado.addColorStop(0, 'rgba(5, 8, 14, 0)');
-  degradado.addColorStop(0.28, 'rgba(5, 8, 14, 0.62)');
-  degradado.addColorStop(0.62, 'rgba(5, 8, 14, 0.94)');
-  degradado.addColorStop(1, 'rgba(5, 8, 14, 0.98)');
-  ctx.fillStyle = degradado;
-  ctx.fillRect(0, alto - pie.alto, ancho, pie.alto);
+  const medir = (contenido, tamano) => {
+    ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
+    return ctx.measureText(contenido).width;
+  };
+
+  // Primero se intenta entero; si no entra, en dos renglones; y cada renglon
+  // se achica lo justo si sigue sin entrar (una sola palabra kilometrica).
+  let lineas = [carrera.nombre];
+  if (medir(carrera.nombre, pie.tamano) > disponible) {
+    lineas = partirEnLineas(carrera.nombre, disponible, (t) => medir(t, pie.tamano)).slice(0, 2);
+  }
+  const tamano = Math.min(
+    ...lineas.map((linea) => tamanoQueEntra(linea, pie.tamano, disponible, medir)),
+  );
+  const paso = tamano * pie.interlinea;
+
+  // La sombra, ceñida al texto: una elipse que se desvanece, centrada en los
+  // renglones y apenas mas grande que ellos. Es un circulo de radio 1 con el
+  // lienzo estirado a la medida del texto, porque un degradado radial no se
+  // puede hacer eliptico de otra manera.
+  const anchoDelTexto = Math.max(...lineas.map((linea) => medir(linea, tamano)));
+  const arriba = pie.base - (lineas.length - 1) * paso - tamano * 0.8;
+  ctx.save();
+  ctx.translate(ancho / 2, (arriba + pie.base) / 2);
+  ctx.scale(anchoDelTexto / 2 + tamano * 1.1, (pie.base - arriba) / 2 + tamano * 0.7);
+  const sombra = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  sombra.addColorStop(0, 'rgba(5, 5, 10, 0.55)');
+  sombra.addColorStop(0.5, 'rgba(5, 5, 10, 0.3)');
+  sombra.addColorStop(1, 'rgba(5, 5, 10, 0)');
+  ctx.fillStyle = sombra;
+  ctx.beginPath();
+  ctx.arc(0, 0, 1, 0, TAU);
+  ctx.fill();
+  ctx.restore();
 
   // Una linea corta basta para que el pie se lea como una pieza editorial y
   // no como texto suelto sobre el cuerpo. Usa el mismo dorado que el nombre.
@@ -621,24 +740,8 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, colo
   ctx.shadowColor = 'rgba(0,0,0,0.85)';
   ctx.shadowBlur = 16;
 
-  const medir = (contenido, tamano) => {
-    ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
-    return ctx.measureText(contenido).width;
-  };
-
-  // Primero se intenta entero; si no entra, en dos renglones; y cada renglon
-  // se achica lo justo si sigue sin entrar (una sola palabra kilometrica).
-  let lineas = [carrera.nombre];
-  if (medir(carrera.nombre, pie.tamano) > disponible) {
-    lineas = partirEnLineas(carrera.nombre, disponible, (t) => medir(t, pie.tamano)).slice(0, 2);
-  }
-  const tamano = Math.min(
-    ...lineas.map((linea) => tamanoQueEntra(linea, pie.tamano, disponible, medir)),
-  );
-
   ctx.fillStyle = color;
   ctx.font = `${PESO_TITULO} ${tamano}px ${FAMILIA_TITULO}`;
-  const paso = tamano * pie.interlinea;
   lineas.forEach((linea, i) => {
     ctx.fillText(linea, ancho / 2, pie.base - (lineas.length - 1 - i) * paso);
   });
