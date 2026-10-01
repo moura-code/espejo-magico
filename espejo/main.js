@@ -58,6 +58,7 @@ import {
   calcularDisposicion,
   calcularRecorteVisible,
   calcularRectanguloVideo,
+  crearRellenoDelFondo,
   dibujarVideoEspejado,
   dibujarFondo,
   dibujarTratamientoDeFondo,
@@ -333,6 +334,13 @@ const escenarios = crearBancoDeEscenarios({
     lienzoEscena.height = alto;
     return { lienzo: lienzoEscena, ctx: lienzoEscena.getContext('2d') };
   },
+});
+// Donde la foto del fondo no llega —la notebook: la foto entra entera y es mas
+// angosta que la pantalla—, la misma foto desenfocada. Se desenfoca una vez por
+// foto y por medida de ventana, no en cada cuadro.
+const rellenoDelFondo = crearRellenoDelFondo({
+  crearLienzo: () => document.createElement('canvas'),
+  ...CONFIG.fondo.relleno,
 });
 const puente = crearPuente(CONFIG.maite);
 const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
@@ -819,7 +827,7 @@ function cuadro(ahora) {
     // caminos. Null quiere decir que no habia nada dibujable —ni foto, ni escena,
     // ni un video con su primer cuadro— y ahi entra el color plano.
     const dibujado = acumuladorDeDibujo.medir('compose', () =>
-      dibujarFondo(ctx, escena, disposicion, alfaDelFondo),
+      dibujarFondo(ctx, escena, disposicion, alfaDelFondo, rellenoDelFondo),
     );
 
     if (!dibujado) {

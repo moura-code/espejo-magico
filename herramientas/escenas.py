@@ -33,6 +33,9 @@ USO
     python herramientas/escenas.py                # las doce
     python herramientas/escenas.py quimica civil  # solo esas
     python herramientas/escenas.py --hoja         # rearma la hoja de contacto
+    python herramientas/escenas.py --revisar      # que objetos no estan pintados
+    python herramientas/escenas.py --repintar --solo electrica:motor-trifasico,...
+                                                  # pinta esos en la foto actual
 
 Necesita el entorno con torch/diffusers (ver docs/contenido.md). Es el unico
 codigo del proyecto que baja modelos: se corre una vez, en desarrollo.
@@ -46,6 +49,8 @@ import time
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 from scipy import ndimage
+
+from presencia import UMBRAL, Juez, esta_presente
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CARRERAS = os.path.join(RAIZ, 'contenido', 'carreras')
@@ -117,7 +122,7 @@ GUIONES = {
         'escena': 'surveying instrument laboratory interior, empty workbenches and bare shelves '
                   'along both side walls, tripods folded against the wall, cool daylight',
         'objetos': [
-            ('prisma-topografico', 'a surveying reflector prism on a small stand, on the shelf'),
+            ('prisma-topografico', 'a yellow and black surveying reflector prism on a small stand, on the shelf'),
             ('nivel-automatico', 'a yellow automatic surveying level instrument, on the shelf'),
             ('receptor-gnss', 'a black GNSS survey antenna on a metal bracket, high on the wall'),
             ('estacion-total', 'a total station survey instrument on a yellow tripod, on the floor'),
@@ -128,11 +133,11 @@ GUIONES = {
         'escena': 'food science pilot plant interior, empty stainless steel benches and bare '
                   'shelves along both side walls, tiled walls, bright even light',
         'objetos': [
-            ('placa-petri', 'a stack of glass petri dishes with red agar, on the shelf'),
+            ('placa-petri', 'a stack of petri dishes filled with bright red agar, on the shelf'),
             ('refractometro', 'a small digital handheld refractometer, on the shelf'),
             ('espectrofotometro', 'a dark grey spectrophotometer with a blue display, on the high shelf'),
-            ('centrifuga', 'a white laboratory centrifuge machine, on the steel bench'),
-            ('equipo-coccion', 'a stainless steel induction cooking plate, on the steel bench'),
+            ('centrifuga', 'a white and blue benchtop laboratory centrifuge with a round lid, on the steel bench'),
+            ('equipo-coccion', 'a black glass induction cooking plate with red controls, on the steel bench'),
         ],
     },
     'civil': {
@@ -141,20 +146,20 @@ GUIONES = {
         'objetos': [
             ('casco-seguridad', 'a bright yellow construction safety helmet, on the shelf'),
             ('cono-abrams', 'a steel slump test cone for concrete, on the shelf'),
-            ('puente-atirantado', 'a dark steel scale model of a cable-stayed bridge, high on the wall'),
+            ('puente-atirantado', 'a dark steel scale model of a cable-stayed bridge hanging from the ceiling on thin wires'),
             ('hormigonera', 'a small orange portable concrete mixer, on the floor'),
-            ('viga-acero', 'a rusted steel I-beam girder lying on the concrete bench'),
+            ('viga-acero', 'a short rusty orange steel I-beam lying on the concrete bench'),
         ],
     },
     'computacion': {
         'escena': 'computer engineering laboratory interior, empty light grey workbenches and bare '
                   'white shelves along both side walls, white walls, bright neutral daylight',
         'objetos': [
-            ('arbol-binario', 'a printed binary tree diagram poster in a frame, on the shelf'),
-            ('base-datos', 'a small rack of hard disk drives with blue lights, on the shelf'),
+            ('arbol-binario', 'a black framed poster of a colorful binary tree diagram, on the shelf'),
+            ('base-datos', 'a black network storage server with glowing blue lights, on the shelf'),
             ('algoritmo', 'a large flowchart diagram poster in a black frame, high on the wall'),
-            ('laptop', 'an open silver laptop computer, on the workbench'),
-            ('servidor', 'a rack mounted blade server chassis with status lights, on the bench'),
+            ('laptop', 'an open black laptop computer with a glowing blue screen, on the workbench'),
+            ('servidor', 'a black rack mounted blade server with green status lights, on the bench'),
         ],
     },
     'comunicacion': {
@@ -163,7 +168,7 @@ GUIONES = {
         'objetos': [
             ('bobina-fibra', 'a spool of yellow optical fiber cable, on the shelf'),
             ('satelite-comunicaciones', 'a scale model of a communications satellite, on the shelf'),
-            ('torre-telecomunicaciones', 'a dark steel lattice telecom tower model on a bracket, high on the wall'),
+            ('torre-telecomunicaciones', 'a red and white steel lattice telecom tower model hanging from the ceiling on wires'),
             ('analizador-espectro', 'a rack spectrum analyzer with a glowing screen, on the bench'),
             ('antena-parabolica', 'a white parabolic dish antenna on a stand, on the bench'),
         ],
@@ -179,18 +184,18 @@ GUIONES = {
             ('panel-solar', 'a dark blue photovoltaic solar panel leaning, on the shelf'),
             ('cadena-aisladores', 'a chain of brown porcelain insulator discs hanging from the ceiling'),
             ('motor-trifasico', 'a blue three phase induction electric motor, on the bench'),
-            ('transformador-trifasico', 'a grey three phase power transformer, on the floor'),
+            ('transformador-trifasico', 'a large grey power transformer with brown porcelain bushings, on the floor'),
         ],
     },
     'fisico-matematico': {
         'escena': 'physics optics laboratory interior, empty optical tables and bare white shelves '
                   'along both side walls, light grey walls, bright even daylight',
         'objetos': [
-            ('prisma-optico', 'a triangular glass optical prism splitting light, on the shelf'),
+            ('prisma-optico', 'a triangular glass prism casting a bright rainbow of colors, on the shelf'),
             ('giroscopio', 'a brass precision gyroscope on its stand, on the shelf'),
             ('pendulo-foucault', 'a brass pendulum bob hanging from a long wire from the ceiling'),
             ('osciloscopio', 'a digital oscilloscope with a glowing waveform screen, on the table'),
-            ('superficie-3d', 'a white 3d printed mathematical saddle surface model, on the table'),
+            ('superficie-3d', 'an orange 3d printed mathematical saddle surface model, on the table'),
         ],
     },
     'forestal': {
@@ -208,11 +213,11 @@ GUIONES = {
         'escena': 'mechanical engineering workshop interior, empty steel workbenches and bare tool '
                   'racks along both side walls, machine tools, warm industrial lighting',
         'objetos': [
-            ('llave-dinamometrica', 'a chrome torque wrench tool, on the shelf'),
+            ('llave-dinamometrica', 'a large red and chrome torque wrench, on the shelf'),
             ('rotor-turbina', 'a polished steel turbine rotor disc with blades, on the shelf'),
             ('bomba-centrifuga', 'a green centrifugal water pump mounted high on the wall'),
             ('motor-seccionado', 'a cutaway sectioned combustion engine on a stand, on the floor'),
-            ('torno-cnc', 'an industrial CNC lathe machine, on the workshop floor'),
+            ('torno-cnc', 'a compact grey and green CNC lathe machine, on the workshop floor'),
         ],
     },
     'naval': {
@@ -230,9 +235,9 @@ GUIONES = {
         'escena': 'factory assembly hall interior, empty steel workbenches and bare pallet racking '
                   'along both sides, polished concrete floor, overhead industrial lighting',
         'objetos': [
-            ('calibre-digital', 'a stainless digital vernier caliper, on the shelf'),
+            ('calibre-digital', 'a large digital caliper with a yellow display, on the shelf'),
             ('engranaje-industrial', 'a large polished steel industrial gear, on the shelf'),
-            ('cinta-transportadora', 'a dark steel roller conveyor with cardboard boxes, high across the wall'),
+            ('cinta-transportadora', 'an overhead industrial roller conveyor with cardboard boxes hanging from the ceiling'),
             ('pallet', 'a wooden pallet stacked with cardboard boxes, on the floor'),
             ('brazo-robotico', 'an orange articulated industrial robot arm, on the floor'),
         ],
@@ -243,7 +248,7 @@ GUIONES = {
         'objetos': [
             ('matraz-erlenmeyer', 'a conical glass Erlenmeyer flask with amber liquid, on the shelf'),
             ('bomba-peristaltica', 'a blue peristaltic laboratory pump with orange tubing, on the shelf'),
-            ('intercambiador-placas', 'a blue plate heat exchanger unit mounted high on the wall'),
+            ('intercambiador-placas', 'a compact blue plate heat exchanger unit hanging from the ceiling on chains'),
             ('columna-destilacion', 'a tall glass distillation column with clamps, on the black bench'),
             ('reactor-agitado', 'a stainless steel stirred reactor vessel with a motor, on the bench'),
         ],
@@ -435,26 +440,112 @@ def meter_objeto(pipe, escena, sitio, texto, semilla, ventana=2.3):
     return nueva, completa
 
 
-def meter_con_reintento(pipe, escena, sitio, texto, semilla, intentos=3):
+def recorte_para_juzgar(imagen, mascara, margen=0.15):
+    """Lo que se le muestra al juez: donde quedo la silueta pintada, con un poco de aire."""
+    return recorte_de_caja(imagen, caja_de_mascara(mascara), margen)
+
+
+def meter_con_reintento(pipe, escena, sitio, texto, semilla, intentos=6, juez=None,
+                        umbral=UMBRAL, pintar=None):
     """
-    Un objeto que no se ve no sirve: la mascara sale casi vacia cuando el modelo
-    lo pinto del color de la pared. Se prueba con otra semilla hasta que la
-    silueta ocupe una fraccion razonable de su sitio.
+    Un objeto que no se ve no sirve, y hay dos maneras de no verlo:
+
+      - la silueta casi vacia: el modelo lo pinto del color de la pared. Se mide
+        con el area de la mascara contra el sitio;
+      - el objeto que no esta: el modelo rehizo la pared o el estante y nada
+        mas. La mascara sale llena —una pared repintada tambien cambia— y asi
+        pasaron unos 25 de los 60 objetos. Lo mide `juez` (presencia.py): si lo
+        pintado se parece al objeto y no a un sitio vacio.
+
+    Se prueba con otra semilla hasta que pase las dos. Si ninguno pasa, queda el
+    que mas se parece al objeto, y quien llama lo avisa. Sin `juez` vale solo el
+    area, como antes. `pintar` se inyecta en las pruebas; es meter_objeto.
+
+    Devuelve (escena, mascara, razon de area, presencia, intentos usados).
     """
+    pintar = pintar or meter_objeto
     objetivo = np.pi * (sitio['escala'] * ANCHO / 2) ** 2
     mejor = None
     for i in range(intentos):
-        nueva, m = meter_objeto(pipe, escena, sitio, texto, semilla + i * 977)
-        area = float(np.count_nonzero(np.asarray(m) > 60))
-        razon = area / objetivo
-        if mejor is None or abs(razon - 0.55) < abs(mejor[0] - 0.55):
-            mejor = (razon, nueva, m)
-        if 0.25 <= razon <= 1.4:
-            return nueva, m, razon, i + 1
-    return mejor[1], mejor[2], mejor[0], intentos
+        nueva, m = pintar(pipe, escena, sitio, texto, semilla + i * 977)
+        razon = float(np.count_nonzero(np.asarray(m) > 60)) / objetivo
+        presencia = juez(recorte_para_juzgar(nueva, m), texto) if juez else 1.0
+        if 0.25 <= razon <= 1.4 and esta_presente(presencia, umbral):
+            return nueva, m, razon, presencia, i + 1
+        # Entre los que no pasan, el que mas se parece al objeto; a igual
+        # presencia, el de area mas razonable.
+        clave = (presencia, -abs(razon - 0.55))
+        if mejor is None or clave > mejor[0]:
+            mejor = (clave, nueva, m, razon, presencia)
+    _, nueva, m, razon, presencia = mejor
+    return nueva, m, razon, presencia, intentos
 
 
 # -------------------------------------------------------------------- salida
+
+def orden_de_objetos(carrera_id):
+    """
+    Los ids de los objetos en el orden en que los numera el espejo: alfabetico,
+    el de sus carpetas (servidor/descubrimiento.js). `lugar` es el del primero,
+    `escondites` los de los otros cuatro, y recortes/<n>.png el del n-esimo.
+    """
+    return sorted(oid for oid, _ in GUIONES[carrera_id]['objetos'])
+
+
+def sitio_de(meta, indice):
+    """El sitio del objeto `indice` en el metadata.json de un fondo ya generado."""
+    return ([meta['lugar']] + list(meta['escondites']))[indice]
+
+
+def recorte_de_caja(imagen, caja, margen=0.15):
+    """
+    El pedazo de `imagen` donde vive un objeto: su `caja` normalizada
+    ([x0, y0, x1, y1], como en metadata.json), agrandada `margen` de cada lado
+    para que se vea lo que lo rodea, y acotada a la imagen.
+    """
+    ancho, alto = imagen.size
+    x0, y0, x1, y1 = caja[0] * ancho, caja[1] * alto, caja[2] * ancho, caja[3] * alto
+    dx, dy = (x1 - x0) * margen, (y1 - y0) * margen
+    return imagen.crop((max(0, int(x0 - dx)), max(0, int(y0 - dy)),
+                        min(ancho, int(x1 + dx)), min(alto, int(y1 + dy))))
+
+
+def caja_de_mascara(mascara):
+    """La caja normalizada de una mascara; toda la imagen si esta vacia."""
+    x0, y0, x1, y1 = mascara.getbbox() or (0, 0, mascara.width, mascara.height)
+    return [round(x0 / mascara.width, 5), round(y0 / mascara.height, 5),
+            round(x1 / mascara.width, 5), round(y1 / mascara.height, 5)]
+
+
+def guardar_recorte(destino, indice, mascara):
+    """
+    Escribe recortes/<indice>.png —la mascara recortada a su caja— y devuelve la
+    caja normalizada, la de metadata.json.
+
+    LA MASCARA VA EN EL CANAL ALFA, no en el gris: el espejo la usa con
+    `destination-in`, y el lienzo mira el alfa. Un PNG en escala de grises
+    tiene alfa 255 en todos lados y recortaria la caja entera en vez de la
+    silueta. Es la misma traduccion que hace silueta.js con la mascara de
+    MediaPipe, y por el mismo motivo.
+    """
+    trozo = mascara.crop(mascara.getbbox() or (0, 0, mascara.width, mascara.height))
+    blanco = Image.new('L', trozo.size, 255)
+    os.makedirs(os.path.join(destino, 'recortes'), exist_ok=True)
+    Image.merge('RGBA', (blanco, blanco, blanco, trozo)).save(
+        os.path.join(destino, 'recortes', f'{indice}.png'))
+    return caja_de_mascara(mascara)
+
+
+def leer_metadata(destino):
+    with open(os.path.join(destino, 'metadata.json'), encoding='utf-8') as f:
+        return json.load(f)
+
+
+def escribir_metadata(destino, meta):
+    with open(os.path.join(destino, 'metadata.json'), 'w', encoding='utf-8') as f:
+        json.dump(meta, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+
 
 def guardar(carrera_id, fondo, sitios_por_objeto, mascaras_por_objeto, objetos_ordenados):
     """
@@ -469,29 +560,12 @@ def guardar(carrera_id, fondo, sitios_por_objeto, mascaras_por_objeto, objetos_o
     lugares, recortes = [], []
     for i, oid in enumerate(objetos_ordenados):
         sitio = sitios_por_objeto[oid]
-        m = mascaras_por_objeto[oid]
-        caja = m.getbbox() or (0, 0, ANCHO, ALTO)
-        # LA MASCARA VA EN EL CANAL ALFA, no en el gris: el espejo la usa con
-        # `destination-in`, y el lienzo mira el alfa. Un PNG en escala de grises
-        # tiene alfa 255 en todos lados y recortaria la caja entera en vez de la
-        # silueta. Es la misma traduccion que hace silueta.js con la mascara de
-        # MediaPipe, y por el mismo motivo.
-        trozo = m.crop(caja)
-        blanco = Image.new('L', trozo.size, 255)
-        Image.merge('RGBA', (blanco, blanco, blanco, trozo)).save(
-            os.path.join(destino, 'recortes', f'{i}.png'))
         lugares.append({'x': round(sitio['x'], 4), 'y': round(sitio['y'], 4),
                         'escala': round(sitio['escala'], 4)})
-        recortes.append({
-            'archivo': f'recortes/{i}.png',
-            'caja': [round(caja[0] / ANCHO, 5), round(caja[1] / ALTO, 5),
-                     round(caja[2] / ANCHO, 5), round(caja[3] / ALTO, 5)],
-        })
+        recortes.append({'archivo': f'recortes/{i}.png',
+                         'caja': guardar_recorte(destino, i, mascaras_por_objeto[oid])})
 
-    meta = {'lugar': lugares[0], 'escondites': lugares[1:], 'recortes': recortes}
-    with open(os.path.join(destino, 'metadata.json'), 'w', encoding='utf-8') as f:
-        json.dump(meta, f, ensure_ascii=False, indent=2)
-        f.write('\n')
+    escribir_metadata(destino, {'lugar': lugares[0], 'escondites': lugares[1:], 'recortes': recortes})
     return destino
 
 
@@ -555,7 +629,7 @@ def fase_escenas(ids, candidatas):
     torch.cuda.empty_cache()
 
 
-def fase_objetos(ids):
+def fase_objetos(ids, juez, umbral=UMBRAL):
     """SEGUNDA FASE: los cinco instrumentos adentro de cada escena."""
     import torch
     from diffusers import StableDiffusionXLInpaintPipeline
@@ -577,16 +651,120 @@ def fase_objetos(ids):
 
         sitios_por_objeto, mascaras_por_objeto = {}, {}
         for (oid, texto), sitio in zip(GUIONES[cid]['objetos'], sitios):
-            fondo, m, razon, intentos = meter_con_reintento(
-                inp, fondo, sitio, texto, sum(map(ord, oid)) * 37 % 9000)
+            fondo, m, razon, presencia, intentos = meter_con_reintento(
+                inp, fondo, sitio, texto, sum(map(ord, oid)) * 37 % 9000,
+                juez=juez, umbral=umbral)
             sitios_por_objeto[oid] = sitio
             mascaras_por_objeto[oid] = m
-            aviso = '' if 0.25 <= razon <= 1.4 else '   <-- revisar'
-            print(f'    {oid:24} area {razon:4.2f}  x{intentos}{aviso}', flush=True)
+            print(f'    {oid:24} {informe(razon, presencia, intentos, umbral)}', flush=True)
 
         destino = guardar(cid, fondo, sitios_por_objeto, mascaras_por_objeto,
                           sorted(sitios_por_objeto))
         print(f'  {cid}: {time.time()-t:.0f}s -> {os.path.relpath(destino, RAIZ)}', flush=True)
+
+    del inp
+    torch.cuda.empty_cache()
+
+
+def informe(razon, presencia, intentos, umbral=UMBRAL):
+    """Una linea por objeto pintado, con el aviso si no paso los dos controles."""
+    paso = 0.25 <= razon <= 1.4 and esta_presente(presencia, umbral)
+    return f'area {razon:4.2f}  presencia {presencia:4.2f}  x{intentos}' + ('' if paso else '   <-- revisar')
+
+
+def revisar(ids, juez, umbral=UMBRAL):
+    """
+    Que objetos estan de verdad en las fotos ya generadas. Juzga el recorte de
+    cada uno, imprime la tabla, arma la hoja de objetos para mirarla a ojo y
+    devuelve los ausentes como [(carrera, objeto)].
+    """
+    ausentes, filas = [], []
+    for cid in ids:
+        destino = os.path.join(CARRERAS, cid, 'fondos', FONDO_ID)
+        foto = Image.open(os.path.join(destino, 'imagen.jpg')).convert('RGB')
+        meta = leer_metadata(destino)
+        textos = dict(GUIONES[cid]['objetos'])
+        for i, oid in enumerate(orden_de_objetos(cid)):
+            recorte = recorte_de_caja(foto, meta['recortes'][i]['caja'])
+            presencia = juez(recorte, textos[oid])
+            presente = esta_presente(presencia, umbral)
+            if not presente:
+                ausentes.append((cid, oid))
+            filas.append((cid, i, oid, recorte, presencia, presente))
+            print(f'  {cid:18} {i} {oid:26} {presencia:4.2f}' + ('' if presente else '   <-- falta'),
+                  flush=True)
+    hoja_de_objetos(filas)
+    print(f'{len(ausentes)} de {len(filas)} objetos no estan en su foto:')
+    print('  --solo ' + ','.join(f'{c}:{o}' for c, o in ausentes))
+    return ausentes
+
+
+def hoja_de_objetos(filas, salida=None):
+    """Cada objeto recortado de su foto, con su presencia: para mirar a ojo lo que dijo el juez."""
+    lado, pie, columnas = 150, 18, 5
+    filas_de_hoja = (len(filas) + columnas - 1) // columnas
+    hoja = Image.new('RGB', (columnas * lado, filas_de_hoja * (lado + pie)), (14, 14, 18))
+    d = ImageDraw.Draw(hoja)
+    for n, (cid, i, oid, recorte, presencia, presente) in enumerate(filas):
+        x, y = (n % columnas) * lado, (n // columnas) * (lado + pie)
+        miniatura = recorte.copy()
+        miniatura.thumbnail((lado, lado))
+        hoja.paste(miniatura, (x + (lado - miniatura.width) // 2, y))
+        d.text((x + 3, y + lado + 2), f'{cid[:11]} {i} {presencia:.2f}',
+               fill=(240, 220, 160) if presente else (255, 90, 90))
+    salida = salida or os.path.join(RAIZ, 'contenido', 'objetos-contacto.jpg')
+    hoja.save(salida, quality=90)
+    print('hoja de objetos:', salida)
+    return salida
+
+
+def interpretar_solo(texto):
+    """'electrica:motor-trifasico,quimica:columna-destilacion' -> [(carrera, objeto), ...]."""
+    pares = []
+    for parte in (p.strip() for p in texto.split(',')):
+        if not parte:
+            continue
+        cid, _, oid = parte.partition(':')
+        if cid not in GUIONES or oid not in dict(GUIONES[cid]['objetos']):
+            raise ValueError(f'no conozco {parte!r}: es carrera:objeto, con los ids de las carpetas')
+        pares.append((cid, oid))
+    return pares
+
+
+def repintar(pares, juez, umbral=UMBRAL):
+    """
+    Pinta adentro de la foto que ya esta los objetos de `pares`, cada uno en su
+    mismo sitio, y deja intactos los demas: nada de volver a generar la escena.
+    Por carrera, la foto se abre una vez y se guarda una vez —recomprimir el JPEG
+    por cada objeto la iria gastando—, y de cada repintado se reescriben solo
+    su recorte y su caja.
+    """
+    import torch
+    from diffusers import StableDiffusionXLInpaintPipeline
+
+    print('cargando el generador de relleno...', flush=True)
+    inp = cargar(StableDiffusionXLInpaintPipeline, INPAINT)
+
+    for cid in dict.fromkeys(c for c, _ in pares):
+        t = time.time()
+        destino = os.path.join(CARRERAS, cid, 'fondos', FONDO_ID)
+        foto = Image.open(os.path.join(destino, 'imagen.jpg')).convert('RGB')
+        meta = leer_metadata(destino)
+        orden = orden_de_objetos(cid)
+        textos = dict(GUIONES[cid]['objetos'])
+        for oid in (o for c, o in pares if c == cid):
+            indice = orden.index(oid)
+            # Otra semilla que la de la primera vez: con esa no se pinto.
+            semilla = (sum(map(ord, oid)) * 37 + 4999) % 9000
+            foto, m, razon, presencia, intentos = meter_con_reintento(
+                inp, foto, sitio_de(meta, indice), textos[oid], semilla,
+                juez=juez, umbral=umbral)
+            meta['recortes'][indice]['caja'] = guardar_recorte(destino, indice, m)
+            print(f'    {cid} {indice} {oid:24} {informe(razon, presencia, intentos, umbral)}',
+                  flush=True)
+        foto.save(os.path.join(destino, 'imagen.jpg'), quality=94)
+        escribir_metadata(destino, meta)
+        print(f'  {cid}: {time.time()-t:.0f}s', flush=True)
 
     del inp
     torch.cuda.empty_cache()
@@ -616,6 +794,13 @@ def main():
     ap.add_argument('--candidatas', type=int, default=8, help='escenas a probar por carrera')
     ap.add_argument('--hoja', action='store_true', help='solo rearmar la hoja de contacto')
     ap.add_argument('--fase', choices=['escenas', 'objetos'], help='correr una sola fase')
+    ap.add_argument('--revisar', action='store_true',
+                    help='decir que objetos no estan pintados en las fotos actuales')
+    ap.add_argument('--repintar', action='store_true',
+                    help='pintar en la foto actual los objetos de --solo, en su mismo sitio')
+    ap.add_argument('--solo', default='', help='carrera:objeto separados por coma, para --repintar')
+    ap.add_argument('--umbral', type=float, default=UMBRAL,
+                    help='presencia desde la que un objeto cuenta como pintado')
     args = ap.parse_args()
 
     if args.hoja:
@@ -627,12 +812,29 @@ def main():
     if desconocidas:
         sys.exit(f'no conozco: {", ".join(desconocidas)}')
 
+    if args.revisar or args.repintar:
+        # Lo que se repinta es una lista revisada a ojo, nunca la auditoria
+        # cruda: un objeto presente que el juez diera por ausente se arruinaria.
+        try:
+            pares = interpretar_solo(args.solo)
+        except ValueError as error:
+            sys.exit(str(error))
+        if args.repintar and not pares:
+            sys.exit('--repintar necesita --solo carrera:objeto,...: la lista de --revisar, mirada a ojo')
+        juez = Juez()
+        if args.revisar:
+            revisar(ids, juez, args.umbral)
+        if args.repintar:
+            repintar(pares, juez, args.umbral)
+            hoja_de_contacto()
+        return
+
     if args.fase in (None, 'escenas'):
         print('== FASE 1: las escenas', flush=True)
         fase_escenas(ids, args.candidatas)
     if args.fase in (None, 'objetos'):
         print('== FASE 2: los objetos adentro', flush=True)
-        fase_objetos(ids)
+        fase_objetos(ids, Juez(), args.umbral)
 
     hoja_de_contacto()
 

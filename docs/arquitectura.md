@@ -84,7 +84,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `suavizado.js` | Filtros exponenciales (`crearFiltroExponencial`, `crearFiltroRostro`, `crearFiltroDeManos`) para eliminar el temblor de los landmarks, la histéresis de presencia (`crearHisteresis`) y el desvanecedor de la señal de las manos (`crearDesvanecedorDeManos`), que la prende y la apaga de a poco en vez de a los saltos de la detección. |
 | `eleccion.js` | El **sostenido**: entra dónde están las manos y dónde están los blancos, sale sobre cuál está la mano, cuánto lleva y si ya alcanzó. No sabe qué es una carrera ni dibuja el anillo. |
 | `tablero.js` | Dónde se para cada objeto: un anillo con todas las carreras, anclado a los hombros y con el radio proporcional al ancho de hombros, que gira despacio y del que sólo se ve la ventana de arriba. Sólo geometría. |
-| `vuelo.js` | El viaje del objeto agarrado desde su ranura hasta su lugar en el fondo y su flotación una vez apoyado, y `lugarEnPantalla`, que pasa un lugar normalizado a la foto a la pantalla midiéndolo contra lo que se ve de ella. Sólo números. |
+| `vuelo.js` | El viaje del objeto agarrado desde su ranura hasta su lugar en el fondo y su flotación una vez apoyado, `lugarEnPantalla`, que pasa un lugar normalizado a la foto a la pantalla midiéndolo contra lo que se ve de ella (objetos sueltos), y `lugarEnLaFoto`, que lo pasa con la misma cuenta que la foto dibujada (objetos pintados adentro de ella). Sólo números. |
 | `escondites.js` | Los objetos del fondo: qué lugar le toca a cada uno (`lugaresDelFondo`, `esconder`), cómo se mecen los sueltos (`balanceo`) y cómo late el que está pintado adentro de la foto (`latidoDelObjeto`). Sólo números. |
 | `fichas.js` | El hover de los objetos del fondo: qué ficha está abierta y cuánto se ve cada una. Abrir pide un momento, cerrar otro más largo, y pasar de una a otra es un fundido. No sabe qué es una ingeniería ni dibuja. |
 | `silueta.js` | Traduce la máscara de MediaPipe —un byte de confianza por píxel, **sin canal alfa**— a una imagen blanca cuyo alfa es esa confianza, que es lo único que el lienzo puede usar para recortar. |
@@ -359,11 +359,17 @@ a la imagen**: las fotos se preparan en 1080×1920, la medida del espejo, y ahí
 un punto normalizado a la imagen cae exactamente en el sitio de la escena que
 se eligió mirando. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`.
 
-**Los lugares se miden contra lo que se ve de la foto.** En el espejo es la foto
-entera. En un lienzo de otra proporción —un monitor apaisado mientras se
-desarrolla— la foto entra al ancho y sólo se ve su franja del medio: medido
-contra la foto entera, el rincón de arriba elegido para el objeto caía por
-encima del borde (el objeto "desaparecía" en las doce ingenierías), y
+**La foto del fondo entra entera, no cubriendo.** En el espejo es lo mismo. En
+un lienzo de otra proporción —un monitor apaisado mientras se desarrolla—
+cubrir agrandaba la foto al ancho y sólo dejaba ver su franja del medio, y con
+ella se iban los objetos pintados arriba. `dibujarFondo` la pone entera con
+`calcularRectanguloDelFondo`, y lo que deja libre lo cubre
+`crearRellenoDelFondo`: la misma foto agrandada, desenfocada y oscurecida
+(`CONFIG.fondo.relleno`), hecha una sola vez por foto y medida de ventana.
+
+**Los objetos sueltos se miden contra lo que se ve del fondo.** En el espejo es
+la foto entera. Cuando la foto cubría un monitor apaisado, medido contra la foto
+entera el rincón de arriba elegido para el objeto caía por encima del borde (el objeto "desaparecía" en las doce ingenierías), y
 recortarlo contra el borde de a uno amontonaba ahí a todos los objetos de ese
 costado, que con cuatro por fondo se pisaban. `lugarEnPantalla` ubica el lugar
 sobre la parte visible de la foto y le da el tamaño de la composición vertical
@@ -373,6 +379,15 @@ proporción con la persona (que en apaisado también se ve más chica) y nada se
 pisa que no se pisara en el espejo. `fondo.margenDelLugar` queda como seguro
 contra el borde. `tests/integracion/fondos.test.js` lo fija con el catálogo
 real en las dos orientaciones.
+
+**Salvo los objetos pintados adentro de la foto.** Recomponer vale para un PNG
+suelto, que se dibuja donde se lo ponga. Un objeto de un fondo generado son
+píxeles de la foto, y la foto no se recompone: su blanco de la mano, su latido,
+el ancla de su ficha y el aterrizaje del vuelo salen de `lugarEnLaFoto`, la
+misma cuenta que `cajaEnPantalla` hace con la caja de su recorte sobre el
+rectángulo que devolvió `dibujarFondo`. En el espejo vertical las dos cuentas
+coinciden; en la notebook, medido con `lugarEnPantalla`, el blanco quedaba lejos
+del objeto que se veía y la mano apoyada encima no abría su ficha.
 
 El origen se captura en el evento `mira` —la ranura en ese cuadro— porque el
 carrusel sigue girando mientras el objeto vuela. Sin ranura a la vista (una

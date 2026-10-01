@@ -140,10 +140,31 @@ que dos blancos de la mano se toquen— ya resuelta. Los cinco se eligen juntos,
 porque dos zonas vecinas pueden tener su mejor punto pegado.
 
 `npm run escenas` es un paso de **autoría**, no del evento: baja modelos la
-primera vez y necesita un entorno con `torch`/`diffusers` (índice `cu128` para
-GPU Blackwell; el VAE `madebyollin/sdxl-vae-fp16-fix` no es opcional, sin él
-cada imagen tarda minutos). Lo que se versiona y va al stand son los archivos
-que deja: `imagen.jpg`, `recortes/<n>.png` y `metadata.json`.
+primera vez y necesita un entorno con `torch`/`diffusers`/`transformers`
+(índice `cu128` para GPU Blackwell; el VAE `madebyollin/sdxl-vae-fp16-fix` no es
+opcional, sin él cada imagen tarda minutos). Lo que se versiona y va al stand
+son los archivos que deja: `imagen.jpg`, `recortes/<n>.png` y `metadata.json`.
+
+**Que el objeto esté pintado se comprueba mirando, no midiendo cuánto cambió.**
+La primera tanda de escenas salió con unos 25 de los 60 objetos sin pintar: el
+modelo rehacía la pared o el estante y nada más, y el control de entonces —el
+área de lo que cambió— lo daba por bueno, porque una pared repintada también
+cambia. Ahora cada intento pasa además por un juez (`herramientas/presencia.py`,
+CLIP en CPU) que pregunta si lo pintado se parece al objeto o a un sitio vacío,
+y se reintenta con otra semilla hasta seis veces. Para las fotos que ya están:
+
+```bash
+python herramientas/escenas.py --revisar          # qué objetos no están; arma
+                                                  # contenido/objetos-contacto.jpg
+python herramientas/escenas.py --repintar --solo electrica:motor-trifasico,...
+```
+
+`--repintar` pinta sólo esos objetos en la foto actual, en su mismo sitio, y
+reescribe sólo su recorte y su caja: los que ya están no se tocan. Pide la lista
+explícita a propósito —la de `--revisar`, mirada a ojo en la hoja—, porque un
+objeto presente que el juez diera por ausente se arruinaría al repintarlo. Las
+partes que no necesitan la GPU tienen pruebas:
+`python -m unittest discover -s tests/herramientas`.
 
 ### Qué hace que un fondo sirva
 
@@ -238,12 +259,13 @@ se mueve mirando en `herramientas/fondos.html`, y las pruebas dicen si todavía
 entra.
 
 Si el espejo corre en una pantalla de otra proporción —un monitor apaisado
-mientras se desarrolla—, la foto se ve recortada a su franja del medio. Ahí el
-espejo mide los lugares contra lo que se ve de la foto: la composición entera se
-conserva, a la escala de la persona, y nada se pisa que no se pisara en el
-espejo vertical. Los objetos, eso sí, crecen un poco más
-(`fondo.agrandarEnApaisado`): a la escala de la composición se veían chiquitos,
-con lugar de sobra a los costados de la persona.
+mientras se desarrolla—, la foto entra entera, a lo alto, y a los costados va la
+misma foto desenfocada y oscurecida. Los objetos pintados se ven donde cae la
+foto y el espejo pone el blanco de la mano exactamente ahí: en la notebook se
+prueban los cinco, como en el espejo vertical. Los objetos sueltos (un fondo sin
+objetos pintados) se miden contra lo que se ve del fondo, a la escala de la
+persona, y crecen un poco más (`fondo.agrandarEnApaisado`): a la escala de la
+composición se veían chiquitos.
 
 ```json
 "fondos": [
