@@ -28,3 +28,7 @@ __pycache__/
 # es el fondo ya poblado, en fondos/escena/)
 contenido/escenas-base/
 contenido/escenas-contacto.jpg
+# La hoja de objetos de `escenas.py --revisar`, para mirar a ojo
+contenido/objetos-contacto.jpg
+# El entorno de Python del generador (torch, diffusers, transformers)
+.venv-escenas/
