@@ -5,37 +5,84 @@
       "nombre": "Ingeniería en Agrimensura",
       "color": "#8D6E63",
       "maite": "agrimensura",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/agrimensura/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/agrimensura/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.1469,
+            "y": 0.5771,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.8759,
+              "y": 0.5844,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.8898,
+              "y": 0.3506,
+              "escala": 0.17
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.1599,
+              "y": 0.285,
+              "escala": 0.17
             },
             {
-              "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.485,
+              "y": 0.192,
+              "escala": 0.16
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/agrimensura/fondos/escena/recortes/0.png",
+              "caja": [
+                0.07315,
+                0.52344,
+                0.25278,
+                0.63438
+              ]
+            },
+            {
+              "img": "carreras/agrimensura/fondos/escena/recortes/1.png",
+              "caja": [
+                0.78611,
+                0.54896,
+                0.93981,
+                0.64844
+              ]
+            },
+            {
+              "img": "carreras/agrimensura/fondos/escena/recortes/2.png",
+              "caja": [
+                0.80093,
+                0.34063,
+                0.95093,
+                0.38854
+              ]
+            },
+            {
+              "img": "carreras/agrimensura/fondos/escena/recortes/3.png",
+              "caja": [
+                0.11296,
+                0.22969,
+                0.25093,
+                0.33802
+              ]
+            },
+            {
+              "img": "carreras/agrimensura/fondos/escena/recortes/4.png",
+              "caja": [
+                0.4037,
+                0.14323,
+                0.5537,
+                0.21771
+              ]
             }
           ]
         }
@@ -83,37 +130,84 @@
       "nombre": "Ingeniería de Alimentos",
       "color": "#EF5350",
       "maite": "alimentos",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/alimentos/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/alimentos/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.108,
+            "y": 0.5042,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.8889,
+              "y": 0.4896,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.498,
+              "y": 0.192,
+              "escala": 0.16
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.1728,
+              "y": 0.285,
+              "escala": 0.17
             },
             {
-              "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.8769,
+              "y": 0.285,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/alimentos/fondos/escena/recortes/0.png",
+              "caja": [
+                0.00926,
+                0.44115,
+                0.20463,
+                0.56771
+              ]
+            },
+            {
+              "img": "carreras/alimentos/fondos/escena/recortes/1.png",
+              "caja": [
+                0.78426,
+                0.42344,
+                0.98241,
+                0.56146
+              ]
+            },
+            {
+              "img": "carreras/alimentos/fondos/escena/recortes/2.png",
+              "caja": [
+                0.41204,
+                0.16615,
+                0.58056,
+                0.24271
+              ]
+            },
+            {
+              "img": "carreras/alimentos/fondos/escena/recortes/3.png",
+              "caja": [
+                0.07963,
+                0.2224,
+                0.26481,
+                0.34323
+              ]
+            },
+            {
+              "img": "carreras/alimentos/fondos/escena/recortes/4.png",
+              "caja": [
+                0.79259,
+                0.23073,
+                0.96759,
+                0.34115
+              ]
             }
           ]
         }
@@ -137,7 +231,7 @@
           "id": "espectrofotometro",
           "img": "carreras/alimentos/objetos/espectrofotometro/imagen.png",
           "nombre": "Espectrofotómetro",
-          "descripcion": "Mide la cantidad de luz que absorben las sustancias a determinada longitud de onda, permitiendo cuantificar infinidad de compuestos (colorantes, vitaminas, proteínas, contaminantes, etc.).",
+          "descripcion": "Cuantifica compuestos y colorantes en jugos y aceites midiendo la absorción de luz en longitudes de onda exactas.",
           "figura": "prisma"
         },
         {
@@ -151,7 +245,7 @@
           "id": "refractometro",
           "img": "carreras/alimentos/objetos/refractometro/imagen.png",
           "nombre": "Refractómetro digital",
-          "descripcion": "Mide el índice de refracción para determinar al instante los sólidos disueltos. Se usa para medir la concentración de azúcares en salsas, mermeladas y jugos.",
+          "descripcion": "Mide el índice de refracción para determinar al instante los grados Brix y la concentración de azúcar en jugos.",
           "figura": "pipeta"
         }
       ]
@@ -161,37 +255,84 @@
       "nombre": "Ingeniería Civil",
       "color": "#FF8A3D",
       "maite": "civil",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/civil/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/civil/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.108,
+            "y": 0.3798,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.825,
+              "y": 0.285,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.1469,
+              "y": 0.5844,
+              "escala": 0.17
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.485,
+              "y": 0.192,
+              "escala": 0.16
             },
             {
               "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "y": 0.5771,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/civil/fondos/escena/recortes/0.png",
+              "caja": [
+                0.03889,
+                0.37344,
+                0.19444,
+                0.44323
+              ]
+            },
+            {
+              "img": "carreras/civil/fondos/escena/recortes/1.png",
+              "caja": [
+                0.74815,
+                0.23906,
+                0.90463,
+                0.34635
+              ]
+            },
+            {
+              "img": "carreras/civil/fondos/escena/recortes/2.png",
+              "caja": [
+                0.06667,
+                0.52135,
+                0.23056,
+                0.64583
+              ]
+            },
+            {
+              "img": "carreras/civil/fondos/escena/recortes/3.png",
+              "caja": [
+                0.41574,
+                0.13281,
+                0.5713,
+                0.22812
+              ]
+            },
+            {
+              "img": "carreras/civil/fondos/escena/recortes/4.png",
+              "caja": [
+                0.75556,
+                0.51198,
+                0.93981,
+                0.64115
+              ]
             }
           ]
         }
@@ -239,37 +380,84 @@
       "nombre": "Ingeniería en Computación",
       "color": "#00E5A0",
       "maite": "sistemas",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/computacion/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/computacion/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.5109,
+            "y": 0.192,
+            "escala": 0.16
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.108,
+              "y": 0.3652,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.8898,
+              "y": 0.3433,
+              "escala": 0.17
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.108,
+              "y": 0.5771,
+              "escala": 0.17
             },
             {
-              "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.8889,
+              "y": 0.5698,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/computacion/fondos/escena/recortes/0.png",
+              "caja": [
+                0.44815,
+                0.1474,
+                0.575,
+                0.21927
+              ]
+            },
+            {
+              "img": "carreras/computacion/fondos/escena/recortes/1.png",
+              "caja": [
+                0.03333,
+                0.31406,
+                0.20093,
+                0.42188
+              ]
+            },
+            {
+              "img": "carreras/computacion/fondos/escena/recortes/2.png",
+              "caja": [
+                0.79722,
+                0.27708,
+                0.9787,
+                0.40365
+              ]
+            },
+            {
+              "img": "carreras/computacion/fondos/escena/recortes/3.png",
+              "caja": [
+                0.04907,
+                0.51823,
+                0.19444,
+                0.63698
+              ]
+            },
+            {
+              "img": "carreras/computacion/fondos/escena/recortes/4.png",
+              "caja": [
+                0.80093,
+                0.50677,
+                0.95,
+                0.62135
+              ]
             }
           ]
         }
@@ -317,37 +505,84 @@
       "nombre": "Ingeniería en Sistemas de Comunicación",
       "color": "#E040FB",
       "maite": "comunicacion",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/comunicacion/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/comunicacion/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.1469,
+            "y": 0.5771,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
-            },
-            {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
-            },
-            {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
-            },
-            {
               "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "y": 0.5844,
+              "escala": 0.17
+            },
+            {
+              "x": 0.108,
+              "y": 0.4162,
+              "escala": 0.17
+            },
+            {
+              "x": 0.8769,
+              "y": 0.3142,
+              "escala": 0.17
+            },
+            {
+              "x": 0.485,
+              "y": 0.1993,
+              "escala": 0.16
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/comunicacion/fondos/escena/recortes/0.png",
+              "caja": [
+                0.0537,
+                0.53958,
+                0.24537,
+                0.64375
+              ]
+            },
+            {
+              "img": "carreras/comunicacion/fondos/escena/recortes/1.png",
+              "caja": [
+                0.76667,
+                0.52292,
+                0.90185,
+                0.64844
+              ]
+            },
+            {
+              "img": "carreras/comunicacion/fondos/escena/recortes/2.png",
+              "caja": [
+                0.01481,
+                0.35417,
+                0.20648,
+                0.48177
+              ]
+            },
+            {
+              "img": "carreras/comunicacion/fondos/escena/recortes/3.png",
+              "caja": [
+                0.78333,
+                0.28281,
+                0.96852,
+                0.37448
+              ]
+            },
+            {
+              "img": "carreras/comunicacion/fondos/escena/recortes/4.png",
+              "caja": [
+                0.39444,
+                0.13854,
+                0.57037,
+                0.26458
+              ]
             }
           ]
         }
@@ -395,37 +630,84 @@
       "nombre": "Ingeniería Eléctrica",
       "color": "#FFD23F",
       "maite": "electronica",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/electrica/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/electrica/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.5109,
+            "y": 0.1993,
+            "escala": 0.16
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.1469,
+              "y": 0.5625,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.108,
+              "y": 0.3871,
+              "escala": 0.17
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.8769,
+              "y": 0.3944,
+              "escala": 0.17
             },
             {
               "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "y": 0.5479,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/electrica/fondos/escena/recortes/0.png",
+              "caja": [
+                0.46111,
+                0.14375,
+                0.58426,
+                0.24427
+              ]
+            },
+            {
+              "img": "carreras/electrica/fondos/escena/recortes/1.png",
+              "caja": [
+                0.06296,
+                0.53021,
+                0.17037,
+                0.61562
+              ]
+            },
+            {
+              "img": "carreras/electrica/fondos/escena/recortes/2.png",
+              "caja": [
+                0.01389,
+                0.32604,
+                0.18519,
+                0.44792
+              ]
+            },
+            {
+              "img": "carreras/electrica/fondos/escena/recortes/3.png",
+              "caja": [
+                0.83148,
+                0.35417,
+                0.9287,
+                0.45052
+              ]
+            },
+            {
+              "img": "carreras/electrica/fondos/escena/recortes/4.png",
+              "caja": [
+                0.79907,
+                0.54219,
+                0.94167,
+                0.61094
+              ]
             }
           ]
         }
@@ -473,37 +755,84 @@
       "nombre": "Ingeniería Físico-Matemática",
       "color": "#A78BFA",
       "maite": "fisico_matematica",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/fisico-matematico/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/fisico-matematico/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.8898,
+            "y": 0.3725,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.121,
+              "y": 0.5625,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.5109,
+              "y": 0.192,
+              "escala": 0.16
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.121,
+              "y": 0.336,
+              "escala": 0.17
             },
             {
-              "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.863,
+              "y": 0.5844,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/fisico-matematico/fondos/escena/recortes/0.png",
+              "caja": [
+                0.79167,
+                0.3026,
+                0.99074,
+                0.44062
+              ]
+            },
+            {
+              "img": "carreras/fisico-matematico/fondos/escena/recortes/1.png",
+              "caja": [
+                0.03148,
+                0.49948,
+                0.21111,
+                0.61979
+              ]
+            },
+            {
+              "img": "carreras/fisico-matematico/fondos/escena/recortes/2.png",
+              "caja": [
+                0.46019,
+                0.14635,
+                0.59444,
+                0.24531
+              ]
+            },
+            {
+              "img": "carreras/fisico-matematico/fondos/escena/recortes/3.png",
+              "caja": [
+                0.06111,
+                0.28021,
+                0.21574,
+                0.39792
+              ]
+            },
+            {
+              "img": "carreras/fisico-matematico/fondos/escena/recortes/4.png",
+              "caja": [
+                0.76944,
+                0.52031,
+                0.93333,
+                0.64896
+              ]
             }
           ]
         }
@@ -551,37 +880,84 @@
       "nombre": "Ingeniería Forestal",
       "color": "#66BB6A",
       "maite": "forestal",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/forestal/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/forestal/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.8759,
+            "y": 0.5844,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.485,
+              "y": 0.192,
+              "escala": 0.16
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.108,
+              "y": 0.2923,
+              "escala": 0.17
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.1469,
+              "y": 0.5844,
+              "escala": 0.17
             },
             {
-              "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.8898,
+              "y": 0.3069,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/forestal/fondos/escena/recortes/0.png",
+              "caja": [
+                0.78519,
+                0.52292,
+                0.96481,
+                0.64479
+              ]
+            },
+            {
+              "img": "carreras/forestal/fondos/escena/recortes/1.png",
+              "caja": [
+                0.39167,
+                0.14219,
+                0.55185,
+                0.2526
+              ]
+            },
+            {
+              "img": "carreras/forestal/fondos/escena/recortes/2.png",
+              "caja": [
+                0.02685,
+                0.22604,
+                0.2037,
+                0.3526
+              ]
+            },
+            {
+              "img": "carreras/forestal/fondos/escena/recortes/3.png",
+              "caja": [
+                0.05278,
+                0.53021,
+                0.23981,
+                0.65
+              ]
+            },
+            {
+              "img": "carreras/forestal/fondos/escena/recortes/4.png",
+              "caja": [
+                0.7963,
+                0.24323,
+                0.98333,
+                0.37083
+              ]
             }
           ]
         }
@@ -629,37 +1005,84 @@
       "nombre": "Ingeniería Industrial Mecánica",
       "color": "#4FC3F7",
       "maite": "industrial_mecanica",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/mecanica/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/mecanica/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.5109,
+            "y": 0.192,
+            "escala": 0.16
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.1728,
+              "y": 0.285,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.1469,
+              "y": 0.5844,
+              "escala": 0.17
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.825,
+              "y": 0.285,
+              "escala": 0.17
             },
             {
-              "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.8759,
+              "y": 0.5115,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/mecanica/fondos/escena/recortes/0.png",
+              "caja": [
+                0.425,
+                0.14583,
+                0.59907,
+                0.2401
+              ]
+            },
+            {
+              "img": "carreras/mecanica/fondos/escena/recortes/1.png",
+              "caja": [
+                0.07778,
+                0.22969,
+                0.26204,
+                0.34219
+              ]
+            },
+            {
+              "img": "carreras/mecanica/fondos/escena/recortes/2.png",
+              "caja": [
+                0.05463,
+                0.53073,
+                0.22963,
+                0.64844
+              ]
+            },
+            {
+              "img": "carreras/mecanica/fondos/escena/recortes/3.png",
+              "caja": [
+                0.72963,
+                0.22083,
+                0.91852,
+                0.34323
+              ]
+            },
+            {
+              "img": "carreras/mecanica/fondos/escena/recortes/4.png",
+              "caja": [
+                0.76944,
+                0.45052,
+                0.97963,
+                0.58229
+              ]
             }
           ]
         }
@@ -707,37 +1130,84 @@
       "nombre": "Ingeniería Naval",
       "color": "#5C6BC0",
       "maite": "naval",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/naval/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/naval/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.1469,
+            "y": 0.5844,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
-            },
-            {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
-            },
-            {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
-            },
-            {
               "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "y": 0.5625,
+              "escala": 0.17
+            },
+            {
+              "x": 0.485,
+              "y": 0.1993,
+              "escala": 0.16
+            },
+            {
+              "x": 0.825,
+              "y": 0.336,
+              "escala": 0.17
+            },
+            {
+              "x": 0.1728,
+              "y": 0.285,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/naval/fondos/escena/recortes/0.png",
+              "caja": [
+                0.06019,
+                0.5401,
+                0.23241,
+                0.64323
+              ]
+            },
+            {
+              "img": "carreras/naval/fondos/escena/recortes/1.png",
+              "caja": [
+                0.75093,
+                0.49375,
+                0.94815,
+                0.62604
+              ]
+            },
+            {
+              "img": "carreras/naval/fondos/escena/recortes/2.png",
+              "caja": [
+                0.39815,
+                0.13906,
+                0.575,
+                0.25781
+              ]
+            },
+            {
+              "img": "carreras/naval/fondos/escena/recortes/3.png",
+              "caja": [
+                0.74167,
+                0.28021,
+                0.91759,
+                0.39896
+              ]
+            },
+            {
+              "img": "carreras/naval/fondos/escena/recortes/4.png",
+              "caja": [
+                0.07593,
+                0.2224,
+                0.26574,
+                0.35
+              ]
             }
           ]
         }
@@ -785,37 +1255,84 @@
       "nombre": "Ingeniería de Producción",
       "color": "#26C6DA",
       "maite": "produccion",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/produccion/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/produccion/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.8889,
+            "y": 0.475,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.1728,
+              "y": 0.285,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.485,
+              "y": 0.1993,
+              "escala": 0.16
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.825,
+              "y": 0.285,
+              "escala": 0.17
             },
             {
-              "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.1339,
+              "y": 0.5625,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/produccion/fondos/escena/recortes/0.png",
+              "caja": [
+                0.79722,
+                0.4125,
+                0.95648,
+                0.53958
+              ]
+            },
+            {
+              "img": "carreras/produccion/fondos/escena/recortes/1.png",
+              "caja": [
+                0.07685,
+                0.22552,
+                0.26759,
+                0.34948
+              ]
+            },
+            {
+              "img": "carreras/produccion/fondos/escena/recortes/2.png",
+              "caja": [
+                0.40278,
+                0.13906,
+                0.57315,
+                0.25625
+              ]
+            },
+            {
+              "img": "carreras/produccion/fondos/escena/recortes/3.png",
+              "caja": [
+                0.73148,
+                0.23073,
+                0.91389,
+                0.35
+              ]
+            },
+            {
+              "img": "carreras/produccion/fondos/escena/recortes/4.png",
+              "caja": [
+                0.05926,
+                0.53594,
+                0.22407,
+                0.61875
+              ]
             }
           ]
         }
@@ -863,37 +1380,84 @@
       "nombre": "Ingeniería Química",
       "color": "#FF5D8F",
       "maite": "quimica",
-      "fondoActivo": "principal",
+      "fondoActivo": "escena",
       "fondos": [
         {
-          "id": "principal",
-          "img": "carreras/quimica/fondos/principal/imagen.jpg",
+          "id": "escena",
+          "img": "carreras/quimica/fondos/escena/imagen.jpg",
           "video": null,
           "lugar": {
-            "x": 0.18,
-            "y": 0.28,
-            "escala": 0.2
+            "x": 0.8898,
+            "y": 0.3579,
+            "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.82,
-              "y": 0.28,
-              "escala": 0.2
+              "x": 0.1469,
+              "y": 0.5042,
+              "escala": 0.17
             },
             {
-              "x": 0.5,
-              "y": 0.2,
-              "escala": 0.2
+              "x": 0.5109,
+              "y": 0.1993,
+              "escala": 0.16
             },
             {
-              "x": 0.15,
-              "y": 0.48,
-              "escala": 0.2
+              "x": 0.108,
+              "y": 0.3652,
+              "escala": 0.17
             },
             {
               "x": 0.85,
-              "y": 0.48,
-              "escala": 0.2
+              "y": 0.5333,
+              "escala": 0.17
+            }
+          ],
+          "recortes": [
+            {
+              "img": "carreras/quimica/fondos/escena/recortes/0.png",
+              "caja": [
+                0.80093,
+                0.31667,
+                0.95833,
+                0.41979
+              ]
+            },
+            {
+              "img": "carreras/quimica/fondos/escena/recortes/1.png",
+              "caja": [
+                0.06852,
+                0.46354,
+                0.23241,
+                0.52552
+              ]
+            },
+            {
+              "img": "carreras/quimica/fondos/escena/recortes/2.png",
+              "caja": [
+                0.42407,
+                0.1401,
+                0.59815,
+                0.23542
+              ]
+            },
+            {
+              "img": "carreras/quimica/fondos/escena/recortes/3.png",
+              "caja": [
+                0.02407,
+                0.32135,
+                0.17593,
+                0.41354
+              ]
+            },
+            {
+              "img": "carreras/quimica/fondos/escena/recortes/4.png",
+              "caja": [
+                0.76667,
+                0.48229,
+                0.91667,
+                0.59531
+              ]
             }
           ]
         }

@@ -146,3 +146,70 @@ describe('crearSesionContenido', () => {
     expect(sesion.representanteDe('computacion').id).toBe('mouse');
   });
 });
+
+// CON UN FONDO GENERADO EL REPARTO NO SE BARAJA. Los cinco objetos estan
+// pintados adentro de la foto, cada uno en su sitio y con su mascara: lo que el
+// espejo dibuja al pasar la mano es un recorte de la foto, y la foto no se
+// baraja. Barajado, la ficha del matraz salia sobre la columna de destilacion.
+describe('sesion con un fondo generado', () => {
+  const objetos = [
+    { id: 'a', nombre: 'A' },
+    { id: 'b', nombre: 'B' },
+    { id: 'c', nombre: 'C' },
+    { id: 'd', nombre: 'D' },
+    { id: 'e', nombre: 'E' },
+  ];
+  const escondites = [
+    { x: 0.1, y: 0.3, escala: 0.17 },
+    { x: 0.9, y: 0.3, escala: 0.17 },
+    { x: 0.1, y: 0.5, escala: 0.17 },
+    { x: 0.9, y: 0.5, escala: 0.17 },
+  ];
+  const conRecortes = {
+    id: 'escena',
+    img: 'f.jpg',
+    escondites,
+    recortes: objetos.map((_, i) => ({ img: `r${i}.png`, caja: [0, 0, 0.1, 0.1] })),
+  };
+  const sinRecortes = { id: 'principal', img: 'f.jpg', escondites };
+
+  const carrera = (fondo) => ({
+    id: 'quimica',
+    objetos,
+    fondoActivo: fondo.id,
+    fondos: [fondo],
+  });
+  const sesionCon = (fondo) =>
+    crearSesionContenido({
+      contenido: { obtener: () => carrera(fondo) },
+      // Un azar que siempre daria vuelta el orden, para que barajar se note.
+      azar: () => 0.99,
+    });
+
+  it('el del carrusel es el primero, el que esta pintado en su sitio', () => {
+    expect(sesionCon(conRecortes).representanteDe('quimica')).toBe(objetos[0]);
+  });
+
+  it('los escondidos van en el orden del contenido, uno por escondite', () => {
+    const { escondidos } = sesionCon(conRecortes).disposicionDe('quimica', conRecortes);
+    expect(escondidos.map((e) => e.definicion.id)).toEqual(['b', 'c', 'd', 'e']);
+    expect(escondidos.map((e) => e.lugar)).toEqual(escondites);
+  });
+
+  // Con objetos sueltos el azar sigue valiendo: dos visitantes seguidos no ven
+  // el mismo objeto en el mismo rincon.
+  it('sin recortes el del carrusel lo sigue eligiendo el azar', () => {
+    expect(sesionCon(sinRecortes).representanteDe('quimica')).toBe(objetos[4]);
+  });
+
+  it('y el reparto respeta barajarlos', () => {
+    const enOrden = distribuirEscondidosEnSlots({
+      objetos,
+      objetoElegido: objetos[0],
+      slots: escondites,
+      azar: () => 0.99,
+      barajarlos: false,
+    });
+    expect(enOrden.map((e) => e.definicion.id)).toEqual(['b', 'c', 'd', 'e']);
+  });
+});

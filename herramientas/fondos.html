@@ -52,7 +52,12 @@
     import { cargarContenido, objetoDeCarrera, escondidosDeCarrera } from '../espejo/contenido.js';
     import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
     import { cargarVideoDelNavegador, crearBancoDeVideos } from '../espejo/videos.js';
-    import { aspectoDelObjeto, objetosDelFondo, fichaDelObjeto } from '../espejo/escondites.js';
+    import {
+      aspectoDelObjeto,
+      latidoDelObjeto,
+      objetosDelFondo,
+      fichaDelObjeto,
+    } from '../espejo/escondites.js';
     import {
       calcularDisposicion,
       dibujarFondo,
@@ -61,6 +66,8 @@
       dibujarFicha,
       dibujarNombreDeCarrera,
       dibujarObjetoApoyado,
+      dibujarRecorte,
+      dibujarLatido,
       TITULO_SOLO,
       PESO_TITULO,
     } from '../espejo/escena.js';
@@ -75,6 +82,13 @@
     const completo = document.createElement('canvas');
     completo.width = ESPEJO.ancho;
     completo.height = ESPEJO.alto;
+    // Sacar un objeto de adentro de la foto necesita su propio lienzo: la foto
+    // primero y despues su mascara en `destination-in`, que sobre el lienzo de
+    // la escena se llevaria puesto todo lo que ya esta dibujado.
+    const lienzoDeObjeto = document.createElement('canvas');
+    lienzoDeObjeto.width = ESPEJO.ancho;
+    lienzoDeObjeto.height = ESPEJO.alto;
+    const capaDeObjeto = { canvas: lienzoDeObjeto, ctx: lienzoDeObjeto.getContext('2d') };
     const COLORES_DE_FICHA = {
       titulo: CONFIG.paleta.nombre,
       texto: CONFIG.paleta.texto,
@@ -189,16 +203,50 @@
       const turno = turnoDeFicha(ahora, todos.length);
       const deTurno = todos[turno.indice];
 
-      // Como en el espejo: los escondidos se mecen, el del carrusel flota, y el
-      // de la ficha abierta crece, se calma y se ilumina.
+      // Como en el espejo, y con sus mismas funciones. En un fondo generado los
+      // objetos ya estan pintados adentro de la foto: lo que se dibuja es su
+      // latido y, el que esta en turno, recortado de la propia escena. En un
+      // fondo con PNGs sueltos, los escondidos se mecen y el del carrusel flota.
       for (const objeto of [...todos.slice(1), todos[0]]) {
+        const leyendo = objeto === deTurno ? turno.alfa : 0;
+
+        if (objeto.recorte) {
+          const mascara = banco.obtener(objeto.recorte.img);
+          dibujarLatido(ctx, {
+            x: objeto.x,
+            y: objeto.y,
+            radio: objeto.radio,
+            intensidad: Math.max(
+              latidoDelObjeto(ahora, objeto.indice ?? 0, CONFIG.recortes.latido) * (1 - leyendo),
+              CONFIG.recortes.haloAlLeer * leyendo,
+            ),
+            color: CONFIG.paleta.nombre,
+          });
+          if (leyendo > 0 && mascara) {
+            dibujarRecorte(
+              ctx,
+              {
+                fuente,
+                mascara,
+                caja: objeto.recorte.caja,
+                rectangulo,
+                crecer: 1 + (CONFIG.recortes.crecer - 1) * leyendo,
+                brillo: CONFIG.recortes.brillo * leyendo,
+                alfa: 1,
+              },
+              capaDeObjeto,
+            );
+          }
+          continue;
+        }
+
         const { dy, giro, radio, halo } = aspectoDelObjeto(
           {
             ahora,
             indice: objeto.indice,
             radio: objeto.radio,
             esElegido: objeto.id === 0,
-            leyendo: objeto === deTurno ? turno.alfa : 0,
+            leyendo,
           },
           CONFIG,
         );
@@ -218,7 +266,12 @@
       dibujarSilueta(ctx);
       if (conZona) dibujarZonas(ctx);
 
-      const { opciones } = fichaDelObjeto(deTurno, ESPEJO, CONFIG);
+      const { opciones } = fichaDelObjeto(
+        deTurno,
+        ESPEJO,
+        CONFIG,
+        todos.filter((otro) => otro.id !== deTurno.id),
+      );
       dibujarFicha(
         ctx,
         {

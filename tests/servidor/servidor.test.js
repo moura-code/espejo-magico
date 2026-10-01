@@ -3,7 +3,7 @@ import { mkdtemp, writeFile, mkdir, readFile, rm } from 'node:fs/promises';
 import { execFile, spawnSync } from 'node:child_process';
 import { get } from 'node:https';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import {
   crearServidor,
@@ -25,10 +25,14 @@ afterEach(async () => {
 });
 
 describe('servidor', () => {
+  // Las rutas se arman con `resolve`, que en Windows devuelve `C:\...\` y en
+  // Linux `/...`. La prueba las arma igual: escritas a mano en POSIX, esto
+  // fallaba en la maquina donde se desarrolla por un motivo ajeno al servidor,
+  // y una suite que no puede estar en verde deja de avisar cuando algo se rompe.
   it('usa las rutas HTTPS predeterminadas dentro del proyecto', () => {
-    expect(resolverRutasCertificados({}, '/proyecto')).toEqual({
-      certificado: '/proyecto/.certificados/espejo.pem',
-      clave: '/proyecto/.certificados/espejo-key.pem',
+    expect(resolverRutasCertificados({}, resolve('/proyecto'))).toEqual({
+      certificado: resolve('/proyecto', '.certificados/espejo.pem'),
+      clave: resolve('/proyecto', '.certificados/espejo-key.pem'),
     });
   });
 

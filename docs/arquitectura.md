@@ -2,7 +2,7 @@
 
 ## 1. Visión General
 
-El **Espejo Mágico** es una instalación interactiva para eventos y stands institucionales. Un visitante se ubica frente a un televisor montado verticalmente (enmarcado como espejo) con una cámara web superior. El sistema detecta su presencia, llena la pantalla de humo y, al disiparse, le ofrece un **carrusel con las doce ingenierías**, un objeto por cada una, que gira lento a su alrededor. La persona **sostiene la mano** sobre el que quiere y esa es su elección, una sola: los demás objetos se apagan y aparece el fondo de esa ingeniería detrás suyo —recortado contra su silueta— con el objeto volando a su lugar dentro del fondo y el nombre de la ingeniería al pie. Al aterrizar, aparecen escondidos en los costados del fondo los **otros tres objetos** de esa ingeniería, meciéndose apenas; pasando la mano sobre cualquiera de los cuatro se abre su **ficha**, con el nombre del objeto y una descripción corta.
+El **Espejo Mágico** es una instalación interactiva para eventos y stands institucionales. Un visitante se ubica frente a un televisor montado verticalmente (enmarcado como espejo) con una cámara web superior. El sistema detecta su presencia, llena la pantalla de humo y, al disiparse, le ofrece un **carrusel con las doce ingenierías**, un objeto por cada una, que gira lento a su alrededor. La persona **sostiene la mano** sobre el que quiere y esa es su elección, una sola: los demás objetos se apagan y aparece el fondo de esa ingeniería detrás suyo —recortado contra su silueta— con el objeto volando a su lugar dentro del fondo y el nombre de la ingeniería al pie. En ese fondo ya están, **pintados adentro de la escena**, los otros cuatro objetos de esa ingeniería, latiendo apenas; pasando la mano sobre cualquiera de los cinco, el objeto se **recorta del propio fondo**, se levanta iluminado delante de la persona y aparece su **ficha** debajo, con el nombre del objeto y una descripción corta.
 
 Toda la experiencia vive en una sola pestaña de Chrome, en una sola PC. No hay segundas pantallas ni estado compartido. La única comunicación que sale es un aviso de ida a **MAITE**, el proyecto de las tablets, para que muestren a la gente de la carrera elegida — y el espejo funciona igual si del otro lado no hay nadie.
 
@@ -85,7 +85,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `eleccion.js` | El **sostenido**: entra dónde están las manos y dónde están los blancos, sale sobre cuál está la mano, cuánto lleva y si ya alcanzó. No sabe qué es una carrera ni dibuja el anillo. |
 | `tablero.js` | Dónde se para cada objeto: un anillo con todas las carreras, anclado a los hombros y con el radio proporcional al ancho de hombros, que gira despacio y del que sólo se ve la ventana de arriba. Sólo geometría. |
 | `vuelo.js` | El viaje del objeto agarrado desde su ranura hasta su lugar en el fondo y su flotación una vez apoyado, y `lugarEnPantalla`, que pasa un lugar normalizado a la foto a la pantalla midiéndolo contra lo que se ve de ella. Sólo números. |
-| `escondites.js` | Los objetos del fondo: qué lugar le toca a cada uno (`lugaresDelFondo`, `esconder`) y cómo se mecen los escondidos, cada uno a su ritmo (`balanceo`). Sólo números. |
+| `escondites.js` | Los objetos del fondo: qué lugar le toca a cada uno (`lugaresDelFondo`, `esconder`), cómo se mecen los sueltos (`balanceo`) y cómo late el que está pintado adentro de la foto (`latidoDelObjeto`). Sólo números. |
 | `fichas.js` | El hover de los objetos del fondo: qué ficha está abierta y cuánto se ve cada una. Abrir pide un momento, cerrar otro más largo, y pasar de una a otra es un fundido. No sabe qué es una ingeniería ni dibuja. |
 | `silueta.js` | Traduce la máscara de MediaPipe —un byte de confianza por píxel, **sin canal alfa**— a una imagen blanca cuyo alfa es esa confianza, que es lo único que el lienzo puede usar para recortar. |
 | `maite.js` | El único puente saliente. Va y no vuelve, nunca lanza, no reintenta y corta a los 1,5 s. |
@@ -96,8 +96,8 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `imagenes.js` | Gestor y precargador de imágenes con fallback elegante. Carga inicialmente los objetos candidatos de las carreras ofrecidas en el carrusel. |
 | `videos.js` | Carga de videos en el navegador (con tope, para que uno que no contesta no frene el arranque) y el banco de **fondos con movimiento**: los carga de a uno después de arrancar y garantiza que **suene uno solo**, el de la ingeniería que se está mostrando. |
 | `contenido.js` | Carga y valida `contenido/catalogo.json` al inicio. |
-| `sesion.js` | Gestión de la asignación de contenido por sesión (`crearSesionContenido`): sortea un objeto para el carrusel y distribuye los restantes en los escondites del fondo activo. |
-| `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Fondo de la carrera → Objetos escondidos y apoyado → Persona recortada → Carrusel con su carga → Objeto en vuelo → Señal de manos → Fichas → Nombre al pie → Humo → Niebla → Invitación y consignas). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza), y de dónde va cada ficha (`disponerFicha`). |
+| `sesion.js` | Gestión de la asignación de contenido por sesión (`crearSesionContenido`): elige un objeto para el carrusel y distribuye los restantes en los escondites del fondo activo. **El azar depende del fondo**: con un fondo generado los cinco están pintados adentro de la foto, cada uno en su sitio, y barajarlos pondría la ficha de uno sobre otro. |
+| `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Fondo de la carrera → Objetos escondidos y apoyado → Persona recortada → Carrusel con su carga → Objeto en vuelo → Señal de manos → Fichas → Nombre al pie → Humo → Niebla → Invitación y consignas). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza), y de dónde va cada ficha (`disponerFichaDeObjeto`: debajo del objeto si vive adentro de la foto, en el cartel de arriba si es un PNG suelto). Saca un objeto de adentro del fondo con `dibujarRecorte`. |
 | `operacion.js` | Atajos de teclado (incluida `TECLAS_CARRERA`, la fila de números completa: una tecla por carrera), panel HUD de métricas/FPS y recarga periódica de mantenimiento. |
 
 ---
@@ -171,8 +171,8 @@ falta.
 
 1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Al entrar se le pide a MAITE que vuelva a su humo. Tras cerrar una sesión no vuelve a arrancar con el mismo rostro: primero tiene que observar una ausencia y rearmarse para la persona siguiente.
 2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado.
-3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Los doce objetos representativos ya se cargaron antes de iniciar; el fondo y los objetos escondidos de una ingeniería se piden en segundo plano recién cuando se la elige.
-4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Al aterrizar, los otros tres objetos de la carrera aparecen escondidos en el fondo y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cuatro se abre su ficha. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
+3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Los doce objetos representativos ya se cargaron antes de iniciar; el fondo de una ingeniería —con sus objetos ya adentro— y las máscaras de sus recortes se piden en segundo plano recién cuando se la elige.
+4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Los otros cuatro objetos de la carrera ya están pintados adentro de ese fondo, y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cinco, el objeto se recorta del fondo, se levanta y se abre su ficha debajo. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
 5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
 **Lo que se muestra se le informa a la máquina desde afuera**, con
@@ -384,12 +384,26 @@ punto lo tapa, que es lo correcto. `calcularTransicionEscena` lleva la capa
 
 ### 5.8. Los objetos escondidos y sus fichas (`escondites.js`, `fichas.js`)
 
-Cada ingeniería trae **cuatro objetos**, cada uno con su `nombre` y una
-`descripcion` corta. El primero es el del carrusel y el que vuela a `lugar`; los
-otros tres ya están en el fondo, cada uno en su **escondite** (`escondites` del
-fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
-—primero se sigue el vuelo— con la capa `escondidos` de
-`calcularTransicionEscena`, y van **detrás de la persona**, como el apoyado.
+**Los objetos no se dibujan encima del fondo: están pintados adentro de él.**
+Cada ingeniería trae **cinco objetos**, cada uno con su `nombre` y una
+`descripcion` corta, y el fondo de esa ingeniería se genera con los cinco ya
+metidos en la escena (`npm run escenas`, `herramientas/escenas.py`): el matraz
+apoyado en la mesada, con su sombra de contacto y su reflejo, porque el modelo
+estaba mirando esa mesada mientras lo pintaba. Pegados encima —recortados en
+círculo, con halo dorado y un disco debajo— se leían como stickers, y el pedido
+era el contrario: que estén escondidos en la escena y haya que encontrarlos.
+
+Lo que el espejo dibuja, entonces, no es el objeto sino lo que pasa cuando la
+mano lo toca. Cada fondo trae, además de su `imagen.jpg`, un `recortes/<n>.png`
+por objeto —la silueta con la que se lo pintó, con la máscara **en el canal
+alfa**, porque el lienzo mira el alfa y no el gris— y su caja normalizada a la
+imagen. `dibujarRecorte` (escena.js) saca ese pedazo del fondo con
+`destination-in` sobre una capa propia, lo agranda desde su centro
+(`recortes.crecer`) y lo ilumina (`recortes.brillo`): el objeto se despega de su
+propio hueco sin moverse de lugar. La capa se ajusta al tamaño del objeto y no
+al de la pantalla: el `destination-in` toca el lienzo entero, y sobre uno de
+1080×1920 son dos millones de píxeles por cuadro para recortar algo que mide
+doscientos. Un recorte que falte cae al PNG de siempre.
 
 - **En la periferia.** En el medio está la persona: un objeto ahí le taparía la
   cara o quedaría tapado por ella. `CONFIG.fondo.zonaDeLaPersona` (la cabeza y
@@ -398,32 +412,41 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   respaldo vectorial y los lugares por defecto incluidos. También vigila que
   ninguno suba a la franja del cartel de las fichas y que los blancos de la
   mano de dos objetos (`fichas.radioFactor`) no se toquen: tocándose, yendo a
-  buscar el de abajo se abría el de arriba. Todos los fondos usan la misma
-  grilla, dos columnas pegadas a la cabeza y dos filas, con `escala` 0.24.
-- **Se mecen apenas, cada uno a su ritmo** (`balanceo`,
-  `CONFIG.escondidos.balanceo`): es el "pequeño movimiento para que la persona
-  los pueda identificar" que pidió la cátedra. Cada objeto tiene otro período
-  —`variacion` más lento que el anterior— y otra fase: tres meciéndose al
-  unísono se leen como una animación pegada encima del fondo. Y el movimiento es
-  continuo: uno a los saltos se lee como un parpadeo.
-- **Cómo se ve cada uno, en una sola cuenta** (`aspectoDelObjeto`): cuánto se
-  mece el escondido o flota el que llegó volando, y cuánto crece
-  (`escondidos.resalte`), se calma (`escondidos.calmaAlLeer`) y se ilumina
-  (`escondidos.haloAlLeer`) el que se está leyendo. La usan el espejo y
-  `herramientas/fondos.html`, que tiene que mostrarle a la cátedra exactamente
-  lo que hace el espejo: con la cuenta copiada en los dos, ajustar uno solo los
-  separaba en silencio.
+  buscar el de abajo se abría el de arriba. Esa intersección ya resuelta son las
+  cinco `ZONAS` de `herramientas/escenas.py`, y dentro de su zona cada sitio lo
+  elige la herramienta mirando la imagen: superficie debajo, aire arriba y tono
+  medio. Los cinco se eligen **juntos**, porque dos zonas vecinas pueden tener
+  su mejor punto pegado.
+- **Laten, cada uno a su ritmo** (`latidoDelObjeto`, `CONFIG.recortes.latido`):
+  es el "pequeño movimiento para que la persona los pueda identificar" que pidió
+  la cátedra. Un objeto pintado adentro de la foto **no se puede mecer** —son
+  píxeles de la escena—, así que lo que lo delata es un resplandor muy tenue que
+  respira debajo. Cada uno tiene otro período —`variacion` más lento que el
+  anterior— y otra fase: cinco latiendo al unísono se leen como una animación
+  pegada encima. Y es continuo: a los saltos se lee como un parpadeo. Tenue a
+  propósito: si se leyera como un botón alrededor del objeto volveríamos al
+  sticker que estos fondos existen para sacar.
+- **Cómo se ve un objeto suelto, en una sola cuenta** (`aspectoDelObjeto`), para
+  los fondos que no son generados: cuánto se mece el escondido o flota el que
+  llegó volando, y cuánto crece (`escondidos.resalte`), se calma
+  (`escondidos.calmaAlLeer`) y se ilumina (`escondidos.haloAlLeer`) el que se
+  está leyendo. La usan el espejo y `herramientas/fondos.html`, que tiene que
+  mostrarle a la cátedra exactamente lo que hace el espejo: con la cuenta
+  copiada en los dos, ajustar uno solo los separaba en silencio.
 - **El que tiene la mano encima pasa delante de la persona.** Los objetos del
-  fondo van detrás de la persona recortada, y la mano que va a buscar uno lo
+  fondo están detrás de la persona recortada, y la mano que va a buscar uno lo
   tapa. Apenas la mano lo toca —sin esperar a que se abra su ficha— se dibuja
   otra vez en una capa que se recorta contra la silueta antes de pegarse
-  (`dibujarObjetosDelante`), y crece y se ilumina. Entra en `fichas.msDelante`
-  (150 ms) y se sostiene la misma gracia que la ficha (`delante`, en
-  `fichas.js`). Antes pasaba adelante recién con la ficha abierta, casi un
-  segundo después, y mientras tanto la mano parecía atravesarlo. Aparece sólo
-  donde la persona lo tapa: dibujado entero encima de sí mismo duplicaba la
-  sombra y engrosaba los bordes del PNG.
-- **La ficha.** Pasar la mano sobre cualquiera de los cuatro abre su ficha: el
+  (`dibujarObjetosDelante`, que recibe el mismo pintor que usó abajo), y crece y
+  se ilumina. Entra en `fichas.msDelante` (150 ms) y se sostiene la misma gracia
+  que la ficha (`delante`, en `fichas.js`). Antes pasaba adelante recién con la
+  ficha abierta, casi un segundo después, y mientras tanto la mano parecía
+  atravesarlo.
+- **El elegido aterriza encima de sí mismo.** El del carrusel vuela a su sitio,
+  que es exactamente donde ya está pintado en la escena, y el PNG **se funde**
+  con él en `recortes.msDeFusion`. Los dos no son idénticos: dejar de dibujarlo
+  de golpe al aterrizar era un salto en el cuadro más mirado de la experiencia.
+- **La ficha.** Pasar la mano sobre cualquiera de los cinco abre su ficha: el
   nombre en Muffaroo y la descripción en la sans, sobre un panel del negro de
   MAITE. `fichas.js` decide cuál está abierta y cuánto se ve cada una. Cada
   objeto se identifica por su lugar en `objetos` —con la ruta del PNG, dos
@@ -434,48 +457,22 @@ fondo, en el mismo orden que `objetos`). Aparecen cuando el elegido aterriza
   (900 ms) sin ella, que absorbe los huecos de la detección y deja terminar de
   leer después de bajar la mano. Cada ficha tiene su alfa y va hacia 1 o hacia
   0 a su ritmo: pasar de un objeto a otro es un fundido cruzado, nunca un corte.
-  Se lee sobre los objetos **quietos**, no sobre su vaivén: si el blanco se
-  meciera con el objeto, la ficha se abriría y cerraría sola con la mano quieta
-  en el borde.
-- **Dónde va la ficha** (`disponerFicha`, en `escena.js`): en un cartel ancho
-  arriba de la cabeza, de `zonaDeLaPersona[0].y0` para arriba y a lo ancho de la
-  composición. Es la única franja que no le tapa la cara a nadie, y ahí la
-  descripción entra en dos o tres renglones con letra grande. Antes iba al
-  costado de su objeto, en la franja angosta de la periferia: con objetos
-  grandes y una letra que se lea a dos metros, dos objetos y sus dos fichas por
-  costado no entraban y la ficha de uno tapaba al otro. De cuál habla lo dice el
-  objeto, que crece y se ilumina mientras se lee. El nombre se mide: si no entra
-  en un renglón va en dos, y si una palabra sola no entra se achica. La letra
-  (`fichas.tipografia`) es legibilidad a dos metros y se calibra en el stand; si
-  una descripción no entrara en la franja, se achica sola antes que bajar hasta
-  la cara. En un monitor apaisado el cartel y la letra se achican con la
-  composición (`disposicion.unidad`), como los objetos.
-  `tests/integracion/fichas.test.js` dispone todas las fichas del catálogo real,
-  con una medida proporcional a la letra, y exige que entren enteras en la
-  franja con la letra de la config —sin achicarse— y sin tapar a ningún objeto
-  del fondo, en el espejo y en apaisado. Hasta dónde baja y con qué letra lo
-  dice `fichaDelObjeto` (escondites.js), la misma en el espejo, en
-  `herramientas/fondos.html` y en las pruebas.
-- **Al alcance de la mano.** La periferia tira hacia arriba y hacia los costados,
-  y el brazo de alguien sentado lejos no llega a todos lados: el carrusel se
-  calibró para eso (`tablero.radioFactor`, en anchos de hombros).
-  `tests/integracion/fondos.test.js` usa ese mismo brazo —desde el centro de los
-  hombros— y la misma persona que la zona de la periferia: hombros donde empieza
-  el cuerpo, 380 px de ancho como la de la prueba del sostenido (alguien sentado
-  a unos 2 m o más). Exige que la mano llegue a los cuatro objetos de cada
-  fondo, con la tolerancia de la ficha y un 10 % de brazo de sobra. Es un
-  modelo, no una medición: la prueba del sostenido pone los hombros más abajo, y
-  con esa persona a la mitad de los objetos de arriba no se llega; si en el
-  stand la gente queda así en el cuadro, se recalibran juntas la zona y los
-  lugares. En el stand se prueba con gente de verdad a 1,5 y 2 m.
-- **Las manos siguen sirviendo.** Antes, elegida la ingeniería, se apagaba el
-  detector de manos. Ahora sigue con `manosConFondo` del perfil activo: con 300 ms
-  para abrir y 900 de gracia, una ficha se conforma con pocos cuadros, y el resto
-  se lo queda la silueta. Rostro, pose y manos corren en el mismo hilo y empiezan
-  escalonados para no concentrar el pico inicial; el costo real se mide con el
-  panel (`P`) en la PC del evento. Una consigna enseña el gesto nuevo (*"Pasá la mano sobre
-  los objetos del fondo"*): entra con la escena entera (capa `explorar`) y se va
-  para siempre la primera vez que alguien abre una ficha.
+- **Dónde va la ficha** lo dice `fichaDelObjeto` y lo resuelve
+  `disponerFichaDeObjeto` (escena.js), las mismas en el espejo, la herramienta y
+  las pruebas. Con el objeto adentro de la foto va **debajo de él**: de cuál
+  habla ya no hay que adivinarlo —se levanta de la escena y se ilumina— pero el
+  texto tiene que estar pegado, porque en el cartel de arriba la mirada iba y
+  volvía entre dos puntos lejanos. `disponerFichaDebajo` prueba cuatro sitios en
+  orden —debajo y centrada, debajo corrida **hacia el centro**, y las mismas dos
+  arriba— y se queda con el primero que no tape ningún objeto del fondo. La
+  corrida no es un adorno: en la columna de la periferia hay otro objeto más
+  abajo, y centrada el cartel se lo comía, o sea que la persona iba a buscar
+  algo que la propia ficha le tapó; el centro es la única franja sin objetos. Si
+  ninguno entra achica la letra, y como último recurso muestra igual: una ficha
+  que no aparece es peor que una que pisa un borde. Con objetos sueltos sigue
+  yendo al cartel ancho de arriba de la cabeza (`disponerFicha`), que es la única
+  franja donde una descripción legible a dos metros no le tapa la cara ni al
+  vecino.
 
 ### 5.9. Sin parpadeos
 

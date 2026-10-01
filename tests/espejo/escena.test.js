@@ -7,6 +7,9 @@ import {
   calcularDisposicion,
   calcularRecorteVisible,
   calcularRectanguloVideo,
+  cajaEnPantalla,
+  disponerFichaDebajo,
+  disponerFichaDeObjeto,
   dibujarAnilloDeProgreso,
   dibujarConsigna,
   dibujarDiscoDeCarga,
@@ -1314,5 +1317,101 @@ describe('dibujarFicha', () => {
     dibujar(ctx, { alfa: 1 });
     expect(ctx.llamadas[0]).toEqual(['save']);
     expect(ctx.llamadas.at(-1)).toEqual(['restore']);
+  });
+});
+
+// Donde cae en pantalla una caja normalizada a la foto. Es la cuenta con la que
+// el espejo recorta un objeto de adentro del fondo: si se separa del rectangulo
+// con el que se dibujo la foto, se levanta un pedazo de pared.
+describe('cajaEnPantalla', () => {
+  it('mide la caja contra el rectangulo con el que se dibujo la foto', () => {
+    const rectangulo = { x: 100, y: 50, ancho: 400, alto: 800 };
+    expect(cajaEnPantalla([0.25, 0.5, 0.75, 1], rectangulo)).toEqual({
+      x: 200,
+      y: 450,
+      ancho: 200,
+      alto: 400,
+    });
+  });
+
+  // El fondo se dibuja cubriendo y puede sobresalir del lienzo: una caja de la
+  // parte recortada tiene que dar coordenadas negativas, no cero.
+  it('acompaña al fondo cuando sobresale del lienzo', () => {
+    const rectangulo = { x: -200, y: 0, ancho: 1480, alto: 1080 };
+    const caja = cajaEnPantalla([0, 0, 0.1, 0.1], rectangulo);
+    expect(caja.x).toBe(-200);
+    expect(caja.ancho).toBeCloseTo(148, 6);
+  });
+});
+
+// La ficha que va pegada a su objeto, que es donde va cuando el objeto vive
+// adentro de la foto.
+describe('disponerFichaDebajo', () => {
+  const disposicion = calcularDisposicion(1080, 1920);
+  const tipografia = { texto: 1, titulo: 1.5 };
+  const medir = (texto, fuente) => {
+    const tamano = Number(fuente.match(/([\d.]+)px/)[1]);
+    return texto.length * tamano * (fuente.includes('Muffaroo') ? 0.4 : 0.52);
+  };
+  const textos = { nombre: 'Matraz Erlenmeyer', descripcion: 'Recipiente cónico de vidrio.' };
+  const poner = (objeto, otros = []) =>
+    disponerFichaDebajo(textos, disposicion, medir, { objeto, otros, tipografia });
+
+  it('va debajo del objeto cuando abajo hay lugar', () => {
+    const objeto = { x: 150, y: 500, radio: 90 };
+    const { caja } = poner(objeto);
+    expect(caja.y).toBeGreaterThan(objeto.y + objeto.radio);
+  });
+
+  // Con el objeto pegado al piso, debajo no entra: se corre al costado o arriba,
+  // lo que quede limpio, pero nunca se sale de la pantalla.
+  it('busca otro lugar cuando abajo no entra', () => {
+    const objeto = { x: 150, y: 1820, radio: 90 };
+    const { caja } = poner(objeto);
+    expect(caja.y).toBeGreaterThanOrEqual(0);
+    expect(caja.y + caja.alto).toBeLessThanOrEqual(1920);
+    expect(caja.y).not.toBeGreaterThan(objeto.y + objeto.radio);
+  });
+
+  it('nunca tapa a su propio objeto', () => {
+    const objeto = { x: 150, y: 500, radio: 90 };
+    const { caja } = poner(objeto);
+    const cercaX = Math.max(caja.x, Math.min(objeto.x, caja.x + caja.ancho));
+    const cercaY = Math.max(caja.y, Math.min(objeto.y, caja.y + caja.alto));
+    expect(Math.hypot(objeto.x - cercaX, objeto.y - cercaY)).toBeGreaterThanOrEqual(objeto.radio);
+  });
+
+  // En la columna de la periferia hay otro objeto mas abajo: centrada, el
+  // cartel se lo comeria y la persona iria a buscar algo que la ficha le tapo.
+  // Se corre hacia el centro, que es la unica franja sin objetos.
+  it('se corre hacia el centro antes que taparle el vecino de la columna', () => {
+    const objeto = { x: 140, y: 560, radio: 95 };
+    const vecino = { x: 140, y: 930, radio: 105 };
+    const centrada = poner(objeto).caja;
+    const esquivando = poner(objeto, [vecino]).caja;
+    expect(esquivando.x).toBeGreaterThan(centrada.x);
+    const cercaX = Math.max(esquivando.x, Math.min(vecino.x, esquivando.x + esquivando.ancho));
+    const cercaY = Math.max(esquivando.y, Math.min(vecino.y, esquivando.y + esquivando.alto));
+    expect(Math.hypot(vecino.x - cercaX, vecino.y - cercaY)).toBeGreaterThanOrEqual(vecino.radio);
+  });
+
+  it('entra entera en la pantalla aunque el objeto este pegado al borde', () => {
+    for (const x of [20, 1060]) {
+      const { caja } = poner({ x, y: 700, radio: 95 });
+      expect(caja.x).toBeGreaterThanOrEqual(0);
+      expect(caja.x + caja.ancho).toBeLessThanOrEqual(1080);
+    }
+  });
+
+  // La eleccion entre las dos fichas vive en un solo lado: el espejo, la
+  // herramienta y las pruebas pasan por aca.
+  it('disponerFichaDeObjeto elige por el ancla', () => {
+    const conAncla = disponerFichaDeObjeto(textos, disposicion, medir, {
+      ancla: { x: 150, y: 500, radio: 90 },
+      tipografia,
+    });
+    const arriba = disponerFichaDeObjeto(textos, disposicion, medir, { hasta: 268, tipografia });
+    expect(conAncla.caja.y).toBeGreaterThan(500);
+    expect(arriba.caja.y).toBeLessThan(100);
   });
 });

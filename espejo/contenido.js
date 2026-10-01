@@ -65,6 +65,27 @@ function validarFondo(fondo, donde, errores) {
   }
   if (fondo?.lugar) validarLugar(fondo.lugar, `${donde} "lugar"`, errores);
 
+  // `recortes` es lo que distingue a un fondo generado: la mascara de cada
+  // objeto que vive adentro de la foto y su caja, normalizada a la imagen. Van
+  // en el orden de `objetos`. Una caja mal declarada recorta un pedazo de pared
+  // en vez del objeto, asi que se revisa entera.
+  if (fondo?.recortes !== undefined && fondo.recortes !== null) {
+    if (!Array.isArray(fondo.recortes)) {
+      errores.push(`${donde} "recortes" tiene que ser una lista de { img, caja }`);
+    } else {
+      fondo.recortes.forEach((recorte, k) => {
+        const cual = `${donde} recortes[${k}]`;
+        if (!esTextoUtil(recorte?.img)) errores.push(`${cual} sin "img"`);
+        const caja = recorte?.caja;
+        if (!Array.isArray(caja) || caja.length !== 4 || !caja.every(entreCeroYUno)) {
+          errores.push(`${cual} "caja" tiene que ser [x0, y0, x1, y1] entre 0 y 1`);
+        } else if (!(caja[2] > caja[0]) || !(caja[3] > caja[1])) {
+          errores.push(`${cual} "caja" esta dada vuelta o vacia`);
+        }
+      });
+    }
+  }
+
   if (fondo?.escondites === undefined) return;
   if (!Array.isArray(fondo.escondites)) {
     errores.push(`${donde} "escondites" tiene que ser una lista de { x, y, escala }`);
@@ -198,13 +219,18 @@ export async function cargarContenido({
   }
 
   const porId = new Map(datos.carreras.map((carrera) => [carrera.id, carrera]));
-  const imagenesDe = (carrera) =>
-    carrera
-      ? [
-          ...carrera.objetos.map((objeto) => objeto.img),
-          ...(fondoActivo(carrera) ? [fondoActivo(carrera).img] : []),
-        ]
-      : [];
+  // Las mascaras de los recortes van con el fondo, no con los objetos: sin
+  // ellas el fondo generado se ve igual —los objetos estan pintados adentro—
+  // pero ninguno se puede levantar, y la mano pasaria por encima sin que pase
+  // nada. Se piden en el mismo momento que su foto.
+  const imagenesDe = (carrera) => {
+    if (!carrera) return [];
+    const fondo = fondoActivo(carrera);
+    return [
+      ...carrera.objetos.map((objeto) => objeto.img),
+      ...(fondo ? [fondo.img, ...(fondo.recortes ?? []).map((recorte) => recorte.img)] : []),
+    ];
+  };
 
   return {
     carreras: datos.carreras,

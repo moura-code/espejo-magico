@@ -69,6 +69,23 @@ export function balanceo(ahora, indice, radio, { grados, amplitud, periodoMs, va
 }
 
 /**
+ * El latido de un objeto que vive ADENTRO de la foto (un fondo generado por
+ * herramientas/escenas.py). Un objeto pintado dentro de la escena no se puede
+ * mecer —es pixeles de la foto—, asi que lo que lo delata es un resplandor muy
+ * tenue que respira debajo de el. Es el reemplazo del `balanceo`, y por eso
+ * tiene su misma forma: cada uno a su ritmo y arrancando en otro punto, porque
+ * cinco latiendo al unisono se leen como una animacion pegada encima.
+ *
+ * Devuelve la intensidad del resplandor: `halo` en el medio del vaiven, y
+ * `amplitud` cuanto se abre a cada lado, en fraccion de `halo`.
+ */
+export function latidoDelObjeto(ahora, indice, { halo, amplitud, periodoMs, variacion }) {
+  const periodo = Math.max(1, periodoMs) * (1 + variacion * indice);
+  const fase = (ahora / periodo) * Math.PI * 2 + indice * DESFASE;
+  return Math.max(0, halo * (1 + amplitud * Math.sin(fase)));
+}
+
+/**
  * Como se ve en este cuadro un objeto del fondo: cuanto se mueve, cuanto mide y
  * cuanto halo lleva. Lo usan el espejo y herramientas/fondos.html, que tiene que
  * mostrarle a la catedra exactamente lo que hace el espejo: con la cuenta
@@ -146,14 +163,21 @@ export function objetosDelFondo({
     escondites: config.fondo.esconditesPorDefecto,
   });
 
+  // El recorte de cada objeto, si el fondo lo trae: la mascara con la que se lo
+  // pinto adentro de la foto y la caja donde vive, normalizada a la imagen. Va
+  // en el mismo orden que los lugares —`lugar` primero y despues los
+  // escondites—, que es el orden de `objetos`.
+  const recorteDe = (indice) => fondo?.recortes?.[indice] ?? null;
+
   if (escondidos) {
     const objElegido = elegido ?? objetos?.[0] ?? null;
     return [
-      { id: 0, definicion: objElegido, ...aPantalla(lugar) },
+      { id: 0, definicion: objElegido, recorte: recorteDe(0), ...aPantalla(lugar) },
       ...escondidos.map(({ definicion, lugar: escondite, indice: idx }, indice) => ({
         id: indice + 1,
         definicion,
         indice: idx ?? indice,
+        recorte: recorteDe(indice + 1),
         ...aPantalla(escondite ?? esconditesDefault[indice] ?? lugar),
       })),
     ];
@@ -161,11 +185,12 @@ export function objetosDelFondo({
 
   const [primero, ...resto] = objetos ?? [];
   return [
-    { id: 0, definicion: primero, ...aPantalla(lugar) },
+    { id: 0, definicion: primero, recorte: recorteDe(0), ...aPantalla(lugar) },
     ...esconder(resto, esconditesDefault).map(({ definicion, lugar: escondite }, indice) => ({
       id: indice + 1,
       definicion,
       indice,
+      recorte: recorteDe(indice + 1),
       ...aPantalla(escondite),
     })),
   ];
@@ -173,15 +198,42 @@ export function objetosDelFondo({
 
 /**
  * Lo que necesita la ficha de un objeto del fondo, para disponerFicha y
- * dibujarFicha: hasta donde puede bajar el cartel —donde empieza la cabeza en
- * zonaDeLaPersona, en pixeles de esa `pantalla`— y la letra. Y el objeto ya
- * crecido, que es lo que el cartel no puede tapar mientras se lee: lo usan las
- * pruebas.
+ * dibujarFicha. Y el objeto ya crecido, que es lo que el cartel no puede tapar
+ * mientras se lee: lo usan las pruebas.
+ *
+ * DONDE VA LA FICHA LO DECIDE EL FONDO, y se decide aca una sola vez, porque lo
+ * usan el espejo, la herramienta y las pruebas:
+ *
+ *   - Fondo generado (el objeto vive adentro de la foto y se levanta de ella):
+ *     pegada DEBAJO del objeto. De cual habla ya no hay que adivinarlo, y el
+ *     texto al lado de la cosa evita que la mirada vaya y vuelva entre dos
+ *     puntos lejanos.
+ *   - Fondo con objetos sueltos (PNGs repartidos por la periferia): en el
+ *     cartel ancho de arriba de la cabeza, que es la unica franja donde una
+ *     descripcion legible a dos metros no le tapa la cara ni el vecino.
  */
-export function fichaDelObjeto(objeto, pantalla, config) {
+export function fichaDelObjeto(objeto, pantalla, config, otros = []) {
   const [cabeza] = config.fondo.zonaDeLaPersona;
+  const crecido = (uno, factor) => ({ x: uno.x, y: uno.y, radio: uno.radio * factor });
+  const circulo = crecido(objeto, 1 + config.escondidos.resalte);
+
+  if (objeto.recorte) {
+    return {
+      circulo,
+      opciones: {
+        tipografia: config.fichas.tipografia,
+        ancla: crecido(objeto, config.recortes.crecer),
+        // Los demas objetos del fondo, para que el cartel no le tape a la
+        // persona justo el que iba a buscar.
+        otros: otros.map((otro) => crecido(otro, 1 + config.escondidos.resalte)),
+        anchoFactor: config.fichas.anchoDebajo,
+        hueco: config.fichas.huecoDebajo,
+      },
+    };
+  }
+
   return {
-    circulo: { x: objeto.x, y: objeto.y, radio: objeto.radio * (1 + config.escondidos.resalte) },
+    circulo,
     opciones: {
       hasta: pantalla.alto * (config.fondo.franjaCartel ?? cabeza.y0),
       tipografia: config.fichas.tipografia,

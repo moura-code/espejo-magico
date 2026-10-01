@@ -160,6 +160,31 @@ describe('contenido real', () => {
     expect(faltan, 'estos fondos no tienen donde esconder todos los objetos').toEqual([]);
   });
 
+  // LOS RECORTES son lo que hace que un objeto se pueda levantar de la foto.
+  // El fondo generado trae los cinco instrumentos pintados adentro de la escena;
+  // sin la mascara de cada uno, la escena se ve igual de bien y la mano pasa por
+  // encima sin que pase nada: no hay fichas, no hay nada que explorar.
+  it('cada fondo generado trae la mascara de cada uno de sus objetos', async () => {
+    const problemas = [];
+    for (const carrera of (await obtenerCatalogo()).carreras) {
+      for (const fondo of carrera.fondos ?? []) {
+        if (!fondo.recortes) {
+          problemas.push(`${fondo.img} (sin recortes)`);
+          continue;
+        }
+        if (fondo.recortes.length !== carrera.objetos.length) {
+          problemas.push(
+            `${fondo.img}: ${fondo.recortes.length} recortes para ${carrera.objetos.length} objetos`,
+          );
+        }
+        for (const recorte of fondo.recortes) {
+          if (!(await existe(recorte.img))) problemas.push(recorte.img);
+        }
+      }
+    }
+    expect(problemas, 'estos fondos no dejan levantar sus objetos').toEqual([]);
+  });
+
   // Un fondo con movimiento declara `video` ademas de su foto. Si el archivo no
   // esta, el espejo muestra la foto y no se rompe nada —pero el fondo quedo
   // quieto y nadie se entera hasta que alguien lo mira de cerca en el stand.

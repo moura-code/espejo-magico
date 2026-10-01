@@ -17,10 +17,12 @@ ingeniería que le tocó se queda puesta. El espejo le avisa a **MAITE**, el
 proyecto de las tablets, para que los retratos del stand muestren a la gente de
 esa carrera.
 
-Y en ese fondo hay más: los otros **tres objetos** de la ingeniería están
-escondidos a los costados, meciéndose apenas. Pasando la mano sobre cualquiera de
-los cuatro se abre su **ficha**, con el nombre del objeto y una descripción
-corta de qué tiene que ver con la carrera.
+Y en ese fondo hay más: los otros **cuatro objetos** de la ingeniería están ahí
+adentro, **pintados dentro de la escena** —el matraz apoyado en la mesada del
+laboratorio, no pegado encima—, latiendo apenas. Pasando la mano sobre
+cualquiera de los cinco, el objeto se **recorta del propio fondo**, se levanta
+iluminado delante de la persona y aparece su **ficha** debajo, con el nombre y
+una descripción corta de qué tiene que ver con la carrera.
 
 Dura mientras la persona siga sentada; en cuanto el espejo deja de reconocer su
 cara, vuelve a cubrirse y queda libre para el que sigue en la fila.
@@ -51,6 +53,7 @@ Hace falta Node.js y Chrome.
 ```bash
 npm install
 npm run vendorizar   # copia MediaPipe y baja los modelos — única vez que necesita red
+npm run escenas      # genera los fondos con los objetos adentro (autoría, no evento)
 npm test             # suite automática
 ```
 
@@ -72,8 +75,9 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | Comando | Para qué |
 |---|---|
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
-| `npm run listo` | ¿Se puede montar el stand? Verifica la estructura de `contenido/carreras/`, los cuatro objetos por ingeniería con su nombre y descripción, el fondo activo con sus coordenadas, el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
+| `npm run listo` | ¿Se puede montar el stand? Verifica la estructura de `contenido/carreras/`, los cinco objetos por ingeniería con su nombre y descripción, el fondo activo con sus coordenadas y la máscara de cada objeto, el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose. |
+| `npm run escenas` | Genera el fondo de cada ingeniería con sus cinco instrumentos pintados adentro de la escena, y la máscara de cada uno. Corre local en la GPU; es un paso de autoría, no del evento. |
 | `npm run catalogo` | Construye y genera `contenido/catalogo.json` a partir de la estructura física de carpetas. |
 | `npm start` | Levanta el servidor local (genera el catálogo si falta y sirve el espejo). |
 | `npm run planilla` | Rearma `docs/planilla-de-tareas.csv` y `.md` desde el historial de git del espejo y de MAITE: las tareas de cada integrante con horas estimadas. Conserva las horas reales ya cargadas. |
@@ -92,7 +96,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 
 `herramientas/figuras.html` muestra las treinta y seis figuras de los objetos en
 una grilla, sobre fondo oscuro, claro o tono de piel. `herramientas/fondos.html`
-muestra cada fondo candidato con sus cuatro objetos y sus fichas, tal como se
+muestra cada fondo candidato con sus cinco objetos y sus fichas, tal como se
 vería en el espejo, y `herramientas/colores.html` las opciones de color del
 nombre y de la carga que se miraron. Las tres se abren desde `npm start`.
 

@@ -14,11 +14,13 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
 4. **Hacer una prueba completa** antes de que entre el público: sentarse, esperar
    el humo, sostener la mano sobre un objeto hasta que la carga se complete (son
    unos tres segundos), ver que **los demás objetos se apaguen** y quede la
-   ingeniería con su fondo, esperar a que aparezcan **los otros tres objetos
-   escondidos** a los costados y pasar la mano sobre cada uno para ver su ficha,
-   ver que las tablets cambien, levantarse y ver que las nubes vuelvan. Sentarse
+   ingeniería con su fondo, **buscar los otros cuatro objetos**, que están
+   dentro de la foto —apoyados en la mesada, en un estante, colgados de la
+   pared—, y pasar la mano sobre cada uno: el objeto se levanta de la foto,
+   se ilumina y aparece su ficha debajo. Ver que las tablets cambien,
+   levantarse y ver que las nubes vuelvan. Sentarse
    **donde se va a sentar la gente**: desde ahí la mano tiene que llegar a los
-   cuatro objetos del fondo sin pararse, y la cara tiene que quedar en la mitad
+   cinco objetos del fondo sin pararse, y la cara tiene que quedar en la mitad
    de arriba del espejo. Si no llega a los de arriba, o la cara queda más abajo,
    avisar al equipo técnico: se sube la cámara o se bajan los objetos.
 
@@ -77,12 +79,14 @@ apretar `R` en la PC corta la sesión al instante.
 
 **Los objetos desaparecieron y la persona quiere probar otra.**
 Es como funciona: **se elige una sola vez**. La ingeniería que le tocó se queda
-puesta hasta que se levanta, y el que sigue en la fila arranca de cero con los
-objetos barajados de nuevo. Si alguien insiste, que se vuelva a sentar cuando
-las nubes hayan tapado la pantalla. Desde la PC, las teclas de números fuerzan
-cualquier ingeniería en cualquier momento. Mientras tanto hay algo para hacer:
-en el fondo de su ingeniería esperan cuatro objetos, y pasando la mano sobre
-cada uno se abre su ficha.
+puesta hasta que se levanta, y el que sigue en la fila arranca de cero. Si
+alguien insiste, que se vuelva a sentar cuando las nubes hayan tapado la
+pantalla. Desde la PC, las teclas de números fuerzan cualquier ingeniería en
+cualquier momento. Mientras tanto hay algo para hacer: en el fondo de su
+ingeniería hay cinco objetos escondidos adentro de la escena, y pasando la mano
+sobre cada uno se levanta de la foto y se abre su ficha. Están donde uno los
+esperaría —sobre una mesada, en un estante— y hay que encontrarlos: es parte de
+la propuesta.
 
 **No pasa nada al poner la mano sobre un objeto.**
 Si el carrusel ya se había apagado, la persona ya eligió y la mano ahora abre las
