@@ -63,6 +63,12 @@ function validarFondo(fondo, donde, errores) {
   if (fondo?.video !== undefined && fondo.video !== null && !esTextoUtil(fondo.video)) {
     errores.push(`${donde} "video" tiene que ser una ruta, o null`);
   }
+  // La version apaisada —la misma escena extendida a 16:9— va con la misma
+  // convencion. Sin ella, los costados de una pantalla apaisada son la foto
+  // desenfocada.
+  if (fondo?.apaisada !== undefined && fondo.apaisada !== null && !esTextoUtil(fondo.apaisada)) {
+    errores.push(`${donde} "apaisada" tiene que ser una ruta, o null`);
+  }
   if (fondo?.lugar) validarLugar(fondo.lugar, `${donde} "lugar"`, errores);
 
   // `recortes` es lo que distingue a un fondo generado: la mascara de cada
@@ -222,13 +228,20 @@ export async function cargarContenido({
   // Las mascaras de los recortes van con el fondo, no con los objetos: sin
   // ellas el fondo generado se ve igual —los objetos estan pintados adentro—
   // pero ninguno se puede levantar, y la mano pasaria por encima sin que pase
-  // nada. Se piden en el mismo momento que su foto.
+  // nada. Se piden en el mismo momento que su foto, y la version apaisada
+  // tambien: el banco no da nada que no se haya precargado.
   const imagenesDe = (carrera) => {
     if (!carrera) return [];
     const fondo = fondoActivo(carrera);
     return [
       ...carrera.objetos.map((objeto) => objeto.img),
-      ...(fondo ? [fondo.img, ...(fondo.recortes ?? []).map((recorte) => recorte.img)] : []),
+      ...(fondo
+        ? [
+            fondo.img,
+            ...(fondo.apaisada ? [fondo.apaisada] : []),
+            ...(fondo.recortes ?? []).map((recorte) => recorte.img),
+          ]
+        : []),
     ];
   };
 

@@ -411,6 +411,22 @@ describe('dibujarFondo', () => {
     expect(soloDe(ctx, 'drawImage')).toHaveLength(1);
   });
 
+  // La version apaisada del fondo es lo que va a los costados: la elige quien
+  // llama, y el relleno la necesita para armarlos.
+  it('le pasa al relleno la version apaisada del fondo', () => {
+    const ctx = crearCtxFalso();
+    const extension = imagen(1920, 1080);
+    let recibida = null;
+    const relleno = {
+      obtener: (fuente, disposicionPedida, ext) => {
+        recibida = ext;
+        return { width: 1920, height: 1080 };
+      },
+    };
+    dibujarFondo(ctx, imagen(1080, 1920), calcularDisposicion(1920, 1080), 1, relleno, extension);
+    expect(recibida).toBe(extension);
+  });
+
   // Un fondo con movimiento se dibuja igual que una foto. Si midiera por
   // `width` —que en un video es 0— el rectangulo saldria del tamaño de la
   // pantalla y el fondo quedaria estirado.
@@ -525,6 +541,85 @@ describe('crearRellenoDelFondo', () => {
   it('sin nada que medir no hay relleno', () => {
     const relleno = crearRellenoDelFondo({ crearLienzo: lienzoFalso, desenfoque: 0.03, brillo: 0.5 });
     expect(relleno.obtener(videoDe(0, 0), { ancho: 1920, alto: 1080 })).toBeNull();
+  });
+
+  // Anota con que filtro se dibujo cada imagen: la extension va nitida, y la
+  // foto de abajo, desenfocada.
+  const lienzoQueAnotaFiltro = () => {
+    const lienzo = lienzoFalso();
+    const { ctx } = lienzo;
+    ctx.drawImage = (...args) => ctx.llamadas.push(['drawImage', ...args, ctx.filter]);
+    return lienzo;
+  };
+  const rellenoConFiltro = () =>
+    crearRellenoDelFondo({ crearLienzo: lienzoQueAnotaFiltro, desenfoque: 0.03, brillo: 0.5 });
+
+  // EN UNA PANTALLA APAISADA LOS COSTADOS SON LA ESCENA MISMA. La version
+  // apaisada del fondo trae la foto centrada a todo el alto: dibujada a la
+  // escala de la foto y centrada en ella, sus costados continuan la foto.
+  it('con la version apaisada, los costados son la escena extendida, nitida y alineada con la foto', () => {
+    const foto = imagen(1080, 1920);
+    const extension = imagen(1920, 1080);
+    const lienzo = rellenoConFiltro().obtener(foto, { ancho: 1920, alto: 1080 }, extension);
+
+    const dibujos = soloDe(lienzo.ctx, 'drawImage');
+    expect(dibujos.map(([, fuente]) => fuente)).toEqual([foto, extension]);
+    const [, , x, y, ancho, alto, filtro] = dibujos[1];
+    expect([x, y, ancho, alto]).toEqual([0, 0, 1920, 1080]);
+    expect(filtro).toBe('none');
+  });
+
+  // En la notebook (1512x982) la extension es mas ancha que la pantalla.
+  it('en una pantalla menos ancha que la extension, la cubre entera y centrada en la foto', () => {
+    const lienzo = rellenoConFiltro().obtener(
+      imagen(1080, 1920),
+      { ancho: 1512, alto: 982 },
+      imagen(1920, 1080),
+    );
+
+    const [, , x, y, ancho, alto] = soloDe(lienzo.ctx, 'drawImage')[1];
+    expect(x).toBeLessThanOrEqual(0);
+    expect(x + ancho).toBeGreaterThanOrEqual(1512);
+    expect(x + ancho / 2).toBeCloseTo(756);
+    expect(y).toBeCloseTo(0);
+    expect(alto).toBeCloseTo(982);
+  });
+
+  // En una 21:9 la extension no llega a los bordes: lo que sobra sigue siendo
+  // la foto desenfocada, nunca una banda negra.
+  it('en una pantalla mas ancha que la extension, lo que sobra sigue desenfocado', () => {
+    const foto = imagen(1080, 1920);
+    const lienzo = rellenoConFiltro().obtener(foto, { ancho: 2560, alto: 1080 }, imagen(1920, 1080));
+
+    const [desenfocada, extendida] = soloDe(lienzo.ctx, 'drawImage');
+    const [, fuente, xFoto, , anchoFoto, , filtro] = desenfocada;
+    expect(fuente).toBe(foto);
+    expect(filtro).toContain('blur');
+    expect(xFoto).toBeLessThan(0);
+    expect(xFoto + anchoFoto).toBeGreaterThan(2560);
+    const [, , x, , ancho] = extendida;
+    expect(x).toBeCloseTo(320);
+    expect(x + ancho).toBeCloseTo(2240);
+  });
+
+  // Un lienzo armado sin extension, o con la de otra carrera, no sirve: se
+  // rehace cuando la extension cambia, y no mientras sea la misma.
+  it('se rehace cuando cambia la extension, y no mientras sea la misma', () => {
+    const relleno = rellenoConFiltro();
+    const foto = imagen(1080, 1920);
+    const medida = { ancho: 1920, alto: 1080 };
+    const lienzo = relleno.obtener(foto, medida);
+    expect(soloDe(lienzo.ctx, 'drawImage')).toHaveLength(1);
+
+    const extension = imagen(1920, 1080);
+    relleno.obtener(foto, medida, extension);
+    relleno.obtener(foto, medida, extension);
+    expect(soloDe(lienzo.ctx, 'drawImage')).toHaveLength(3);
+  });
+
+  it('una extension sin medidas no se dibuja', () => {
+    const lienzo = rellenoConFiltro().obtener(imagen(1080, 1920), { ancho: 1920, alto: 1080 }, imagen(0, 0));
+    expect(soloDe(lienzo.ctx, 'drawImage')).toHaveLength(1);
   });
 });
 

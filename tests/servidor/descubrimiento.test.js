@@ -50,6 +50,23 @@ describe('descubrirEstructura', () => {
     expect(resultado[0].fondos[0].rutaVideo).toBe('carreras/computacion/fondos/principal/video.mp4');
   });
 
+  // En una pantalla apaisada los costados de la foto vertical son la misma
+  // escena extendida a 16:9. Es opcional, y no puede confundirse con la foto.
+  it('descubre la version apaisada de un fondo solo cuando esta', async () => {
+    const fondos = join(dir, 'civil', 'fondos');
+    await mkdir(join(fondos, 'con'), { recursive: true });
+    await mkdir(join(fondos, 'sin'), { recursive: true });
+    await writeFile(join(fondos, 'con', 'imagen.jpg'), 'jpg');
+    await writeFile(join(fondos, 'con', 'imagen-apaisada.jpg'), 'jpg');
+    await writeFile(join(fondos, 'sin', 'imagen.jpg'), 'jpg');
+
+    const [civil] = await descubrirEstructura({ raizCarreras: dir });
+    expect(civil.fondos.map((f) => [f.id, f.rutaImagen, f.rutaApaisada])).toEqual([
+      ['con', 'carreras/civil/fondos/con/imagen.jpg', 'carreras/civil/fondos/con/imagen-apaisada.jpg'],
+      ['sin', 'carreras/civil/fondos/sin/imagen.jpg', null],
+    ]);
+  });
+
   it('ignora archivos ocultos y entradas que no son carpetas', async () => {
     await mkdir(join(dir, '.git'), { recursive: true });
     await writeFile(join(dir, '.DS_Store'), 'test');

@@ -39,6 +39,7 @@ export async function construirCatalogo({
         id: f.id,
         img: f.rutaImagen,
         video: f.rutaVideo,
+        apaisada: f.rutaApaisada,
         lugar: f.metadata.lugar,
         escondites: f.metadata.escondites,
         // Los recortes de un fondo generado: la mascara de cada objeto que vive

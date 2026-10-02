@@ -335,9 +335,10 @@ const escenarios = crearBancoDeEscenarios({
     return { lienzo: lienzoEscena, ctx: lienzoEscena.getContext('2d') };
   },
 });
-// Donde la foto del fondo no llega —la notebook: la foto entra entera y es mas
-// angosta que la pantalla—, la misma foto desenfocada. Se desenfoca una vez por
-// foto y por medida de ventana, no en cada cuadro.
+// Donde la foto del fondo no llega —una pantalla apaisada: la foto entra entera
+// y es mas angosta que ella—, la escena extendida a 16:9 si el fondo la trae, y
+// la misma foto desenfocada si no. Se arma una vez por foto y por medida de
+// ventana, no en cada cuadro.
 const rellenoDelFondo = crearRellenoDelFondo({
   crearLienzo: () => document.createElement('canvas'),
   ...CONFIG.fondo.relleno,
@@ -821,13 +822,18 @@ function cuadro(ahora) {
       imagenDeFondo ??
       escenarios.obtener(carrera.id, disposicion.ancho, disposicion.alto, carrera.color);
     const alfaDelFondo = transicion.fondo * (hayRecorte ? 1 : CONFIG.fondo.opacidadSinMascara);
+    // Los costados de una pantalla apaisada son la escena extendida a 16:9, y
+    // solo junto a la foto de la que salio: al lado de un video o de la escena
+    // vectorial, una extension quieta de otra imagen se leeria como un collage.
+    const extensionDelFondo =
+      escena === imagenDeFondo && fondo?.apaisada ? banco.obtener(fondo.apaisada) : null;
 
     // EL RECTANGULO SALE DE QUIEN DIBUJO, no de una segunda cuenta: el objeto se
     // apoya normalizado a el, y calcularlo aparte es como se separan los dos
     // caminos. Null quiere decir que no habia nada dibujable —ni foto, ni escena,
     // ni un video con su primer cuadro— y ahi entra el color plano.
     const dibujado = acumuladorDeDibujo.medir('compose', () =>
-      dibujarFondo(ctx, escena, disposicion, alfaDelFondo, rellenoDelFondo),
+      dibujarFondo(ctx, escena, disposicion, alfaDelFondo, rellenoDelFondo, extensionDelFondo),
     );
 
     if (!dibujado) {

@@ -11,15 +11,16 @@
           "id": "escena",
           "img": "carreras/agrimensura/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/agrimensura/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
-            "x": 0.1469,
-            "y": 0.5771,
+            "x": 0.108,
+            "y": 0.5333,
             "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.8759,
-              "y": 0.5844,
+              "x": 0.863,
+              "y": 0.526,
               "escala": 0.17
             },
             {
@@ -28,13 +29,13 @@
               "escala": 0.17
             },
             {
-              "x": 0.1599,
-              "y": 0.285,
+              "x": 0.108,
+              "y": 0.3506,
               "escala": 0.17
             },
             {
-              "x": 0.485,
-              "y": 0.192,
+              "x": 0.5109,
+              "y": 0.1993,
               "escala": 0.16
             }
           ],
@@ -42,46 +43,46 @@
             {
               "img": "carreras/agrimensura/fondos/escena/recortes/0.png",
               "caja": [
-                0.07315,
-                0.52344,
-                0.25278,
-                0.63438
+                0.0287,
+                0.4974,
+                0.2,
+                0.59635
               ]
             },
             {
               "img": "carreras/agrimensura/fondos/escena/recortes/1.png",
               "caja": [
-                0.78611,
-                0.54896,
-                0.93981,
-                0.64844
+                0.76574,
+                0.45885,
+                0.93333,
+                0.59635
               ]
             },
             {
               "img": "carreras/agrimensura/fondos/escena/recortes/2.png",
               "caja": [
-                0.80093,
-                0.34063,
-                0.95093,
-                0.38854
+                0.79444,
+                0.28802,
+                0.95,
+                0.39479
               ]
             },
             {
               "img": "carreras/agrimensura/fondos/escena/recortes/3.png",
               "caja": [
-                0.11296,
-                0.22969,
-                0.25093,
-                0.33802
+                0.03148,
+                0.30052,
+                0.20185,
+                0.38906
               ]
             },
             {
               "img": "carreras/agrimensura/fondos/escena/recortes/4.png",
               "caja": [
-                0.4037,
-                0.14323,
-                0.5537,
-                0.21771
+                0.44722,
+                0.13958,
+                0.5787,
+                0.26094
               ]
             }
           ]
@@ -136,29 +137,30 @@
           "id": "escena",
           "img": "carreras/alimentos/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/alimentos/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.108,
-            "y": 0.5042,
+            "y": 0.526,
             "escala": 0.17
           },
           "escondites": [
             {
               "x": 0.8889,
-              "y": 0.4896,
+              "y": 0.5188,
               "escala": 0.17
             },
             {
-              "x": 0.498,
+              "x": 0.485,
               "y": 0.192,
               "escala": 0.16
             },
             {
-              "x": 0.1728,
-              "y": 0.285,
+              "x": 0.1469,
+              "y": 0.3579,
               "escala": 0.17
             },
             {
-              "x": 0.8769,
+              "x": 0.825,
               "y": 0.285,
               "escala": 0.17
             }
@@ -167,46 +169,46 @@
             {
               "img": "carreras/alimentos/fondos/escena/recortes/0.png",
               "caja": [
-                0.00926,
-                0.44115,
-                0.20463,
-                0.56771
+                0.02685,
+                0.51562,
+                0.21296,
+                0.59167
               ]
             },
             {
               "img": "carreras/alimentos/fondos/escena/recortes/1.png",
               "caja": [
-                0.78426,
-                0.42344,
-                0.98241,
-                0.56146
+                0.7963,
+                0.46875,
+                0.98148,
+                0.57708
               ]
             },
             {
               "img": "carreras/alimentos/fondos/escena/recortes/2.png",
               "caja": [
-                0.41204,
-                0.16615,
-                0.58056,
-                0.24271
+                0.43333,
+                0.16667,
+                0.54537,
+                0.22552
               ]
             },
             {
               "img": "carreras/alimentos/fondos/escena/recortes/3.png",
               "caja": [
-                0.07963,
-                0.2224,
-                0.26481,
-                0.34323
+                0.07685,
+                0.29271,
+                0.23241,
+                0.41615
               ]
             },
             {
               "img": "carreras/alimentos/fondos/escena/recortes/4.png",
               "caja": [
-                0.79259,
-                0.23073,
-                0.96759,
-                0.34115
+                0.75463,
+                0.225,
+                0.91667,
+                0.34063
               ]
             }
           ]
@@ -261,6 +263,7 @@
           "id": "escena",
           "img": "carreras/civil/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/civil/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.108,
             "y": 0.3798,
@@ -278,14 +281,14 @@
               "escala": 0.17
             },
             {
-              "x": 0.485,
-              "y": 0.192,
-              "escala": 0.16
-            },
-            {
               "x": 0.85,
               "y": 0.5771,
               "escala": 0.17
+            },
+            {
+              "x": 0.485,
+              "y": 0.192,
+              "escala": 0.16
             }
           ],
           "recortes": [
@@ -301,37 +304,37 @@
             {
               "img": "carreras/civil/fondos/escena/recortes/1.png",
               "caja": [
-                0.74815,
-                0.23906,
-                0.90463,
-                0.34635
+                0.75185,
+                0.22656,
+                0.89815,
+                0.33958
               ]
             },
             {
               "img": "carreras/civil/fondos/escena/recortes/2.png",
               "caja": [
-                0.06667,
-                0.52135,
-                0.23056,
-                0.64583
+                0.06389,
+                0.52187,
+                0.23981,
+                0.64792
               ]
             },
             {
               "img": "carreras/civil/fondos/escena/recortes/3.png",
               "caja": [
-                0.41574,
-                0.13281,
-                0.5713,
-                0.22812
+                0.75,
+                0.51562,
+                0.95,
+                0.6401
               ]
             },
             {
               "img": "carreras/civil/fondos/escena/recortes/4.png",
               "caja": [
-                0.75556,
-                0.51198,
-                0.93981,
-                0.64115
+                0.39444,
+                0.15052,
+                0.58148,
+                0.23385
               ]
             }
           ]
@@ -386,6 +389,7 @@
           "id": "escena",
           "img": "carreras/computacion/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/computacion/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.5109,
             "y": 0.192,
@@ -398,8 +402,8 @@
               "escala": 0.17
             },
             {
-              "x": 0.8898,
-              "y": 0.3433,
+              "x": 0.8889,
+              "y": 0.5698,
               "escala": 0.17
             },
             {
@@ -408,8 +412,8 @@
               "escala": 0.17
             },
             {
-              "x": 0.8889,
-              "y": 0.5698,
+              "x": 0.8898,
+              "y": 0.3433,
               "escala": 0.17
             }
           ],
@@ -417,46 +421,46 @@
             {
               "img": "carreras/computacion/fondos/escena/recortes/0.png",
               "caja": [
-                0.44815,
-                0.1474,
-                0.575,
-                0.21927
+                0.43148,
+                0.14427,
+                0.5787,
+                0.22031
               ]
             },
             {
               "img": "carreras/computacion/fondos/escena/recortes/1.png",
               "caja": [
-                0.03333,
-                0.31406,
+                0.02407,
+                0.3099,
                 0.20093,
-                0.42188
+                0.41979
               ]
             },
             {
               "img": "carreras/computacion/fondos/escena/recortes/2.png",
               "caja": [
-                0.79722,
-                0.27708,
-                0.9787,
-                0.40365
+                0.79537,
+                0.50573,
+                0.98333,
+                0.63438
               ]
             },
             {
               "img": "carreras/computacion/fondos/escena/recortes/3.png",
               "caja": [
-                0.04907,
-                0.51823,
-                0.19444,
-                0.63698
+                0.02407,
+                0.50677,
+                0.19815,
+                0.63958
               ]
             },
             {
               "img": "carreras/computacion/fondos/escena/recortes/4.png",
               "caja": [
-                0.80093,
-                0.50677,
-                0.95,
-                0.62135
+                0.79537,
+                0.27813,
+                0.97963,
+                0.40573
               ]
             }
           ]
@@ -511,6 +515,7 @@
           "id": "escena",
           "img": "carreras/comunicacion/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/comunicacion/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.1469,
             "y": 0.5771,
@@ -528,14 +533,14 @@
               "escala": 0.17
             },
             {
-              "x": 0.8769,
-              "y": 0.3142,
-              "escala": 0.17
-            },
-            {
               "x": 0.485,
               "y": 0.1993,
               "escala": 0.16
+            },
+            {
+              "x": 0.8769,
+              "y": 0.3142,
+              "escala": 0.17
             }
           ],
           "recortes": [
@@ -560,28 +565,28 @@
             {
               "img": "carreras/comunicacion/fondos/escena/recortes/2.png",
               "caja": [
-                0.01481,
-                0.35417,
-                0.20648,
-                0.48177
+                0.04074,
+                0.38385,
+                0.15833,
+                0.4776
               ]
             },
             {
               "img": "carreras/comunicacion/fondos/escena/recortes/3.png",
               "caja": [
-                0.78333,
-                0.28281,
-                0.96852,
-                0.37448
+                0.44722,
+                0.20833,
+                0.55926,
+                0.25469
               ]
             },
             {
               "img": "carreras/comunicacion/fondos/escena/recortes/4.png",
               "caja": [
-                0.39444,
-                0.13854,
-                0.57037,
-                0.26458
+                0.78333,
+                0.26198,
+                0.96852,
+                0.37396
               ]
             }
           ]
@@ -636,30 +641,31 @@
           "id": "escena",
           "img": "carreras/electrica/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/electrica/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.5109,
-            "y": 0.1993,
+            "y": 0.192,
             "escala": 0.16
           },
           "escondites": [
             {
-              "x": 0.1469,
-              "y": 0.5625,
-              "escala": 0.17
-            },
-            {
               "x": 0.108,
-              "y": 0.3871,
+              "y": 0.5844,
               "escala": 0.17
             },
             {
-              "x": 0.8769,
-              "y": 0.3944,
+              "x": 0.1728,
+              "y": 0.285,
               "escala": 0.17
             },
             {
-              "x": 0.85,
-              "y": 0.5479,
+              "x": 0.825,
+              "y": 0.4162,
+              "escala": 0.17
+            },
+            {
+              "x": 0.863,
+              "y": 0.5771,
               "escala": 0.17
             }
           ],
@@ -667,46 +673,46 @@
             {
               "img": "carreras/electrica/fondos/escena/recortes/0.png",
               "caja": [
-                0.46111,
-                0.14375,
-                0.58426,
-                0.24427
+                0.46296,
+                0.12448,
+                0.55926,
+                0.25885
               ]
             },
             {
               "img": "carreras/electrica/fondos/escena/recortes/1.png",
               "caja": [
-                0.06296,
-                0.53021,
-                0.17037,
-                0.61562
+                0.03056,
+                0.54896,
+                0.19722,
+                0.64583
               ]
             },
             {
               "img": "carreras/electrica/fondos/escena/recortes/2.png",
               "caja": [
-                0.01389,
-                0.32604,
-                0.18519,
-                0.44792
+                0.09352,
+                0.22396,
+                0.26759,
+                0.34896
               ]
             },
             {
               "img": "carreras/electrica/fondos/escena/recortes/3.png",
               "caja": [
-                0.83148,
-                0.35417,
-                0.9287,
-                0.45052
+                0.73056,
+                0.35625,
+                0.91852,
+                0.4776
               ]
             },
             {
               "img": "carreras/electrica/fondos/escena/recortes/4.png",
               "caja": [
-                0.79907,
-                0.54219,
-                0.94167,
-                0.61094
+                0.81667,
+                0.5151,
+                0.93241,
+                0.6401
               ]
             }
           ]
@@ -761,30 +767,31 @@
           "id": "escena",
           "img": "carreras/fisico-matematico/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/fisico-matematico/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
-            "x": 0.8898,
-            "y": 0.3725,
+            "x": 0.8639,
+            "y": 0.3652,
             "escala": 0.17
           },
           "escondites": [
             {
-              "x": 0.121,
-              "y": 0.5625,
+              "x": 0.108,
+              "y": 0.5333,
               "escala": 0.17
             },
             {
-              "x": 0.5109,
+              "x": 0.485,
               "y": 0.192,
               "escala": 0.16
             },
             {
-              "x": 0.121,
-              "y": 0.336,
+              "x": 0.108,
+              "y": 0.3433,
               "escala": 0.17
             },
             {
-              "x": 0.863,
-              "y": 0.5844,
+              "x": 0.8759,
+              "y": 0.5188,
               "escala": 0.17
             }
           ],
@@ -792,46 +799,46 @@
             {
               "img": "carreras/fisico-matematico/fondos/escena/recortes/0.png",
               "caja": [
-                0.79167,
-                0.3026,
-                0.99074,
-                0.44062
+                0.79444,
+                0.30156,
+                0.95185,
+                0.42448
               ]
             },
             {
               "img": "carreras/fisico-matematico/fondos/escena/recortes/1.png",
               "caja": [
-                0.03148,
-                0.49948,
-                0.21111,
-                0.61979
+                0.04815,
+                0.49479,
+                0.19907,
+                0.57969
               ]
             },
             {
               "img": "carreras/fisico-matematico/fondos/escena/recortes/2.png",
               "caja": [
-                0.46019,
-                0.14635,
-                0.59444,
-                0.24531
+                0.41111,
+                0.14062,
+                0.52963,
+                0.23177
               ]
             },
             {
               "img": "carreras/fisico-matematico/fondos/escena/recortes/3.png",
               "caja": [
-                0.06111,
-                0.28021,
-                0.21574,
-                0.39792
+                0.01944,
+                0.28437,
+                0.20556,
+                0.40573
               ]
             },
             {
               "img": "carreras/fisico-matematico/fondos/escena/recortes/4.png",
               "caja": [
-                0.76944,
-                0.52031,
-                0.93333,
-                0.64896
+                0.79074,
+                0.46615,
+                0.92778,
+                0.57031
               ]
             }
           ]
@@ -886,6 +893,7 @@
           "id": "escena",
           "img": "carreras/forestal/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/forestal/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.8759,
             "y": 0.5844,
@@ -903,13 +911,13 @@
               "escala": 0.17
             },
             {
-              "x": 0.1469,
-              "y": 0.5844,
+              "x": 0.8898,
+              "y": 0.3069,
               "escala": 0.17
             },
             {
-              "x": 0.8898,
-              "y": 0.3069,
+              "x": 0.1469,
+              "y": 0.5844,
               "escala": 0.17
             }
           ],
@@ -944,19 +952,19 @@
             {
               "img": "carreras/forestal/fondos/escena/recortes/3.png",
               "caja": [
-                0.05278,
-                0.53021,
-                0.23981,
-                0.65
+                0.79537,
+                0.24635,
+                0.975,
+                0.36667
               ]
             },
             {
               "img": "carreras/forestal/fondos/escena/recortes/4.png",
               "caja": [
-                0.7963,
-                0.24323,
-                0.98333,
-                0.37083
+                0.05278,
+                0.53333,
+                0.23796,
+                0.65625
               ]
             }
           ]
@@ -1011,6 +1019,7 @@
           "id": "escena",
           "img": "carreras/mecanica/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/mecanica/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.5109,
             "y": 0.192,
@@ -1042,19 +1051,19 @@
             {
               "img": "carreras/mecanica/fondos/escena/recortes/0.png",
               "caja": [
-                0.425,
-                0.14583,
-                0.59907,
-                0.2401
+                0.42593,
+                0.1401,
+                0.59352,
+                0.24063
               ]
             },
             {
               "img": "carreras/mecanica/fondos/escena/recortes/1.png",
               "caja": [
-                0.07778,
-                0.22969,
-                0.26204,
-                0.34219
+                0.08056,
+                0.23958,
+                0.26111,
+                0.34375
               ]
             },
             {
@@ -1069,19 +1078,19 @@
             {
               "img": "carreras/mecanica/fondos/escena/recortes/3.png",
               "caja": [
-                0.72963,
-                0.22083,
-                0.91852,
+                0.73426,
+                0.22292,
+                0.91667,
                 0.34323
               ]
             },
             {
               "img": "carreras/mecanica/fondos/escena/recortes/4.png",
               "caja": [
-                0.76944,
-                0.45052,
-                0.97963,
-                0.58229
+                0.77222,
+                0.46354,
+                0.96759,
+                0.58177
               ]
             }
           ]
@@ -1136,6 +1145,7 @@
           "id": "escena",
           "img": "carreras/naval/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/naval/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.1469,
             "y": 0.5844,
@@ -1194,19 +1204,19 @@
             {
               "img": "carreras/naval/fondos/escena/recortes/3.png",
               "caja": [
-                0.74167,
-                0.28021,
-                0.91759,
-                0.39896
+                0.73889,
+                0.2776,
+                0.91944,
+                0.40052
               ]
             },
             {
               "img": "carreras/naval/fondos/escena/recortes/4.png",
               "caja": [
-                0.07593,
-                0.2224,
-                0.26574,
-                0.35
+                0.08056,
+                0.22448,
+                0.26852,
+                0.34948
               ]
             }
           ]
@@ -1261,30 +1271,31 @@
           "id": "escena",
           "img": "carreras/produccion/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/produccion/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
-            "x": 0.8889,
-            "y": 0.475,
+            "x": 0.85,
+            "y": 0.5698,
             "escala": 0.17
           },
           "escondites": [
             {
               "x": 0.1728,
-              "y": 0.285,
+              "y": 0.3871,
               "escala": 0.17
             },
             {
-              "x": 0.485,
-              "y": 0.1993,
+              "x": 0.5109,
+              "y": 0.192,
               "escala": 0.16
             },
             {
-              "x": 0.825,
-              "y": 0.285,
+              "x": 0.8898,
+              "y": 0.3579,
               "escala": 0.17
             },
             {
               "x": 0.1339,
-              "y": 0.5625,
+              "y": 0.5844,
               "escala": 0.17
             }
           ],
@@ -1292,46 +1303,46 @@
             {
               "img": "carreras/produccion/fondos/escena/recortes/0.png",
               "caja": [
-                0.79722,
-                0.4125,
-                0.95648,
-                0.53958
+                0.75648,
+                0.50729,
+                0.94167,
+                0.63125
               ]
             },
             {
               "img": "carreras/produccion/fondos/escena/recortes/1.png",
               "caja": [
-                0.07685,
-                0.22552,
+                0.07593,
+                0.33125,
                 0.26759,
-                0.34948
+                0.45
               ]
             },
             {
               "img": "carreras/produccion/fondos/escena/recortes/2.png",
               "caja": [
-                0.40278,
-                0.13906,
-                0.57315,
-                0.25625
+                0.42685,
+                0.13229,
+                0.58241,
+                0.24792
               ]
             },
             {
               "img": "carreras/produccion/fondos/escena/recortes/3.png",
               "caja": [
-                0.73148,
-                0.23073,
-                0.91389,
-                0.35
+                0.79444,
+                0.29688,
+                0.98426,
+                0.42292
               ]
             },
             {
               "img": "carreras/produccion/fondos/escena/recortes/4.png",
               "caja": [
-                0.05926,
-                0.53594,
-                0.22407,
-                0.61875
+                0.03889,
+                0.52552,
+                0.22963,
+                0.64583
               ]
             }
           ]
@@ -1386,6 +1397,7 @@
           "id": "escena",
           "img": "carreras/quimica/fondos/escena/imagen.jpg",
           "video": null,
+          "apaisada": "carreras/quimica/fondos/escena/imagen-apaisada.jpg",
           "lugar": {
             "x": 0.8898,
             "y": 0.3579,
@@ -1417,28 +1429,28 @@
             {
               "img": "carreras/quimica/fondos/escena/recortes/0.png",
               "caja": [
-                0.80093,
-                0.31667,
-                0.95833,
-                0.41979
+                0.80463,
+                0.31562,
+                0.96574,
+                0.41563
               ]
             },
             {
               "img": "carreras/quimica/fondos/escena/recortes/1.png",
               "caja": [
-                0.06852,
-                0.46354,
-                0.23241,
-                0.52552
+                0.11759,
+                0.45052,
+                0.23426,
+                0.5651
               ]
             },
             {
               "img": "carreras/quimica/fondos/escena/recortes/2.png",
               "caja": [
-                0.42407,
-                0.1401,
+                0.43704,
+                0.14167,
                 0.59815,
-                0.23542
+                0.25052
               ]
             },
             {
@@ -1446,17 +1458,17 @@
               "caja": [
                 0.02407,
                 0.32135,
-                0.17593,
-                0.41354
+                0.17315,
+                0.41406
               ]
             },
             {
               "img": "carreras/quimica/fondos/escena/recortes/4.png",
               "caja": [
-                0.76667,
-                0.48229,
-                0.91667,
-                0.59531
+                0.76944,
+                0.47552,
+                0.91574,
+                0.59427
               ]
             }
           ]

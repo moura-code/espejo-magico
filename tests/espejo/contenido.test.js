@@ -121,6 +121,22 @@ describe('validarContenido', () => {
     });
   });
 
+  // La version apaisada —la misma escena extendida a 16:9— es lo que cubre los
+  // costados en una pantalla apaisada. Opcional, con la convencion del video:
+  // null es "todavia no", y sin ella los costados son la foto desenfocada.
+  it('la version apaisada de un fondo es una ruta, o null', () => {
+    sinErrores({
+      carreras: [{ ...carreraValida(), fondos: [{ img: 'a.jpg', apaisada: 'a-ancha.jpg' }] }],
+    });
+    sinErrores({
+      carreras: [{ ...carreraValida(), fondos: [{ img: 'a.jpg', apaisada: null }] }],
+    });
+    conError(
+      { carreras: [{ ...carreraValida(), fondos: [{ img: 'a.jpg', apaisada: 3 }] }] },
+      '"apaisada" tiene que ser una ruta',
+    );
+  });
+
   // Un lugar fuera de la imagen deja el objeto fuera de la pantalla, y nadie
   // lo nota hasta que hay alguien sentado delante.
   it('el lugar, si esta, cae dentro de la imagen y tiene tamaño', () => {
@@ -389,6 +405,27 @@ describe('cargarContenido', () => {
 
     expect(contenido.imagenesIniciales(contenido.idsJugables())).toEqual([
       'assets/civil/grua.png',
+    ]);
+  });
+
+  // El banco devuelve null hasta que una imagen se precargo: la version
+  // apaisada que no se pidiera con su foto no llegaria nunca a los costados.
+  it('pide la version apaisada del fondo junto con su foto', async () => {
+    const contenido = await cargarContenido({
+      traer: traerCon({
+        carreras: [
+          {
+            ...carreraValida(),
+            fondos: [{ img: 'assets/fondos/civil.png', apaisada: 'assets/fondos/civil-ancha.jpg' }],
+          },
+        ],
+      }),
+    });
+
+    expect(contenido.imagenesDeCarrera('civil')).toEqual([
+      'assets/civil/grua.png',
+      'assets/fondos/civil.png',
+      'assets/fondos/civil-ancha.jpg',
     ]);
   });
 

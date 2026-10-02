@@ -30,5 +30,7 @@ contenido/escenas-base/
 contenido/escenas-contacto.jpg
 # La hoja de objetos de `escenas.py --revisar`, para mirar a ojo
 contenido/objetos-contacto.jpg
+# La hoja de las versiones apaisadas de `escenas.py --apaisar`
+contenido/apaisadas-contacto.jpg
 # El entorno de Python del generador (torch, diffusers, transformers)
 .venv-escenas/

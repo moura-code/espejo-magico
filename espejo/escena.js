@@ -153,9 +153,9 @@ export function calcularRectanguloDelFondo(fotoAncho, fotoAlto, ancho, alto) {
 /**
  * Pone la foto del fondo entera en el lienzo, sin deformarla
  * (calcularRectanguloDelFondo). Si en esa pantalla no la llena, lo que queda
- * libre se cubre con `relleno` —crearRellenoDelFondo: la misma foto
- * desenfocada—, y solo eso: debajo de la foto no, porque mientras el fondo entra
- * se veria a traves de ella.
+ * libre se cubre con `relleno` —crearRellenoDelFondo: la escena extendida si
+ * hay `extension`, la misma foto desenfocada si no—, y solo eso: debajo de la
+ * foto no, porque mientras el fondo entra se veria a traves de ella.
  *
  * `fuente` puede ser una foto o un video: un fondo con movimiento se dibuja
  * exactamente igual, cuadro a cuadro, y por eso el resto de la escena no se
@@ -167,7 +167,7 @@ export function calcularRectanguloDelFondo(fotoAncho, fotoAlto, ancho, alto) {
  * receta conocida de que los dos caminos se separen y el objeto termine en otro
  * lado del que se dibujo el fondo.
  */
-export function dibujarFondo(ctx, fuente, disposicion, alfa = 1, relleno = null) {
+export function dibujarFondo(ctx, fuente, disposicion, alfa = 1, relleno = null, extension = null) {
   const medidas = medidasDe(fuente);
   if (!medidas || alfa <= 0) return null;
 
@@ -186,7 +186,8 @@ export function dibujarFondo(ctx, fuente, disposicion, alfa = 1, relleno = null)
 
   ctx.save();
   ctx.globalAlpha = Math.min(1, alfa);
-  const lienzoDeRelleno = huecos.length > 0 ? relleno?.obtener(fuente, disposicion) : null;
+  const lienzoDeRelleno =
+    huecos.length > 0 ? relleno?.obtener(fuente, disposicion, extension) : null;
   if (lienzoDeRelleno) {
     for (const hueco of huecos) {
       const { x, y, ancho: anchoHueco, alto: altoHueco } = hueco;
@@ -210,14 +211,28 @@ export function dibujarFondo(ctx, fuente, disposicion, alfa = 1, relleno = null)
  *
  * `desenfoque` es el radio en fraccion del lado corto de la pantalla; `brillo`,
  * cuanto queda de la luz de la foto.
+ *
+ * CON `extension` LOS COSTADOS SON LA ESCENA MISMA. Es la version apaisada del
+ * fondo (imagen-apaisada.jpg): la misma escena extendida a 16:9 por el
+ * generador, con la foto centrada a todo el alto. Dibujada a la escala de la
+ * foto y centrada en ella, sus costados continuan la foto, nitidos y con su
+ * luz. Va encima de la desenfocada, que queda a la vista solo donde la
+ * extension no llega: en una pantalla mas ancha que 16:9.
  */
 export function crearRellenoDelFondo({ crearLienzo, desenfoque, brillo }) {
   let lienzo = null;
   let fuenteDibujada = null;
+  let extensionDibujada = null;
 
   return {
-    obtener(fuente, { ancho, alto }) {
-      if (lienzo && fuente === fuenteDibujada && lienzo.width === ancho && lienzo.height === alto) {
+    obtener(fuente, { ancho, alto }, extension = null) {
+      if (
+        lienzo &&
+        fuente === fuenteDibujada &&
+        extension === extensionDibujada &&
+        lienzo.width === ancho &&
+        lienzo.height === alto
+      ) {
         return lienzo;
       }
       const medidas = medidasDe(fuente);
@@ -236,7 +251,26 @@ export function crearRellenoDelFondo({ crearLienzo, desenfoque, brillo }) {
       ctx.drawImage(fuente, cubre.x - radio * 2, cubre.y - radio * 2, cubre.ancho, cubre.alto);
       ctx.restore();
 
+      const medidasDeExtension = medidasDe(extension);
+      if (medidasDeExtension) {
+        // La foto cae donde la pone calcularRectanguloDelFondo; la extension se
+        // dibuja a su alto y centrada en ella, para que la foto calce en su medio.
+        const foto = calcularRectanguloDelFondo(medidas.ancho, medidas.alto, ancho, alto);
+        const anchoDeExtension = (foto.alto * medidasDeExtension.ancho) / medidasDeExtension.alto;
+        ctx.save();
+        ctx.filter = 'none';
+        ctx.drawImage(
+          extension,
+          foto.x + (foto.ancho - anchoDeExtension) / 2,
+          foto.y,
+          anchoDeExtension,
+          foto.alto,
+        );
+        ctx.restore();
+      }
+
       fuenteDibujada = fuente;
+      extensionDibujada = extension;
       return lienzo;
     },
   };

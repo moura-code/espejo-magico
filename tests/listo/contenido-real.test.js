@@ -185,6 +185,21 @@ describe('contenido real', () => {
     expect(problemas, 'estos fondos no dejan levantar sus objetos').toEqual([]);
   });
 
+  // LA PANTALLA PUEDE SER APAISADA. Ahi la foto vertical va entera en el medio y
+  // los costados los pone la version apaisada: la misma escena extendida a 16:9
+  // (`npm run escenas -- --apaisar`). Sin ella el espejo anda igual, con los
+  // costados desenfocados, y nadie lo nota hasta que el monitor es horizontal.
+  it('cada fondo generado trae su version apaisada', async () => {
+    const faltan = [];
+    for (const carrera of (await obtenerCatalogo()).carreras) {
+      for (const fondo of carrera.fondos ?? []) {
+        if (!fondo.recortes) continue;
+        if (!fondo.apaisada || !(await existe(fondo.apaisada))) faltan.push(fondo.img);
+      }
+    }
+    expect(faltan, 'a estos fondos les falta la version apaisada').toEqual([]);
+  });
+
   // Un fondo con movimiento declara `video` ademas de su foto. Si el archivo no
   // esta, el espejo muestra la foto y no se rompe nada —pero el fondo quedo
   // quieto y nadie se entera hasta que alguien lo mira de cerca en el stand.
