@@ -12,7 +12,7 @@ La instalación es una sola PC con una cámara y una pantalla. No hay red, no ha
 - **Sistema Operativo:** Windows 10/11 o Linux.
 - **Software:** Node.js (v18 o superior) y Google Chrome.
 - **Cámara:** Webcam HD/FHD (1080p recomendada) con cable USB estable.
-- **Pantalla:** Televisor o monitor grande montado en **posición vertical (1080 × 1920)** con marco decorativo de espejo.
+- **Pantalla:** Televisor o monitor grande, **vertical (1080 × 1920) u horizontal (1920 × 1080)**, con marco decorativo de espejo. El espejo se adapta solo: en vertical la foto del fondo llena la pantalla, y en horizontal va entera en el medio y los costados son la misma escena extendida (`imagen-apaisada.jpg`).
 
 ### 1.2. Red
 **Ninguna.** La instalación entera corre en esa sola PC: no hace falta router, ni Wi-Fi, ni cable de red. El servidor local sólo entrega archivos a la pestaña de Chrome de la propia máquina.

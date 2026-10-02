@@ -359,13 +359,18 @@ a la imagen**: las fotos se preparan en 1080×1920, la medida del espejo, y ahí
 un punto normalizado a la imagen cae exactamente en el sitio de la escena que
 se eligió mirando. Sin `lugar` vale `CONFIG.fondo.lugarPorDefecto`.
 
-**La foto del fondo entra entera, no cubriendo.** En el espejo es lo mismo. En
-un lienzo de otra proporción —un monitor apaisado mientras se desarrolla—
-cubrir agrandaba la foto al ancho y sólo dejaba ver su franja del medio, y con
-ella se iban los objetos pintados arriba. `dibujarFondo` la pone entera con
+**La foto del fondo entra entera, no cubriendo, y en apaisado sus costados son
+la misma escena.** La pantalla puede ser vertical u horizontal. En vertical,
+entera o cubriendo es lo mismo. En una pantalla apaisada cubrir agrandaba la
+foto al ancho y sólo dejaba ver su franja del medio, y con ella se iban los
+objetos pintados arriba. `dibujarFondo` la pone entera con
 `calcularRectanguloDelFondo`, y lo que deja libre lo cubre
-`crearRellenoDelFondo`: la misma foto agrandada, desenfocada y oscurecida
-(`CONFIG.fondo.relleno`), hecha una sola vez por foto y medida de ventana.
+`crearRellenoDelFondo` con la versión apaisada del fondo —`imagen-apaisada.jpg`,
+la misma escena extendida a 16:9 por `escenas.py --apaisar`, con la foto
+centrada a todo el alto—, dibujada a la escala de la foto y centrada en ella.
+Donde no llega —una pantalla más ancha que 16:9, o un fondo sin extender— queda
+la misma foto agrandada, desenfocada y oscurecida (`CONFIG.fondo.relleno`). Se
+arma una sola vez por foto y medida de ventana.
 
 **Los objetos sueltos se miden contra lo que se ve del fondo.** En el espejo es
 la foto entera. Cuando la foto cubría un monitor apaisado, medido contra la foto

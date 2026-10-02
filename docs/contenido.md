@@ -33,6 +33,7 @@ contenido/
       fondos/
         aula/
           imagen.jpg
+          imagen-apaisada.jpg (opcional)
           video.mp4 (opcional)
           metadata.json
   comun/
@@ -42,7 +43,7 @@ contenido/
       Muffaroo-LEEME.txt
     CREDITOS.md
     banco/
-  catalogo.json (generado automáticamente, ignorado en git)
+  catalogo.json (generado automáticamente; versionado)
 ```
 
 El archivo `contenido/catalogo.json` es derivado y normalizado. Se genera con `npm run catalogo`, o automáticamente al arrancar el servidor con `npm start` o `npm run dev`.
@@ -157,13 +158,128 @@ y se reintenta con otra semilla hasta seis veces. Para las fotos que ya están:
 python herramientas/escenas.py --revisar          # qué objetos no están; arma
                                                   # contenido/objetos-contacto.jpg
 python herramientas/escenas.py --repintar --solo electrica:motor-trifasico,...
+python herramientas/escenas.py --repintar --semilla 1 --solo ...   # otra tanda
 ```
 
 `--repintar` pinta sólo esos objetos en la foto actual, en su mismo sitio, y
 reescribe sólo su recorte y su caja: los que ya están no se tocan. Pide la lista
 explícita a propósito —la de `--revisar`, mirada a ojo en la hoja—, porque un
-objeto presente que el juez diera por ausente se arruinaría al repintarlo. Las
-partes que no necesitan la GPU tienen pruebas:
+objeto presente que el juez diera por ausente se arruinaría al repintarlo. Cada
+carrera se escribe entera al terminarla: si la corrida se corta, la que estaba
+en curso queda como estaba, y las que ya terminaron no se vuelven a correr,
+porque pintaría encima.
+
+**Cada objeto pintado pasa además por la armonía.** Pintado de a uno, cada
+objeto salía con su propia luz y su propio grano —limpio, saturado, como foto de
+producto— y se leía pegado encima de la escena. Al terminar de pintar, el
+generador de la foto repasa la imagen a poca fuerza y se queda sólo con lo que
+rodea a cada objeto: le da la luz y la textura del lugar sin tocar el resto, que
+sigue calzando con su versión apaisada. Lo hacen solos `--fase objetos` y
+`--repintar` (este último, sólo alrededor de lo que repintó), y
+`--armonizar <carreras>` la pasa sobre las fotos que ya están, sin repintar.
+
+**Lo que se aprendió de los objetos que no salían:**
+
+- **Sobre una superficie lisa y pareja el relleno no pinta nada.** Mirando lo
+  que devolvía el modelo, y no sólo el puntaje del juez: con un estante gris
+  oscuro o una pared blanca debajo del óvalo, copiaba la superficie, el texto
+  no importaba y daba lo mismo con cualquier semilla. Ni borrando lo de abajo
+  ni pintando desde cero cambió. Por eso la segunda mitad de los intentos
+  arranca del **PNG del objeto plantado en el óvalo** (`plantar_objeto`): el
+  modelo lo repinta con la luz del lugar, y el panel solar y la base de datos,
+  que habían fallado tres vueltas seguidas, salieron al primer intento. La
+  primera mitad va sin PNG, porque cuando puede el modelo integra mejor el
+  objeto inventándolo. `--repintar --con-png` hace que todos los intentos
+  arranquen del PNG: hace falta cuando el juez da por bueno lo que no es (un
+  gancho oxidado pasó por la viga oxidada que pedía el texto).
+- **Lo que sale del PNG se repasa.** Plantado, el objeto conserva el aspecto de
+  su PNG —una foto de producto, o un ícono como el de la base de datos— y se lee
+  pegado encima. El repaso local (`repaso_del_objeto`, el generador de la foto a
+  0,5 con el texto del objeto) lo vuelve parte de la escena sin cambiarle la
+  forma, que es lo que el espejo recorta. Lo hacen solos `--repintar` y
+  `--fase objetos` con lo que salió del PNG, y `--repasar --solo ...` lo pasa
+  sobre objetos ya pintados. Desenfocar el PNG antes de plantarlo no sirve: el
+  modelo copia el borrón.
+- **El PNG va al tamaño del sitio, y se repinta sobre la escena vacía.**
+  Plantado a todo el óvalo, el objeto salía más grande que su sitio (la base de
+  datos y el servidor pasaban el área máxima del control): va al 75 %, salvo lo
+  fino —cables, celosía: menos del 30 % de su caja lleno—, que al tamaño del
+  sitio quedaba con líneas de un par de píxeles y el modelo las borraba; eso va
+  entero (`COBERTURA_FINA`). Y como el modelo copia lo que encuentra en
+  el óvalo, repintando encima de un objeto ya pintado lo repetía: `--repintar`
+  devuelve primero el sitio a la escena vacía (`restaurar_sitio`), que existe
+  sólo en la PC donde se generaron las escenas.
+- **Rearmar una escena cambia sus sitios, y con ellos las fichas.** Las fichas
+  se ubican según el sitio de cada objeto, no según su silueta, y
+  `tests/integracion/fichas.test.js` exige que todas entren con la letra de la
+  config. Con la Química rearmada, el matraz quedó tan arriba que su ficha
+  rozaba al intercambiador; y esa escena, además, salió con un ventanal a la
+  izquierda donde no había nada que apoyar. Volvió a su escena de antes. Si la
+  prueba falla después de rearmar, se prueba otra escena, o se mueve el sitio
+  dentro de su zona —en `metadata.json`, devolviendo antes el sitio viejo a la
+  escena vacía— y se lo repinta.
+- **La armonía no puede borrar un objeto.** El repaso disolvió la maqueta del
+  puente —fina, clara sobre una mesada gris— en el concreto: 0,93 al pintarla,
+  0,17 después. Ahora, cuando pinta con el juez, una pasada que deja a un objeto
+  por debajo del umbral se descarta para ese objeto, y la consola lo avisa.
+
+- **Arriba al centro no puede haber una luz.** Ahí va lo que cuelga del techo, y
+  sobre una luz el modelo la continúa en vez de pintar el objeto: así fallaron
+  la cinta, el puente, la torre y el intercambiador, una y otra vez. La elección
+  de escena castiga a las que tienen una luz justo en ese sitio, y los guiones
+  piden techo oscuro con las luces a los costados.
+- **Cada sitio necesita algo donde apoyarse, y el guion lo nombra.** Una sala
+  baja deja los sitios de arriba de los costados en el techo; una pared desnuda
+  no sostiene nada. Las escenas que funcionaron tienen estanterías a los dos
+  costados y mesadas abajo, y el texto de cada objeto dice dónde está apoyado o
+  de qué cuelga (de un gancho de grúa, de dos cadenas).
+- **El objeto contrasta con su superficie.** Acero sobre acero, vidrio sobre
+  blanco y blanco sobre blanco no se pintaban. Se cambia la superficie (estantes
+  de madera, mesadas oscuras) o el color del objeto, salvo el del carrusel, que
+  va como su PNG.
+- **El texto describe el PNG, y sólo el objeto.** La mira no era «a rayas rojas
+  y blancas» sino blanca con marcas en E; la base de datos no era una caja negra
+  sino tres discos azules: con el texto equivocado, el modelo pintaba otra cosa y
+  el juez no la reconocía. Y lo de antes de la coma no puede nombrar algo que ya
+  está en la escena: con «with steel pipes», el juez daba por presente el
+  intercambiador porque veía los caños del techo; con «storage», confundía la
+  base de datos con «empty storage racks».
+- **Lo que cuelga, a veces es otro objeto.** Si el de arriba al centro no sale
+  colgado, se intercambia su sitio con uno que cuelgue con naturalidad —la viga
+  de un gancho, el satélite como en un museo— editando `lugar` y `escondites` en
+  su `metadata.json`, y se repintan los dos. El orden de `GUIONES` se cambia
+  igual, para que una carrera rearmada lo respete.
+
+Tres cosas más, antes de reintentar:
+
+- **Las semillas son fijas por objeto.** La misma foto con el mismo texto da el
+  mismo resultado: es lo que deja rearmar una carrera sin perder lo que ya
+  estaba bien, y también por qué repetir no sirve. Para otro intento, otro
+  texto o `--semilla N` (1, 2, …), una tanda que no repite ninguna semilla de
+  las anteriores.
+- **Cada texto de `GUIONES` es «el objeto, el sitio».** El juez lee sólo lo de
+  antes de la primera coma: si la pregunta nombra el sitio, una pared vacía ya
+  se parece un poco al objeto.
+- **El objeto del carrusel se describe como su PNG**, porque al aterrizar el
+  PNG se funde con el pintado.
+
+**Para una pantalla apaisada**, `python herramientas/escenas.py --apaisar`
+extiende cada foto a 16:9 (`imagen-apaisada.jpg`). Lo que extiende es la escena
+vacía, sin los objetos: viéndolos, el modelo los repetía en los costados (un
+segundo brazo robótico, cajas alrededor del pallet). Pinta de a ventanas con el
+modelo de relleno, arrancando del reflejo de la escena en el borde; repasa los
+costados con el generador de la foto, para que tengan su textura; y en la
+costura iguala la luz y funde lo pintado con el reflejo, para que el borde
+continúe la foto. La foto, con sus objetos, se pega al final.
+La foto vertical no se toca, y de la apaisada el espejo usa sólo los costados:
+repintar un objeto después no la invalida. Se miran en
+`contenido/apaisadas-contacto.jpg`: que no aparezca en un costado algo que
+parezca uno de los cinco objetos, y que no se vea la costura. Si una no sirve,
+`--apaisar <id> --semilla 1`. La escena vacía (`contenido/escenas-base/<id>.jpg`)
+existe sólo en la PC donde se generaron las escenas: sin ella se extiende la
+foto, y el modelo puede repetir sus objetos en los costados.
+
+Las partes que no necesitan la GPU tienen pruebas:
 `python -m unittest discover -s tests/herramientas`.
 
 ### Qué hace que un fondo sirva
@@ -194,6 +310,10 @@ la persona y el objeto encima no pueden competir con el escenario.
 
 Cada carrera contiene una o más subcarpetas dentro de `fondos/`. Cada carpeta representa un candidato de fondo y contiene:
 - `imagen.jpg` (o `.png`): la imagen de la escena.
+- `imagen-apaisada.jpg` (opcional): la misma escena extendida a 16:9, con la
+  foto centrada a todo el alto, para una pantalla apaisada. El espejo usa sólo
+  sus costados: la foto va siempre encima. Sin ella, los costados son la foto
+  desenfocada. La genera `escenas.py --apaisar`.
 - `video.mp4` (opcional): video en loop para fondos con movimiento.
 - `recortes/<n>.png` (fondo generado): la silueta de cada objeto, recortada a su
   caja, en el orden de `objetos`. Es lo que deja levantar el objeto de la foto;
