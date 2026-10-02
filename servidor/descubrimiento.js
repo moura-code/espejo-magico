@@ -106,6 +106,13 @@ export async function descubrirEstructura({ raizCarreras }) {
         ? `${rutaRelativaCarrera}/fondos/${fondoId}/${nombreVideo}`
         : null;
 
+      // La misma escena extendida a 16:9: en una pantalla apaisada, sus costados
+      // cubren lo que la foto vertical no llega. Es opcional.
+      const nombreApaisada = await encontrarArchivo(dirFondo, ['imagen-apaisada.jpg']);
+      const rutaApaisada = nombreApaisada
+        ? `${rutaRelativaCarrera}/fondos/${fondoId}/${nombreApaisada}`
+        : null;
+
       const rutaMeta = join(dirFondo, 'metadata.json');
       const leidoMeta = await leerJsonSeguro(rutaMeta);
 
@@ -113,6 +120,7 @@ export async function descubrirEstructura({ raizCarreras }) {
         id: fondoId,
         rutaImagen: rutaImg,
         rutaVideo: rutaVideo,
+        rutaApaisada,
         metadata: leidoMeta.datos,
         errorMetadata: leidoMeta.error ?? undefined,
       });

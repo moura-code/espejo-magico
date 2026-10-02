@@ -58,6 +58,23 @@ describe('catalogo', () => {
     expect(comp.objetos[0].img).toBe('carreras/computacion/objetos/item1/imagen.png');
   });
 
+  it('publica la version apaisada de cada fondo, o null si no tiene', async () => {
+    await crearCarreraMinima(dir, 'civil');
+    await crearCarreraMinima(dir, 'naval');
+    await writeFile(join(dir, 'civil', 'fondos', 'principal', 'imagen-apaisada.jpg'), 'jpg');
+
+    const { catalogo, errores } = await construirCatalogo({
+      raizCarreras: dir,
+      figurasValidas: ['chip'],
+    });
+
+    expect(errores).toEqual([]);
+    expect(catalogo.carreras.map((carrera) => carrera.fondos[0].apaisada)).toEqual([
+      'carreras/civil/fondos/principal/imagen-apaisada.jpg',
+      null,
+    ]);
+  });
+
   it('retorna errores y no genera catálogo si la estructura es inválida', async () => {
     const dirCarrera = join(dir, 'invalida');
     await mkdir(dirCarrera, { recursive: true });
