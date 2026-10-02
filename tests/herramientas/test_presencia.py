@@ -19,7 +19,7 @@ class TextoDelObjeto(unittest.TestCase):
         )
 
     def test_sin_sitio_queda_igual(self):
-        texto = 'a chain of brown porcelain insulator discs hanging from the ceiling'
+        texto = 'a yellow digital multimeter with test leads'
         self.assertEqual(texto_del_objeto(texto), texto)
 
 
