@@ -3,8 +3,8 @@
 Instalación interactiva para el stand de una Facultad de Ingeniería.
 
 Un visitante se sienta frente a una pantalla enmarcada como espejo, que descansa
-cubierta de humo y de nubes. Una cámara detecta su rostro y entra un humo que lo
-cubre todo; cuando se disipa, queda girando despacio alrededor suyo **un carrusel
+cubierta de humo y de nubes. Una cámara detecta su rostro y el humo se espesa
+hasta cubrirlo todo; cuando se disipa, junto con las nubes, queda girando despacio alrededor suyo **un carrusel
 con las doce ingenierías, un objeto por cada una**. Sostiene la mano sobre el que
 quiera —el carrusel se detiene y un anillo se va llenando mientras la mantiene
 ahí— y aparece esa ingeniería detrás suyo: su fondo, el objeto volando a su

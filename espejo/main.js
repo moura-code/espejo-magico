@@ -39,7 +39,7 @@ import {
 } from './escondites.js';
 import { crearFichas } from './fichas.js';
 import { crearPuente } from './maite.js';
-import { alfaDeHumo } from './humo.js';
+import { acercarHumo, alfaDeHumo } from './humo.js';
 import {
   cargarVideoDelNavegador,
   crearBancoDeVideos,
@@ -50,6 +50,7 @@ import { crearPlanificadorDeDetectores } from './planificador-detectores.js';
 import {
   crearNiebla,
   objetivoDeNiebla,
+  espejoDespierto,
   acercarNiebla,
   calcularTransicionEscena,
 } from './niebla.js';
@@ -296,6 +297,12 @@ const invitacion = crearDesvanecedor({
   msDeEntrada: CONFIG.tiempos.invitacion,
   msDeSalida: CONFIG.tiempos.salidaDeLaInvitacion,
 });
+// Cuan despierto esta el espejo: duerme mientras hay niebla y se despierta con
+// la eleccion, de a poco y desde donde este, como las nubes.
+const despertar = crearDesvanecedor({
+  msDeEntrada: CONFIG.niebla.espejoDormido.msParaDespertar,
+  msDeSalida: CONFIG.niebla.espejoDormido.msParaDormirse,
+});
 // Dos histeresis sobre dos señales distintas. `histeresis` mira rostro O pose:
 // es lo que SOSTIENE una sesion, y por eso los hombros alcanzan cuando la cara
 // gira. `histeresisDeRostro` mira solo la cara: es lo que ARRANCA una sesion, y
@@ -351,6 +358,8 @@ const niebla = crearNiebla({ cantidad: CONFIG.niebla.cantidad });
 // La niebla arranca cerrada. Su apertura cambia de forma continua aunque la
 // maquina salte de estado, y solo desplaza nubes hacia los lados.
 let nieblaActual = { apertura: 0 };
+// El humo que se ve: sigue a alfaDeHumo sin saltar cuando el estado cambia.
+let humoActual = 0;
 
 // Las que se ofrecen, con el objeto que representa a cada carrera en el
 // carrusel. Se arman una sola vez por sesion, cuando el sorteo reparte el orden.
@@ -761,17 +770,23 @@ function cuadro(ahora) {
     eleccion.reiniciar();
   }
 
-  niebla.actualizar(dt, estado === ESTADOS.HUMO ? CONFIG.niebla.agitacionHumo : 1);
+  // Los jirones se agitan mientras el humo se espesa: desde que se detecta a la
+  // persona hasta la eleccion, que es cuando se abren.
+  const espesandose = estado === ESTADOS.ENGANCHE || estado === ESTADOS.HUMO;
+  niebla.actualizar(dt, espesandose ? CONFIG.niebla.agitacionHumo : 1);
 
   // --- dibujo ---
   ctx.clearRect(0, 0, disposicion.ancho, disposicion.alto);
 
-  const dormido = estado === ESTADOS.ATRACCION;
+  // El espejo dormido se ve desenfocado y oscuro, y se despierta de a poco con
+  // la misma apertura que deja ir a las nubes y al humo.
+  const despierto = despertar.actualizar(espejoDespierto(estado), ahora);
+  const dormido = CONFIG.niebla.espejoDormido;
   if (video) {
     acumuladorDeDibujo.medir('compose', () =>
       dibujarVideoEspejado(ctx, video, rectangulo, disposicion, {
-        desenfoque: dormido ? 10 : 0,
-        brillo: dormido ? 0.45 : 1,
+        desenfoque: dormido.desenfoque * (1 - despierto),
+        brillo: dormido.brillo + (1 - dormido.brillo) * despierto,
       }),
     );
   } else {
@@ -1290,13 +1305,20 @@ function cuadro(ahora) {
   );
 
   // El humo va encima de todo: su trabajo es justamente tapar el momento en que
-  // las nubes se abren y los objetos se ponen en su lugar.
-  const humo = alfaDeHumo({
-    estado,
-    transcurrido: enEstadoDesde,
-    tiempos: CONFIG.tiempos,
-    humo: CONFIG.humo,
-  });
+  // los objetos se ponen en su lugar. Lo que se ve sigue a la curva de cada
+  // estado sin saltar cuando el estado cambia a mitad de camino.
+  humoActual = acercarHumo(
+    humoActual,
+    alfaDeHumo({
+      estado,
+      transcurrido: enEstadoDesde,
+      tiempos: CONFIG.tiempos,
+      humo: CONFIG.humo,
+    }),
+    dt,
+    CONFIG.humo.velocidad,
+  );
+  const humo = humoActual;
   acumuladorDeDibujo.medir('ui', () => dibujarHumo(ctx, videoDeHumo, disposicion, humo, CONFIG.humo.opacidad));
 
   nieblaActual = acercarNiebla(

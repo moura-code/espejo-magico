@@ -154,6 +154,17 @@ Tampoco salta nada: al aterrizar, la flotación y el halo del elegido entran de 
 poco, y si la sesión se corta en pleno vuelo, el objeto termina de volar
 mientras se apaga.
 
+**Las nubes y el humo son una sola niebla, que se abre una sola vez.** Al
+detectar a alguien las nubes se abrían en medio segundo, el espejo quedaba
+limpio y enseguida el humo lo volvía a tapar: se leía como nubes que se iban y
+volvían. Ahora en el enganche las nubes se quedan y se agitan, y el humo del
+reposo empieza a espesarse (`humo.enEnganche`); en el HUMO termina de tapar con
+las nubes todavía puestas; y con la elección se abre todo junto: las nubes hacia
+los costados, el humo que se disipa y el espejo que se despierta
+(`objetivoDeNiebla`, `espejoDespierto`, `niebla.espejoDormido`). Lo que se ve
+del humo sigue a su curva con `acercarHumo`, que le pone tope a los saltos
+cuando el estado cambia a mitad de camino.
+
 ### El fondo detrás de la persona
 
 `pose.segmentacion` está en `true` y `silueta.js` traduce la máscara de MediaPipe —un byte de confianza por píxel, **sin canal alfa**— a una imagen blanca cuyo alfa es esa confianza. Sin esa traducción el lienzo la ve opaca en todos lados y `destination-in` no recorta nada.

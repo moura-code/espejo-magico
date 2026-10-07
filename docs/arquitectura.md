@@ -91,7 +91,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `maite.js` | El único puente saliente. Va y no vuelve, nunca lanza, no reintenta y corta a los 1,5 s. |
 | `humo.js` | Cuánto humo hay en cada momento (curva pura). Cargar el video es tarea de `videos.js`; dibujarlo, de `escena.js`. |
 | `sorteo.js` | Gestor de sorteo aleatorio con **bolsa barajada sin repetición contigua**. `siguientes(n)` entrega el orden del carrusel: todas las jugables, barajadas por sesión. |
-| `niebla.js` | Animación de las nubes que cubren el espejo durante el reposo. Se apartan **hacia los costados**, no en círculo: cada jirón queda fijado a su mitad de pantalla al crearse y viaja hasta el borde exterior. La transición tiene una sola magnitud (`apertura`). |
+| `niebla.js` | Animación de las nubes que cubren el espejo durante el reposo. Se apartan **hacia los costados**, no en círculo: cada jirón queda fijado a su mitad de pantalla al crearse y viaja hasta el borde exterior. La transición tiene una sola magnitud (`apertura`), y **se abre una sola vez**, con la elección (`objetivoDeNiebla`); `espejoDespierto` dice cuándo el espejo deja de verse dormido. |
 | `figuras.js` | Sistema de fallback vectorial en Canvas 2D (36 figuras dibujadas por código para cuando no existen archivos PNG). |
 | `imagenes.js` | Gestor y precargador de imágenes con fallback elegante. Carga inicialmente los objetos candidatos de las carreras ofrecidas en el carrusel. |
 | `videos.js` | Carga de videos en el navegador (con tope, para que uno que no contesta no frene el arranque) y el banco de **fondos con movimiento**: los carga de a uno después de arrancar y garantiza que **suene uno solo**, el de la ingeniería que se está mostrando. |
@@ -170,9 +170,9 @@ Lo ofrecido, la carrera y el número de sesión viajan en la salida
 falta.
 
 1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Al entrar se le pide a MAITE que vuelva a su humo. Tras cerrar una sesión no vuelve a arrancar con el mismo rostro: primero tiene que observar una ausencia y rearmarse para la persona siguiente.
-2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado.
-3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Los doce objetos representativos ya se cargaron antes de iniciar; el fondo de una ingeniería —con sus objetos ya adentro— y las máscaras de sus recortes se piden en segundo plano recién cuando se la elige.
-4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Los otros cuatro objetos de la carrera ya están pintados adentro de ese fondo, y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cinco, el objeto se recorta del fondo, se levanta y se abre su ficha debajo. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
+2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado. **Las nubes no se abren**: se agitan, la invitación se apaga y el humo del reposo empieza a espesarse (`humo.enEnganche`). Abrirlas acá dejaba el espejo limpio un momento y enseguida el humo lo volvía a tapar: se leía como nubes que se iban y volvían.
+3. **`HUMO`**: El humo sigue espesándose desde donde lo dejó el enganche hasta tapar la pantalla, con las nubes todavía puestas y el espejo dormido. Debajo **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Los doce objetos representativos ya se cargaron antes de iniciar; el fondo de una ingeniería —con sus objetos ya adentro— y las máscaras de sus recortes se piden en segundo plano recién cuando se la elige.
+4. **`EXPLORACION`**: Todo se despeja a la vez, una sola vez: el humo se disipa, las nubes se apartan hacia los costados y el espejo se despierta —deja de verse desenfocado y oscuro— (`CONFIG.niebla.espejoDormido`). Queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Los otros cuatro objetos de la carrera ya están pintados adentro de ese fondo, y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cinco, el objeto se recorta del fondo, se levanta y se abre su ficha debajo. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
 5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
 **Lo que se muestra se le informa a la máquina desde afuera**, con
@@ -548,6 +548,13 @@ cuadro:
 - La señal de cada mano seguía al filtro, que suelta una mano perdida de golpe:
   `crearDesvanecedorDeManos` la prende y la apaga de a poco, y la señal entera se
   apaga con el carrusel y vuelve con los objetos escondidos.
+- Al detectar a la persona las nubes se abrían en medio segundo, el humo del
+  reposo se cortaba y el espejo pasaba de dormido a nítido en un cuadro; dos
+  segundos después el humo volvía a taparlo todo. Ahora es una sola niebla: las
+  nubes siguen puestas, el humo se espesa desde el del reposo y todo se abre una
+  sola vez con la elección. Lo que se ve del humo sigue a su curva sin saltos
+  (`acercarHumo`): si alguien se va en pleno enganche, baja desde donde estaba.
+  Y el espejo se despierta y se duerme de a poco (`crearDesvanecedor`).
 - El anillo y el disco del objeto elegido se cortaban en el cuadro en que se
   completaba el sostenido: ahora se apagan con el carrusel.
 - El objeto elegido aterrizaba y en el mismo cuadro aparecían el halo entero y

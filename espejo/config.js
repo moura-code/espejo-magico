@@ -333,6 +333,16 @@ export const CONFIG = {
     // Fraccion del estado HUMO que tarda en espesarse. El resto lo pasa tapando.
     fraccionDeEntrada: 0.55,
 
+    // Hasta donde se espesa en el ENGANCHE, mientras se confirma que la persona
+    // se quedo. Arranca del humo del reposo y el HUMO sigue desde aca: es una
+    // sola niebla que se espesa, no un humo que se va y otro que llega.
+    enEnganche: 0.6,
+
+    // Lo mas que cambia el humo que se ve, por segundo. Las curvas de cada
+    // estado son mas lentas y se siguen igual; esto solo pone tope a los saltos
+    // de una a otra —alguien que se va en pleno enganche—, que se cortaban.
+    velocidad: 1.2,
+
     // Cuanto humo queda mientras el espejo descansa. Es lo que ve la fila
     // mientras espera: tiene que leerse como un espejo cubierto, no como una
     // pantalla apagada, asi que nunca llega a tapar del todo.
@@ -563,15 +573,25 @@ export const CONFIG = {
   },
 
   // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
-  // hay nadie, salen hacia los lados al detectar a alguien y vuelven por el
-  // mismo camino cuando la persona lleva dos segundos ausente.
+  // hay nadie, se quedan mientras el humo se espesa al detectar a alguien, se
+  // apartan hacia los lados con la eleccion —junto con el humo— y vuelven por el
+  // mismo camino en el cierre. Se abren UNA sola vez: apartarse al detectar a la
+  // persona y que el humo tapara todo otra vez se leia como nubes que se iban y
+  // volvian.
   niebla: {
     cantidad: 26, // jirones en pantalla
-    agitacionHumo: 3, // cuanto se aceleran los jirones mientras entra el humo
+    agitacionHumo: 3, // cuanto se aceleran los jirones mientras se espesa el humo
     velocidades: {
-      abrir: 1.7, // fraccion por segundo: el espejo se despeja en ~0.6 s
+      abrir: 0.8, // fraccion por segundo: ~1,2 s, al paso del humo que se disipa
       cerrar: 0.34, // acompaña los tres segundos del estado de cierre
     },
+
+    // El espejo duerme —desenfocado y oscurecido— mientras hay niebla, y se
+    // despierta con la eleccion, cuando se abren las nubes: de a poco, en
+    // `msParaDespertar`, como el humo que se disipa. Vuelve a dormirse en el
+    // reposo, en `msParaDormirse`. `desenfoque` en pixeles; `brillo`, cuanto
+    // queda de su luz dormido.
+    espejoDormido: { desenfoque: 10, brillo: 0.45, msParaDespertar: 1400, msParaDormirse: 1200 },
   },
 
   render: {

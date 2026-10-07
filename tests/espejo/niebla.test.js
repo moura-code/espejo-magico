@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   objetivoDeNiebla,
+  espejoDespierto,
   acercarNiebla,
   calcularTransicionEscena,
   posicionLateralNube,
@@ -16,14 +17,15 @@ describe('objetivoDeNiebla', () => {
     expect(objetivoDeNiebla(ESTADOS.CIERRE)).toEqual({ apertura: 0 });
   });
 
-  it('empieza a despejarse apenas detecta a la persona', () => {
-    for (const estado of [
-      ESTADOS.ENGANCHE,
-      ESTADOS.HUMO,
-      ESTADOS.EXPLORACION,
-    ]) {
-      expect(objetivoDeNiebla(estado)).toEqual({ apertura: 1 });
-    }
+  // UNA SOLA NIEBLA, QUE SE ABRE UNA SOLA VEZ. Al detectar a la persona las
+  // nubes se iban en medio segundo, el espejo quedaba limpio y enseguida el
+  // humo lo volvia a tapar: se leia como que las nubes se iban y volvian. Ahora
+  // siguen puestas mientras el humo se espesa, y se abren recien con la
+  // eleccion, junto con el humo que se disipa.
+  it('no se despeja al detectar a la persona: sigue tapado hasta la eleccion', () => {
+    expect(objetivoDeNiebla(ESTADOS.ENGANCHE)).toEqual({ apertura: 0 });
+    expect(objetivoDeNiebla(ESTADOS.HUMO)).toEqual({ apertura: 0 });
+    expect(objetivoDeNiebla(ESTADOS.EXPLORACION)).toEqual({ apertura: 1 });
   });
 
   // El ciclo entero, sin nombrar los estados a mano: si aparece uno nuevo y
@@ -33,9 +35,28 @@ describe('objetivoDeNiebla', () => {
   it('cada estado del ciclo dice si tapa o destapa', () => {
     for (const [nombre, estado] of Object.entries(ESTADOS)) {
       expect(estado, `ESTADOS.${nombre} no existe`).toBeTypeOf('string');
-      const tapado = estado === ESTADOS.ATRACCION || estado === ESTADOS.CIERRE;
+      const tapado = estado !== ESTADOS.EXPLORACION;
       expect(objetivoDeNiebla(estado), nombre).toEqual({ apertura: tapado ? 0 : 1 });
     }
+  });
+});
+
+// El espejo descansa dormido —desenfocado y oscuro— y se despierta con la misma
+// apertura que deja ir a las nubes. Despierto al detectar a la persona, se lo
+// veia aclararse de golpe a traves de las nubes, justo antes de que el humo lo
+// volviera a tapar.
+describe('espejoDespierto', () => {
+  it('duerme mientras hay niebla y se despierta con la eleccion', () => {
+    for (const estado of [ESTADOS.ATRACCION, ESTADOS.ENGANCHE, ESTADOS.HUMO]) {
+      expect(espejoDespierto(estado), estado).toBe(false);
+    }
+    expect(espejoDespierto(ESTADOS.EXPLORACION)).toBe(true);
+  });
+
+  // En el cierre la persona puede seguir sentada: se la sigue viendo mientras
+  // las nubes vuelven, y el espejo se duerme recien en el reposo.
+  it('en el cierre sigue despierto mientras las nubes se cierran', () => {
+    expect(espejoDespierto(ESTADOS.CIERRE)).toBe(true);
   });
 });
 
