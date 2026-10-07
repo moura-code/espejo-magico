@@ -92,6 +92,11 @@ class OrdenDeObjetos(unittest.TestCase):
             carpetas = sorted(os.listdir(os.path.join(escenas.CARRERAS, cid, 'objetos')))
             self.assertEqual(escenas.orden_de_objetos(cid), carpetas, cid)
 
+    # Quimica tiene una foto real con los objetos fotografiados adentro:
+    # generarla le pondria otra escena encima.
+    def test_no_genera_las_carreras_de_foto_real(self):
+        self.assertNotIn('quimica', escenas.GUIONES)
+
 
 class SitioDe(unittest.TestCase):
     def test_el_cero_es_el_lugar_y_los_demas_los_escondites(self):
@@ -185,8 +190,8 @@ class MeterConReintento(unittest.TestCase):
 class InterpretarSolo(unittest.TestCase):
     def test_carrera_y_objeto_separados_por_coma(self):
         self.assertEqual(
-            escenas.interpretar_solo('electrica:motor-trifasico, quimica:columna-destilacion'),
-            [('electrica', 'motor-trifasico'), ('quimica', 'columna-destilacion')],
+            escenas.interpretar_solo('electrica:motor-trifasico, civil:hormigonera'),
+            [('electrica', 'motor-trifasico'), ('civil', 'hormigonera')],
         )
 
     def test_vacio_es_ninguno(self):
@@ -886,11 +891,11 @@ class LineaDeComandos(unittest.TestCase):
     # que salio bien del PNG antes de que existiera el repaso no tiene por que
     # volver a tirarse.
     def test_repasar_repasa_solo_esos_objetos_y_no_carga_el_juez(self):
-        self.correr_main('--repasar', '--solo', 'electrica:panel-solar,quimica:matraz-erlenmeyer')
-        # panel-solar es el 3 de electrica; matraz-erlenmeyer, el 3 de quimica.
-        self.assertEqual(self.tandas, {'armonizar': (['electrica', 'quimica'], 0)})
-        self.assertEqual(self.repasar, {'electrica': [3], 'quimica': [3]})
-        self.assertEqual(self.solo, {'electrica': [3], 'quimica': [3]})
+        self.correr_main('--repasar', '--solo', 'electrica:panel-solar,naval:rov')
+        # panel-solar es el 3 de electrica; rov, el 3 de naval.
+        self.assertEqual(self.tandas, {'armonizar': (['electrica', 'naval'], 0)})
+        self.assertEqual(self.repasar, {'electrica': [3], 'naval': [3]})
+        self.assertEqual(self.solo, {'electrica': [3], 'naval': [3]})
         self.assertFalse(self.juez_creado)
 
     def test_repasar_sin_lista_no_hace_nada(self):

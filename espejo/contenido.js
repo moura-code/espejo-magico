@@ -33,6 +33,15 @@ function validarObjeto(objeto, donde, figurasValidas, errores) {
 
 const entreCeroYUno = (valor) => typeof valor === 'number' && valor >= 0 && valor <= 1;
 
+/** Una caja normalizada a la imagen: [x0, y0, x1, y1], adentro de ella y no vacia. */
+function validarCaja(caja, quien, errores) {
+  if (!Array.isArray(caja) || caja.length !== 4 || !caja.every(entreCeroYUno)) {
+    errores.push(`${quien} tiene que ser [x0, y0, x1, y1] entre 0 y 1`);
+  } else if (!(caja[2] > caja[0]) || !(caja[3] > caja[1])) {
+    errores.push(`${quien} esta dada vuelta o vacia`);
+  }
+}
+
 /** Un lugar de la imagen: `x` e `y` de 0 a 1 y un tamaño. Fuera de 0–1 el objeto cae fuera de la pantalla. */
 function validarLugar(lugar, donde, errores) {
   const { x, y, escala } = lugar ?? {};
@@ -82,13 +91,23 @@ function validarFondo(fondo, donde, errores) {
       fondo.recortes.forEach((recorte, k) => {
         const cual = `${donde} recortes[${k}]`;
         if (!esTextoUtil(recorte?.img)) errores.push(`${cual} sin "img"`);
-        const caja = recorte?.caja;
-        if (!Array.isArray(caja) || caja.length !== 4 || !caja.every(entreCeroYUno)) {
-          errores.push(`${cual} "caja" tiene que ser [x0, y0, x1, y1] entre 0 y 1`);
-        } else if (!(caja[2] > caja[0]) || !(caja[3] > caja[1])) {
-          errores.push(`${cual} "caja" esta dada vuelta o vacia`);
-        }
+        validarCaja(recorte?.caja, `${cual} "caja"`, errores);
       });
+    }
+  }
+
+  // `cajas` es lo que distingue a un fondo FOTOGRAFIADO: una foto real con los
+  // objetos adentro, y donde calza el PNG de cada uno, en el orden de
+  // `objetos`. Una caja corrida levanta el objeto al lado del que se ve. Y es
+  // eso o `recortes`: con los dos no se sabria que levantar.
+  if (fondo?.cajas !== undefined && fondo.cajas !== null) {
+    if (!Array.isArray(fondo.cajas)) {
+      errores.push(`${donde} "cajas" tiene que ser una lista de [x0, y0, x1, y1]`);
+    } else {
+      if (fondo.recortes !== undefined && fondo.recortes !== null) {
+        errores.push(`${donde} declara "recortes" y "cajas": es una cosa o la otra`);
+      }
+      fondo.cajas.forEach((caja, k) => validarCaja(caja, `${donde} cajas[${k}]`, errores));
     }
   }
 
@@ -208,6 +227,28 @@ export function fondoActivo(carrera) {
     if (encontrado) return encontrado;
   }
   return carrera.fondos[0] ?? null;
+}
+
+/**
+ * Donde esta cada objeto de la carrera ADENTRO de la foto de este fondo, en el
+ * orden de `objetos`: `{ caja, mascara }`. O null, si el fondo no los trae
+ * adentro (objetos sueltos, o ningun fondo).
+ *
+ * Hay dos maneras de que esten ahi, y para todo lo demas —donde va el blanco de
+ * la mano, donde la ficha, que el reparto no se baraje— son la misma:
+ *
+ *   - PINTADOS por herramientas/escenas.py (`recortes`): cada uno trae la
+ *     `mascara` con la que se lo pinto, y lo que se levanta es ese pedazo de la
+ *     propia foto.
+ *   - FOTOGRAFIADOS en una foto real (`cajas`): el PNG del objeto calza sobre el
+ *     que se ve, y lo que se levanta es ese PNG. No hay mascara.
+ */
+export function objetosEnLaFoto(fondo) {
+  if (fondo?.recortes?.length) {
+    return fondo.recortes.map(({ img, caja }) => ({ caja, mascara: img }));
+  }
+  if (fondo?.cajas?.length) return fondo.cajas.map((caja) => ({ caja, mascara: null }));
+  return null;
 }
 
 export async function cargarContenido({

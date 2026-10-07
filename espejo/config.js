@@ -461,10 +461,12 @@ export const CONFIG = {
     calmaAlLeer: 0.7,
   },
 
-  // Los objetos que viven ADENTRO de la foto, en los fondos generados
-  // (herramientas/escenas.py). No hay PNG que dibujar encima: el instrumento ya
-  // esta pintado en la escena, con su sombra y su reflejo. Lo que se calibra
-  // aca es como se lo saca de ahi cuando la mano pasa por arriba.
+  // Los objetos que viven ADENTRO de la foto: PINTADOS en los fondos generados
+  // (herramientas/escenas.py) o FOTOGRAFIADOS en una foto real
+  // (herramientas/ubicar.py). No hay PNG que dibujar encima: el objeto ya se ve
+  // en la escena. Lo que se calibra aca es como se lo saca de ahi cuando la
+  // mano pasa por arriba —el pintado, recortado de la foto con su mascara; el
+  // fotografiado, con su propio PNG calzado encima—.
   recortes: {
     // Cuanto crece el objeto levantado, y cuanto se ilumina. Crece desde su
     // propio centro: asi se separa del hueco que deja sin correrse de lugar.
@@ -472,6 +474,16 @@ export const CONFIG = {
     // para que no se confunda con su propio agujero, que tiene su misma forma.
     crecer: 1.16,
     brillo: 0.18,
+
+    // El FOTOGRAFIADO no crece. La foto sigue debajo con el mismo objeto, y un
+    // grupo de cosas —en Química, los tubos, el matraz y la botella— agrandado
+    // desde su centro deja asomar a cada una al costado de su copia: se ven
+    // dobles. Se ilumina en su lugar exacto, con el mismo `brillo`, y en vez de
+    // crecer se despega con un `resplandor` del dorado de la paleta que sigue
+    // su silueta: solo con el brillo, sobre una foto clara, casi no se notaba.
+    // `desenfoque` es el ancho del resplandor, en fraccion del lado corto del
+    // objeto en pantalla, y `resplandor` su opacidad con la mano encima.
+    fotografiado: { crecer: 1, resplandor: 0.9, desenfoque: 0.05 },
 
     // El resplandor que lo delata mientras nadie lo toca. Reemplaza al vaiven
     // de los objetos sueltos: un objeto pintado adentro de la foto no se puede

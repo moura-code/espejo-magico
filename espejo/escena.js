@@ -491,6 +491,70 @@ export function dibujarRecorte(
 }
 
 /**
+ * Un objeto FOTOGRAFIADO adentro de una foto real, levantado de ella.
+ *
+ * Es el hermano de dibujarRecorte para los fondos que no se generaron: una
+ * foto de verdad con los objetos adentro, y el PNG de cada uno aparte. Ahi no
+ * hay mascara con que sacar el objeto de la foto, y no hace falta: su PNG ya
+ * calza exacto sobre el que se ve (herramientas/ubicar.py lo busco adentro de
+ * la foto y escribio su `caja`). Lo que se levanta es ese PNG, en su caja, y
+ * sin el no se dibuja nada: la foto ya muestra el objeto.
+ *
+ * `crecer` y `brillo` son los de dibujarRecorte: crece desde su centro, para no
+ * correrse de lugar, y se ilumina. La caja se mide con cajaEnPantalla, sobre el
+ * mismo `rectangulo` con que se dibujo la foto: calcularla aparte es la receta
+ * conocida de que el objeto levantado se separe del que se ve.
+ *
+ * `resplandor` es un halo de `color` que sigue la SILUETA del PNG —el
+ * shadowBlur del lienzo, con la imagen de molde—, `desenfoque` lados cortos de
+ * ancho. Es lo que lo despega de la foto en vez de crecer: el objeto de la foto
+ * sigue debajo, y agrandado se veria doble. Va con la opacidad del objeto, asi
+ * que entra y sale con el.
+ */
+export function dibujarFotoDelObjeto(
+  ctx,
+  {
+    imagen,
+    caja,
+    rectangulo,
+    crecer = 1,
+    brillo = 0,
+    alfa = 1,
+    resplandor = 0,
+    desenfoque = 0,
+    color = null,
+  },
+) {
+  if (!imagen || !caja || !rectangulo || alfa <= 0) return;
+  const destino = cajaEnPantalla(caja, rectangulo);
+  if (destino.ancho < 1 || destino.alto < 1) return;
+
+  const ancho = destino.ancho * crecer;
+  const alto = destino.alto * crecer;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, alfa);
+  if (brillo > 0) ctx.filter = `brightness(${1 + brillo})`;
+  if (resplandor > 0 && color) {
+    ctx.shadowColor = conOpacidad(color, Math.min(1, resplandor));
+    ctx.shadowBlur = desenfoque * Math.min(ancho, alto);
+  }
+  ctx.drawImage(
+    imagen,
+    destino.x + (destino.ancho - ancho) / 2,
+    destino.y + (destino.alto - alto) / 2,
+    ancho,
+    alto,
+  );
+  ctx.restore();
+}
+
+/** Un color '#rrggbb' con una opacidad: 'rgba(r, g, b, opacidad)'. */
+function conOpacidad(hex, opacidad) {
+  const n = parseInt(hex.slice(1, 7), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${opacidad})`;
+}
+
+/**
  * El resplandor que delata a un objeto escondido en la foto. Es lo que
  * reemplaza al vaiven de los PNG: un objeto pintado adentro de la escena no se
  * puede mecer, y sin ninguna señal nadie sabe que ahi hay algo para tocar.
@@ -1191,13 +1255,54 @@ export function disponerFichaDebajo(
       if (limpia(caja)) return moverFicha(base, caja.x - base.caja.x, caja.y - base.caja.y);
     }
     // Con la letra mas chica el cartel es mas bajo y puede entrar donde no
-    // entraba. Si ni achicandose encuentra lugar, se muestra igual en el primer
-    // sitio: una ficha que no aparece es peor que una que pisa un borde.
+    // entraba. Si ni achicandose encuentra lugar, el sitio limpio mas cercano
+    // al objeto, con la letra pedida: pasa con un objeto en un rincon de abajo
+    // y otro justo encima, como las placas de Petri de la foto de Quimica. Y si
+    // tampoco hay, se muestra igual en el primer sitio: una ficha que no
+    // aparece es peor que una que pisa un borde.
     if (achique <= 0.62) {
+      const entera = armarFicha(textos, disposicion, medir, tipografia, 1, anchoPedido);
+      const libre = lugarLimpioMasCercano(entera.caja, objeto, disposicion, limpia);
+      if (libre) return moverFicha(entera, libre.x - entera.caja.x, libre.y - entera.caja.y);
       return moverFicha(base, primera.x - base.caja.x, primera.y - base.caja.y);
     }
   }
   return null;
+}
+
+/**
+ * El sitio de la pantalla mas cercano a `objeto` donde `caja` queda limpia. Es
+ * el ultimo recurso de disponerFichaDebajo, cuando ninguno de sus sitios de
+ * siempre queda libre. Recorre la pantalla de a un octavo de la ficha y despues
+ * afina alrededor del mejor, de a pocos pixeles: con el paso grueso solo, la
+ * ficha quedaba un paso entero mas lejos de lo que hacia falta. Null si no hay
+ * ninguno.
+ */
+function lugarLimpioMasCercano(caja, objeto, { ancho, alto }, limpia) {
+  const margen = caja.y; // el que armarFicha ya calculo
+  const buscar = (desde, hasta, paso, mejor) => {
+    const x1 = Math.min(hasta.x, ancho - margen - caja.ancho);
+    const y1 = Math.min(hasta.y, alto - caja.alto);
+    for (let y = Math.max(0, desde.y); y <= y1; y += paso) {
+      for (let x = Math.max(margen, desde.x); x <= x1; x += paso) {
+        if (!limpia({ ...caja, x, y })) continue;
+        const cercaX = Math.max(x, Math.min(objeto.x, x + caja.ancho));
+        const cercaY = Math.max(y, Math.min(objeto.y, y + caja.alto));
+        const distancia = Math.hypot(objeto.x - cercaX, objeto.y - cercaY);
+        if (!mejor || distancia < mejor.distancia) mejor = { x, y, distancia };
+      }
+    }
+    return mejor;
+  };
+  const paso = Math.max(6, Math.min(caja.ancho, caja.alto) / 8);
+  const grueso = buscar({ x: 0, y: 0 }, { x: ancho, y: alto }, paso, null);
+  if (!grueso) return null;
+  return buscar(
+    { x: grueso.x - paso, y: grueso.y - paso },
+    { x: grueso.x + paso, y: grueso.y + paso },
+    3,
+    grueso,
+  );
 }
 
 /** Si la caja toca alguno de los circulos. */
@@ -1327,7 +1432,7 @@ export function dibujarFicha(
   ctx,
   { nombre, descripcion, alfa = 1 },
   disposicion,
-  { colores, hasta, tipografia, ancla = null, anchoFactor, hueco },
+  { colores, hasta, tipografia, ancla = null, otros = [], anchoFactor, hueco },
 ) {
   if (alfa <= 0 || (!esTexto(nombre) && !esTexto(descripcion))) return;
 
@@ -1338,8 +1443,11 @@ export function dibujarFicha(
     ctx.font = fuente;
     return ctx.measureText(texto).width;
   };
+  // `otros` son los demas objetos del fondo: la ficha de debajo no les puede
+  // tapar el que la persona iba a buscar.
   const ficha = disponerFichaDeObjeto({ nombre, descripcion }, disposicion, medir, {
     ancla,
+    otros,
     hasta,
     tipografia,
     anchoFactor,

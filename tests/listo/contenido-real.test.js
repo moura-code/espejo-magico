@@ -14,6 +14,7 @@ import { descubrirEstructura } from '../../servidor/descubrimiento.js';
 import { validarEstructura } from '../../servidor/validador.js';
 import { construirCatalogo } from '../../servidor/catalogo.js';
 import { figurasDisponibles } from '../../espejo/figuras.js';
+import { fondoActivo } from '../../espejo/contenido.js';
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const CONTENIDO = resolve(RAIZ, 'contenido');
@@ -71,14 +72,20 @@ describe('contenido real', () => {
     expect(datos.carreras.map((c) => c.id).sort()).toEqual([...IDS_ESPERADOS].sort());
   });
 
-  // CINCO OBJETOS POR INGENIERIA, CADA UNO CON SU FICHA: uno para el carrusel
-  // y cuatro en el arco del fondo. Sin nombre o sin descripcion, pasar la mano
-  // por encima no dice nada; y una descripcion larga no entra en la ficha sin
-  // taparle media pantalla a la persona.
-  it('cada carrera tiene cinco objetos, cada uno con su nombre y una descripcion corta', async () => {
+  // CADA OBJETO CON SU FICHA: uno para el carrusel y los demas escondidos en
+  // el fondo. Un fondo generado trae CINCO, los que pinta escenas.py. Una foto
+  // real trae los que se fotografiaron adentro —Quimica, tres—, y no menos de
+  // dos: con uno solo, despues de elegir no queda nada que descubrir. Sin
+  // nombre o sin descripcion, pasar la mano por encima no dice nada; y una
+  // descripcion larga no entra en la ficha sin taparle media pantalla a la
+  // persona.
+  it('cada carrera tiene sus objetos, cada uno con su nombre y una descripcion corta', async () => {
     const flojos = [];
     for (const carrera of (await obtenerCatalogo()).carreras) {
-      if (carrera.objetos.length !== 5) {
+      const fotografiada = Boolean(fondoActivo(carrera)?.cajas);
+      if (fotografiada && carrera.objetos.length < 2) {
+        flojos.push(`${carrera.id} tiene ${carrera.objetos.length} objeto: nada que descubrir`);
+      } else if (!fotografiada && carrera.objetos.length !== 5) {
         flojos.push(`${carrera.id} tiene ${carrera.objetos.length} objetos, no cinco`);
       }
       for (const objeto of carrera.objetos) {
@@ -160,16 +167,27 @@ describe('contenido real', () => {
     expect(faltan, 'estos fondos no tienen donde esconder todos los objetos').toEqual([]);
   });
 
-  // LOS RECORTES son lo que hace que un objeto se pueda levantar de la foto.
-  // El fondo generado trae los cinco instrumentos pintados adentro de la escena;
-  // sin la mascara de cada uno, la escena se ve igual de bien y la mano pasa por
-  // encima sin que pase nada: no hay fichas, no hay nada que explorar.
-  it('cada fondo generado trae la mascara de cada uno de sus objetos', async () => {
+  // LO QUE SE LEVANTA es lo que hace que un objeto se pueda sacar de la foto.
+  // Los objetos viven adentro de ella —pintados en un fondo generado, o
+  // fotografiados en una foto real—, y sin decir donde esta cada uno la escena
+  // se ve igual de bien y la mano pasa por encima sin que pase nada: no hay
+  // fichas, no hay nada que explorar. El generado trae la mascara de cada uno
+  // (recortes); el fotografiado, la caja donde calza su PNG (cajas, que escribe
+  // herramientas/ubicar.py).
+  it('cada fondo dice donde esta cada uno de sus objetos adentro de la foto', async () => {
     const problemas = [];
     for (const carrera of (await obtenerCatalogo()).carreras) {
       for (const fondo of carrera.fondos ?? []) {
+        if (fondo.cajas) {
+          if (fondo.cajas.length !== carrera.objetos.length) {
+            problemas.push(
+              `${fondo.img}: ${fondo.cajas.length} cajas para ${carrera.objetos.length} objetos`,
+            );
+          }
+          continue;
+        }
         if (!fondo.recortes) {
-          problemas.push(`${fondo.img} (sin recortes)`);
+          problemas.push(`${fondo.img} (sin recortes ni cajas)`);
           continue;
         }
         if (fondo.recortes.length !== carrera.objetos.length) {

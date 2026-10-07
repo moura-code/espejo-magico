@@ -54,6 +54,7 @@
     import { cargarVideoDelNavegador, crearBancoDeVideos } from '../espejo/videos.js';
     import {
       aspectoDelObjeto,
+      crecimientoAlLeer,
       latidoDelObjeto,
       objetosDelFondo,
       fichaDelObjeto,
@@ -67,6 +68,7 @@
       dibujarNombreDeCarrera,
       dibujarObjetoApoyado,
       dibujarRecorte,
+      dibujarFotoDelObjeto,
       dibujarLatido,
       TITULO_SOLO,
       PESO_TITULO,
@@ -106,7 +108,7 @@
     const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
     await banco.precargar(
       contenido.carreras.flatMap((c) => [
-        ...(c.fondos ?? []).map((f) => f.img),
+        ...(c.fondos ?? []).flatMap((f) => [f.img, ...(f.recortes ?? []).map((r) => r.img)]),
         ...c.objetos.map((o) => o.img),
       ]),
     );
@@ -203,15 +205,16 @@
       const turno = turnoDeFicha(ahora, todos.length);
       const deTurno = todos[turno.indice];
 
-      // Como en el espejo, y con sus mismas funciones. En un fondo generado los
-      // objetos ya estan pintados adentro de la foto: lo que se dibuja es su
-      // latido y, el que esta en turno, recortado de la propia escena. En un
-      // fondo con PNGs sueltos, los escondidos se mecen y el del carrusel flota.
+      // Como en el espejo, y con sus mismas funciones. Con los objetos adentro
+      // de la foto —pintados en un fondo generado, o fotografiados en una foto
+      // real— lo que se dibuja es su latido y, el que esta en turno, levantado:
+      // el pintado recortado de la propia escena, el fotografiado con su PNG,
+      // que entra fundiendose. En un fondo con PNGs sueltos, los escondidos se
+      // mecen y el del carrusel flota.
       for (const objeto of [...todos.slice(1), todos[0]]) {
         const leyendo = objeto === deTurno ? turno.alfa : 0;
 
-        if (objeto.recorte) {
-          const mascara = banco.obtener(objeto.recorte.img);
+        if (objeto.enLaFoto) {
           dibujarLatido(ctx, {
             x: objeto.x,
             y: objeto.y,
@@ -222,20 +225,24 @@
             ),
             color: CONFIG.paleta.nombre,
           });
+          const levantado = {
+            caja: objeto.enLaFoto.caja,
+            rectangulo,
+            crecer: 1 + (crecimientoAlLeer(objeto, CONFIG) - 1) * leyendo,
+            brillo: CONFIG.recortes.brillo * leyendo,
+          };
+          const mascara = objeto.enLaFoto.mascara ? banco.obtener(objeto.enLaFoto.mascara) : null;
           if (leyendo > 0 && mascara) {
-            dibujarRecorte(
-              ctx,
-              {
-                fuente,
-                mascara,
-                caja: objeto.recorte.caja,
-                rectangulo,
-                crecer: 1 + (CONFIG.recortes.crecer - 1) * leyendo,
-                brillo: CONFIG.recortes.brillo * leyendo,
-                alfa: 1,
-              },
-              capaDeObjeto,
-            );
+            dibujarRecorte(ctx, { ...levantado, fuente, mascara, alfa: 1 }, capaDeObjeto);
+          } else if (leyendo > 0 && !objeto.enLaFoto.mascara) {
+            dibujarFotoDelObjeto(ctx, {
+              ...levantado,
+              imagen: banco.obtener(objeto.definicion?.img),
+              alfa: leyendo,
+              resplandor: CONFIG.recortes.fotografiado.resplandor,
+              desenfoque: CONFIG.recortes.fotografiado.desenfoque,
+              color: CONFIG.paleta.nombre,
+            });
           }
           continue;
         }

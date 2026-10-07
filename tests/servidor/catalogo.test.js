@@ -75,6 +75,29 @@ describe('catalogo', () => {
     ]);
   });
 
+  // Las cajas de un fondo fotografiado pasan tal cual: estan normalizadas a la
+  // foto y no hay ruta que armar. Un fondo sin cajas no las declara, para no
+  // llenar el catalogo de nulls.
+  it('publica las cajas de un fondo fotografiado, y solo de ese', async () => {
+    await crearCarreraMinima(dir, 'civil');
+    await crearCarreraMinima(dir, 'quimica');
+    const cajas = [[0.05, 0.5, 0.3, 0.8]];
+    await writeFile(
+      join(dir, 'quimica', 'fondos', 'principal', 'metadata.json'),
+      JSON.stringify({ lugar: { x: 0.18, y: 0.65, escala: 0.25 }, escondites: [], cajas }),
+    );
+
+    const { catalogo, errores } = await construirCatalogo({
+      raizCarreras: dir,
+      figurasValidas: ['chip'],
+    });
+
+    expect(errores).toEqual([]);
+    const [civil, quimica] = catalogo.carreras;
+    expect(quimica.fondos[0].cajas).toEqual(cajas);
+    expect(civil.fondos[0].cajas).toBeUndefined();
+  });
+
   it('retorna errores y no genera catálogo si la estructura es inválida', async () => {
     const dirCarrera = join(dir, 'invalida');
     await mkdir(dirCarrera, { recursive: true });

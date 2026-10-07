@@ -17,6 +17,7 @@ import {
   dibujarDiscoDeCarga,
   dibujarFicha,
   dibujarFondo,
+  dibujarFotoDelObjeto,
   dibujarHumo,
   dibujarInvitacion,
   dibujarManos,
@@ -1562,6 +1563,26 @@ describe('dibujarFicha', () => {
     expect(ctx.llamadas[0]).toEqual(['save']);
     expect(ctx.llamadas.at(-1)).toEqual(['restore']);
   });
+
+  // El espejo y la herramienta ponen la ficha con dibujarFicha: si los demas
+  // objetos del fondo no llegaran hasta la ficha de debajo, en las pruebas
+  // esquivaria al vecino de la columna y en la pantalla se lo taparia. Paso:
+  // fichaDelObjeto los mandaba y aca se perdian.
+  it('la ficha de debajo esquiva a los demas objetos del fondo', () => {
+    const primerRenglon = (otros) => {
+      const ctx = crearCtxFalso();
+      dibujarFicha(ctx, { ...objeto, alfa: 1 }, disposicion, {
+        colores,
+        tipografia: TIPOGRAFIA_DE_FICHA,
+        ancla: { x: 140, y: 560, radio: 95 },
+        otros,
+      });
+      return soloDe(ctx, 'fillText')[0];
+    };
+    const [, , sola] = primerRenglon([]);
+    const [, , esquivando] = primerRenglon([{ x: 140, y: 930, radio: 105 }]);
+    expect(esquivando).toBeGreaterThan(sola);
+  });
 });
 
 // Donde cae en pantalla una caja normalizada a la foto. Es la cuenta con la que
@@ -1585,6 +1606,93 @@ describe('cajaEnPantalla', () => {
     const caja = cajaEnPantalla([0, 0, 0.1, 0.1], rectangulo);
     expect(caja.x).toBe(-200);
     expect(caja.ancho).toBeCloseTo(148, 6);
+  });
+});
+
+// Un objeto FOTOGRAFIADO adentro de una foto real: lo que se levanta es su
+// propio PNG, puesto exacto sobre el que se ve en la foto.
+describe('dibujarFotoDelObjeto', () => {
+  const rectangulo = { x: 0, y: 4, ancho: 1920, alto: 1072 };
+  const caja = [0.05, 0.5, 0.3, 0.8];
+  // Anota tambien con que filtro y que opacidad se dibujo.
+  const conRegistro = () => {
+    const ctx = crearCtxFalso();
+    ctx.drawImage = (...args) =>
+      ctx.llamadas.push(['drawImage', ...args, { filtro: ctx.filter, alfa: ctx.globalAlpha }]);
+    return ctx;
+  };
+
+  it('pone el PNG entero en su caja, donde cae la foto', () => {
+    const ctx = conRegistro();
+    const png = imagen(653, 419);
+    dibujarFotoDelObjeto(ctx, { imagen: png, caja, rectangulo });
+    const [[, dibujada, x, y, ancho, alto]] = soloDe(ctx, 'drawImage');
+    expect(dibujada).toBe(png);
+    expect(x).toBeCloseTo(0.05 * 1920);
+    expect(y).toBeCloseTo(4 + 0.5 * 1072);
+    expect(ancho).toBeCloseTo(0.25 * 1920);
+    expect(alto).toBeCloseTo(0.3 * 1072);
+  });
+
+  // Crece desde su centro, como el pintado: si creciera desde una esquina se
+  // correria de lugar.
+  it('crece desde su centro, se ilumina y lleva su opacidad', () => {
+    const ctx = conRegistro();
+    dibujarFotoDelObjeto(ctx, { imagen: imagen(), caja, rectangulo, crecer: 1.2, brillo: 0.2, alfa: 0.5 });
+    const [[, , x, y, ancho, alto, estado]] = soloDe(ctx, 'drawImage');
+    const enPantalla = cajaEnPantalla(caja, rectangulo);
+    expect(x + ancho / 2).toBeCloseTo(enPantalla.x + enPantalla.ancho / 2);
+    expect(y + alto / 2).toBeCloseTo(enPantalla.y + enPantalla.alto / 2);
+    expect(ancho).toBeCloseTo(enPantalla.ancho * 1.2);
+    expect(alto).toBeCloseTo(enPantalla.alto * 1.2);
+    expect(estado).toEqual({ filtro: 'brightness(1.2)', alfa: 0.5 });
+  });
+
+  // En vez de crecer —un grupo de cosas agrandado se ve doble—, se despega con
+  // un resplandor que sigue su silueta: el shadowBlur del lienzo sobre el PNG,
+  // a la medida del objeto y en el color que se le pida, con su opacidad.
+  it('el resplandor sigue la silueta del PNG, a la medida del objeto', () => {
+    const ctx = crearCtxFalso();
+    ctx.drawImage = (...args) =>
+      ctx.llamadas.push(['drawImage', ...args, { sombra: ctx.shadowColor, desenfoque: ctx.shadowBlur }]);
+    dibujarFotoDelObjeto(ctx, {
+      imagen: imagen(),
+      caja,
+      rectangulo,
+      resplandor: 0.5,
+      desenfoque: 0.1,
+      color: '#f0dca0',
+    });
+    const [[, , , , , alto, { sombra, desenfoque }]] = soloDe(ctx, 'drawImage');
+    expect(sombra).toBe('rgba(240, 220, 160, 0.5)');
+    expect(desenfoque).toBeCloseTo(0.1 * alto);
+  });
+
+  it('sin resplandor no lleva sombra', () => {
+    const ctx = crearCtxFalso();
+    ctx.drawImage = (...args) => ctx.llamadas.push(['drawImage', ...args, ctx.shadowBlur]);
+    dibujarFotoDelObjeto(ctx, { imagen: imagen(), caja, rectangulo, color: '#f0dca0' });
+    expect(soloDe(ctx, 'drawImage')[0].at(-1)).toBe(0);
+  });
+
+  // Sin su PNG no hay nada que levantar, y caer al circulo dorado del respaldo
+  // pondria un disco encima del objeto que ya se ve en la foto.
+  it('sin imagen, o invisible, no dibuja nada', () => {
+    for (const caso of [
+      { imagen: null, caja, rectangulo },
+      { imagen: imagen(), caja, rectangulo, alfa: 0 },
+    ]) {
+      const ctx = conRegistro();
+      dibujarFotoDelObjeto(ctx, caso);
+      expect(ctx.llamadas).toEqual([]);
+    }
+  });
+
+  it('deja el lienzo como estaba', () => {
+    const ctx = conRegistro();
+    dibujarFotoDelObjeto(ctx, { imagen: imagen(), caja, rectangulo, brillo: 0.2 });
+    expect(ctx.llamadas[0]).toEqual(['save']);
+    expect(ctx.llamadas.at(-1)).toEqual(['restore']);
   });
 });
 
@@ -1645,6 +1753,30 @@ describe('disponerFichaDebajo', () => {
       expect(caja.x).toBeGreaterThanOrEqual(0);
       expect(caja.x + caja.ancho).toBeLessThanOrEqual(1080);
     }
+  });
+
+  // UN RINCON DE ABAJO CON OTRO OBJETO JUSTO ENCIMA —las placas de Petri en la
+  // foto del laboratorio de Quimica, con la cristaleria arriba—: debajo esta el
+  // nombre, arriba y al costado el vecino, y ninguno de los cinco sitios queda
+  // limpio. Se mostraba igual en el primero, con la letra achicada y tapando a
+  // su propio objeto. Va al sitio limpio mas cercano, con la letra pedida.
+  it('sin ninguno de sus sitios libres, va al lugar limpio mas cercano', () => {
+    const objeto = { x: 146, y: 1162, radio: 124 };
+    const otros = [
+      { x: 198, y: 1053, radio: 156 },
+      { x: 786, y: 948, radio: 221 },
+    ];
+    const ficha = poner(objeto, otros);
+    const toca = (caja, { x, y, radio }) => {
+      const cercaX = Math.max(caja.x, Math.min(x, caja.x + caja.ancho));
+      const cercaY = Math.max(caja.y, Math.min(y, caja.y + caja.alto));
+      return Math.hypot(x - cercaX, y - cercaY) < radio;
+    };
+    for (const circulo of [objeto, ...otros]) expect(toca(ficha.caja, circulo)).toBe(false);
+    expect(ficha.caja.y).toBeGreaterThanOrEqual(0);
+    expect(ficha.caja.y + ficha.caja.alto).toBeLessThanOrEqual(1920 - disposicion.pie.alto);
+    const letra = Number(ficha.fuenteTexto.match(/([\d.]+)px/)[1]);
+    expect(letra).toBe(Math.round(disposicion.texto.tamanoFrase * tipografia.texto));
   });
 
   // La eleccion entre las dos fichas vive en un solo lado: el espejo, la

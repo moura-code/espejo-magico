@@ -282,6 +282,72 @@ foto, y el modelo puede repetir sus objetos en los costados.
 Las partes que no necesitan la GPU tienen pruebas:
 `python -m unittest discover -s tests/herramientas`.
 
+### O se fotografían (`npm run ubicar`)
+
+Una ingeniería puede traer, en vez de una escena generada, **una foto real** con
+sus objetos adentro, y el PNG de cada objeto recortado aparte. Es el caso de
+**Química**: la foto del laboratorio con la cristalería y las placas de Petri
+sobre la mesada y el secador túnel al fondo. Ahí el espejo no saca el objeto de
+la foto: cuando la mano pasa por encima, **levanta el PNG del propio objeto**,
+puesto exactamente sobre el que se ve, iluminado y con un resplandor dorado que
+sigue su silueta. No crece, como los pintados: la foto sigue debajo con el mismo
+objeto, y un grupo de cosas agrandado se vería doble.
+
+Lo que hace falta, por carrera:
+
+```
+contenido/carreras/quimica/
+  carrera.json                 ← "fondo": "laboratorio"
+  objetos/
+    derivados-de-la-madera/    ← el primero en orden alfabético va al carrusel
+      imagen.png               ← el objeto tal como está en la foto, fondo transparente
+      metadata.json            ← nombre y descripción, como cualquier objeto
+    orujo-y-pectina/ …
+    secador-tipo-tunel/ …
+  fondos/
+    laboratorio/
+      imagen.jpg               ← la foto, con los objetos adentro
+      metadata.json            ← lo escribe `npm run ubicar`
+```
+
+1. **La foto**, en JPEG. Química se pasó a 1920 de ancho: más no se ve.
+2. **Cada PNG es el objeto como aparece en esa foto** —recortado de ella, o el
+   que se pegó para armarla—, con fondo transparente y recortado a lo que se ve.
+   Puede estar a otro tamaño que en la foto; lo que no puede es ser otra foto
+   del mismo objeto, porque entonces no calza.
+3. **`npm run ubicar -- quimica`** busca cada PNG adentro de la foto y escribe
+   en el `metadata.json` del fondo dónde calza (`cajas`, una por objeto, en su
+   orden) y, a partir de eso, `lugar` y `escondites`. Dice cuánto se parece cada
+   uno (1 es idéntico; por debajo de 0,85 lo marca para revisar), y con
+   `--hoja calce.jpg` deja la foto con el contorno de cada PNG encima: si el
+   calce está bien, el contorno sigue el borde del objeto.
+4. **`npm run catalogo`** (o `npm start`) para que el espejo lo vea.
+
+**El orden de las carpetas es el de los objetos**: el primero alfabético va al
+carrusel y vuela a su lugar en la foto, así que conviene que sea el que mejor
+representa a la carrera en chiquito. En Química es la cristalería
+(`derivados-de-la-madera`), no el secador. Para cambiarlo se renombran las
+carpetas y se vuelve a correr `ubicar`.
+
+**Los textos van a la ficha**: el `nombre` es el título —corto, en una o dos
+líneas— y la `descripcion` no pasa de 130 caracteres. De la planilla de Química
+(`fotos-fondos/quimica/Objetos.xlsx`) se acortó el título de los dos grupos, que
+era la lista de lo que hay, y una descripción que pasaba el límite.
+
+**Lo que la foto decide y el código no.** Los objetos están donde los dejó la
+foto, así que las reglas de la composición de los fondos generados —la
+periferia, el alcance del brazo, el aire entre blancos— no se le aplican; lo que
+sí se prueba es que el blanco de la mano y el aterrizaje caigan exactamente
+sobre cada objeto, en cualquier pantalla. Y **la orientación de la foto
+importa**: la de Química es apaisada, perfecta para una pantalla horizontal; en
+el espejo vertical se ve como una franja en el medio, con la misma foto
+desenfocada arriba y abajo, y los objetos chicos. Para un espejo vertical hace
+falta una foto vertical.
+
+Un fondo es generado o fotografiado, no las dos cosas: con `recortes` y `cajas`
+a la vez el catálogo no se arma. Y `escenas.py` no genera las carreras de foto
+real (Química no está en sus guiones), para no ponerles otra escena encima.
+
 ### Qué hace que un fondo sirva
 
 
@@ -318,6 +384,9 @@ Cada carrera contiene una o más subcarpetas dentro de `fondos/`. Cada carpeta r
 - `recortes/<n>.png` (fondo generado): la silueta de cada objeto, recortada a su
   caja, en el orden de `objetos`. Es lo que deja levantar el objeto de la foto;
   sin ella la escena se ve igual y la mano pasa por encima sin que pase nada.
+- `cajas` en el `metadata.json` (fondo fotografiado): dónde calza el PNG de cada
+  objeto adentro de la foto, `[x0, y0, x1, y1]` normalizado a ella, en el orden
+  de `objetos`. Lo escribe `npm run ubicar`; ver arriba.
 - `metadata.json`: coordenadas de ubicación:
 
 ```json

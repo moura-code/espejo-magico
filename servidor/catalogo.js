@@ -51,6 +51,10 @@ export async function construirCatalogo({
           img: `${carrera.rutaRelativa}/fondos/${f.id}/${recorte.archivo}`,
           caja: recorte.caja,
         })),
+        // Las de un fondo fotografiado: donde calza el PNG de cada objeto adentro
+        // de la foto, en el orden de `objetos`. Pasan tal cual, porque no hay
+        // ninguna ruta que armar: lo que se levanta es la imagen del objeto.
+        cajas: f.metadata.cajas ?? undefined,
       })),
       objetos: carrera.objetos.map((o) => ({
         id: o.id,

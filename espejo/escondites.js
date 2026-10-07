@@ -14,6 +14,7 @@
 // tests/integracion/fondos.test.js vigila que ninguno caiga en la zona de la
 // persona ni en la del nombre.
 
+import { objetosEnLaFoto } from './contenido.js';
 import { flotacion, lugarEnLaFoto, lugarEnPantalla } from './vuelo.js';
 
 const GRADO = Math.PI / 180;
@@ -131,7 +132,9 @@ export function aspectoDelObjeto(
  * quien la dibujo) y `pantalla`, la medida del lienzo: lugarEnPantalla los
  * mide contra lo que se ve de la foto. Cada uno lleva su `id` —su lugar en
  * `objetos`: con la ruta del PNG, dos objetos con la misma imagen compartirian
- * la ficha—, su `definicion` y, los escondidos, el `indice` de su vaiven.
+ * la ficha—, su `definicion`, `enLaFoto` —su caja y su mascara si vive adentro
+ * de la foto (objetosEnLaFoto), o null— y, los escondidos, el `indice` de su
+ * vaiven.
  *
  * El primero va siempre, aunque le falte la definicion: su lugar es tambien el
  * destino del vuelo. La usan el espejo, herramientas/fondos.html y las pruebas
@@ -157,18 +160,20 @@ export function objetosDelFondo({
     escondites: config.fondo.esconditesPorDefecto,
   });
 
-  // El recorte de cada objeto, si el fondo lo trae: la mascara con la que se lo
-  // pinto adentro de la foto y la caja donde vive, normalizada a la imagen. Va
-  // en el mismo orden que los lugares —`lugar` primero y despues los
-  // escondites—, que es el orden de `objetos`.
+  // Lo que cada objeto tiene adentro de la foto, si el fondo lo trae
+  // (objetosEnLaFoto): la caja donde vive, normalizada a la imagen, y la
+  // mascara con la que se lo pinto —o ninguna, si esta fotografiado y lo que
+  // se levanta es su PNG—. Va en el mismo orden que los lugares —`lugar`
+  // primero y despues los escondites—, que es el orden de `objetos`.
   //
-  // Y decide donde va: uno PINTADO ADENTRO DE LA FOTO se ve donde cae la foto,
-  // y su blanco va ahi (lugarEnLaFoto); uno suelto se dibuja donde se lo ponga,
-  // y se lo ubica sobre lo que se ve de la foto (lugarEnPantalla). Con la cuenta
-  // de los sueltos, en la notebook la mano apoyada sobre el objeto no lo tocaba.
+  // Y decide donde va: uno ADENTRO DE LA FOTO se ve donde cae la foto, y su
+  // blanco va ahi (lugarEnLaFoto); uno suelto se dibuja donde se lo ponga, y se
+  // lo ubica sobre lo que se ve de la foto (lugarEnPantalla). Con la cuenta de
+  // los sueltos, en la notebook la mano apoyada sobre el objeto no lo tocaba.
+  const adentro = objetosEnLaFoto(fondo);
   const poner = (indice, unLugar) => {
-    const recorte = fondo?.recortes?.[indice] ?? null;
-    const puesto = recorte
+    const enLaFoto = adentro?.[indice] ?? null;
+    const puesto = enLaFoto
       ? lugarEnLaFoto(unLugar, rectangulo)
       : lugarEnPantalla(
           { ...unLugar, escala: unLugar.escala * agrandar },
@@ -176,7 +181,7 @@ export function objetosDelFondo({
           pantalla,
           config.fondo.margenDelLugar,
         );
-    return { recorte, ...puesto };
+    return { enLaFoto, ...puesto };
   };
 
   if (escondidos) {
@@ -205,6 +210,22 @@ export function objetosDelFondo({
 }
 
 /**
+ * Cuanto crece un objeto de adentro de la foto mientras se lo lee.
+ *
+ * El PINTADO crece (`recortes.crecer`): es lo que lo despega del hueco que deja
+ * en la foto, que tiene su misma forma. El FOTOGRAFIADO no
+ * (`recortes.fotografiado.crecer`): la foto sigue debajo con el mismo objeto, y
+ * un grupo de cosas —los tubos, el matraz, la botella— agrandado desde su
+ * centro deja asomar a cada una al costado de su copia, y se ven dobles. Se
+ * destaca iluminandose en su lugar exacto.
+ */
+export function crecimientoAlLeer(objeto, config) {
+  return objeto?.enLaFoto && !objeto.enLaFoto.mascara
+    ? config.recortes.fotografiado.crecer
+    : config.recortes.crecer;
+}
+
+/**
  * Lo que necesita la ficha de un objeto del fondo, para disponerFicha y
  * dibujarFicha. Y el objeto ya crecido, que es lo que el cartel no puede tapar
  * mientras se lee: lo usan las pruebas.
@@ -212,9 +233,9 @@ export function objetosDelFondo({
  * DONDE VA LA FICHA LO DECIDE EL FONDO, y se decide aca una sola vez, porque lo
  * usan el espejo, la herramienta y las pruebas:
  *
- *   - Fondo generado (el objeto vive adentro de la foto y se levanta de ella):
- *     pegada DEBAJO del objeto. De cual habla ya no hay que adivinarlo, y el
- *     texto al lado de la cosa evita que la mirada vaya y vuelva entre dos
+ *   - Objetos adentro de la foto (pintados o fotografiados: se levantan de
+ *     ella): pegada DEBAJO del objeto. De cual habla ya no hay que adivinarlo,
+ *     y el texto al lado de la cosa evita que la mirada vaya y vuelva entre dos
  *     puntos lejanos.
  *   - Fondo con objetos sueltos (PNGs repartidos por la periferia): en el
  *     cartel ancho de arriba de la cabeza, que es la unica franja donde una
@@ -225,12 +246,12 @@ export function fichaDelObjeto(objeto, pantalla, config, otros = []) {
   const crecido = (uno, factor) => ({ x: uno.x, y: uno.y, radio: uno.radio * factor });
   const circulo = crecido(objeto, 1 + config.escondidos.resalte);
 
-  if (objeto.recorte) {
+  if (objeto.enLaFoto) {
     return {
       circulo,
       opciones: {
         tipografia: config.fichas.tipografia,
-        ancla: crecido(objeto, config.recortes.crecer),
+        ancla: crecido(objeto, crecimientoAlLeer(objeto, config)),
         // Los demas objetos del fondo, para que el cartel no le tape a la
         // persona justo el que iba a buscar.
         otros: otros.map((otro) => crecido(otro, 1 + config.escondidos.resalte)),

@@ -31,6 +31,7 @@ import {
 } from '../../espejo/escena.js';
 import { objetosDelFondo, fichaDelObjeto } from '../../espejo/escondites.js';
 import { construirCatalogo } from '../../servidor/catalogo.js';
+import { medidasDeLaFoto } from './medidas.js';
 
 const ESPEJO = { ancho: 1080, alto: 1920 };
 const APAISADA = { ancho: 1920, alto: 1080 };
@@ -58,12 +59,15 @@ async function fichasDelCatalogo(pantalla = ESPEJO) {
   const { catalogo, errores } = await construirCatalogo();
   if (errores.length > 0) throw new Error(`Errores en catálogo: ${errores.join(', ')}`);
   const { carreras } = catalogo;
-  const rectangulo = calcularRectanguloDelFondo(1080, 1920, pantalla.ancho, pantalla.alto);
   const enPantalla = calcularDisposicion(pantalla.ancho, pantalla.alto);
 
   const casos = [];
   for (const carrera of carreras) {
     for (const fondo of carrera.fondos ?? []) {
+      // Cada foto con su medida: las generadas son verticales, y una foto real
+      // puede ser apaisada.
+      const foto = medidasDeLaFoto(fondo.img);
+      const rectangulo = calcularRectanguloDelFondo(foto.ancho, foto.alto, pantalla.ancho, pantalla.alto);
       const delFondo = objetosDelFondo({
         objetos: carrera.objetos,
         fondo,

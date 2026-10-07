@@ -1391,124 +1391,73 @@
       "nombre": "Ingeniería Química",
       "color": "#FF5D8F",
       "maite": "quimica",
-      "fondoActivo": "escena",
+      "fondoActivo": "laboratorio",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/quimica/fondos/escena/imagen.jpg",
+          "id": "laboratorio",
+          "img": "carreras/quimica/fondos/laboratorio/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/quimica/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.8898,
-            "y": 0.3579,
-            "escala": 0.17
+            "x": 0.1836,
+            "y": 0.6535,
+            "escala": 0.2526
           },
           "escondites": [
             {
-              "x": 0.1469,
-              "y": 0.5042,
-              "escala": 0.17
+              "x": 0.1357,
+              "y": 0.8344,
+              "escala": 0.2297
             },
             {
-              "x": 0.5109,
-              "y": 0.1993,
-              "escala": 0.16
-            },
-            {
-              "x": 0.108,
-              "y": 0.3652,
-              "escala": 0.17
-            },
-            {
-              "x": 0.85,
-              "y": 0.5333,
-              "escala": 0.17
+              "x": 0.7279,
+              "y": 0.4804,
+              "escala": 0.3589
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/quimica/fondos/escena/recortes/0.png",
-              "caja": [
-                0.80463,
-                0.31562,
-                0.96574,
-                0.41563
-              ]
-            },
-            {
-              "img": "carreras/quimica/fondos/escena/recortes/1.png",
-              "caja": [
-                0.11759,
-                0.45052,
-                0.23426,
-                0.5651
-              ]
-            },
-            {
-              "img": "carreras/quimica/fondos/escena/recortes/2.png",
-              "caja": [
-                0.43704,
-                0.14167,
-                0.59815,
-                0.25052
-              ]
-            },
-            {
-              "img": "carreras/quimica/fondos/escena/recortes/3.png",
-              "caja": [
-                0.02407,
-                0.32135,
-                0.17315,
-                0.41406
-              ]
-            },
-            {
-              "img": "carreras/quimica/fondos/escena/recortes/4.png",
-              "caja": [
-                0.76944,
-                0.47552,
-                0.91574,
-                0.59427
-              ]
-            }
+          "cajas": [
+            [
+              0.05729,
+              0.5084,
+              0.3099,
+              0.79851
+            ],
+            [
+              0.02083,
+              0.74907,
+              0.25052,
+              0.91978
+            ],
+            [
+              0.54844,
+              0.16231,
+              0.90729,
+              0.79851
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "bomba-peristaltica",
-          "img": "carreras/quimica/objetos/bomba-peristaltica/imagen.png",
-          "nombre": "Bomba peristáltica",
-          "descripcion": "Bomba de desplazamiento positivo para dosificación precisa y estéril de fluidos corrosivos o sensibles.",
-          "figura": "mechero"
-        },
-        {
-          "id": "columna-destilacion",
-          "img": "carreras/quimica/objetos/columna-destilacion/imagen.png",
-          "nombre": "Columna de destilación",
-          "descripcion": "Unidad cilíndrica vertical para separación de mezclas multicomponentes por diferencia de volatilidad relativa.",
-          "figura": "tubo"
-        },
-        {
-          "id": "intercambiador-placas",
-          "img": "carreras/quimica/objetos/intercambiador-placas/imagen.png",
-          "nombre": "Intercambiador de placas",
-          "descripcion": "Equipo compacto de placas corrugadas para transferencia térmica eficiente entre corrientes de proceso.",
-          "figura": "prisma"
-        },
-        {
-          "id": "matraz-erlenmeyer",
-          "img": "carreras/quimica/objetos/matraz-erlenmeyer/imagen.png",
-          "nombre": "Matraz Erlenmeyer",
-          "descripcion": "Recipiente cónico de vidrio borosilicato ideal para mezclas, calentamiento uniforme y titulaciones analíticas.",
+          "id": "derivados-de-la-madera",
+          "img": "carreras/quimica/objetos/derivados-de-la-madera/imagen.png",
+          "nombre": "Derivados de la madera",
+          "descripcion": "Elementos para estudiar y desarrollar procesos a partir de madera: chips, biomasa triturada, film translúcido y extractos.",
           "figura": "matraz"
         },
         {
-          "id": "reactor-agitado",
-          "img": "carreras/quimica/objetos/reactor-agitado/imagen.png",
-          "nombre": "Reactor químico agitado",
-          "descripcion": "Recipiente con agitación mecánica y camisa térmica para reacciones homogéneas en fase líquida bajo control.",
-          "figura": "molecula"
+          "id": "orujo-y-pectina",
+          "img": "carreras/quimica/objetos/orujo-y-pectina/imagen.png",
+          "nombre": "Orujo de manzana y pectina",
+          "descripcion": "Se utilizan para estudiar y desarrollar procesos de obtención de pectina a partir de residuos agroindustriales.",
+          "figura": "gota"
+        },
+        {
+          "id": "secador-tipo-tunel",
+          "img": "carreras/quimica/objetos/secador-tipo-tunel/imagen.png",
+          "nombre": "Secador tipo túnel",
+          "descripcion": "Equipo que hace circular aire caliente para secar productos en condiciones controladas y estudiar cómo se comportan al secarse.",
+          "figura": "mechero"
         }
       ]
     }

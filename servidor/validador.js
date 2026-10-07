@@ -6,6 +6,15 @@
 const esTextoUtil = (valor) => typeof valor === 'string' && valor.trim().length > 0;
 const entreCeroYUno = (valor) => typeof valor === 'number' && valor >= 0 && valor <= 1;
 
+/** Una caja normalizada a la foto: [x0, y0, x1, y1], adentro de ella y no vacia. */
+function validarCaja(caja, quien, errores) {
+  if (!Array.isArray(caja) || caja.length !== 4 || !caja.every(entreCeroYUno)) {
+    errores.push(`${quien} tiene que ser [x0, y0, x1, y1] entre 0 y 1`);
+  } else if (!(caja[2] > caja[0]) || !(caja[3] > caja[1])) {
+    errores.push(`${quien} esta dada vuelta o vacia`);
+  }
+}
+
 function validarLugar(lugar, donde, errores) {
   if (!lugar || typeof lugar !== 'object') {
     errores.push(`${donde}: falta definir las coordenadas del lugar`);
@@ -193,12 +202,32 @@ export function validarEstructura(carrerasCrudas, { figurasValidas = null } = {}
               if (!esTextoUtil(recorte?.archivo)) {
                 errores.push(`${cual}: falta "archivo"`);
               }
-              const caja = recorte?.caja;
-              if (!Array.isArray(caja) || caja.length !== 4 || !caja.every(entreCeroYUno)) {
-                errores.push(`${cual}: "caja" tiene que ser [x0, y0, x1, y1] entre 0 y 1`);
-              } else if (!(caja[2] > caja[0]) || !(caja[3] > caja[1])) {
-                errores.push(`${cual}: "caja" esta dada vuelta o vacia`);
-              }
+              validarCaja(recorte?.caja, `${cual}: "caja"`, errores);
+            });
+          }
+        }
+
+        // Las cajas son lo que distingue a un fondo FOTOGRAFIADO: una foto real
+        // con los objetos adentro, y donde calza el PNG de cada uno, en el orden
+        // de los objetos. Es lo que el espejo levanta cuando la mano pasa por
+        // encima. Las escribe herramientas/ubicar.py. Es eso o recortes: con las
+        // dos, no se sabria si levantar el objeto con su mascara o con su PNG.
+        if (meta.cajas !== undefined && meta.cajas !== null) {
+          if (!Array.isArray(meta.cajas)) {
+            errores.push(`${rutaFondo}/metadata.json: "cajas" tiene que ser una lista`);
+          } else {
+            if (meta.recortes !== undefined && meta.recortes !== null) {
+              errores.push(
+                `${rutaFondo}/metadata.json: declara "recortes" y "cajas"; es una cosa o la otra`,
+              );
+            }
+            if (meta.cajas.length !== objetos.length) {
+              errores.push(
+                `${rutaFondo}/metadata.json: declara ${meta.cajas.length} cajas y la carrera tiene ${objetos.length} objetos`,
+              );
+            }
+            meta.cajas.forEach((caja, k) => {
+              validarCaja(caja, `${rutaFondo}/metadata.json cajas[${k}]:`, errores);
             });
           }
         }
