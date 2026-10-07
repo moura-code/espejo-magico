@@ -196,6 +196,21 @@ describe('sesion con un fondo generado', () => {
     expect(escondidos.map((e) => e.lugar)).toEqual(escondites);
   });
 
+  // Una foto real con los objetos fotografiados adentro tampoco se baraja: cada
+  // PNG calza sobre su objeto de la foto, y en otro rincon calzaria sobre nada.
+  it('con los objetos fotografiados en la foto, tampoco se baraja', () => {
+    const fotografiado = {
+      id: 'laboratorio',
+      img: 'f.jpg',
+      escondites,
+      cajas: objetos.map(() => [0, 0, 0.1, 0.1]),
+    };
+    const sesion = sesionCon(fotografiado);
+    expect(sesion.representanteDe('quimica')).toBe(objetos[0]);
+    const { escondidos } = sesion.disposicionDe('quimica', fotografiado);
+    expect(escondidos.map((e) => e.definicion.id)).toEqual(['b', 'c', 'd', 'e']);
+  });
+
   // Con objetos sueltos el azar sigue valiendo: dos visitantes seguidos no ven
   // el mismo objeto en el mismo rincon.
   it('sin recortes el del carrusel lo sigue eligiendo el azar', () => {

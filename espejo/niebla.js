@@ -1,5 +1,5 @@
 // Las nubes cubren el espejo en reposo y se apartan hacia los costados cuando
-// llega una persona. La transicion tiene una sola magnitud (`apertura`): no hay
+// llega la eleccion. La transicion tiene una sola magnitud (`apertura`): no hay
 // mascaras, agujeros ni fundidos que puedan convertirla en un circulo.
 
 import { ESTADOS } from './maquina-estados.js';
@@ -11,10 +11,30 @@ const suavizar = (valor) => {
 };
 const progreso = (transcurrido, duracion) => suavizar(transcurrido / Math.max(1, duracion));
 
+/**
+ * Si las nubes tapan o se apartan.
+ *
+ * UNA SOLA NIEBLA, QUE SE ABRE UNA SOLA VEZ. Se apartaban apenas se detectaba
+ * a la persona: en medio segundo el espejo quedaba limpio, y enseguida el humo
+ * lo volvia a tapar, y se leia como que las nubes se iban y volvian. Ahora
+ * siguen puestas mientras el humo se espesa —en el enganche y en el humo— y se
+ * abren con la eleccion, junto con el humo que se disipa y el espejo que se
+ * despierta (espejoDespierto): todo se despeja a la vez.
+ */
 export function objetivoDeNiebla(estado) {
-  return estado === ESTADOS.ATRACCION || estado === ESTADOS.CIERRE
-    ? { apertura: 0 }
-    : { apertura: 1 };
+  return estado === ESTADOS.EXPLORACION ? { apertura: 1 } : { apertura: 0 };
+}
+
+/**
+ * Si el espejo esta despierto: nitido y con su luz. Dormido —desenfocado y
+ * oscuro— mientras hay niebla, se despierta con la eleccion, cuando las nubes
+ * se abren. Despierto antes, se lo veia aclararse de golpe a traves de las
+ * nubes justo antes de que el humo lo tapara. En el cierre sigue despierto: la
+ * persona puede seguir sentada mientras las nubes vuelven, y se duerme recien
+ * en el reposo.
+ */
+export function espejoDespierto(estado) {
+  return estado === ESTADOS.EXPLORACION || estado === ESTADOS.CIERRE;
 }
 
 export function acercarNiebla(actual, objetivo, dt, velocidades) {

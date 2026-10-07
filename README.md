@@ -3,8 +3,8 @@
 Instalación interactiva para el stand de una Facultad de Ingeniería.
 
 Un visitante se sienta frente a una pantalla enmarcada como espejo, que descansa
-cubierta de humo y de nubes. Una cámara detecta su rostro y entra un humo que lo
-cubre todo; cuando se disipa, queda girando despacio alrededor suyo **un carrusel
+cubierta de humo y de nubes. Una cámara detecta su rostro y el humo se espesa
+hasta cubrirlo todo; cuando se disipa, junto con las nubes, queda girando despacio alrededor suyo **un carrusel
 con las doce ingenierías, un objeto por cada una**. Sostiene la mano sobre el que
 quiera —el carrusel se detiene y un anillo se va llenando mientras la mantiene
 ahí— y aparece esa ingeniería detrás suyo: su fondo, el objeto volando a su
@@ -75,9 +75,10 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | Comando | Para qué |
 |---|---|
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
-| `npm run listo` | ¿Se puede montar el stand? Verifica la estructura de `contenido/carreras/`, los cinco objetos por ingeniería con su nombre y descripción, el fondo activo con sus coordenadas y la máscara de cada objeto, el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
+| `npm run listo` | ¿Se puede montar el stand? Verifica la estructura de `contenido/carreras/`, los objetos de cada ingeniería —cinco con un fondo generado— con su nombre y descripción, el fondo activo con sus coordenadas y dónde está cada objeto adentro de la foto (su máscara, o su caja si la foto es real), el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose. |
-| `npm run escenas` | Genera el fondo de cada ingeniería con sus cinco instrumentos pintados adentro de la escena, y la máscara de cada uno. Corre local en la GPU; es un paso de autoría, no del evento. |
+| `npm run escenas` | Genera el fondo de cada ingeniería con sus cinco instrumentos pintados adentro de la escena, y la máscara de cada uno. Corre local en la GPU; es un paso de autoría, no del evento. Química no: su fondo es una foto real. |
+| `npm run ubicar -- <carrera>` | Para un fondo que es una **foto real** con los objetos adentro (Química): busca el PNG de cada objeto en la foto y escribe dónde calza en el `metadata.json` del fondo. `--hoja calce.jpg` deja una imagen para mirar el calce. Sin GPU. |
 | `npm run catalogo` | Construye y genera `contenido/catalogo.json` a partir de la estructura física de carpetas. |
 | `npm start` | Levanta el servidor local (genera el catálogo si falta y sirve el espejo). |
 | `npm run planilla` | Rearma `docs/planilla-de-tareas.csv` y `.md` desde el historial de git del espejo y de MAITE: las tareas de cada integrante con horas estimadas. Conserva las horas reales ya cargadas. |

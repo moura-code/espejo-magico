@@ -7,6 +7,7 @@ import {
   aspectoDelObjeto,
   objetosDelFondo,
   fichaDelObjeto,
+  crecimientoAlLeer,
 } from '../../espejo/escondites.js';
 
 const POR_DEFECTO = {
@@ -349,8 +350,8 @@ describe('latidoDelObjeto', () => {
 });
 
 // Un fondo generado trae los objetos pintados adentro y la mascara de cada uno.
-// El recorte tiene que viajar con su objeto: sin el, el espejo no sabe que
-// pedazo de la foto levantar cuando la mano pasa por encima.
+// Lo que el objeto tiene adentro de la foto viaja con el: sin eso, el espejo no
+// sabe que pedazo de la foto levantar cuando la mano pasa por encima.
 describe('objetosDelFondo con recortes', () => {
   const conRecortes = {
     lugar: { x: 0.2, y: 0.3, escala: 0.16 },
@@ -376,11 +377,14 @@ describe('objetosDelFondo con recortes', () => {
       },
     });
 
-  it('cada objeto lleva su recorte, en el orden de los lugares', () => {
-    expect(puestos().map((o) => o.recorte?.img)).toEqual(['a.png', 'b.png']);
+  it('cada objeto lleva su caja y su mascara, en el orden de los lugares', () => {
+    expect(puestos().map((o) => o.enLaFoto)).toEqual([
+      { caja: [0.1, 0.2, 0.3, 0.4], mascara: 'a.png' },
+      { caja: [0.7, 0.2, 0.9, 0.4], mascara: 'b.png' },
+    ]);
   });
 
-  it('sin recortes declarados, cada objeto lo deja en null', () => {
+  it('sin nada adentro de la foto, cada objeto lo deja en null', () => {
     const sinRecortes = { ...conRecortes, recortes: undefined };
     const puestosSinRecortes = objetosDelFondo({
       objetos: [{ nombre: 'uno' }, { nombre: 'dos' }],
@@ -396,7 +400,7 @@ describe('objetosDelFondo con recortes', () => {
         },
       },
     });
-    expect(puestosSinRecortes.map((o) => o.recorte)).toEqual([null, null]);
+    expect(puestosSinRecortes.map((o) => o.enLaFoto)).toEqual([null, null]);
   });
 
   // EL BLANCO VA DONDE SE VE EL OBJETO. Uno pintado adentro de la foto se ve
@@ -428,10 +432,90 @@ describe('objetosDelFondo con recortes', () => {
     expect(pintado.y).toBeCloseTo(cubre.y + 0.3 * cubre.alto);
     expect(pintado.radio).toBeCloseTo((0.16 * 1920) / 2);
 
-    expect(suelto.recorte).toBeNull();
+    expect(suelto.enLaFoto).toBeNull();
     expect(suelto.x).toBeCloseTo(0.8 * 1920);
     expect(suelto.y).toBeCloseTo(0.3 * 1080);
     // La composicion vertical a la altura de la pantalla, agrandada.
     expect(suelto.radio).toBeCloseTo((0.16 * 1.25 * (1080 * 9) / 16) / 2);
+  });
+});
+
+// Una foto REAL con los objetos fotografiados adentro: el PNG de cada uno calza
+// sobre el que se ve (herramientas/ubicar.py), y su blanco, su latido y su
+// ficha van donde cae la foto, igual que los pintados. No trae mascara: lo que
+// se levanta es el propio PNG.
+describe('objetosDelFondo con los objetos fotografiados', () => {
+  const fotografiado = {
+    lugar: { x: 0.18, y: 0.65, escala: 0.25 },
+    escondites: [{ x: 0.73, y: 0.48, escala: 0.36 }],
+    cajas: [
+      [0.06, 0.51, 0.31, 0.8],
+      [0.55, 0.16, 0.91, 0.8],
+    ],
+  };
+  // Una foto apaisada entera en una pantalla vertical: una franja en el medio.
+  const franja = { x: 0, y: 658, ancho: 1080, alto: 603 };
+  const [madera, secador] = objetosDelFondo({
+    objetos: [{ nombre: 'madera' }, { nombre: 'secador' }],
+    fondo: fotografiado,
+    rectangulo: franja,
+    pantalla: { ancho: 1080, alto: 1920 },
+    config: {
+      fondo: {
+        lugarPorDefecto: POR_DEFECTO.lugar,
+        esconditesPorDefecto: POR_DEFECTO.escondites,
+        margenDelLugar: 1.25,
+        agrandarEnApaisado: 1.25,
+      },
+    },
+  });
+
+  it('cada uno lleva su caja, sin mascara', () => {
+    expect(madera.enLaFoto).toEqual({ caja: [0.06, 0.51, 0.31, 0.8], mascara: null });
+    expect(secador.enLaFoto).toEqual({ caja: [0.55, 0.16, 0.91, 0.8], mascara: null });
+  });
+
+  it('va donde cae la foto, con el tamaño de la foto', () => {
+    expect(secador.x).toBeCloseTo(0.73 * 1080);
+    expect(secador.y).toBeCloseTo(658 + 0.48 * 603);
+    expect(secador.radio).toBeCloseTo((0.36 * 1080) / 2);
+  });
+});
+
+// EL FOTOGRAFIADO NO CRECE. La foto sigue debajo con el mismo objeto, y un
+// grupo de cosas —los tubos, el matraz, la botella— agrandado desde su centro
+// deja asomar a cada una al costado de su copia: se ven dobles. El pintado si
+// crece: es lo que lo despega de su propio hueco.
+describe('crecimientoAlLeer', () => {
+  const config = { recortes: { crecer: 1.16, fotografiado: { crecer: 1 } } };
+
+  it('el pintado crece lo de los recortes', () => {
+    expect(crecimientoAlLeer({ enLaFoto: { caja: [0, 0, 1, 1], mascara: 'r.png' } }, config)).toBe(1.16);
+  });
+
+  it('el fotografiado crece lo suyo', () => {
+    expect(crecimientoAlLeer({ enLaFoto: { caja: [0, 0, 1, 1], mascara: null } }, config)).toBe(1);
+  });
+});
+
+describe('fichaDelObjeto de un objeto adentro de la foto', () => {
+  const CONFIG_FALSA = {
+    escondidos: { resalte: 0.14 },
+    fondo: { zonaDeLaPersona: [{ x0: 0.3, x1: 0.7, y0: 0.14, y1: 0.5 }] },
+    fichas: { tipografia: { texto: 1, titulo: 1.5 }, anchoDebajo: 0.42, huecoDebajo: 0.3 },
+    recortes: { crecer: 1.16, fotografiado: { crecer: 1 } },
+  };
+  const fotografiado = { id: 1, x: 200, y: 700, radio: 120, enLaFoto: { caja: [0, 0, 1, 1], mascara: null } };
+
+  // La ficha va pegada a su objeto, y no le puede tapar lo que se levanta: el
+  // ancla mide lo que mide el objeto mientras se lo lee.
+  it('va debajo, anclada al objeto con lo que crece al leerlo', () => {
+    const { opciones } = fichaDelObjeto(fotografiado, { ancho: 1920, alto: 1080 }, CONFIG_FALSA);
+    expect(opciones.ancla).toEqual({ x: 200, y: 700, radio: 120 });
+    expect(opciones.anchoFactor).toBe(0.42);
+
+    const pintado = { ...fotografiado, enLaFoto: { caja: [0, 0, 1, 1], mascara: 'r.png' } };
+    expect(fichaDelObjeto(pintado, { ancho: 1920, alto: 1080 }, CONFIG_FALSA).opciones.ancla.radio)
+      .toBeCloseTo(120 * 1.16);
   });
 });

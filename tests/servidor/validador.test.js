@@ -132,6 +132,56 @@ describe('validarEstructura', () => {
     ).toBe(true);
   });
 
+  // UN FONDO FOTOGRAFIADO: una foto real con los objetos adentro, y la caja de
+  // cada uno —donde calza su PNG— en el orden de los objetos. Una caja de menos
+  // deja a un objeto sin nada que levantar, y la mano pasa por encima sin que
+  // pase nada.
+  describe('las cajas de un fondo fotografiado', () => {
+    const conCajas = (cajas, extra = {}) => {
+      const c = carreraValida();
+      Object.assign(c.fondos[0].metadata, { cajas, ...extra });
+      return c;
+    };
+    const CAJAS = [
+      [0.05, 0.5, 0.3, 0.8],
+      [0.55, 0.16, 0.9, 0.8],
+    ];
+
+    it('acepta una caja por objeto', () => {
+      expect(validarEstructura([conCajas(CAJAS)])).toEqual([]);
+    });
+
+    it('exige una por objeto, en su orden', () => {
+      const errores = validarEstructura([conCajas(CAJAS.slice(0, 1))]);
+      expect(errores.some((e) => e.includes('declara 1 cajas y la carrera tiene 2 objetos'))).toBe(true);
+    });
+
+    it('cada caja es [x0, y0, x1, y1] adentro de la foto y no vacia', () => {
+      const errores = validarEstructura([conCajas([[0.1, 0.2, 1.3, 0.4], [0.5, 0.5, 0.4, 0.6]])]);
+      expect(errores.some((e) => e.includes('cajas[0]: tiene que ser [x0, y0, x1, y1] entre 0 y 1'))).toBe(true);
+      expect(errores.some((e) => e.includes('cajas[1]: esta dada vuelta o vacia'))).toBe(true);
+    });
+
+    it('es una lista', () => {
+      const errores = validarEstructura([conCajas({ a: 1 })]);
+      expect(errores.some((e) => e.includes('"cajas" tiene que ser una lista'))).toBe(true);
+    });
+
+    // Con las dos, el espejo no sabria si levantar el objeto con su mascara o
+    // con su PNG.
+    it('no puede declarar recortes tambien', () => {
+      const errores = validarEstructura([
+        conCajas(CAJAS, {
+          recortes: [
+            { archivo: 'recortes/0.png', caja: [0.1, 0.1, 0.2, 0.2] },
+            { archivo: 'recortes/1.png', caja: [0.3, 0.1, 0.4, 0.2] },
+          ],
+        }),
+      ]);
+      expect(errores.some((e) => e.includes('declara "recortes" y "cajas"'))).toBe(true);
+    });
+  });
+
   it('acumula múltiples errores sin cortar en el primero', () => {
     const c = carreraValida();
     c.carreraJson.nombre = '';

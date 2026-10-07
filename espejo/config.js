@@ -333,6 +333,16 @@ export const CONFIG = {
     // Fraccion del estado HUMO que tarda en espesarse. El resto lo pasa tapando.
     fraccionDeEntrada: 0.55,
 
+    // Hasta donde se espesa en el ENGANCHE, mientras se confirma que la persona
+    // se quedo. Arranca del humo del reposo y el HUMO sigue desde aca: es una
+    // sola niebla que se espesa, no un humo que se va y otro que llega.
+    enEnganche: 0.6,
+
+    // Lo mas que cambia el humo que se ve, por segundo. Las curvas de cada
+    // estado son mas lentas y se siguen igual; esto solo pone tope a los saltos
+    // de una a otra —alguien que se va en pleno enganche—, que se cortaban.
+    velocidad: 1.2,
+
     // Cuanto humo queda mientras el espejo descansa. Es lo que ve la fila
     // mientras espera: tiene que leerse como un espejo cubierto, no como una
     // pantalla apagada, asi que nunca llega a tapar del todo.
@@ -461,10 +471,12 @@ export const CONFIG = {
     calmaAlLeer: 0.7,
   },
 
-  // Los objetos que viven ADENTRO de la foto, en los fondos generados
-  // (herramientas/escenas.py). No hay PNG que dibujar encima: el instrumento ya
-  // esta pintado en la escena, con su sombra y su reflejo. Lo que se calibra
-  // aca es como se lo saca de ahi cuando la mano pasa por arriba.
+  // Los objetos que viven ADENTRO de la foto: PINTADOS en los fondos generados
+  // (herramientas/escenas.py) o FOTOGRAFIADOS en una foto real
+  // (herramientas/ubicar.py). No hay PNG que dibujar encima: el objeto ya se ve
+  // en la escena. Lo que se calibra aca es como se lo saca de ahi cuando la
+  // mano pasa por arriba —el pintado, recortado de la foto con su mascara; el
+  // fotografiado, con su propio PNG calzado encima—.
   recortes: {
     // Cuanto crece el objeto levantado, y cuanto se ilumina. Crece desde su
     // propio centro: asi se separa del hueco que deja sin correrse de lugar.
@@ -472,6 +484,16 @@ export const CONFIG = {
     // para que no se confunda con su propio agujero, que tiene su misma forma.
     crecer: 1.16,
     brillo: 0.18,
+
+    // El FOTOGRAFIADO no crece. La foto sigue debajo con el mismo objeto, y un
+    // grupo de cosas —en Química, los tubos, el matraz y la botella— agrandado
+    // desde su centro deja asomar a cada una al costado de su copia: se ven
+    // dobles. Se ilumina en su lugar exacto, con el mismo `brillo`, y en vez de
+    // crecer se despega con un `resplandor` del dorado de la paleta que sigue
+    // su silueta: solo con el brillo, sobre una foto clara, casi no se notaba.
+    // `desenfoque` es el ancho del resplandor, en fraccion del lado corto del
+    // objeto en pantalla, y `resplandor` su opacidad con la mano encima.
+    fotografiado: { crecer: 1, resplandor: 0.9, desenfoque: 0.05 },
 
     // El resplandor que lo delata mientras nadie lo toca. Reemplaza al vaiven
     // de los objetos sueltos: un objeto pintado adentro de la foto no se puede
@@ -551,15 +573,25 @@ export const CONFIG = {
   },
 
   // Las nubes son el estado de reposo del espejo: cubren la pantalla cuando no
-  // hay nadie, salen hacia los lados al detectar a alguien y vuelven por el
-  // mismo camino cuando la persona lleva dos segundos ausente.
+  // hay nadie, se quedan mientras el humo se espesa al detectar a alguien, se
+  // apartan hacia los lados con la eleccion —junto con el humo— y vuelven por el
+  // mismo camino en el cierre. Se abren UNA sola vez: apartarse al detectar a la
+  // persona y que el humo tapara todo otra vez se leia como nubes que se iban y
+  // volvian.
   niebla: {
     cantidad: 26, // jirones en pantalla
-    agitacionHumo: 3, // cuanto se aceleran los jirones mientras entra el humo
+    agitacionHumo: 3, // cuanto se aceleran los jirones mientras se espesa el humo
     velocidades: {
-      abrir: 1.7, // fraccion por segundo: el espejo se despeja en ~0.6 s
+      abrir: 0.8, // fraccion por segundo: ~1,2 s, al paso del humo que se disipa
       cerrar: 0.34, // acompaña los tres segundos del estado de cierre
     },
+
+    // El espejo duerme —desenfocado y oscurecido— mientras hay niebla, y se
+    // despierta con la eleccion, cuando se abren las nubes: de a poco, en
+    // `msParaDespertar`, como el humo que se disipa. Vuelve a dormirse en el
+    // reposo, en `msParaDormirse`. `desenfoque` en pixeles; `brillo`, cuanto
+    // queda de su luz dormido.
+    espejoDormido: { desenfoque: 10, brillo: 0.45, msParaDespertar: 1400, msParaDormirse: 1200 },
   },
 
   render: {

@@ -31,7 +31,7 @@ una alacena blanca no lo encuentra nadie; ya nos paso).
 
 USO
     python herramientas/escenas.py                # las doce
-    python herramientas/escenas.py quimica civil  # solo esas
+    python herramientas/escenas.py naval civil    # solo esas
     python herramientas/escenas.py --hoja         # rearma la hoja de contacto
     python herramientas/escenas.py --revisar      # que objetos no estan pintados
     python herramientas/escenas.py --repintar --solo electrica:motor-trifasico,...
@@ -130,6 +130,10 @@ NEGATIVO = ('person, people, face, text, watermark, logo, clutter, crowded, '
 # como su PNG, porque al aterrizar el PNG se funde con el pintado.
 #
 # El id de cada objeto es su carpeta en contenido/carreras/<id>/objetos/.
+#
+# QUIMICA NO ESTA: su fondo es una foto real del laboratorio, con los objetos
+# fotografiados adentro, y no se genera. Donde esta cada uno lo escribe
+# herramientas/ubicar.py. Generarla aca le pondria otra escena encima.
 GUIONES = {
     'agrimensura': {
         'escena': 'surveying instrument storage room interior, tall grey metal shelving units with empty shelves along both side walls up to the ceiling, workbenches below, cool daylight',
@@ -287,24 +291,6 @@ GUIONES = {
             ('pallet', 'a wooden pallet stacked with cardboard boxes, on the lowest rack level'),
             ('brazo-robotico', 'a single white industrial robot arm with black joints on a black base, '
                                'standing on the lowest rack level'),
-        ],
-    },
-    'quimica': {
-        # La rearmada con techo de caños salio con un ventanal a la izquierda y
-        # ningun estante: el matraz y la columna flotaban delante del vidrio.
-        # Esta es la de siempre, con estantes a los dos costados.
-        'escena': 'chemistry laboratory interior, empty black benchtops and bare white wall shelves '
-                  'on both the left and right sides, tall window at the far end, warm morning light',
-        'objetos': [
-            ('matraz-erlenmeyer', 'a conical glass Erlenmeyer flask with amber liquid, on the white shelf'),
-            # El del carrusel, como su PNG.
-            ('bomba-peristaltica', 'a blue peristaltic laboratory pump with a display and orange tubing, '
-                                   'on the white shelf'),
-            ('intercambiador-placas', 'a compact plate heat exchanger with a dark blue frame and steel '
-                                      'plates, hanging from the ceiling on two chains'),
-            ('columna-destilacion', 'a tall glass distillation column with metal clamps on a steel stand, '
-                                    'on the black bench'),
-            ('reactor-agitado', 'a stainless steel stirred reactor vessel with a motor on top, on the black bench'),
         ],
     },
 }
@@ -933,7 +919,7 @@ def hoja_de_objetos(filas, salida=None):
 
 
 def interpretar_solo(texto):
-    """'electrica:motor-trifasico,quimica:columna-destilacion' -> [(carrera, objeto), ...]."""
+    """'electrica:motor-trifasico,civil:hormigonera' -> [(carrera, objeto), ...]."""
     pares = []
     for parte in (p.strip() for p in texto.split(',')):
         if not parte:
@@ -1547,7 +1533,8 @@ def main():
     ids = args.carreras or sorted(GUIONES)
     desconocidas = [c for c in ids if c not in GUIONES]
     if desconocidas:
-        sys.exit(f'no conozco: {", ".join(desconocidas)}')
+        sys.exit(f'no conozco: {", ".join(desconocidas)} (las de foto real no se generan: '
+                 'ver herramientas/ubicar.py)')
 
     if args.armonizar:
         armonizar(ids, tanda=args.semilla)

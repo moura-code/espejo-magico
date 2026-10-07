@@ -22,10 +22,17 @@ const suavizar = (valor) => {
 /**
  * Cuanto humo hay, de 0 a 1.
  *
- * Se espesa mientras dura el HUMO —tapando el momento en que las nubes se abren
- * y los objetos se ponen en su lugar— y se disipa ya dentro de la EXPLORACION,
- * descubriendolos. La entrada es mas lenta que la salida a proposito: entrar
- * despacio se lee como algo que llega, salir rapido devuelve el control.
+ * ES UNA SOLA NIEBLA QUE SE ESPESA Y SE ABRE UNA VEZ. Al detectar a la persona
+ * el humo del reposo no se va: empieza a espesarse en el ENGANCHE, termina de
+ * tapar en el HUMO —con las nubes todavia puestas y los objetos poniendose en
+ * su lugar debajo— y se disipa ya dentro de la EXPLORACION, junto con las nubes
+ * que se apartan, descubriendolos. Antes se cortaba en el enganche y volvia a
+ * entrar desde cero, y se leia como que las nubes se iban y volvian. La entrada
+ * es mas lenta que la salida a proposito: entrar despacio se lee como algo que
+ * llega, salir rapido devuelve el control.
+ *
+ * Es la curva de cada estado; lo que se ve la sigue con acercarHumo, que es lo
+ * que la hace continua cuando el estado cambia a mitad de camino.
  */
 export function alfaDeHumo({ estado, transcurrido, tiempos, humo }) {
   switch (estado) {
@@ -39,13 +46,38 @@ export function alfaDeHumo({ estado, transcurrido, tiempos, humo }) {
       return (humo.enReposo ?? 0) * asentado * (0.7 + 0.3 * respiro);
     }
 
+    // Del humo del reposo hasta `enEnganche`, mientras se confirma que la
+    // persona se quedo. Si el enganche se estira —un rostro que va y viene—
+    // no pasa de ahi.
+    case ESTADOS.ENGANCHE: {
+      const reposo = humo.enReposo ?? 0;
+      const tope = humo.enEnganche ?? reposo;
+      return reposo + (tope - reposo) * suavizar(transcurrido / Math.max(1, tiempos.enganche));
+    }
+
+    // Desde donde lo dejo el enganche hasta tapar todo.
     case ESTADOS.HUMO: {
+      const desde = humo.enEnganche ?? 0;
       const entrada = Math.max(1, tiempos.humo * humo.fraccionDeEntrada);
-      return suavizar(transcurrido / entrada);
+      return desde + (1 - desde) * suavizar(transcurrido / entrada);
     }
     case ESTADOS.EXPLORACION:
       return 1 - suavizar(transcurrido / Math.max(1, humo.msDeSalida));
     default:
       return 0;
   }
+}
+
+/**
+ * El humo que se ve, un paso mas cerca de `objetivo` (alfaDeHumo), sin moverse
+ * mas de `velocidad` por segundo. Las curvas de cada estado ya son suaves, y
+ * con la velocidad de la config se siguen sin atrasarse; lo que esto evita son
+ * los saltos de una a otra cuando el estado cambia a mitad de camino: alguien
+ * que se va en pleno enganche, o una sesion que se corta con el humo espeso. El
+ * humo va desde donde estaba, en vez de cortarse. `dt` en segundos.
+ */
+export function acercarHumo(actual, objetivo, dt, velocidad) {
+  const paso = velocidad * Math.max(0, dt);
+  const delta = objetivo - actual;
+  return Math.abs(delta) <= paso ? objetivo : actual + Math.sign(delta) * paso;
 }

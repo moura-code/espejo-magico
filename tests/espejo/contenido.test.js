@@ -5,6 +5,7 @@ import {
   objetoDeCarrera,
   escondidosDeCarrera,
   fondoActivo,
+  objetosEnLaFoto,
 } from '../../espejo/contenido.js';
 
 const carreraValida = () => ({
@@ -167,6 +168,22 @@ describe('validarContenido', () => {
     );
   });
 
+  // Las cajas de un fondo fotografiado: donde calza el PNG de cada objeto
+  // adentro de la foto. Una caja mal declarada pone el objeto levantado al lado
+  // del que se ve, y con recortes tambien no se sabria que levantar.
+  it('las cajas, si estan, son cajas adentro de la foto, y no van con recortes', () => {
+    const con = (fondo) => ({ carreras: [{ ...carreraValida(), fondos: [{ img: 'a.jpg', ...fondo }] }] });
+    sinErrores(con({ cajas: [[0.05, 0.5, 0.3, 0.8]] }));
+    sinErrores(con({ cajas: null }));
+    conError(con({ cajas: { a: 1 } }), '"cajas" tiene que ser una lista');
+    conError(con({ cajas: [[0.05, 0.5, 1.3, 0.8]] }), 'cajas[0] tiene que ser [x0, y0, x1, y1] entre 0 y 1');
+    conError(con({ cajas: [[0.3, 0.5, 0.05, 0.8]] }), 'cajas[0] esta dada vuelta o vacia');
+    conError(
+      con({ cajas: [[0.05, 0.5, 0.3, 0.8]], recortes: [{ img: 'r.png', caja: [0.05, 0.5, 0.3, 0.8] }] }),
+      'declara "recortes" y "cajas"',
+    );
+  });
+
   // El campo viejo, en singular, dejaria a la carrera sin fondo en silencio.
   it('rechaza el viejo "fondo" y dice como migrarlo', () => {
     conError(
@@ -295,6 +312,38 @@ describe('fondoActivo', () => {
     expect(fondoActivo({})).toBeNull();
     expect(fondoActivo({ fondos: [] })).toBeNull();
     expect(fondoActivo(null)).toBeNull();
+  });
+});
+
+// Hay dos maneras de que los objetos esten ADENTRO de la foto, y para todo lo
+// demas —donde va el blanco de la mano, la ficha, que no se baraje el reparto—
+// son la misma. Lo unico que cambia es que se levanta: un pedazo de la foto con
+// su mascara, o el PNG del objeto.
+describe('objetosEnLaFoto', () => {
+  it('pintados por escenas.py: la caja y la mascara de cada uno', () => {
+    const fondo = {
+      recortes: [
+        { img: 'r0.png', caja: [0.1, 0.2, 0.3, 0.4] },
+        { img: 'r1.png', caja: [0.6, 0.2, 0.8, 0.4] },
+      ],
+    };
+    expect(objetosEnLaFoto(fondo)).toEqual([
+      { caja: [0.1, 0.2, 0.3, 0.4], mascara: 'r0.png' },
+      { caja: [0.6, 0.2, 0.8, 0.4], mascara: 'r1.png' },
+    ]);
+  });
+
+  it('fotografiados en una foto real: la caja de cada uno, sin mascara', () => {
+    expect(objetosEnLaFoto({ cajas: [[0.05, 0.5, 0.3, 0.8]] })).toEqual([
+      { caja: [0.05, 0.5, 0.3, 0.8], mascara: null },
+    ]);
+  });
+
+  // Con objetos sueltos, o sin fondo, no hay nada adentro de la foto.
+  it('null si el fondo no los trae', () => {
+    expect(objetosEnLaFoto({ img: 'a.jpg' })).toBeNull();
+    expect(objetosEnLaFoto({ recortes: [], cajas: [] })).toBeNull();
+    expect(objetosEnLaFoto(null)).toBeNull();
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { alfaDeHumo } from '../../espejo/humo.js';
+import { acercarHumo, alfaDeHumo } from '../../espejo/humo.js';
 import { ESTADOS } from '../../espejo/maquina-estados.js';
 
 const TIEMPOS = { enganche: 2000, humo: 3000, revelacion: 2500, cierre: 3000 };
@@ -7,6 +7,7 @@ const HUMO = {
   fraccionDeEntrada: 0.55,
   msDeSalida: 1400,
   enReposo: 0.35,
+  enEnganche: 0.6,
   msParaAsentarse: 1500,
   msDeRespiro: 5200,
 };
@@ -47,13 +48,21 @@ describe('alfaDeHumo', () => {
     expect(Math.max(...valores) - Math.min(...valores)).toBeGreaterThan(0.02);
   });
 
-  it('en el enganche no hay humo', () => {
-    expect(alfa(ESTADOS.ENGANCHE, 1000)).toBe(0);
+  // AL DETECTAR A LA PERSONA EL HUMO NO SE VA: empieza a espesarse desde el
+  // del reposo. Se cortaba de golpe, el espejo quedaba limpio un momento y el
+  // humo volvia a entrar desde cero: se leia como que las nubes se iban y
+  // volvian.
+  it('en el enganche el humo del reposo empieza a espesarse', () => {
+    expect(alfa(ESTADOS.ENGANCHE, 0)).toBeCloseTo(HUMO.enReposo);
+    expect(alfa(ESTADOS.ENGANCHE, 1000)).toBeGreaterThan(HUMO.enReposo);
+    expect(alfa(ESTADOS.ENGANCHE, TIEMPOS.enganche)).toBeCloseTo(HUMO.enEnganche);
+    // Un enganche que se estira —un rostro que va y viene— no pasa de ahi.
+    expect(alfa(ESTADOS.ENGANCHE, 60000)).toBeCloseTo(HUMO.enEnganche);
   });
 
-  it('se espesa durante el humo hasta tapar todo', () => {
-    expect(alfa(ESTADOS.HUMO, 0)).toBe(0);
-    expect(alfa(ESTADOS.HUMO, 800)).toBeGreaterThan(0);
+  it('se espesa durante el humo hasta tapar todo, desde donde lo dejo el enganche', () => {
+    expect(alfa(ESTADOS.HUMO, 0)).toBeCloseTo(alfa(ESTADOS.ENGANCHE, TIEMPOS.enganche));
+    expect(alfa(ESTADOS.HUMO, 800)).toBeGreaterThan(HUMO.enEnganche);
     expect(alfa(ESTADOS.HUMO, 800)).toBeLessThan(1);
     expect(alfa(ESTADOS.HUMO, 1650)).toBe(1);
   });
@@ -99,6 +108,31 @@ describe('alfaDeHumo', () => {
         expect(valor).toBeGreaterThanOrEqual(0);
         expect(valor).toBeLessThanOrEqual(1);
       }
+    }
+  });
+});
+
+// Lo que se ve sigue a alfaDeHumo, pero nunca a los saltos. Cuando el estado
+// cambia a mitad de camino —alguien que se va en pleno enganche, una sesion que
+// se corta con el humo espeso— el humo va desde donde estaba, y no se corta.
+describe('acercarHumo', () => {
+  it('va hacia el objetivo sin pasar de su velocidad', () => {
+    expect(acercarHumo(0.6, 0, 0.1, 1.2)).toBeCloseTo(0.48);
+    expect(acercarHumo(0.2, 1, 0.25, 1.2)).toBeCloseTo(0.5);
+  });
+
+  it('llega al objetivo sin pasarse', () => {
+    expect(acercarHumo(0.34, 0.35, 0.1, 1.2)).toBe(0.35);
+    expect(acercarHumo(0.36, 0.35, 0.1, 1.2)).toBe(0.35);
+  });
+
+  // Las curvas de alfaDeHumo ya son suaves: seguidas con la velocidad de la
+  // config no se atrasan, y el humo llega tapando al final del estado.
+  it('no atrasa una curva que ya es suave', () => {
+    let visto = alfa(ESTADOS.EXPLORACION, 0);
+    for (let t = 16; t <= HUMO.msDeSalida; t += 16) {
+      visto = acercarHumo(visto, alfa(ESTADOS.EXPLORACION, t), 0.016, 1.2);
+      expect(Math.abs(visto - alfa(ESTADOS.EXPLORACION, t))).toBeLessThan(1e-9);
     }
   });
 });

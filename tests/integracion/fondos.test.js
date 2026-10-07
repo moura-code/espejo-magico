@@ -21,6 +21,12 @@
 //     sin pisarse. Fue un bug de verdad, dos veces: el objeto volaba a un punto
 //     arriba del borde y "desaparecia" en las doce ingenierias, y despues los
 //     pintados en la foto quedaban afuera porque la foto cubria la pantalla.
+//
+// UN FONDO FOTOGRAFIADO NO ENTRA EN LAS REGLAS DE LA COMPOSICION. Es una foto
+// real con los objetos adentro: estan donde los dejo la foto, no donde los puso
+// el codigo o el generador, y moverlos es tomar otra foto. Lo que se vigila de
+// el es que la mano los encuentre ahi y que el que llega volando caiga justo
+// encima del suyo (abajo, al final).
 
 import { describe, it, expect } from 'vitest';
 
@@ -31,10 +37,10 @@ import {
   cajaEnPantalla,
 } from '../../espejo/escena.js';
 import { lugaresDelFondo, objetosDelFondo } from '../../espejo/escondites.js';
+import { objetosEnLaFoto } from '../../espejo/contenido.js';
 import { construirCatalogo } from '../../servidor/catalogo.js';
+import { medidasDeLaFoto } from './medidas.js';
 
-// La medida en que se preparan los fondos (docs/contenido.md).
-const FOTO = { ancho: 1080, alto: 1920 };
 const ESPEJO = { ancho: 1080, alto: 1920 };
 const APAISADA = { ancho: 1920, alto: 1080 };
 // La ventana de una notebook, donde se prueba: otra proporcion que la del monitor.
@@ -47,7 +53,7 @@ const POR_DEFECTO = {
 /**
  * Todos los fondos del catalogo —el respaldo vectorial incluido, que usa los
  * lugares de config— y el caso de una carrera sin fondos, cada uno con los
- * objetos de su carrera.
+ * objetos de su carrera y la medida de su foto.
  */
 const todosLosFondos = async () => {
   const { catalogo, errores } = await construirCatalogo();
@@ -55,28 +61,42 @@ const todosLosFondos = async () => {
   const { carreras } = catalogo;
   return [
     ...carreras.flatMap((carrera) =>
-      (carrera.fondos ?? []).map((fondo) => ({ nombre: fondo.img, fondo, objetos: carrera.objetos })),
+      (carrera.fondos ?? []).map((fondo) => ({
+        nombre: fondo.img,
+        fondo,
+        foto: medidasDeLaFoto(fondo.img),
+        objetos: carrera.objetos,
+      })),
     ),
-    { nombre: 'sin fondo: los lugares de config', fondo: null, objetos: carreras[0].objetos },
+    { nombre: 'sin fondo: los lugares de config', fondo: null, foto: null, objetos: carreras[0].objetos },
   ];
 };
 
+/** Si los objetos de ese fondo estan fotografiados en una foto real. */
+const esFotografiado = ({ fondo }) => Boolean(fondo?.cajas?.length);
+
+/**
+ * Los fondos cuyos lugares eligio el codigo o el generador: los que tienen que
+ * cumplir la composicion (la periferia, el alcance, el aire entre blancos).
+ */
+const fondosCompuestos = async () => (await todosLosFondos()).filter((caso) => !esFotografiado(caso));
+
 /**
  * Donde queda dibujada la foto de ese fondo, con la misma cuenta que
- * dibujarFondo. Sin fondo, el espejo dibuja la escena vectorial, que se hace a
- * la medida de la pantalla y la llena.
+ * dibujarFondo y la medida de esa foto. Sin fondo, el espejo dibuja la escena
+ * vectorial, que se hace a la medida de la pantalla y la llena.
  */
-const fotoEn = (fondo, pantalla) =>
+const fotoEn = ({ fondo, foto }, pantalla) =>
   fondo
-    ? calcularRectanguloDelFondo(FOTO.ancho, FOTO.alto, pantalla.ancho, pantalla.alto)
+    ? calcularRectanguloDelFondo(foto.ancho, foto.alto, pantalla.ancho, pantalla.alto)
     : { x: 0, y: 0, ancho: pantalla.ancho, alto: pantalla.alto };
 
 /** Los objetos de un fondo en esa pantalla, puestos como los pone el espejo. */
-const puestosEn = ({ fondo, objetos }, pantalla) =>
+const puestosEn = (caso, pantalla) =>
   objetosDelFondo({
-    objetos,
-    fondo,
-    rectangulo: fotoEn(fondo, pantalla),
+    objetos: caso.objetos,
+    fondo: caso.fondo,
+    rectangulo: fotoEn(caso, pantalla),
     pantalla,
     config: CONFIG,
   });
@@ -96,7 +116,7 @@ const tocaLaZona = ({ x, y, radio }, zona, pantalla) => {
 describe('los objetos de los fondos reales', () => {
   it('en el espejo vertical, cada lugar elegido entra entero y no se mueve', async () => {
     const movidos = [];
-    for (const caso of await todosLosFondos()) {
+    for (const caso of await fondosCompuestos()) {
       const lugares = lugaresDelFondo(caso.fondo, POR_DEFECTO);
       puestosEn(caso, ESPEJO).forEach((puesto, i) => {
         const crudo = { x: lugares[i].x * ESPEJO.ancho, y: lugares[i].y * ESPEJO.alto };
@@ -111,7 +131,7 @@ describe('los objetos de los fondos reales', () => {
   // o quedaria tapado por ella, que es justo lo que la catedra pidio evitar.
   it('ninguno cae en la zona de la persona', async () => {
     const adentro = [];
-    for (const caso of await todosLosFondos()) {
+    for (const caso of await fondosCompuestos()) {
       puestosEn(caso, ESPEJO).forEach((puesto, i) => {
         if (CONFIG.fondo.zonaDeLaPersona.some((zona) => tocaLaZona(puesto, zona, ESPEJO))) {
           adentro.push(`${caso.nombre} [${i}]`);
@@ -125,7 +145,7 @@ describe('los objetos de los fondos reales', () => {
   it('ninguno baja hasta el nombre', async () => {
     const { pie } = calcularDisposicion(ESPEJO.ancho, ESPEJO.alto);
     const bajos = [];
-    for (const caso of await todosLosFondos()) {
+    for (const caso of await fondosCompuestos()) {
       puestosEn(caso, ESPEJO).forEach((puesto, i) => {
         if (puesto.y + puesto.radio > ESPEJO.alto - pie.alto) bajos.push(`${caso.nombre} [${i}]`);
       });
@@ -139,7 +159,7 @@ describe('los objetos de los fondos reales', () => {
     const [cabeza] = CONFIG.fondo.zonaDeLaPersona;
     const franja = CONFIG.fondo.franjaCartel ?? cabeza.y0;
     const altos = [];
-    for (const caso of await todosLosFondos()) {
+    for (const caso of await fondosCompuestos()) {
       puestosEn(caso, ESPEJO).forEach((puesto, i) => {
         if (puesto.y - puesto.radio < franja * ESPEJO.alto) altos.push(`${caso.nombre} [${i}]`);
       });
@@ -153,7 +173,7 @@ describe('los objetos de los fondos reales', () => {
   // costado, uno arriba del otro. Y dos objetos que se tocan se leen como uno.
   it('los blancos de la mano de un mismo fondo no se tocan', async () => {
     const pisados = [];
-    for (const caso of await todosLosFondos()) {
+    for (const caso of await fondosCompuestos()) {
       const puestos = puestosEn(caso, ESPEJO);
       for (let i = 0; i < puestos.length; i++) {
         for (let j = i + 1; j < puestos.length; j++) {
@@ -173,7 +193,7 @@ describe('los objetos de los fondos reales', () => {
   // arriba de todo quedaban afuera con esa parte de la foto.
   it('en un monitor apaisado, todos aparecen en pantalla y sus blancos no se tocan', async () => {
     const problemas = [];
-    for (const caso of await todosLosFondos()) {
+    for (const caso of await fondosCompuestos()) {
       const puestos = puestosEn(caso, APAISADA);
       puestos.forEach((puesto, i) => {
         if (!entraEntero(puesto, APAISADA)) problemas.push(`${caso.nombre} [${i}] fuera de la pantalla`);
@@ -190,19 +210,20 @@ describe('los objetos de los fondos reales', () => {
   });
 
   // LA MANO VA A BUSCAR LO QUE VE. Con un fondo generado el objeto esta pintado
-  // adentro de la foto, y se ve donde cae la foto: el blanco de la mano —y con
-  // el su latido y su ficha— tiene que estar ahi. Fue un bug de verdad: en la
-  // notebook el blanco se recomponia sobre lo que se ve, como el de un PNG
-  // suelto, y la mano apoyada sobre el reactor de quimica no abria su ficha.
-  // En el espejo vertical las dos cuentas coinciden y no se notaba.
-  it('en cualquier pantalla, el blanco de la mano cae sobre el objeto pintado', async () => {
+  // adentro de la foto, y en una foto real esta fotografiado: se ve donde cae la
+  // foto, y el blanco de la mano —y con el su latido y su ficha— tiene que estar
+  // ahi. Fue un bug de verdad: en la notebook el blanco se recomponia sobre lo
+  // que se ve, como el de un PNG suelto, y la mano apoyada sobre el reactor de
+  // quimica no abria su ficha. En el espejo vertical las dos cuentas coinciden
+  // y no se notaba.
+  it('en cualquier pantalla, el blanco de la mano cae sobre el objeto que se ve', async () => {
     const corridos = [];
     for (const caso of await todosLosFondos()) {
-      if (!caso.fondo?.recortes?.length) continue;
+      if (!objetosEnLaFoto(caso.fondo)) continue;
       for (const pantalla of [ESPEJO, APAISADA, NOTEBOOK]) {
-        const rectangulo = fotoEn(caso.fondo, pantalla);
+        const rectangulo = fotoEn(caso, pantalla);
         puestosEn(caso, pantalla).forEach((puesto, i) => {
-          const caja = cajaEnPantalla(puesto.recorte.caja, rectangulo);
+          const caja = cajaEnPantalla(puesto.enLaFoto.caja, rectangulo);
           const centro = { x: caja.x + caja.ancho / 2, y: caja.y + caja.alto / 2 };
           const distancia = Math.hypot(centro.x - puesto.x, centro.y - puesto.y);
           if (distancia > puesto.radio * CONFIG.fichas.radioFactor) {
@@ -235,7 +256,7 @@ describe('los objetos de los fondos reales', () => {
     const hombros = { x: ESPEJO.ancho / 2, y: cuerpo.y0 * ESPEJO.alto, ancho: 380 };
     const brazo = CONFIG.tablero.radioFactor * hombros.ancho;
     const lejos = [];
-    for (const caso of await todosLosFondos()) {
+    for (const caso of await fondosCompuestos()) {
       puestosEn(caso, ESPEJO).forEach((puesto, i) => {
         const hastaLaPalma =
           Math.hypot(puesto.x - hombros.x, puesto.y - hombros.y) -
@@ -247,5 +268,48 @@ describe('los objetos de los fondos reales', () => {
       });
     }
     expect(lejos, 'a estos objetos la mano no llega con margen').toEqual([]);
+  });
+});
+
+// UNA FOTO REAL CON LOS OBJETOS FOTOGRAFIADOS ADENTRO. El PNG de cada uno calza
+// sobre el que se ve (herramientas/ubicar.py escribio su caja), y es lo que se
+// levanta cuando la mano pasa por encima. Lo que tiene que valer:
+describe('los objetos fotografiados en una foto real', () => {
+  // EL QUE LLEGA VOLANDO CAE JUSTO ENCIMA DEL SUYO. El PNG del carrusel aterriza
+  // en su `lugar` con su lado mas largo de diametro, y ahi se funde con el que
+  // ya esta en la foto: un lugar corrido de su caja se ve como un objeto que
+  // aterriza al lado de si mismo. Los escondidos, igual: su blanco, su latido y
+  // su ficha salen de su lugar. Lo escribe ubicar.py a partir de las cajas, y
+  // esto avisa si alguien toca una a mano y no la otra.
+  it('cada lugar es su caja: el mismo centro y su lado mas largo, en cualquier pantalla', async () => {
+    const corridos = [];
+    for (const caso of (await todosLosFondos()).filter(esFotografiado)) {
+      for (const pantalla of [ESPEJO, APAISADA, NOTEBOOK]) {
+        const rectangulo = fotoEn(caso, pantalla);
+        puestosEn(caso, pantalla).forEach((puesto, i) => {
+          const caja = cajaEnPantalla(puesto.enLaFoto.caja, rectangulo);
+          const centro = { x: caja.x + caja.ancho / 2, y: caja.y + caja.alto / 2 };
+          const lado = Math.max(caja.ancho, caja.alto);
+          if (
+            Math.hypot(centro.x - puesto.x, centro.y - puesto.y) > 1 ||
+            Math.abs(2 * puesto.radio - lado) > 1
+          ) {
+            corridos.push(`${caso.nombre} [${i}] en ${pantalla.ancho}x${pantalla.alto}`);
+          }
+        });
+      }
+    }
+    expect(corridos, 'el lugar de estos objetos no coincide con su caja').toEqual([]);
+  });
+
+  // Ninguno se queda sin caja: sin ella no hay nada que levantar.
+  it('todos los objetos de la carrera tienen su caja', async () => {
+    const sinCaja = [];
+    for (const caso of (await todosLosFondos()).filter(esFotografiado)) {
+      puestosEn(caso, ESPEJO).forEach((puesto, i) => {
+        if (!puesto.enLaFoto) sinCaja.push(`${caso.nombre} [${i}]`);
+      });
+    }
+    expect(sinCaja).toEqual([]);
   });
 });

@@ -91,12 +91,12 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `maite.js` | El único puente saliente. Va y no vuelve, nunca lanza, no reintenta y corta a los 1,5 s. |
 | `humo.js` | Cuánto humo hay en cada momento (curva pura). Cargar el video es tarea de `videos.js`; dibujarlo, de `escena.js`. |
 | `sorteo.js` | Gestor de sorteo aleatorio con **bolsa barajada sin repetición contigua**. `siguientes(n)` entrega el orden del carrusel: todas las jugables, barajadas por sesión. |
-| `niebla.js` | Animación de las nubes que cubren el espejo durante el reposo. Se apartan **hacia los costados**, no en círculo: cada jirón queda fijado a su mitad de pantalla al crearse y viaja hasta el borde exterior. La transición tiene una sola magnitud (`apertura`). |
+| `niebla.js` | Animación de las nubes que cubren el espejo durante el reposo. Se apartan **hacia los costados**, no en círculo: cada jirón queda fijado a su mitad de pantalla al crearse y viaja hasta el borde exterior. La transición tiene una sola magnitud (`apertura`), y **se abre una sola vez**, con la elección (`objetivoDeNiebla`); `espejoDespierto` dice cuándo el espejo deja de verse dormido. |
 | `figuras.js` | Sistema de fallback vectorial en Canvas 2D (36 figuras dibujadas por código para cuando no existen archivos PNG). |
 | `imagenes.js` | Gestor y precargador de imágenes con fallback elegante. Carga inicialmente los objetos candidatos de las carreras ofrecidas en el carrusel. |
 | `videos.js` | Carga de videos en el navegador (con tope, para que uno que no contesta no frene el arranque) y el banco de **fondos con movimiento**: los carga de a uno después de arrancar y garantiza que **suene uno solo**, el de la ingeniería que se está mostrando. |
 | `contenido.js` | Carga y valida `contenido/catalogo.json` al inicio. |
-| `sesion.js` | Gestión de la asignación de contenido por sesión (`crearSesionContenido`): elige un objeto para el carrusel y distribuye los restantes en los escondites del fondo activo. **El azar depende del fondo**: con un fondo generado los cinco están pintados adentro de la foto, cada uno en su sitio, y barajarlos pondría la ficha de uno sobre otro. |
+| `sesion.js` | Gestión de la asignación de contenido por sesión (`crearSesionContenido`): elige un objeto para el carrusel y distribuye los restantes en los escondites del fondo activo. **El azar depende del fondo**: con un fondo generado o fotografiado los objetos están adentro de la foto, cada uno en su sitio, y barajarlos pondría la ficha de uno sobre otro. |
 | `escena.js` | Componedor gráfico final: renderiza en capas (Video espejo → Fondo de la carrera → Objetos escondidos y apoyado → Persona recortada → Carrusel con su carga → Objeto en vuelo → Señal de manos → Fichas → Nombre al pie → Humo → Niebla → Invitación y consignas). Dueño además de la geometría video↔pantalla: `calcularRectanguloVideo` (dónde se dibuja) y `calcularRecorteVisible` (qué parte se analiza), y de dónde va cada ficha (`disponerFichaDeObjeto`: debajo del objeto si vive adentro de la foto, en el cartel de arriba si es un PNG suelto). Saca un objeto de adentro del fondo con `dibujarRecorte`. |
 | `operacion.js` | Atajos de teclado (incluida `TECLAS_CARRERA`, la fila de números completa: una tecla por carrera), panel HUD de métricas/FPS y recarga periódica de mantenimiento. |
 
@@ -170,9 +170,9 @@ Lo ofrecido, la carrera y el número de sesión viajan en la salida
 falta.
 
 1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Al entrar se le pide a MAITE que vuelva a su humo. Tras cerrar una sesión no vuelve a arrancar con el mismo rostro: primero tiene que observar una ausencia y rearmarse para la persona siguiente.
-2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado.
-3. **`HUMO`**: El video de humo entra y se espesa hasta tapar la pantalla. Detrás, las nubes se apartan y **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Los doce objetos representativos ya se cargaron antes de iniciar; el fondo de una ingeniería —con sus objetos ya adentro— y las máscaras de sus recortes se piden en segundo plano recién cuando se la elige.
-4. **`EXPLORACION`**: El humo se disipa y queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Los otros cuatro objetos de la carrera ya están pintados adentro de ese fondo, y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cinco, el objeto se recorta del fondo, se levanta y se abre su ficha debajo. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
+2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado. **Las nubes no se abren**: se agitan, la invitación se apaga y el humo del reposo empieza a espesarse (`humo.enEnganche`). Abrirlas acá dejaba el espejo limpio un momento y enseguida el humo lo volvía a tapar: se leía como nubes que se iban y volvían.
+3. **`HUMO`**: El humo sigue espesándose desde donde lo dejó el enganche hasta tapar la pantalla, con las nubes todavía puestas y el espejo dormido. Debajo **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Los doce objetos representativos ya se cargaron antes de iniciar; el fondo de una ingeniería —con sus objetos ya adentro— y las máscaras de sus recortes se piden en segundo plano recién cuando se la elige.
+4. **`EXPLORACION`**: Todo se despeja a la vez, una sola vez: el humo se disipa, las nubes se apartan hacia los costados y el espejo se despierta —deja de verse desenfocado y oscuro— (`CONFIG.niebla.espejoDormido`). Queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Los otros cuatro objetos de la carrera ya están pintados adentro de ese fondo, y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cinco, el objeto se recorta del fondo, se levanta y se abre su ficha debajo. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
 5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
 **Lo que se muestra se le informa a la máquina desde afuera**, con
@@ -425,6 +425,36 @@ al de la pantalla: el `destination-in` toca el lienzo entero, y sobre uno de
 1080×1920 son dos millones de píxeles por cuadro para recortar algo que mide
 doscientos. Un recorte que falte cae al PNG de siempre.
 
+**Y en una foto real están fotografiados.** Química no tiene escena generada: su
+fondo es una foto del laboratorio con los objetos adentro —la cristalería y las
+placas de Petri sobre la mesada, el secador túnel al fondo— y el PNG de cada uno
+recortado aparte. Ese fondo declara `cajas` en lugar de `recortes`: dónde calza
+el PNG de cada objeto, normalizado a la foto y en el orden de `objetos`. Lo que
+se levanta cuando la mano pasa por encima es **ese PNG**, puesto exactamente
+sobre el que se ve (`dibujarFotoDelObjeto`, escena.js), y no un pedazo de la
+foto. Para todo lo demás las dos clases son la misma —`objetosEnLaFoto`
+(contenido.js) devuelve `{ caja, mascara }` de cada objeto, con la máscara en
+null si está fotografiado—: el blanco de la mano, el latido, la ficha debajo, el
+reparto sin barajar y el aterrizaje encima del suyo. Cambian dos cosas:
+
+- **No crece.** La foto sigue debajo con el mismo objeto, y un grupo de cosas
+  —los tubos, el matraz, la botella— agrandado desde su centro deja asomar a cada
+  una al costado de su copia: se ven dobles. En su lugar se ilumina con un
+  **resplandor del dorado de la paleta que sigue su silueta**, el `shadowBlur`
+  del lienzo con el PNG de molde (`CONFIG.recortes.fotografiado`): con el brillo
+  solo, sobre una foto clara, el secador casi no cambiaba.
+- **Entra fundiéndose** con la mano (su alfa por cuánto está en foco), en vez de
+  aparecer entero: el PNG calza sobre la foto pero no es idéntico píxel a píxel.
+
+Las cajas las escribe `npm run ubicar` (`herramientas/ubicar.py`), que busca
+cada PNG adentro de la foto —correlación normalizada sobre lo opaco del PNG, de
+grueso a fino— y escribe también `lugar` y `escondites`: el centro de cada caja,
+con su lado más largo de diámetro, para que el PNG que llega volando aterrice
+justo encima del que ya está en la foto. `tests/integracion/fondos.test.js`
+exige que lugar y caja coincidan en cualquier pantalla. Las reglas de la
+composición de abajo (periferia, alcance, aire entre blancos) no se le aplican:
+los objetos están donde los dejó la foto, y moverlos es sacar otra.
+
 - **En la periferia.** En el medio está la persona: un objeto ahí le taparía la
   cara o quedaría tapado por ella. `CONFIG.fondo.zonaDeLaPersona` (la cabeza y
   los hombros, normalizados al espejo) y el pie del nombre son zonas prohibidas,
@@ -488,8 +518,13 @@ doscientos. Un recorte que falte cae al PNG de siempre.
   corrida no es un adorno: en la columna de la periferia hay otro objeto más
   abajo, y centrada el cartel se lo comía, o sea que la persona iba a buscar
   algo que la propia ficha le tapó; el centro es la única franja sin objetos. Si
-  ninguno entra achica la letra, y como último recurso muestra igual: una ficha
-  que no aparece es peor que una que pisa un borde. Con objetos sueltos sigue
+  ninguno entra achica la letra; si ni así, va al sitio limpio más cercano al
+  objeto, con la letra pedida (`lugarLimpioMasCercano`): pasa con las placas de
+  Petri de Química, en un rincón de abajo con el pie debajo y la cristalería
+  encima. Y como último recurso muestra igual: una ficha que no aparece es peor
+  que una que pisa un borde. `dibujarFicha` le pasa los demás objetos
+  (`otros`): hasta octubre de 2026 se perdían en el camino, y la ficha esquivaba
+  a los vecinos en las pruebas pero no en la pantalla. Con objetos sueltos sigue
   yendo al cartel ancho de arriba de la cabeza (`disponerFicha`), que es la única
   franja donde una descripción legible a dos metros no le tapa la cara ni al
   vecino.
@@ -513,6 +548,13 @@ cuadro:
 - La señal de cada mano seguía al filtro, que suelta una mano perdida de golpe:
   `crearDesvanecedorDeManos` la prende y la apaga de a poco, y la señal entera se
   apaga con el carrusel y vuelve con los objetos escondidos.
+- Al detectar a la persona las nubes se abrían en medio segundo, el humo del
+  reposo se cortaba y el espejo pasaba de dormido a nítido en un cuadro; dos
+  segundos después el humo volvía a taparlo todo. Ahora es una sola niebla: las
+  nubes siguen puestas, el humo se espesa desde el del reposo y todo se abre una
+  sola vez con la elección. Lo que se ve del humo sigue a su curva sin saltos
+  (`acercarHumo`): si alguien se va en pleno enganche, baja desde donde estaba.
+  Y el espejo se despierta y se duerme de a poco (`crearDesvanecedor`).
 - El anillo y el disco del objeto elegido se cortaban en el cuadro en que se
   completaba el sostenido: ahora se apagan con el carrusel.
 - El objeto elegido aterrizaba y en el mismo cuadro aparecían el halo entero y
