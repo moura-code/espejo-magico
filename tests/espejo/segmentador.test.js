@@ -112,6 +112,23 @@ describe('crearSegmentador', () => {
     expect(segmentador.detectar(LIENZO, 50)).toBeNull();
   });
 
+  // Cuando la silueta deja de armarse —se apaga el fondo, se pierde la pose—
+  // el ultimo cuadro no tiene por que quedar ocupando la GPU hasta la sesion
+  // siguiente.
+  it('soltar libera el ultimo cuadro y deja el modelo andando', () => {
+    const primero = resultado([{}]);
+    const persona = { nombre: 'persona' };
+    const crudo = segmentadorQueDevuelve(primero, resultado([persona]));
+    const segmentador = crearSegmentador({ segmentadorCrudo: crudo });
+
+    segmentador.detectar(LIENZO, 0);
+    segmentador.soltar();
+
+    expect(primero.cerrado).toBe(true);
+    expect(crudo.close).not.toHaveBeenCalled();
+    expect(segmentador.detectar(LIENZO, 50)).toBe(persona);
+  });
+
   it('cerrar libera el ultimo cuadro y el modelo', () => {
     const ultimo = resultado([{}]);
     const crudo = segmentadorQueDevuelve(ultimo);

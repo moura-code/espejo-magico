@@ -102,13 +102,15 @@ describe('alfaDesdeConfianza', () => {
   // todos lados y `destination-in` no recorta nada.
   it('escribe el alfa del recorte y no toca el color', () => {
     const confianza = Float32Array.from([0, 0.6, 1]);
-    const destino = new Uint8ClampedArray(3 * 4).fill(255);
+    // Un color que no es blanco: si lo pisara, aunque fuera con blanco, se nota.
+    const destino = Uint8ClampedArray.from([10, 20, 30, 99, 10, 20, 30, 99, 10, 20, 30, 99]);
     alfaDesdeConfianza(confianza, destino, Float32Array.from(confianza), tabularRecorte(RECORTE));
 
-    expect([destino[0], destino[1], destino[2], destino[3]]).toEqual([255, 255, 255, 0]);
+    expect([destino[0], destino[1], destino[2], destino[3]]).toEqual([10, 20, 30, 0]);
+    expect([destino[4], destino[5], destino[6]]).toEqual([10, 20, 30]);
     expect(destino[7]).toBeGreaterThan(120);
     expect(destino[7]).toBeLessThan(136);
-    expect([destino[8], destino[9], destino[10], destino[11]]).toEqual([255, 255, 255, 255]);
+    expect([destino[8], destino[9], destino[10], destino[11]]).toEqual([10, 20, 30, 255]);
   });
 
   it('confianza cero deja el pixel transparente, no negro', () => {

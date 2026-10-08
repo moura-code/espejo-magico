@@ -52,6 +52,13 @@ export function crearSegmentador({ segmentadorCrudo }) {
       return ultimo?.confidenceMasks?.at(-1) ?? null;
     },
 
+    /**
+     * Libera el ultimo cuadro sin cerrar el modelo. Para cuando la silueta deja
+     * de armarse: si no, esa mascara queda ocupando la GPU hasta la sesion
+     * siguiente.
+     */
+    soltar,
+
     cerrar() {
       soltar();
       segmentadorCrudo.close?.();

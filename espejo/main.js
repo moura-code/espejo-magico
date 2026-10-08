@@ -683,8 +683,12 @@ function cuadro(ahora) {
   }
   // La silueta mezcla cada mascara con la anterior. Cuando deja de armarse —sin
   // fondo, sin pose, sin nadie— la que guardaba es de otro momento, y quizas de
-  // otra persona: la proxima arranca de cero.
-  if (!lienzoDeSilueta) silueta.reiniciar();
+  // otra persona: la proxima arranca de cero. Y la ultima mascara del selfie ya
+  // no la va a leer nadie.
+  if (!lienzoDeSilueta) {
+    silueta.reiniciar();
+    segmentador?.soltar();
+  }
 
   if (tocaManos && analisis) {
     planificadorDeDetectores.registrar('manos', ahora);
