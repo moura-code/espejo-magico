@@ -76,7 +76,7 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 |---|---|
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
 | `npm run listo` | ¿Se puede montar el stand? Verifica la estructura de `contenido/carreras/`, los objetos de cada ingeniería —cinco con un fondo generado— con su nombre y descripción, el fondo activo con sus coordenadas y dónde está cada objeto adentro de la foto (su máscara, o su caja si la foto es real), el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
-| `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos y pose. |
+| `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos, pose y el segmentador selfie. |
 | `npm run escenas` | Genera el fondo de cada ingeniería con sus cinco instrumentos pintados adentro de la escena, y la máscara de cada uno. Corre local en la GPU; es un paso de autoría, no del evento. Química no: su fondo es una foto real. |
 | `npm run ubicar -- <carrera>` | Para un fondo que es una **foto real** con los objetos adentro (Química): busca el PNG de cada objeto en la foto y escribe dónde calza en el `metadata.json` del fondo. `--hoja calce.jpg` deja una imagen para mirar el calce. Sin GPU. |
 | `npm run catalogo` | Construye y genera `contenido/catalogo.json` a partir de la estructura física de carpetas. |
