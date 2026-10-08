@@ -177,7 +177,7 @@ Para corregir el nombre de una carrera o activar otro fondo se edita `contenido/
 
 ```
 npm install
-npm run vendorizar    # baja MediaPipe y el modelo de rostro. Unica vez que necesita internet.
+npm run vendorizar    # baja MediaPipe y sus modelos. Unica vez que necesita internet.
 npm test              # suite automática
 ```
 

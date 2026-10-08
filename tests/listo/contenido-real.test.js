@@ -289,6 +289,9 @@ describe('contenido real', () => {
       // evento. Por eso el semaforo los pide explicitamente.
       'vendor/mediapipe/hand_landmarker.task',
       'vendor/mediapipe/pose_landmarker_full.task',
+      // La segunda opinion de la silueta, igual de opcional y de muda: sin el,
+      // el recorte se lleva de nuevo el marco de la ventana y la silla.
+      'vendor/mediapipe/selfie_segmenter.tflite',
       'vendor/mediapipe/wasm/vision_wasm_internal.wasm',
     ]) {
       const hay = await access(resolve(RAIZ, archivo)).then(() => true, () => false);

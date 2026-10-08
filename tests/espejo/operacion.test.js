@@ -150,6 +150,21 @@ describe('formatearPanel', () => {
     expect(formatearPanel({ fps: 0, espejo: { ...espejoDePrueba, metricas: () => ({}) } }))
       .toContain('Mask read   -');
   });
+
+  // La segunda opinion de la silueta corre en el mismo hilo que los otros
+  // tres modelos: su costo se mira junto al de ellos el dia del evento.
+  it('muestra lo que cuesta el segmentador selfie', () => {
+    const texto = formatearPanel({
+      fps: 57.8,
+      espejo: {
+        ...espejoDePrueba,
+        metricas: () => ({ selfie: { ms: 0.7 }, selfieRead: { ms: 1.2 } }),
+      },
+    });
+
+    expect(texto).toContain('Selfie      0.7 ms');
+    expect(texto).toContain('Selfie read 1.2 ms');
+  });
 });
 
 describe('instalarOperacion', () => {

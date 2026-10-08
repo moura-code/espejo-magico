@@ -28,6 +28,8 @@ La instalación es una sola PC con una cámara y una pantalla. No hay red, no ha
    npm run vendorizar
    ```
    > **Nota importante:** `npm run vendorizar` copia la librería MediaPipe a `vendor/mediapipe/` y descarga los modelos visuales. **Este es el único paso en todo el proyecto que requiere conexión a Internet**.
+   >
+   > **Si la PC ya estaba preparada y se actualiza el repositorio**, puede haber un modelo nuevo (en octubre de 2026 se sumó el segmentador selfie, `selfie_segmenter.tflite`): hay que volver a correr `npm run vendorizar` **con Internet**, que sólo baja lo que falta. `npm run listo` avisa qué modelo no está. Sin él el espejo arranca igual, pero el recorte de la persona vuelve a llevarse el marco de la ventana y lo que hay sobre la mesa.
 
 3. Verificar las pruebas automáticas del sistema:
    ```bash
@@ -125,7 +127,11 @@ Estas teclas permiten al equipo del stand operar o resolver imprevistos sin inte
 1. Presionar `P` y revisar los `fps`.
 2. Si el valor es inferior a 30 FPS, cerrar otras aplicaciones abiertas en la PC.
 3. Revisar la línea `perfil`: el regulador pasa solo a `equilibrado` y `seguro` si sostiene menos de 27 FPS durante 5 s, y vuelve a subir únicamente después de 10 s por encima de 35 FPS. Si sigue en `seguro`, avisar al equipo técnico; no alterar la configuración durante el evento sin repetir la prueba completa.
-4. Como último recurso, `CONFIG.pose.segmentacion: false` apaga el recorte entero: el fondo se dibuja semitransparente encima del espejo y el espejo vuelve a ir sobrado.
+4. Antes de apagar el recorte, `CONFIG.silueta.confirmarConSelfie: false` saca su segunda opinión: un modelo menos y unos 4 ms menos por máscara (las líneas `Selfie` y `Selfie read` del panel). El recorte vuelve a llevarse lo que la persona tiene pegado, pero no parpadea.
+5. Como último recurso, `CONFIG.pose.segmentacion: false` apaga el recorte entero: el fondo se dibuja semitransparente encima del espejo y el espejo vuelve a ir sobrado.
+
+### Detrás de la persona se ve el respaldo de la silla
+El recorte deja afuera la sala, pero un respaldo pegado detrás de los hombros lo dan por persona los dos modelos que se usan, y ningún ajuste lo saca sin comerse pelo u hombros. La solución es física: **una banqueta, o una silla de respaldo bajo** que no asome por encima ni al costado de los hombros de alguien sentado.
 
 ### Nadie consigue elegir un objeto
 1. Presionar `P` y mirar la línea `manos`. Si dice `0 vistas`, la mano no se está detectando: revisar luz y encuadre (`M` muestra los puntos sobre los dedos).

@@ -27,6 +27,11 @@ const MODELOS = [
     archivo: 'pose_landmarker_full.task',
     url: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
   },
+  {
+    // La segunda opinion de la silueta (espejo/segmentador.js).
+    archivo: 'selfie_segmenter.tflite',
+    url: 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/1/selfie_segmenter.tflite',
+  },
 ];
 
 const enMb = (bytes) => (bytes / 1024 / 1024).toFixed(1) + ' MB';

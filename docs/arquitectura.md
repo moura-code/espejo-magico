@@ -60,7 +60,7 @@ seguros, y `file://` no lo es. Por eso el espejo se abre siempre por `localhost`
 
 ### 3.1. Servidor y Generador de Catálogo (`servidor/`)
 Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias de producción:** sólo importa módulos `node:`.
-- **MIMEs soportados:** HTML, JS, CSS, JSON, PNG, JPG, WebP, MP4, WASM (`application/wasm`) y `.task` (`application/octet-stream`).
+- **MIMEs soportados:** HTML, JS, CSS, JSON, PNG, JPG, WebP, MP4, WASM (`application/wasm`) y `.task` (`application/octet-stream`). Lo que no está en la tabla, como el `.tflite` del segmentador selfie, sale también como `application/octet-stream`.
 - **Cache:** `immutable` de un año para `/vendor/` (los modelos de MediaPipe, versionados y pesados); `no-cache` con ETag para todo lo demás, para que un PNG nuevo de diseño se vea sin vaciar el cache.
 - **Rangos:** soporta `Range` sobre `.mp4`, incluidos archivos de 0 bytes, que responden 200 vacío o 416 según corresponda.
 - **Generación de catálogo:** ante el arranque o si se solicita `/contenido/catalogo.json` y no existe en disco, construye y escribe el catálogo normalizado a partir de las carpetas de `contenido/carreras/`.
@@ -87,7 +87,8 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 | `vuelo.js` | El viaje del objeto agarrado desde su ranura hasta su lugar en el fondo y su flotación una vez apoyado, `lugarEnPantalla`, que pasa un lugar normalizado a la foto a la pantalla midiéndolo contra lo que se ve de ella (objetos sueltos), y `lugarEnLaFoto`, que lo pasa con la misma cuenta que la foto dibujada (objetos pintados adentro de ella). Sólo números. |
 | `escondites.js` | Los objetos del fondo: qué lugar le toca a cada uno (`lugaresDelFondo`, `esconder`), cómo se mecen los sueltos (`balanceo`) y cómo late el que está pintado adentro de la foto (`latidoDelObjeto`). Sólo números. |
 | `fichas.js` | El hover de los objetos del fondo: qué ficha está abierta y cuánto se ve cada una. Abrir pide un momento, cerrar otro más largo, y pasar de una a otra es un fundido. No sabe qué es una ingeniería ni dibuja. |
-| `silueta.js` | Traduce la máscara de MediaPipe —un byte de confianza por píxel, **sin canal alfa**— a una imagen blanca cuyo alfa es esa confianza, que es lo único que el lienzo puede usar para recortar. |
+| `silueta.js` | Traduce la máscara de MediaPipe —una confianza por píxel, **sin canal alfa**— a una imagen blanca con alfa, que es lo único que el lienzo puede usar para recortar. Antes la estabiliza: la mezcla con la máscara anterior donde el modelo duda y le sube el contraste. Y se queda con lo que también da por persona el segmentador selfie. |
+| `segmentador.js` | La segunda opinión de la silueta: el segmentador selfie de MediaPipe sobre el mismo recorte que la pose. No reemplaza a la pose, la confirma: solo recortaría a toda la fila de atrás. Opcional; si falla, la silueta sale de la pose sola. |
 | `maite.js` | El único puente saliente. Va y no vuelve, nunca lanza, no reintenta y corta a los 1,5 s. |
 | `humo.js` | Cuánto humo hay en cada momento (curva pura). Cargar el video es tarea de `videos.js`; dibujarlo, de `escena.js`. |
 | `sorteo.js` | Gestor de sorteo aleatorio con **bolsa barajada sin repetición contigua**. `siguientes(n)` entrega el orden del carrusel: todas las jugables, barajadas por sesión. |
@@ -273,13 +274,62 @@ Cuatro detalles que no son decorativos:
 
 ### 5.3. El fondo detrás de la persona (`espejo/silueta.js`)
 
-La máscara de segmentación de MediaPipe viene como **un byte de confianza por
-píxel, sin canal alfa**. Dibujada tal cual, el lienzo la ve opaca en todos lados
-y `destination-in` no recorta nada. `silueta.js` la traduce a una imagen blanca
-cuyo canal alfa **es** esa confianza, y con eso recortar la persona del espejo
-para meter el fondo atrás es una sola operación del lienzo.
+La máscara de segmentación de MediaPipe viene como **una confianza por píxel,
+sin canal alfa**. Dibujada tal cual, el lienzo la ve opaca en todos lados y
+`destination-in` no recorta nada. `silueta.js` la traduce a una imagen blanca
+con alfa, y con eso recortar la persona del espejo para meter el fondo atrás es
+una sola operación del lienzo.
 
-El borde queda suave porque la confianza también lo es, y eso es deseado: un
+**La confianza no va directo al alfa.** Lo que el modelo no sabe si es persona
+—el respaldo de la silla, el marco de una ventana, la mesa— no le sale ni 0 ni
+1: le sale 0,2 en una máscara y 0,8 en la siguiente. Usada tal cual de alfa, es
+la sala real a medio dibujar detrás de la persona y parpadeando veinte veces por
+segundo; medido con un video de una persona sentada, treinta de cada mil píxeles
+iban y volvían entre una máscara y la siguiente. Con dos pasos, en este orden,
+quedan dos (`CONFIG.silueta`):
+
+1. **Mezcla con la máscara anterior, sólo donde el modelo duda.** Es el
+   `SegmentationSmoothingCalculator` de MediaPipe —su polinomio de
+   incertidumbre, que vale 1 en 0,5 y 0 en las puntas—, que la API vieja
+   aplicaba con `smoothSegmentation` y el `PoseLandmarker` de la nueva no
+   expone. Lo seguro pasa en la misma máscara: una mano que entra o sale no deja
+   estela.
+2. **Contraste.** Una curva suave: debajo de `transparenteHasta` no se dibuja
+   nada, desde `opacaDesde` la persona es entera —sin el fondo
+   transparentándose a través de la ropa oscura— y en el medio queda el borde.
+   Sola, sin la mezcla, la curva agranda el parpadeo del borde en vez de
+   sacarlo.
+
+**Y antes de esos dos pasos, una segunda opinión** (`segmentador.js`). Lo que la
+pose da por persona con confianza alta —un marco de ventana pegado al pelo, los
+papeles de la mesa, la cristalería delante— queda quieto pero adentro, y eso no
+lo saca ningún posprocesado. El segmentador «selfie» de MediaPipe, entrenado
+con gente sentada frente a una cámara, lo deja afuera; corre sobre el mismo
+recorte de análisis y en el mismo cuadro que la pose, así que las dos máscaras
+caen píxel sobre píxel, y de cada píxel se toma el menor de los dos. Solo no
+sirve —recorta a todas las personas del cuadro, y la fila de atrás quedaría
+pegada sobre el fondo; en vertical se lleva la mesa entera—: por eso confirma a
+la pose y no la reemplaza. Sólo se pide cuando hay una máscara de la pose que
+confirmar.
+
+Dos resguardos. Si el selfie confirma menos de `CONFIG.silueta.confirmacionMinima`
+de lo que ve la pose (se mira uno de cada siete píxeles), se le cree a la pose
+sola: un cuadro en que el selfie falla borraría a la persona y dejaría el fondo
+sin nadie delante. Y si no carga o un cuadro lanza, la silueta sale de la pose
+sola, como antes. Las manos quedan enteras —probado saludando, señalando y con
+el brazo estirado—, que es lo que no se podía perder: el objeto que la mano toca
+se dibuja delante recortado contra esta misma silueta.
+
+Lo que sigue adentro es **el respaldo de una silla pegado detrás de los
+hombros**: los dos modelos lo dan por persona, y el multiclase de MediaPipe
+tampoco lo separa limpio. Eso se resuelve en el stand, con una banqueta o una
+silla de respaldo bajo.
+
+Cuando la silueta deja de armarse —sin fondo, sin pose, sin nadie— `main.js` la
+reinicia: la primera máscara de la persona siguiente no se mezcla con la de la
+anterior.
+
+El borde queda suave porque la curva también lo es, y eso es deseado: un
 recorte de borde duro delata el truco, uno difuso se lee como profundidad.
 
 La máscara *es* la imagen mientras hay fondo, así que la pose sube de 12 a
@@ -575,7 +625,7 @@ La cámara es apaisada (16:9) y el espejo es vertical (9:16), así que el video 
 
 MediaPipe achica lo que le entra a un cuadro chico y fijo antes de correr el modelo. Darle el cuadro completo gastaba dos tercios de esa resolución en píxeles invisibles, y eso —no la resolución de la cámara— es lo que ponía el techo a la distancia de reconocimiento. Subir la cámara a 1080p no habría cambiado nada: el modelo achica igual.
 
-Por eso `main.js` mantiene un lienzo de análisis con exactamente el recorte visible (`CONFIG.deteccion.altoAnalisis`) y se lo pasa a los tres detectores. Una cara lejana pasa a ocupar el triple del ancho analizado. Dos consecuencias más:
+Por eso `main.js` mantiene un lienzo de análisis con exactamente el recorte visible (`CONFIG.deteccion.altoAnalisis`) y se lo pasa a los tres detectores —y al segmentador selfie, que confirma la silueta—. Una cara lejana pasa a ocupar el triple del ancho analizado. Dos consecuencias más:
 
 - El mapeo se simplifica: los puntos vienen normalizados sobre el recorte, que es la pantalla, así que el rectángulo de mapeo es la pantalla entera.
 - Una mano fuera de cuadro deja de generar un atractor invisible: si no se ve, no interactúa.
@@ -584,7 +634,7 @@ El recorte se prepara **una vez por cuadro** y sólo si algún detector va a cor
 
 ### Presupuestos
 - Cada detector corre en su propio reloj, independiente del dibujo. Los perfiles `completo`, `equilibrado` y `seguro` reducen rostro, manos y pose de forma coordinada; con fondo usan sus frecuencias específicas. Las manos sólo se buscan durante `EXPLORACION`, que es cuando hacen algo, y durante un sostenido vuelven temporalmente a **34 FPS** aunque el perfil activo sea inferior. Los tres modelos empiezan escalonados para no concentrar el pico inicial. `rendimiento` decide con una media móvil de 2 s: baja tras 5 s por debajo de 27 FPS y recupera sólo después de 10 s por encima de 35 FPS. Ignora el throttling de pestañas ocultas y no cambia de perfil mientras el anillo está activo. El perfil actual queda visible con `P`.
-- La lectura de la máscara de segmentación cuesta un viaje de la GPU a la CPU, así que **sólo se arma cuando hay fondo** que meterle atrás a la persona.
+- La lectura de la máscara de segmentación cuesta un viaje de la GPU a la CPU, así que **sólo se arma cuando hay fondo** que meterle atrás a la persona. Y se lee en flotantes: pedida en bytes, MediaPipe la convierte en JavaScript, y medido en Chrome a 1476×720 la lectura pasó de 15 a 2 ms. El suavizado y la curva van tabulados y en una sola pasada. El segmentador selfie agrega menos de 1 ms de modelo y unos 3 ms de lectura de su máscara, sólo en los cuadros de la pose con fondo; el recorte entero queda en ~10 ms por máscara en apaisado (eran 18 antes de leer en flotantes) y ~7,5 ms en vertical.
 - Renderizado con tope de **60 FPS** (`CONFIG.render.fpsMaximo`). En una pantalla de 144 o 240 Hz, dibujar todos los cuadros es calor y consumo sin beneficio visible.
 - Los objetos en pantalla son a lo sumo **seis** en el carrusel, girando a 8°/s, y **cuatro** en el fondo: el rendimiento no depende de cuánto tiempo lleve alguien sentado. Las fichas miden su texto sólo mientras se ven.
 - El salto de reloj del sostenido se acota a 250 ms: si el navegador se traba un instante, un salto grande completaría un sostenido que nadie hizo.

@@ -226,6 +226,45 @@ export const CONFIG = {
     segmentacion: true,
   },
 
+  // Como se recorta a la persona con la mascara de la pose (silueta.js). La
+  // confianza del modelo NO va directo al alfa: lo que no sabe si es persona
+  // —el respaldo de la silla, el marco de una ventana— le sale a medias y
+  // saltando de una mascara a la otra, y usada tal cual es la sala real
+  // parpadeando detras de la persona.
+  silueta: {
+    // Cuanto se queda de la mascara anterior donde el modelo duda: el
+    // `combine_with_previous_ratio` de MediaPipe, que usaba 0,7 con la camara a
+    // 30 cuadros por segundo; la pose corre a 20 o menos. Solo donde duda: lo
+    // seguro pasa en la misma mascara y una mano que entra no se arrastra. Con
+    // 0,7 quedaba el doble de idas y vueltas; con 0,9 mejora poco y lo dudoso
+    // tarda mas en acomodarse cuando la persona se mueve.
+    mezcla: 0.85,
+
+    // Y despues, contraste. Debajo de `transparenteHasta` no se dibuja nada:
+    // lo que el modelo vio a medias. Desde `opacaDesde` la persona es entera,
+    // sin el fondo transparentandose a traves de la ropa oscura. En el medio,
+    // el borde suave. Un poco arriba de 0,5 a proposito: ante la duda, mejor
+    // sin la silla que con ella. Bajando el primero vuelve el halo de la sala
+    // alrededor del pelo; subiendo el segundo, lo fino —mechones, dedos— se
+    // transparenta.
+    transparenteHasta: 0.4,
+    opacaDesde: 0.8,
+
+    // LA SEGUNDA OPINION (segmentador.js). La pose se lleva lo que la persona
+    // tiene pegado —el marco de una ventana junto al pelo, los papeles de la
+    // mesa— con confianza alta, y eso ningun suavizado lo saca. Con esto, un
+    // pixel es persona solo si el segmentador selfie de MediaPipe tambien lo
+    // ve. Es un modelo mas en el mismo hilo, alrededor de 1 ms con la GPU
+    // (mirarlo con el panel, P). En false, la silueta sale de la pose sola.
+    confirmarConSelfie: true,
+
+    // Salvo que el selfie no vea a la persona: si confirma menos de esta
+    // fraccion de lo que la pose ve, se le cree a la pose sola. Sin esto, un
+    // cuadro en que el selfie falla —mala luz, alguien lejos— borraria a la
+    // persona entera y quedaria el fondo sin nadie adelante.
+    confirmacionMinima: 0.5,
+  },
+
   // El sostenido: como se elige un objeto sin tocar nada.
   //
   // El plazo es el equilibrio entre elegir sin querer al pasar la mano (corto de

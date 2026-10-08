@@ -29,6 +29,7 @@ import { crearMaquina, ESTADOS } from './maquina-estados.js';
 import { crearEleccion } from './eleccion.js';
 import { crearTablero } from './tablero.js';
 import { crearSilueta } from './silueta.js';
+import { crearSegmentadorMediaPipe } from './segmentador.js';
 import { posicionEnVuelo } from './vuelo.js';
 import {
   aspectoDelObjeto,
@@ -285,6 +286,18 @@ try {
   console.warn('Deteccion de pose no disponible:', error);
 }
 
+// La segunda opinion de la silueta: un pixel es persona si lo ven la pose y el
+// segmentador selfie. Sin la mascara de la pose no hay silueta que confirmar;
+// si el selfie no carga, la silueta sale de la pose sola.
+let segmentador = null;
+if (detectorDePose && CONFIG.pose.segmentacion && CONFIG.silueta.confirmarConSelfie) {
+  try {
+    segmentador = await crearSegmentadorMediaPipe({ base: '/vendor/mediapipe' });
+  } catch (error) {
+    console.warn('Segmentador selfie no disponible: la silueta sale de la pose sola.', error);
+  }
+}
+
 const sintetica = crearFuenteSintetica();
 const filtro = crearFiltroRostro(CONFIG.suavizado);
 const filtroDeManos = crearFiltroDeManos(CONFIG.manos.suavizado);
@@ -331,6 +344,7 @@ const fichas = crearFichas(CONFIG.fichas);
 const silueta = crearSilueta({
   crearLienzo: () => document.createElement('canvas'),
   medir: metricas.medir,
+  ...CONFIG.silueta,
 });
 
 // Las escenas vectoriales de cada ingenieria, el respaldo cuando falta el PNG
@@ -537,6 +551,15 @@ const intervaloDibujo = 1000 / CONFIG.render.fpsMaximo - CONFIG.render.margenMs;
 const conFondo = (estado, hayCarrera) =>
   Boolean(hayCarrera) && (estado === ESTADOS.EXPLORACION || estado === ESTADOS.CIERRE);
 
+// La segunda opinion sobre que es persona, del mismo recorte y en el mismo
+// cuadro que la pose, para que las dos mascaras caigan pixel sobre pixel. Solo
+// se pide si hay una mascara de la pose que confirmar: sin ella no hay silueta,
+// y el selfie solo recortaria tambien a la fila de atras.
+const confirmarPersona = (fuente, ahora, poseActual) =>
+  segmentador && poseActual?.mascara
+    ? metricas.medir('selfie', () => segmentador.detectar(fuente, ahora))
+    : null;
+
 function cuadro(ahora) {
   requestAnimationFrame(cuadro);
 
@@ -641,7 +664,7 @@ function cuadro(ahora) {
     // La silueta cuesta una lectura de la GPU a la CPU, asi que solo se arma
     // cuando hay fondo que meterle atras a la persona.
     lienzoDeSilueta = conFondo(estadoAnterior, mostrada)
-      ? silueta.actualizar(pose?.mascara)
+      ? silueta.actualizar(pose?.mascara, confirmarPersona(analisis, ahora, pose))
       : null;
   } else if (!poseSirve) {
     pose = null;
@@ -657,6 +680,14 @@ function cuadro(ahora) {
     rostro = null;
     pose = null;
     lienzoDeSilueta = null;
+  }
+  // La silueta mezcla cada mascara con la anterior. Cuando deja de armarse —sin
+  // fondo, sin pose, sin nadie— la que guardaba es de otro momento, y quizas de
+  // otra persona: la proxima arranca de cero. Y la ultima mascara del selfie ya
+  // no la va a leer nadie.
+  if (!lienzoDeSilueta) {
+    silueta.reiniciar();
+    segmentador?.soltar();
   }
 
   if (tocaManos && analisis) {
