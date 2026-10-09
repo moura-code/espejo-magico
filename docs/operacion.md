@@ -19,8 +19,8 @@ Guía para el equipo que atiende el stand. No hace falta saber programar.
    pared—, y pasar la mano sobre cada uno: el objeto se levanta de la foto,
    se ilumina y aparece su ficha debajo. Ver que las tablets cambien,
    levantarse y ver que las nubes vuelvan. Sentarse
-   **donde se va a sentar la gente**: desde ahí la mano tiene que llegar a los
-   cinco objetos del fondo sin pararse, y la cara tiene que quedar en la mitad
+   **donde se va a sentar la gente**: desde ahí la mano tiene que llegar a todos
+   los objetos del fondo sin pararse, y la cara tiene que quedar en la mitad
    de arriba del espejo. Si no llega a los de arriba, o la cara queda más abajo,
    avisar al equipo técnico: se sube la cámara o se bajan los objetos.
 
@@ -72,10 +72,21 @@ eso: apretar `M` y ver si aparecen los puntos sobre la cara.
 
 **Al siguiente le tocó la escena del anterior, o entró en el medio de una que ya
 estaba.**
-Se sentó demasiado rápido. El espejo espera unos nueve segundos sin ver a nadie
-antes de cerrar la sesión. La regla para la fila es simple: **que el siguiente se
-siente recién cuando las nubes hayan vuelto a tapar la pantalla.** Si hay apuro,
-apretar `R` en la PC corta la sesión al instante.
+Se sentó demasiado rápido, o el anterior seguía a la vista. El espejo sostiene la
+sesión mientras vea a la persona —la cara o el cuerpo, para no cortársela a quien
+gira la cabeza— y la cierra recién unos nueve segundos después de no ver a nadie.
+La regla para la fila es simple: **que el siguiente se siente recién cuando las
+nubes hayan vuelto a tapar la pantalla.** Si hay apuro, apretar `R` en la PC
+corta la sesión al instante y arranca la del que se sentó.
+
+**Alguien se queda mucho rato y la fila no avanza.**
+El espejo no tiene apuro: cada persona se queda lo que quiera, para elegir y
+para mirar su ingeniería, y la sesión termina cuando se levanta. Si hace falta
+liberarlo, apretar `ESPACIO` en la PC: la escena se cierra y el espejo no vuelve a
+arrancar con esa persona sentada; arranca de nuevo cuando se levante y se siente
+el siguiente. Si la escena sigue puesta sin nadie delante, la cámara está viendo
+una cara donde no hay nadie (un póster, el respaldo de una silla): `ESPACIO`, y
+sacar o tapar lo que la confunde.
 
 **Los objetos desaparecieron y la persona quiere probar otra.**
 Es como funciona: **se elige una sola vez**. La ingeniería que le tocó se queda
@@ -83,10 +94,11 @@ puesta hasta que se levanta, y el que sigue en la fila arranca de cero. Si
 alguien insiste, que se vuelva a sentar cuando las nubes hayan tapado la
 pantalla. Desde la PC, las teclas de números fuerzan cualquier ingeniería en
 cualquier momento. Mientras tanto hay algo para hacer: en el fondo de su
-ingeniería hay cinco objetos escondidos adentro de la escena, y pasando la mano
-sobre cada uno se levanta de la foto y se abre su ficha. Están donde uno los
-esperaría —sobre una mesada, en un estante— y hay que encontrarlos: es parte de
-la propuesta.
+ingeniería hay objetos escondidos adentro de la escena —cinco en la mayoría; en
+las cinco que tienen una foto real del laboratorio o del taller, los que están
+en la foto, y en Naval uno solo—, y pasando la mano sobre cada uno se levanta de
+la foto y se abre su ficha. Están donde uno los esperaría —sobre una mesada, en
+un estante— y hay que encontrarlos: es parte de la propuesta.
 
 **No pasa nada al poner la mano sobre un objeto.**
 Si el carrusel ya se había apagado, la persona ya eligió y la mano ahora abre las

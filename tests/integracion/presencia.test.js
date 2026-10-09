@@ -46,9 +46,9 @@ function correr({ hayRostroEn, hayPoseEn = hayRostroEn, hasta, paso = 50, elegir
     });
     registrar(salida);
 
-    // Estas pruebas buscan tolerancia de presencia, no la salida de la fila.
-    // Para que esa segunda red no las corte a los 30 s, una visita completada
-    // simula la elección normal apenas aparece el carrusel.
+    // Una visita completada simula la elección normal apenas aparece el
+    // carrusel: estas pruebas buscan tolerancia de presencia, y con una
+    // carrera elegida la sesion es la de cualquier persona que se sienta.
     if (elegir && maquina.estado() === ESTADOS.EXPLORACION && maquina.carrera() === null) {
       registrar(maquina.mirar('civil', ahora));
     }
@@ -90,22 +90,36 @@ describe('estabilidad de la sesion', () => {
     expect(visitados).toContain(ESTADOS.EXPLORACION);
   });
 
-  // El tope de sesion es una red de seguridad, no un temporizador de la
-  // experiencia. Si le corta la escena a alguien que la esta disfrutando, esta
-  // mal puesto.
-  it('quien se queda sentado y bien detectado conserva su exploracion varios minutos', () => {
-    const { visitados, maquina } = correr({ hayRostroEn: () => true, hasta: 150000, elegir: true });
+  // SIN PLAZOS: la persona se queda lo que quiera. Lo que cierra la sesion es
+  // que se vaya, no un reloj.
+  it('quien se queda sentado y bien detectado conserva su exploracion todo lo que quiera', () => {
+    const { visitados, maquina } = correr({
+      hayRostroEn: () => true,
+      hasta: 30 * 60 * 1000,
+      paso: 250,
+      elegir: true,
+    });
 
     expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
     expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
   });
 
-  // Pero la red de seguridad tiene que seguir existiendo: si la deteccion se
-  // queda trabada en verdadero (un poster, un respaldo de silla), el espejo no
-  // puede quedarse en escena para siempre.
-  it('el tope de sesion sigue estando para una deteccion trabada', () => {
-    const { visitados } = correr({ hayRostroEn: () => true, hasta: 600000, paso: 250 });
-    expect(cuantos(visitados, ESTADOS.CIERRE)).toBeGreaterThan(0);
+  // Y para elegir, tampoco hay apuro: quien se sienta y no agarra nada sigue
+  // con el carrusel delante. El espejo no le adjudica una ingenieria ni lo
+  // echa. La contracara, a proposito: si la deteccion se queda trabada en
+  // verdadero (un poster, un respaldo de silla), el espejo queda en escena
+  // hasta que el equipo del stand la cierre con ESPACIO.
+  it('quien no agarra nada sigue con el carrusel, sin recibir una ingenieria', () => {
+    const { maquina, visitados, miradas } = correr({
+      hayRostroEn: () => true,
+      hasta: 30 * 60 * 1000,
+      paso: 250,
+    });
+
+    expect(visitados).toContain(ESTADOS.EXPLORACION);
+    expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
+    expect(miradas).toHaveLength(0);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
   });
 
   // La otra punta, y es la que hace que la fila avance: cuando alguien se va, el
@@ -136,48 +150,58 @@ describe('estabilidad de la sesion', () => {
     expect(cuantos(visitados, ESTADOS.HUMO)).toBe(2);
   });
 
-  // La otra red de seguridad de la fila: quien se sienta y no entiende el gesto
-  // no puede dejar el espejo tomado hasta el tope de sesion, tres minutos
-  // despues. Pero el sistema tampoco puede adjudicarle una ingeniería.
-  it('quien no agarra nada libera el espejo sin recibir una ingenieria', () => {
-    const { maquina, visitados, miradas } = correr({ hayRostroEn: () => true, hasta: 60000 });
+  // LA SESION NO SE CORTA CON LA PERSONA AHI. Mientras se vea su cuerpo, que
+  // no se reconozca la cara —la cabeza girada hacia las tablets, la mano
+  // delante de la cara al elegir, mala luz— no le termina la experiencia.
+  // Antes la cara era lo unico que la sostenia, y se cortaba a los seis
+  // segundos con la persona sentada delante.
+  it('con el cuerpo a la vista, perder la cara no corta la sesion', () => {
+    const SIN_CARA = 20000;
+    const { visitados, maquina } = correr({
+      hayRostroEn: (ahora) => ahora < SIN_CARA,
+      hayPoseEn: () => true,
+      hasta: 10 * 60 * 1000,
+      paso: 100,
+      elegir: true,
+    });
 
-    expect(visitados).toContain(ESTADOS.EXPLORACION);
-    expect(miradas).toHaveLength(0);
-    expect(maquina.carrera()).toBeNull();
-    expect(cuantos(visitados, ESTADOS.CIERRE)).toBeGreaterThan(0);
+    expect(cuantos(visitados, ESTADOS.CIERRE)).toBe(0);
+    expect(maquina.estado()).toBe(ESTADOS.EXPLORACION);
+    expect(maquina.carrera()).toBe('civil');
   });
 
-  // LO QUE PIDIO EL STAND: cuando el espejo deja de reconocer una cara, vuelve a
-  // su pantalla inicial. Antes los hombros sostenian la sesion con la cara
-  // girada, y alguien que se iba de costado se llevaba el espejo con el.
-  it('perder la cara devuelve el espejo a la pantalla inicial, aunque quede el cuerpo', () => {
-    const SE_VA = 20000;
+  // Y cuando no se ve ni la cara ni el cuerpo, se fue: el espejo lo suelta
+  // rapido, igual que siempre.
+  it('quien se va del todo libera el espejo aunque hubiera perdido la cara antes', () => {
+    const SIN_CARA = 20000;
+    const SE_VA = 40000;
     const { entradas } = correr({
-      hayRostroEn: (ahora) => ahora < SE_VA,
-      // El cuerpo se sigue viendo todo el tiempo: no alcanza para sostenerla.
-      hayPoseEn: () => true,
-      hasta: 60000,
+      hayRostroEn: (ahora) => ahora < SIN_CARA,
+      hayPoseEn: (ahora) => ahora < SE_VA,
+      hasta: 70000,
       elegir: true,
     });
 
     const vuelta = entradas.find((e) => e.estado === ESTADOS.ATRACCION);
     expect(vuelta).toBeDefined();
+    expect(vuelta.ahora).toBeGreaterThan(SE_VA);
     expect(vuelta.ahora - SE_VA).toBeLessThanOrEqual(10000);
   });
 
-  // EL RELEVO DE LA FILA, que es la otra mitad de lo anterior: volver a la
-  // pantalla inicial no sirve de nada si despues no arranca con el que sigue.
-  // Entre una persona y la otra el cuerpo NUNCA se deja de ver —el que se
-  // levanta todavia esta en cuadro cuando el que sigue se sienta—, asi que la
-  // ausencia que rearma la maquina no se observa jamas: el espejo se quedaba
-  // en la pantalla de espera con alguien sentado enfrente, para siempre.
-  it('el que sigue en la fila arranca su sesion aunque el cuerpo nunca se deje de ver', () => {
+  // EL RELEVO DE LA FILA: volver a la pantalla inicial no sirve de nada si
+  // despues no arranca con el que sigue. Cuando el que se fue dejo de verse del
+  // todo, el que se sienta recibe su propio sorteo sin esperar otra ausencia.
+  //
+  // EL LIMITE, a proposito: el cuerpo tambien sostiene la sesion, asi que si el
+  // que sigue se sienta mientras al que se levanta todavia se lo ve, hereda su
+  // sesion. Se prefirio eso a cortarle la experiencia a quien sigue sentado con
+  // la cara girada; el equipo del stand lo resuelve con R (docs/operacion.md).
+  it('el que sigue en la fila arranca su sesion cuando el anterior dejo de verse', () => {
     const SE_VA = 20000;
     const LLEGA = 34000; // ya volvio al reposo y paso el enfriamiento
     const { visitados, maquina } = correr({
       hayRostroEn: (ahora) => ahora < SE_VA || ahora >= LLEGA,
-      hayPoseEn: () => true,
+      hayPoseEn: (ahora) => ahora < SE_VA || ahora >= LLEGA,
       hasta: 60000,
       elegir: true,
     });
@@ -203,12 +227,10 @@ describe('estabilidad de la sesion', () => {
     expect(visitados).toContain(ESTADOS.EXPLORACION);
   });
 
-  // La red de la fila tiene que ser comoda para leer cinco objetos y decidir,
-  // pero no tanto como para que la fila se pare. Y por debajo del humo no
-  // tendria sentido: la exploracion empezaria vencida.
-  it('la red de la fila deja tiempo de decidir sin frenarla', () => {
-    expect(CONFIG.tiempos.eleccionMaxima).toBeGreaterThan(CONFIG.tiempos.humo);
-    expect(CONFIG.tiempos.eleccionMaxima).toBeGreaterThanOrEqual(15000);
-    expect(CONFIG.tiempos.eleccionMaxima).toBeLessThan(CONFIG.tiempos.sesionMaxima / 2);
+  // El tope del enganche no es un plazo para la persona —la experiencia todavia
+  // no empezo—, y tiene que quedar muy por encima de lo que tarda engancharse
+  // de verdad, para no cortarle el arranque a nadie.
+  it('el tope del enganche deja engancharse con holgura', () => {
+    expect(CONFIG.tiempos.engancheMaximo).toBeGreaterThanOrEqual(10 * CONFIG.tiempos.enganche);
   });
 });

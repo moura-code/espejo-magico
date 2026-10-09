@@ -42,7 +42,6 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
   let ausenteDesde = null;
   let rostroAusenteDesde = null;
   let rostroContinuoDesde = null;
-  let inicioDeSesion = null;
   let finDeCierre = null;
   let opciones = [];
   let carrera = null;
@@ -64,7 +63,6 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       opciones = [];
       carrera = null;
       miraDesde = null;
-      inicioDeSesion = null;
       contada = false;
       ayudaDeEleccionEnviada = false;
     }
@@ -116,10 +114,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       const eventos = [];
       const proximo = SIGUIENTE[estado];
 
-      if (proximo === ESTADOS.ENGANCHE) {
-        inicioDeSesion = ahora;
-        listaParaNuevaSesion = false;
-      }
+      if (proximo === ESTADOS.ENGANCHE) listaParaNuevaSesion = false;
       if (proximo === ESTADOS.HUMO) opciones = sortearOpciones();
       // En manual no hay enfriamiento: si apreto el boton, quiero que arranque.
       if (proximo === ESTADOS.ATRACCION) finDeCierre = null;
@@ -154,18 +149,7 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
       return salida(eventos);
     },
 
-    /**
-     * `eligiendo` es "hay un sostenido en curso": la maquina no sabe que es una
-     * mano, pero si necesita saber que alguien esta en la mitad de un gesto para
-     * no cortarselo. Solo lo usa la red de la fila.
-     */
-    actualizar({
-      hayRostro,
-      puedeIniciar = hayRostro,
-      hayPersona = hayRostro,
-      eligiendo = false,
-      ahora,
-    }) {
+    actualizar({ hayRostro, puedeIniciar = hayRostro, hayPersona = hayRostro, ahora }) {
       const eventos = [];
 
       if (hayPersona) ausenteDesde = null;
@@ -179,16 +163,17 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
 
       const seFue =
         !hayPersona && ausenteDesde !== null && ahora - ausenteDesde >= tiempos.ausenciaParaCortar;
-      // EL ROSTRO ES LO QUE SOSTIENE LA SESION. Los hombros ya no alcanzan: en
-      // cuanto la cara deja de reconocerse, y pasado el colchon que perdona un
-      // giro de cabeza, el espejo vuelve a su pantalla inicial y queda libre
-      // para el que sigue en la fila.
+      // EL ROSTRO ARRANCA, Y EL CUERPO TAMBIEN SOSTIENE. Sin cara no se engancha
+      // —un cuerpo de fondo no puede destapar el espejo—, pero una vez adentro
+      // de la experiencia la sesion sigue mientras se vea la cara o el cuerpo:
+      // cortarla en cuanto la cara dejaba de reconocerse le terminaba la
+      // experiencia a quien seguia sentado, con la cabeza girada o la mano
+      // delante de la cara al elegir. Lo que la corta es `seFue`: ni cara ni
+      // cuerpo. La perdida de la cara sola solo cuenta en el enganche.
       const sePerdioElRostro =
         !puedeIniciar &&
         rostroAusenteDesde !== null &&
         ahora - rostroAusenteDesde >= tiempos.ausenciaParaCortar;
-      const pasoElTope =
-        inicioDeSesion !== null && ahora - inicioDeSesion >= tiempos.sesionMaxima;
       const transcurrido = ahora - desde;
 
       /**
@@ -219,7 +204,6 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
           if (finDeCierre !== null && ahora - finDeCierre < tiempos.enfriamiento) break;
           if (puedeIniciar && listaParaNuevaSesion) {
             listaParaNuevaSesion = false;
-            inicioDeSesion = ahora;
             ir(ESTADOS.ENGANCHE, ahora, eventos);
           }
           break;
@@ -229,12 +213,12 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
         // cuando la ausencia es real y sostenida; mientras tanto no se levanta
         // el humo frente a un lugar vacio.
         case ESTADOS.ENGANCHE:
-          // El tope de sesion tambien vigila el enganche. Un rostro que aparece
-          // y desaparece nunca junta los dos segundos continuos que hacen falta
-          // para arrancar, y como la persona esta ahi tampoco acumula la ausencia
-          // que corta: sin esto el espejo se queda destapado y quieto, que es
-          // justo lo que la red de seguridad del stand existe para evitar.
-          if (pasoElTope) {
+          // Un rostro que aparece y desaparece nunca junta los dos segundos
+          // continuos que hacen falta para arrancar, y como la persona esta ahi
+          // tampoco acumula la ausencia que corta: sin un tope el espejo se
+          // queda trabado en el enganche. No es un plazo para la persona: la
+          // experiencia todavia no empezo.
+          if (transcurrido >= tiempos.engancheMaximo) {
             ir(ESTADOS.ATRACCION, ahora, eventos);
             break;
           }
@@ -258,38 +242,27 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
           break;
 
         case ESTADOS.HUMO:
-          if (seFue || sePerdioElRostro) liberar(ESTADOS.CIERRE);
-          else if (pasoElTope) ir(ESTADOS.CIERRE, ahora, eventos);
+          if (seFue) liberar(ESTADOS.CIERRE);
           else if (transcurrido >= tiempos.humo) ir(ESTADOS.EXPLORACION, ahora, eventos);
           break;
 
-        // La exploracion no tiene duracion propia: dura mientras la persona
-        // siga sentada, mirando la ingenieria que eligio. Si no entiende el
-        // gesto, primero recibe una ayuda y despues el espejo se libera: no se
-        // le puede asignar una carrera al azar.
+        // La exploracion no tiene duracion propia ni tope: la persona se queda
+        // lo que quiera, para elegir y para mirar la ingenieria que eligio. Lo
+        // que la termina es que se vaya. Si no entiende el gesto, se le repite
+        // la consigna una vez, y nada mas: no se le asigna una carrera al azar
+        // ni se libera el espejo.
         case ESTADOS.EXPLORACION:
-          if (seFue || sePerdioElRostro) {
+          if (seFue) {
             liberar(ESTADOS.CIERRE);
-            break;
-          }
-          if (pasoElTope) {
-            ir(ESTADOS.CIERRE, ahora, eventos);
             break;
           }
           if (
             carrera === null &&
             !ayudaDeEleccionEnviada &&
-            transcurrido >= (tiempos.ayudaEleccion ?? tiempos.eleccionMaxima)
+            transcurrido >= tiempos.ayudaEleccion
           ) {
             ayudaDeEleccionEnviada = true;
             eventos.push({ tipo: 'ayuda-eleccion' });
-          }
-
-          // La red no se le cae encima a quien esta en la mitad del sostenido.
-          // Al vencer sin una carrera elegida, el cierre libera el espejo sin
-          // inventar una eleccion por la persona.
-          if (carrera === null && !eligiendo && transcurrido >= tiempos.eleccionMaxima) {
-            ir(ESTADOS.CIERRE, ahora, eventos);
           }
           break;
 
@@ -306,7 +279,6 @@ export function crearMaquina({ tiempos, sortearOpciones, manual = false }) {
 
     forzarCarrera(id, ahora) {
       const eventos = [];
-      inicioDeSesion = ahora;
       finDeCierre = null;
       ausenteDesde = null;
       rostroAusenteDesde = null;

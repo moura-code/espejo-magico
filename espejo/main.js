@@ -717,9 +717,6 @@ function cuadro(ahora) {
     maquina.actualizar({
       puedeIniciar: hayRostroEstable,
       hayPersona,
-      // Con un sostenido en curso la red de la fila espera: cerrarle la eleccion
-      // a alguien que tiene la mano puesta seria robarle el gesto.
-      eligiendo: progresoDeEleccion > 0,
       ahora,
     }),
     ahora,

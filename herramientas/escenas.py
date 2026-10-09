@@ -30,8 +30,8 @@ imagen: superficie debajo, aire arriba y tono medio (un objeto de vidrio sobre
 una alacena blanca no lo encuentra nadie; ya nos paso).
 
 USO
-    python herramientas/escenas.py                # las doce
-    python herramientas/escenas.py naval civil    # solo esas
+    python herramientas/escenas.py                # todas las que se generan
+    python herramientas/escenas.py civil forestal # solo esas
     python herramientas/escenas.py --hoja         # rearma la hoja de contacto
     python herramientas/escenas.py --revisar      # que objetos no estan pintados
     python herramientas/escenas.py --repintar --solo electrica:motor-trifasico,...
@@ -131,9 +131,10 @@ NEGATIVO = ('person, people, face, text, watermark, logo, clutter, crowded, '
 #
 # El id de cada objeto es su carpeta en contenido/carreras/<id>/objetos/.
 #
-# QUIMICA NO ESTA: su fondo es una foto real del laboratorio, con los objetos
-# fotografiados adentro, y no se genera. Donde esta cada uno lo escribe
-# herramientas/ubicar.py. Generarla aca le pondria otra escena encima.
+# LAS DE FOTO REAL NO ESTAN: Quimica, Alimentos, Computacion, Mecanica y Naval
+# tienen de fondo una foto de verdad, con los objetos fotografiados adentro, y
+# no se generan. Donde esta cada uno lo escribe herramientas/ubicar.py.
+# Generarlas aca les pondria otra escena encima.
 GUIONES = {
     'agrimensura': {
         'escena': 'surveying instrument storage room interior, tall grey metal shelving units with empty shelves along both side walls up to the ceiling, workbenches below, cool daylight',
@@ -143,23 +144,6 @@ GUIONES = {
             ('receptor-gnss', 'a black GNSS survey antenna on a short metal pole, mounted under the ceiling'),
             ('estacion-total', 'a yellow and grey total station survey instrument with a keypad, on a yellow tripod on the floor'),
             ('mira-estadal', 'a tall white levelling staff rod with black and red E-shaped markings and numbers, leaning against the shelving'),
-        ],
-    },
-    'alimentos': {
-        # La cocina de acero de antes se comia todo: acero sobre acero, y lo de
-        # arriba al centro quedaba pegado al techo. Estantes de madera, mesadas
-        # gris oscuro y techo oscuro con las luces a los costados.
-        'escena': 'food science laboratory interior, white tiled walls, open light wooden shelves '
-                  'with empty shelves along both side walls, dark grey lab benches below, dark '
-                  'ceiling with lights along the side walls, bright even light',
-        'objetos': [
-            ('placa-petri', 'a tall stack of clear petri dishes filled with bright red agar, on the wooden shelf'),
-            ('refractometro', 'a small black and yellow digital refractometer, on the wooden shelf'),
-            ('espectrofotometro', 'a white spectrophotometer with a blue display, on a small wooden '
-                                  'shelf hanging from the ceiling on two chains'),
-            # El del carrusel: la centrifuga blanca de su PNG.
-            ('centrifuga', 'a white benchtop laboratory centrifuge with an open grey lid and a black rotor, on the grey shelf'),
-            ('equipo-coccion', 'a stainless steel cooking pot with a lid on an induction base with a small control panel, on the dark grey lab bench'),
         ],
     },
     'civil': {
@@ -175,17 +159,6 @@ GUIONES = {
             # Fina y clara, la maqueta se plantaba chica y el modelo la borraba: va
             # entera (COBERTURA_FINA), sobre la mesada de la derecha.
             ('puente-atirantado', 'a white scale model of a cable-stayed bridge with two tall towers and fan cables, on the concrete bench'),
-        ],
-    },
-    'computacion': {
-        'escena': 'computer engineering laboratory interior, empty light grey workbenches and bare '
-                  'white shelves along both side walls, white walls, bright neutral daylight',
-        'objetos': [
-            ('arbol-binario', 'a black framed poster of a colorful binary tree diagram, on the shelf'),
-            ('servidor', 'a black tower server with drive bays and blue lights, on the white shelf'),
-            ('algoritmo', 'a white sign with a colorful flowchart of blue and purple boxes joined by arrows, hanging from the ceiling on two wires'),
-            ('laptop', 'an open black laptop computer with a glowing blue screen, on the workbench'),
-            ('base-datos', 'a cylindrical database server of three stacked dark blue metal discs with blue status lights, standing on the white counter'),
         ],
     },
     'comunicacion': {
@@ -248,28 +221,6 @@ GUIONES = {
             ('dron-multiespectral', 'a black quadcopter survey drone, flying in the air'),
             ('plantin', 'a small tree seedling with broad green leaves in a black plastic tube, standing on the ground beside the cut logs'),
             ('autocargador', 'a yellow forestry forwarder machine, parked among the logs'),
-        ],
-    },
-    'mecanica': {
-        'escena': 'mechanical engineering workshop interior, empty steel workbenches and bare tool '
-                  'racks along both side walls, machine tools, warm industrial lighting',
-        'objetos': [
-            ('llave-dinamometrica', 'a long red torque wrench with a chrome head, lying on the shelf'),
-            ('rotor-turbina', 'a bronze turbine rotor disc with curved blades, standing on the shelf'),
-            ('bomba-centrifuga', 'a blue centrifugal water pump with a grey electric motor and a yellow coupling guard on a blue base, hanging from a chain hoist under the ceiling'),
-            ('motor-seccionado', 'a cutaway sectioned combustion engine on a stand, on the floor'),
-            ('torno-cnc', 'a small green benchtop lathe machine, on the steel workbench'),
-        ],
-    },
-    'naval': {
-        'escena': 'shipyard workshop interior, empty steel workbenches and bare racks along both '
-                  'side walls, a ship hull in the background, cool daylight',
-        'objetos': [
-            ('timon', 'a large varnished wooden ship steering wheel, mounted on the dark steel wall'),
-            ('rov', 'a yellow underwater remotely operated vehicle, hanging from a crane hook on a steel cable'),
-            ('remolcador', 'a red and black scale model of a harbour tugboat, high on the wall'),
-            ('ancla', 'a heavy black stockless ship anchor, on the concrete floor'),
-            ('helice', 'a large bronze marine propeller, standing on the floor'),
         ],
     },
     'produccion': {
@@ -833,7 +784,7 @@ def fase_objetos(ids, juez, umbral=UMBRAL, tanda=0, pintar=None, afinar=None, re
         fondo = Image.open(base).convert('RGB')
         # Los sitios se vuelven a elegir sobre la escena guardada en vez de leer
         # los de la primera fase: es barato, y asi ajustar como se eligen no
-        # obliga a regenerar las doce escenas.
+        # obliga a regenerar todas las escenas.
         sitios = elegir_sitios(fondo)
 
         sitios_por_objeto, mascaras_por_objeto, del_png = {}, {}, []
@@ -1461,7 +1412,7 @@ def apaisar(ids, tanda=0, pintar=None, afinar=None):
 
 
 def hoja_de_apaisadas():
-    """Las doce versiones apaisadas, para mirar a ojo las costuras y que no sobre nada."""
+    """Todas las versiones apaisadas, para mirar a ojo las costuras y que no sobre nada."""
     ids = sorted(GUIONES)
     W, H, columnas = 480, 270, 3
     filas = (len(ids) + columnas - 1) // columnas
@@ -1481,7 +1432,7 @@ def hoja_de_apaisadas():
 
 
 def hoja_de_contacto():
-    """Las doce, una al lado de la otra, para mirarlas juntas."""
+    """Todas, una al lado de la otra, para mirarlas juntas."""
     ids = sorted(GUIONES)
     W = 250; H = int(W * ALTO / ANCHO)
     hoja = Image.new('RGB', (W * 6 + 7 * 8, (H + 30) * 2 + 8), (14, 14, 18))

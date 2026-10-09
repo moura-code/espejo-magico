@@ -24,8 +24,8 @@ cualquiera de los cinco, el objeto se **recorta del propio fondo**, se levanta
 iluminado delante de la persona y aparece su **ficha** debajo, con el nombre y
 una descripción corta de qué tiene que ver con la carrera.
 
-Dura mientras la persona siga sentada; en cuanto el espejo deja de reconocer su
-cara, vuelve a cubrirse y queda libre para el que sigue en la fila.
+Dura mientras la persona siga sentada; en cuanto el espejo deja de verla —ni su
+cara ni su cuerpo—, vuelve a cubrirse y queda libre para el que sigue en la fila.
 
 Todo corre en una sola pestaña de Chrome, en una sola PC, **sin conexión a
 internet**. La única comunicación que sale de esa pestaña es un aviso a MAITE en
@@ -75,10 +75,10 @@ abre Chrome en modo kiosco con el permiso de cámara ya concedido.
 | Comando | Para qué |
 |---|---|
 | `npm test` | ¿Funciona el código? La suite tiene que estar en verde siempre. |
-| `npm run listo` | ¿Se puede montar el stand? Verifica la estructura de `contenido/carreras/`, los objetos de cada ingeniería —cinco con un fondo generado— con su nombre y descripción, el fondo activo con sus coordenadas y dónde está cada objeto adentro de la foto (su máscara, o su caja si la foto es real), el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
+| `npm run listo` | ¿Se puede montar el stand? Verifica la estructura de `contenido/carreras/`, los objetos de cada ingeniería —cinco con un fondo generado, los que estén en la foto con uno real— con su nombre y descripción, el fondo activo con sus coordenadas y dónde está cada objeto adentro de la foto (su máscara, o su caja si la foto es real), el video de humo, que cada carrera apunte a un id que MAITE conozca, y MediaPipe vendorizado. |
 | `npm run vendorizar` | Copia MediaPipe y baja los modelos de rostro, manos, pose y el segmentador selfie. |
-| `npm run escenas` | Genera el fondo de cada ingeniería con sus cinco instrumentos pintados adentro de la escena, y la máscara de cada uno. Corre local en la GPU; es un paso de autoría, no del evento. Química no: su fondo es una foto real. |
-| `npm run ubicar -- <carrera>` | Para un fondo que es una **foto real** con los objetos adentro (Química): busca el PNG de cada objeto en la foto y escribe dónde calza en el `metadata.json` del fondo. `--hoja calce.jpg` deja una imagen para mirar el calce. Sin GPU. |
+| `npm run escenas` | Genera el fondo de cada ingeniería con sus cinco instrumentos pintados adentro de la escena, y la máscara de cada uno. Corre local en la GPU; es un paso de autoría, no del evento. Química, Alimentos, Computación, Mecánica y Naval no: su fondo es una foto real. |
+| `npm run ubicar -- <carrera>` | Para un fondo que es una **foto real** con los objetos adentro (Química, Alimentos, Computación, Mecánica y Naval): busca el PNG de cada objeto en la foto y escribe dónde calza en el `metadata.json` del fondo. `--hoja calce.jpg` deja una imagen para mirar el calce. Sin GPU. |
 | `npm run catalogo` | Construye y genera `contenido/catalogo.json` a partir de la estructura física de carpetas. |
 | `npm start` | Levanta el servidor local (genera el catálogo si falta y sirve el espejo). |
 | `npm run planilla` | Rearma `docs/planilla-de-tareas.csv` y `.md` desde el historial de git del espejo y de MAITE: las tareas de cada integrante con horas estimadas. Conserva las horas reales ya cargadas. |

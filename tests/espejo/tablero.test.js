@@ -278,6 +278,46 @@ describe('crearTablero', () => {
     }
   });
 
+  // El margen al borde es para que el objeto entre ENTERO, no solo su centro.
+  it('cada objeto visible entra entero en la pantalla, con su margen', () => {
+    for (const [pantalla, pose] of [
+      [PANTALLA, conPose(540, 1250, 550)],
+      [PANTALLA, conPose(540, 1300, 380)],
+      [{ ancho: 1920, alto: 1080 }, conPose(960, 760, 300)],
+    ]) {
+      const tablero = crearTablero({ ...AJUSTES, radioObjetoFactor: 0.32 });
+      const puesto = asentar(tablero, { ...sentada, pose, disposicion: pantalla });
+      const r = puesto.radioObjeto;
+      for (const punto of enteras(puesto)) {
+        expect(punto.x - r).toBeGreaterThanOrEqual(0);
+        expect(punto.x + r).toBeLessThanOrEqual(pantalla.ancho);
+        expect(punto.y - r).toBeGreaterThanOrEqual(0);
+        expect(punto.y + r).toBeLessThanOrEqual(pantalla.alto);
+      }
+    }
+  });
+
+  // PEDIR OBJETOS MAS GRANDES NO PUEDE ACHICARLOS. Con doce en el anillo, en un
+  // espejo vertical, el tamaño lo fija la cuerda entre vecinos, y el anillo se
+  // acotaba al borde con el margen del objeto PEDIDO: pedir uno mas grande
+  // achicaba el anillo, y con el, por la cuerda, a todos los objetos. Para la
+  // pantalla de 47" se pidieron mas grandes y en el vertical salian mas chicos.
+  it('pedir objetos mas grandes no los achica', () => {
+    for (const [pantalla, pose] of [
+      [PANTALLA, conPose(540, 1250, 550)],
+      [PANTALLA, conPose(540, 1300, 380)],
+      [{ ancho: 1920, alto: 1080 }, conPose(960, 760, 300)],
+    ]) {
+      const medir = (radioObjetoFactor) =>
+        asentar(crearTablero({ ...AJUSTES, desde: 190, hasta: 350, radioObjetoFactor }), {
+          ...sentada,
+          pose,
+          disposicion: pantalla,
+        }).radioObjeto;
+      expect(medir(0.32)).toBeGreaterThanOrEqual(medir(0.22) - 0.5);
+    }
+  });
+
   // Mas lejos de la camara = hombros mas angostos = todo mas chico y mas junto.
   // No hay ningun umbral por distancia: sale solo de la geometria.
   it('el tamaño acompaña la distancia de la persona', () => {

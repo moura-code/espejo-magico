@@ -34,9 +34,10 @@ export const CONFIG = {
   },
 
   // Duraciones de cada estado, en milisegundos. La exploracion no tiene
-  // duracion propia a proposito: dura mientras la persona siga sentada, y el
-  // unico tope es sesionMaxima, que hace de red de seguridad y de rotacion de
-  // la fila.
+  // duracion propia ni tope, a proposito: la persona se queda lo que quiera,
+  // para elegir y para explorar, y lo que la termina es que se vaya. Si hace
+  // falta liberar el espejo con alguien sentado, el equipo del stand la cierra
+  // con ESPACIO, y el espejo espera una ausencia antes de rearmarse.
   tiempos: {
     enganche: 2000,
 
@@ -44,16 +45,9 @@ export const CONFIG = {
     // se sortean las carreras: cuando el humo se disipa los objetos ya estan.
     humo: 3000,
 
-    // La red de seguridad de la fila, no un tope de la experiencia: la
-    // exploracion no termina nunca sola. Existe porque sin ella, quien no
-    // entiende el gesto se queda mirando los objetos girar hasta el tope de
-    // sesion, tres minutos despues, con la fila esperando. Al vencerse se
-    // libera el espejo sin asignar una carrera: la eleccion siempre pertenece
-    // a la persona.
-    eleccionMaxima: 30000,
-
     // Si la persona mira el carrusel pero no empezo un sostenido, se repite la
-    // instruccion antes de liberar el espejo. No se asigna ninguna carrera.
+    // instruccion una vez. Nada mas: no se le asigna una carrera ni se libera
+    // el espejo, elige cuando quiere.
     ayudaEleccion: 10000,
 
     // Cuanto tarda en entrar el fondo de una ingenieria con su nombre. Es el
@@ -102,11 +96,12 @@ export const CONFIG = {
     // posiciones, no acortar plazos.
     ausenciaParaCortar: 4000,
 
-    // Red de seguridad, no temporizador de la experiencia: existe por si la
-    // deteccion se traba en verdadero (un poster, el respaldo de una silla) y el
-    // espejo se queda tomado para siempre. Con 75 s le cortaba la exploracion a
-    // quien la estaba disfrutando, que es justo lo que no tiene que hacer.
-    sesionMaxima: 180000,
+    // Cuanto puede durar el ENGANCHE sin completarse. No es un plazo para la
+    // persona —la experiencia todavia no empezo—: un rostro que aparece y
+    // desaparece nunca junta los dos segundos continuos que arrancan, y como
+    // esta ahi tampoco acumula la ausencia que corta. Sin esto el espejo se
+    // queda trabado en el enganche, con las nubes agitandose para siempre.
+    engancheMaximo: 180000,
   },
 
   // Cuando se considera que hay alguien sentado.
@@ -323,7 +318,13 @@ export const CONFIG = {
   // girando.
   tablero: {
     radioFactor: 1.5, // alcance del anillo, en anchos de hombros
-    radioObjetoFactor: 0.22, // tamaño de cada objeto, en anchos de hombros
+
+    // El tamaño de cada objeto, en anchos de hombros. Era 0,22: en la pantalla
+    // de 47" se veian chicos. El tope no es este numero sino la cuerda entre
+    // vecinos (aireEntreObjetos): en un espejo vertical doce no entran mas
+    // grandes en 1080 px de ancho —unos 190 px, diez centimetros—, y en
+    // apaisado llegan a lo que se pide aca.
+    radioObjetoFactor: 0.32,
 
     // La ventana visible, en grados, medidos como en el lienzo: 180 es a la
     // izquierda, 270 es arriba, 0 es a la derecha. Pasa por encima de la
@@ -583,20 +584,30 @@ export const CONFIG = {
     alfaParaLeer: 0.5,
 
     // La letra de la ficha, en fraccion del tamaño de frase de la pantalla
-    // (unos 32 px en el espejo): `texto` la descripcion y `titulo` el nombre.
-    // Es legibilidad a dos metros: se calibra en el stand. El tope lo pone la
-    // franja de arriba de la cabeza, donde va el cartel: la descripcion mas
-    // larga del catalogo tiene que entrar ahi en tres renglones. Si no entrara,
-    // la ficha achica la letra sola, y tests/integracion/fichas.test.js avisa.
-    tipografia: { texto: 1, titulo: 1.5 },
+    // (unos 43 px con 1080 de lado corto): `texto` la descripcion y `titulo` el
+    // nombre. Es legibilidad a dos metros en la pantalla de 47" del stand: la
+    // descripcion queda en 36 px, unos 2 cm de letra, parada o acostada (antes
+    // eran 32 px en el espejo y 18 en apaisado). Mas grande ya no entra: con
+    // 37 px las fichas de la foto de Quimica, acostada, bajaban hasta el nombre
+    // tapando un objeto. Si una no entrara, achica la letra sola, y
+    // tests/integracion/fichas.test.js avisa.
+    tipografia: { texto: 0.84, titulo: 1.25 },
 
-    // La ficha que va DEBAJO de su objeto (fondos generados): su ancho en
-    // fraccion de la composicion, y el aire entre el objeto y el cartel en
-    // radios del objeto. El ancho es el compromiso: mas angosta parte la
-    // descripcion en seis renglones, mas ancha le tapa el objeto vecino.
-    // tests/integracion/fichas.test.js exige las dos cosas con el catalogo real.
-    anchoDebajo: 0.42,
+    // La ficha que va DEBAJO de su objeto (los que viven adentro de la foto):
+    // su ancho en fraccion del lado corto de la pantalla, y el aire entre el
+    // objeto y el cartel en radios del objeto. El ancho es el compromiso: mas
+    // angosta parte la descripcion en seis renglones, mas ancha le tapa el
+    // objeto vecino. tests/integracion/fichas.test.js exige las dos cosas con
+    // el catalogo real.
+    anchoDebajo: 0.44,
     huecoDebajo: 0.3,
+
+    // Hasta donde puede irse esa ficha con la letra pedida, en radios del
+    // objeto desde su centro, cuando ninguno de sus sitios de siempre queda
+    // libre (disponerFichaDebajo): mas lejos ya parece la ficha del vecino, y
+    // conviene achicar la letra para quedar a su lado. Por debajo del 2,2 con
+    // el que tests/integracion/fichas.test.js mide que este pegada.
+    distanciaDebajo: 2,
   },
 
   // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio

@@ -26,9 +26,12 @@ export function calcularDisposicion(ancho, alto) {
       interlinea: 1.1,
     },
 
+    // Contra el lado corto, para que la misma pantalla de la misma letra parada o
+    // acostada. Eran 0,055 y 0,03: en la pantalla de 47" del stand las frases
+    // quedaban en 1,7 cm y se pidieron mas grandes para leerlas a dos metros.
     texto: {
-      tamanoNombre: Math.round(corto * 0.055),
-      tamanoFrase: Math.round(corto * 0.03),
+      tamanoNombre: Math.round(corto * 0.07),
+      tamanoFrase: Math.round(corto * 0.04),
     },
   };
 }
@@ -1149,13 +1152,18 @@ export function disponerFicha(textos, disposicion, medir, { hasta, tipografia } 
   if (!tipografia || !(hasta > 0)) {
     throw new Error('disponerFicha necesita la tipografia y hasta donde puede bajar');
   }
-  let ficha = armarFicha(textos, disposicion, medir, tipografia, 1);
+  // La letra del cartel acompaña a la composicion, como los objetos sueltos
+  // (lugarEnPantalla): en el espejo es la de la pantalla, y en un monitor
+  // apaisado, donde la composicion vertical entra a la altura de la
+  // pantalla, se achica con ella, igual que la franja donde va.
+  const composicion = disposicion.unidad / Math.min(disposicion.ancho, disposicion.alto);
+  let ficha = armarFicha(textos, disposicion, medir, tipografia, composicion);
   for (
     let achique = 0.96;
     ficha && ficha.caja.y + ficha.caja.alto > hasta && achique > 0.3;
     achique -= 0.04
   ) {
-    ficha = armarFicha(textos, disposicion, medir, tipografia, achique);
+    ficha = armarFicha(textos, disposicion, medir, tipografia, composicion * achique);
   }
   return ficha;
 }
@@ -1193,13 +1201,19 @@ export function disponerFichaDebajo(
   textos,
   disposicion,
   medir,
-  { objeto, otros = [], tipografia, anchoFactor = 0.46, hueco = 0.3 } = {},
+  { objeto, otros = [], tipografia, anchoFactor = 0.46, hueco = 0.3, distancia = 2 } = {},
 ) {
   if (!tipografia || !objeto) {
     throw new Error('disponerFichaDebajo necesita la tipografia y el objeto');
   }
-  const { ancho, alto, unidad } = disposicion;
-  const anchoPedido = Math.max(unidad * 0.3, unidad * anchoFactor);
+  const { ancho, alto } = disposicion;
+  // LA FICHA DE LA PANTALLA, NO DE LA COMPOSICION. La letra (escala 1, la de
+  // la pantalla) y el ancho se miden contra el lado corto, que es el mismo
+  // parada o acostada: se achicaban con la composicion vertical, y en la
+  // pantalla de 47" acostada la descripcion quedaba en 18 px, un centimetro de
+  // letra para leer a dos metros.
+  const corto = Math.min(ancho, alto);
+  const anchoPedido = Math.max(corto * 0.3, corto * anchoFactor);
   const aire = objeto.radio * hueco;
 
   // DONDE PUEDE PARARSE, en orden de preferencia. Debajo y centrada es lo que
@@ -1237,6 +1251,11 @@ export function disponerFichaDebajo(
     caja.y + caja.alto <= pisoUtil &&
     !tocaAlgunCirculo(caja, [objeto, ...otros]);
 
+  // La ficha con la letra pedida y el lugar limpio mas cercano para ella: se
+  // buscan una sola vez, con la primera vuelta, y los usan los dos recursos de
+  // abajo.
+  let entera = null;
+  let libre = null;
   for (let achique = 1; achique > 0.55; achique -= 0.07) {
     const base = armarFicha(textos, disposicion, medir, tipografia, achique, anchoPedido);
     if (!base) return null;
@@ -1254,15 +1273,26 @@ export function disponerFichaDebajo(
       primera ??= caja;
       if (limpia(caja)) return moverFicha(base, caja.x - base.caja.x, caja.y - base.caja.y);
     }
+    // Ninguno de sus sitios queda libre con la letra pedida. Antes de
+    // achicarla, el lugar limpio mas cercano, si queda pegado al objeto: en una
+    // foto real con los objetos apretados —la probeta de Alimentos contra los
+    // tubos Falcon— el sitio de arriba rozaba al vecino por pocos pixeles, y
+    // achicandose entraba debajo con letra chica. Mas lejos no: ahi ya parece
+    // la ficha del vecino, y conviene achicarse para quedar a su lado.
+    if (!entera) {
+      entera = base;
+      libre = lugarLimpioMasCercano(entera.caja, objeto, disposicion, limpia);
+      if (libre && libre.distancia <= distancia * objeto.radio) {
+        return moverFicha(entera, libre.x - entera.caja.x, libre.y - entera.caja.y);
+      }
+    }
     // Con la letra mas chica el cartel es mas bajo y puede entrar donde no
     // entraba. Si ni achicandose encuentra lugar, el sitio limpio mas cercano
-    // al objeto, con la letra pedida: pasa con un objeto en un rincon de abajo
-    // y otro justo encima, como las placas de Petri de la foto de Quimica. Y si
-    // tampoco hay, se muestra igual en el primer sitio: una ficha que no
-    // aparece es peor que una que pisa un borde.
+    // al objeto, con la letra pedida, aunque quede lejos: pasa con un objeto en
+    // un rincon de abajo y otro justo encima, como las placas de Petri de la
+    // foto de Quimica. Y si tampoco hay, se muestra igual en el primer sitio:
+    // una ficha que no aparece es peor que una que pisa un borde.
     if (achique <= 0.62) {
-      const entera = armarFicha(textos, disposicion, medir, tipografia, 1, anchoPedido);
-      const libre = lugarLimpioMasCercano(entera.caja, objeto, disposicion, limpia);
       if (libre) return moverFicha(entera, libre.x - entera.caja.x, libre.y - entera.caja.y);
       return moverFicha(base, primera.x - base.caja.x, primera.y - base.caja.y);
     }
@@ -1326,13 +1356,16 @@ function moverFicha(ficha, dx, dy) {
   };
 }
 
-/** La ficha armada con la letra pedida, por `achique` (1 es la pedida). */
+/**
+ * La ficha armada con la letra pedida por `escala` (1 es la de la pantalla).
+ * Quien la llama decide si la letra acompaña a la composicion o no.
+ */
 function armarFicha(
   { nombre, descripcion } = {},
   disposicion,
   medir,
   tipografia,
-  achique,
+  escala,
   anchoPedido = null,
 ) {
   const hayNombre = esTexto(nombre);
@@ -1340,11 +1373,7 @@ function armarFicha(
   if (!hayNombre && !hayDescripcion) return null;
 
   const { texto: letraDelTexto, titulo: letraDelTitulo } = tipografia;
-  const { ancho, alto, texto, unidad } = disposicion;
-  // La letra acompaña a la composicion, como los objetos (lugarEnPantalla): en
-  // el espejo es la de la pantalla, y en un monitor apaisado, donde la
-  // composicion vertical entra a la altura de la pantalla, se achica con ella.
-  const escala = (unidad / Math.min(ancho, alto)) * achique;
+  const { ancho, texto, unidad } = disposicion;
   const tamanoTexto = Math.max(10, Math.round(texto.tamanoFrase * escala * letraDelTexto));
   const tamanoTituloPedido = Math.max(12, Math.round(texto.tamanoFrase * escala * letraDelTitulo));
   const relleno = Math.round(tamanoTexto * 0.75);
@@ -1432,7 +1461,7 @@ export function dibujarFicha(
   ctx,
   { nombre, descripcion, alfa = 1 },
   disposicion,
-  { colores, hasta, tipografia, ancla = null, otros = [], anchoFactor, hueco },
+  { colores, ...opciones },
 ) {
   if (alfa <= 0 || (!esTexto(nombre) && !esTexto(descripcion))) return;
 
@@ -1443,16 +1472,11 @@ export function dibujarFicha(
     ctx.font = fuente;
     return ctx.measureText(texto).width;
   };
-  // `otros` son los demas objetos del fondo: la ficha de debajo no les puede
-  // tapar el que la persona iba a buscar.
-  const ficha = disponerFichaDeObjeto({ nombre, descripcion }, disposicion, medir, {
-    ancla,
-    otros,
-    hasta,
-    tipografia,
-    anchoFactor,
-    hueco,
-  });
+  // Lo que dice donde va pasa entero, tal como lo armo fichaDelObjeto: de a
+  // uno, `otros` —los demas objetos del fondo, que la ficha de debajo no puede
+  // tapar— se perdio en el camino, y la ficha los esquivaba en las pruebas
+  // pero no en la pantalla.
+  const ficha = disponerFichaDeObjeto({ nombre, descripcion }, disposicion, medir, opciones);
   if (!ficha) {
     ctx.restore();
     return;

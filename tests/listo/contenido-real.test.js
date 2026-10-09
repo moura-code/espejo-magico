@@ -74,8 +74,10 @@ describe('contenido real', () => {
 
   // CADA OBJETO CON SU FICHA: uno para el carrusel y los demas escondidos en
   // el fondo. Un fondo generado trae CINCO, los que pinta escenas.py. Una foto
-  // real trae los que se fotografiaron adentro —Quimica, tres—, y no menos de
-  // dos: con uno solo, despues de elegir no queda nada que descubrir. Sin
+  // real trae los que se fotografiaron adentro —Quimica tres, Computacion seis—,
+  // y puede ser uno solo: Naval tiene el microscopio y nada mas, y despues de
+  // elegir lo unico que queda por leer es su propia ficha. Es una decision del
+  // contenido, no un descuido; llegan mas objetos de la foto y se suman. Sin
   // nombre o sin descripcion, pasar la mano por encima no dice nada; y una
   // descripcion larga no entra en la ficha sin taparle media pantalla a la
   // persona.
@@ -83,8 +85,8 @@ describe('contenido real', () => {
     const flojos = [];
     for (const carrera of (await obtenerCatalogo()).carreras) {
       const fotografiada = Boolean(fondoActivo(carrera)?.cajas);
-      if (fotografiada && carrera.objetos.length < 2) {
-        flojos.push(`${carrera.id} tiene ${carrera.objetos.length} objeto: nada que descubrir`);
+      if (fotografiada && carrera.objetos.length < 1) {
+        flojos.push(`${carrera.id} no tiene objetos`);
       } else if (!fotografiada && carrera.objetos.length !== 5) {
         flojos.push(`${carrera.id} tiene ${carrera.objetos.length} objetos, no cinco`);
       }

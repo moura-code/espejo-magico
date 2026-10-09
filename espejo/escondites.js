@@ -251,12 +251,19 @@ export function fichaDelObjeto(objeto, pantalla, config, otros = []) {
       circulo,
       opciones: {
         tipografia: config.fichas.tipografia,
-        ancla: crecido(objeto, crecimientoAlLeer(objeto, config)),
+        // Lo que crece al leerlo, y nunca menos que el resalte que se les cuida
+        // a los otros: el fotografiado no crece, y con el ancla a su medida
+        // justa la ficha se le apoyaba encima del resplandor.
+        ancla: crecido(
+          objeto,
+          Math.max(crecimientoAlLeer(objeto, config), 1 + config.escondidos.resalte),
+        ),
         // Los demas objetos del fondo, para que el cartel no le tape a la
         // persona justo el que iba a buscar.
         otros: otros.map((otro) => crecido(otro, 1 + config.escondidos.resalte)),
         anchoFactor: config.fichas.anchoDebajo,
         hueco: config.fichas.huecoDebajo,
+        distancia: config.fichas.distanciaDebajo,
       },
     };
   }

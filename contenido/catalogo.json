@@ -131,124 +131,91 @@
       "nombre": "Ingeniería de Alimentos",
       "color": "#EF5350",
       "maite": "alimentos",
-      "fondoActivo": "escena",
+      "fondoActivo": "laboratorio",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/alimentos/fondos/escena/imagen.jpg",
+          "id": "laboratorio",
+          "img": "carreras/alimentos/fondos/laboratorio/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/alimentos/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.108,
-            "y": 0.526,
-            "escala": 0.17
+            "x": 0.0797,
+            "y": 0.6385,
+            "escala": 0.1714
           },
           "escondites": [
             {
-              "x": 0.8889,
-              "y": 0.5188,
-              "escala": 0.17
+              "x": 0.2281,
+              "y": 0.5989,
+              "escala": 0.0864
             },
             {
-              "x": 0.485,
-              "y": 0.192,
-              "escala": 0.16
+              "x": 0.9443,
+              "y": 0.6609,
+              "escala": 0.1391
             },
             {
-              "x": 0.1469,
-              "y": 0.3579,
-              "escala": 0.17
-            },
-            {
-              "x": 0.825,
-              "y": 0.285,
-              "escala": 0.17
+              "x": 0.8552,
+              "y": 0.6357,
+              "escala": 0.1635
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/alimentos/fondos/escena/recortes/0.png",
-              "caja": [
-                0.02685,
-                0.51562,
-                0.21296,
-                0.59167
-              ]
-            },
-            {
-              "img": "carreras/alimentos/fondos/escena/recortes/1.png",
-              "caja": [
-                0.7963,
-                0.46875,
-                0.98148,
-                0.57708
-              ]
-            },
-            {
-              "img": "carreras/alimentos/fondos/escena/recortes/2.png",
-              "caja": [
-                0.43333,
-                0.16667,
-                0.54537,
-                0.22552
-              ]
-            },
-            {
-              "img": "carreras/alimentos/fondos/escena/recortes/3.png",
-              "caja": [
-                0.07685,
-                0.29271,
-                0.23241,
-                0.41615
-              ]
-            },
-            {
-              "img": "carreras/alimentos/fondos/escena/recortes/4.png",
-              "caja": [
-                0.75463,
-                0.225,
-                0.91667,
-                0.34063
-              ]
-            }
+          "cajas": [
+            [
+              0,
+              0.48507,
+              0.15937,
+              0.79198
+            ],
+            [
+              0.1849,
+              0.5625,
+              0.27135,
+              0.63526
+            ],
+            [
+              0.89479,
+              0.53638,
+              0.99375,
+              0.78545
+            ],
+            [
+              0.77344,
+              0.55037,
+              0.93698,
+              0.72108
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "centrifuga",
-          "img": "carreras/alimentos/objetos/centrifuga/imagen.png",
-          "nombre": "Centrífuga de laboratorio",
-          "descripcion": "Separa fases líquidas y sólidos suspendidos acelerando la sedimentación para analizar grasas y proteínas lácteas.",
-          "figura": "tubo"
-        },
-        {
-          "id": "equipo-coccion",
-          "img": "carreras/alimentos/objetos/equipo-coccion/imagen.png",
-          "nombre": "Placa de inducción térmica",
-          "descripcion": "Calienta mezclas con control térmico riguroso para estudiar pasteurización y evaporación en pequeña escala.",
-          "figura": "mechero"
+          "id": "bano-de-ultrasonido",
+          "img": "carreras/alimentos/objetos/bano-de-ultrasonido/imagen.png",
+          "nombre": "Baño de ultrasonido",
+          "descripcion": "Equipo que usa ondas sonoras en un líquido para limpiar materiales o ayudar en tareas de laboratorio, como homogeneizar muestras.",
+          "figura": "onda"
         },
         {
           "id": "espectrofotometro",
           "img": "carreras/alimentos/objetos/espectrofotometro/imagen.png",
           "nombre": "Espectrofotómetro",
-          "descripcion": "Cuantifica compuestos y colorantes en jugos y aceites midiendo la absorción de luz en longitudes de onda exactas.",
+          "descripcion": "Mide el color de frutas y hortalizas para evaluar su calidad y los cambios que ocurren durante su conservación.",
           "figura": "prisma"
         },
         {
-          "id": "placa-petri",
-          "img": "carreras/alimentos/objetos/placa-petri/imagen.png",
-          "nombre": "Placa de Petri",
-          "descripcion": "Permite aislar y contar colonias bacterianas para certificar la inocuidad microbiológica de los alimentos.",
-          "figura": "molecula"
+          "id": "probeta-y-matraz",
+          "img": "carreras/alimentos/objetos/probeta-y-matraz/imagen.png",
+          "nombre": "Probeta graduada y matraz Erlenmeyer",
+          "descripcion": "La probeta mide volúmenes de líquidos; el matraz Erlenmeyer se usa para cultivar microorganismos y realizar fermentaciones.",
+          "figura": "matraz"
         },
         {
-          "id": "refractometro",
-          "img": "carreras/alimentos/objetos/refractometro/imagen.png",
-          "nombre": "Refractómetro digital",
-          "descripcion": "Mide el índice de refracción para determinar al instante los grados Brix y la concentración de azúcar en jugos.",
-          "figura": "pipeta"
+          "id": "tubos-falcon",
+          "img": "carreras/alimentos/objetos/tubos-falcon/imagen.png",
+          "nombre": "Tubos Falcon",
+          "descripcion": "Envases de laboratorio que contienen polvos vegetales para su almacenamiento, transporte y análisis.",
+          "figura": "tubo"
         }
       ]
     },
@@ -383,124 +350,127 @@
       "nombre": "Ingeniería en Computación",
       "color": "#00E5A0",
       "maite": "sistemas",
-      "fondoActivo": "escena",
+      "fondoActivo": "laboratorio",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/computacion/fondos/escena/imagen.jpg",
+          "id": "laboratorio",
+          "img": "carreras/computacion/fondos/laboratorio/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/computacion/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.5109,
-            "y": 0.192,
-            "escala": 0.16
+            "x": 0.849,
+            "y": 0.5084,
+            "escala": 0.1583
           },
           "escondites": [
             {
-              "x": 0.108,
-              "y": 0.3652,
-              "escala": 0.17
+              "x": 0.0867,
+              "y": 0.4361,
+              "escala": 0.0651
             },
             {
-              "x": 0.8889,
-              "y": 0.5698,
-              "escala": 0.17
+              "x": 0.1797,
+              "y": 0.7528,
+              "escala": 0.2604
             },
             {
-              "x": 0.108,
-              "y": 0.5771,
-              "escala": 0.17
+              "x": 0.1956,
+              "y": 0.4496,
+              "escala": 0.1234
             },
             {
-              "x": 0.8898,
-              "y": 0.3433,
-              "escala": 0.17
+              "x": 0.3445,
+              "y": 0.6791,
+              "escala": 0.138
+            },
+            {
+              "x": 0.9307,
+              "y": 0.7043,
+              "escala": 0.0813
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/computacion/fondos/escena/recortes/0.png",
-              "caja": [
-                0.43148,
-                0.14427,
-                0.5787,
-                0.22031
-              ]
-            },
-            {
-              "img": "carreras/computacion/fondos/escena/recortes/1.png",
-              "caja": [
-                0.02407,
-                0.3099,
-                0.20093,
-                0.41979
-              ]
-            },
-            {
-              "img": "carreras/computacion/fondos/escena/recortes/2.png",
-              "caja": [
-                0.79537,
-                0.50573,
-                0.98333,
-                0.63438
-              ]
-            },
-            {
-              "img": "carreras/computacion/fondos/escena/recortes/3.png",
-              "caja": [
-                0.02407,
-                0.50677,
-                0.19815,
-                0.63958
-              ]
-            },
-            {
-              "img": "carreras/computacion/fondos/escena/recortes/4.png",
-              "caja": [
-                0.79537,
-                0.27813,
-                0.97963,
-                0.40573
-              ]
-            }
+          "cajas": [
+            [
+              0.76979,
+              0.41231,
+              0.92812,
+              0.60448
+            ],
+            [
+              0.05417,
+              0.38806,
+              0.11927,
+              0.48414
+            ],
+            [
+              0.08646,
+              0.51959,
+              0.27292,
+              0.98601
+            ],
+            [
+              0.13385,
+              0.41604,
+              0.25729,
+              0.48321
+            ],
+            [
+              0.27552,
+              0.56063,
+              0.41354,
+              0.79757
+            ],
+            [
+              0.8901,
+              0.65485,
+              0.97135,
+              0.75373
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "algoritmo",
-          "img": "carreras/computacion/objetos/algoritmo/imagen.png",
-          "nombre": "Diagrama de algoritmo",
-          "descripcion": "Representación lógica de pasos finitos y decisiones para la resolución estructurada de problemas.",
-          "figura": "llaves"
-        },
-        {
-          "id": "arbol-binario",
-          "img": "carreras/computacion/objetos/arbol-binario/imagen.png",
-          "nombre": "Árbol binario de datos",
-          "descripcion": "Estructura jerárquica no lineal optimizada para búsquedas rápidas, ordenación y almacenamiento de datos.",
-          "figura": "curva"
-        },
-        {
-          "id": "base-datos",
-          "img": "carreras/computacion/objetos/base-datos/imagen.png",
-          "nombre": "Base de datos relacional",
-          "descripcion": "Sistema de gestión estructurado para almacenamiento persistente, transacciones ACID y consultas SQL.",
-          "figura": "chip"
-        },
-        {
-          "id": "laptop",
-          "img": "carreras/computacion/objetos/laptop/imagen.png",
-          "nombre": "Laptop de ingeniería",
-          "descripcion": "Equipo portátil de desarrollo de software, arquitectura de sistemas, simulación y compilación de código.",
+          "id": "computadora",
+          "img": "carreras/computacion/objetos/computadora/imagen.png",
+          "nombre": "Computadora",
+          "descripcion": "Nuestra herramienta principal :)",
           "figura": "laptop"
         },
         {
-          "id": "servidor",
-          "img": "carreras/computacion/objetos/servidor/imagen.png",
-          "nombre": "Servidor blade",
-          "descripcion": "Unidad de cómputo para centros de datos empresariales, virtualización, nube y procesamiento masivo.",
+          "id": "dispositivo-edge-computing",
+          "img": "carreras/computacion/objetos/dispositivo-edge-computing/imagen.png",
+          "nombre": "Dispositivo edge computing",
+          "descripcion": "Computadora con cámaras para barcos pesqueros que identifica las capturas en tiempo real y ayuda a llevar registros más precisos.",
+          "figura": "chip"
+        },
+        {
+          "id": "jacky",
+          "img": "carreras/computacion/objetos/jacky/imagen.png",
+          "nombre": "Jacky",
+          "descripcion": "Robot móvil con ruedas, sensores y cámaras, usado para investigación, mapeo y navegación autónoma en terrenos variados.",
+          "figura": "robot"
+        },
+        {
+          "id": "libro-de-base-de-datos",
+          "img": "carreras/computacion/objetos/libro-de-base-de-datos/imagen.png",
+          "nombre": "Libro de base de datos",
+          "descripcion": "Explica cómo organizar, gestionar y aprovechar datos para convertirlos en información útil para la toma de decisiones.",
           "figura": "servidor"
+        },
+        {
+          "id": "pipe",
+          "img": "carreras/computacion/objetos/pipe/imagen.png",
+          "nombre": "Pipe",
+          "descripcion": "Robot cuadrúpedo autónomo equipado con cámaras y sensores, diseñado para inspección, patrullaje y exploración.",
+          "figura": "robot"
+        },
+        {
+          "id": "robotito",
+          "img": "carreras/computacion/objetos/robotito/imagen.png",
+          "nombre": "Robotito",
+          "descripcion": "Pequeño robot móvil circular con ruedas omnidireccionales, usado en investigación y aprendizaje de robótica.",
+          "figura": "robot"
         }
       ]
     },
@@ -1013,123 +983,72 @@
       "nombre": "Ingeniería Industrial Mecánica",
       "color": "#4FC3F7",
       "maite": "industrial_mecanica",
-      "fondoActivo": "escena",
+      "fondoActivo": "taller",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/mecanica/fondos/escena/imagen.jpg",
+          "id": "taller",
+          "img": "carreras/mecanica/fondos/taller/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/mecanica/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.5109,
-            "y": 0.192,
-            "escala": 0.16
+            "x": 0.8333,
+            "y": 0.4688,
+            "escala": 0.1391
           },
           "escondites": [
             {
-              "x": 0.1728,
-              "y": 0.285,
-              "escala": 0.17
+              "x": 0.9346,
+              "y": 0.6152,
+              "escala": 0.1089
             },
             {
-              "x": 0.1469,
-              "y": 0.5844,
-              "escala": 0.17
-            },
-            {
-              "x": 0.825,
-              "y": 0.285,
-              "escala": 0.17
-            },
-            {
-              "x": 0.8759,
-              "y": 0.5115,
-              "escala": 0.17
+              "x": 0.1792,
+              "y": 0.6866,
+              "escala": 0.3177
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/mecanica/fondos/escena/recortes/0.png",
-              "caja": [
-                0.42593,
-                0.1401,
-                0.59352,
-                0.24063
-              ]
-            },
-            {
-              "img": "carreras/mecanica/fondos/escena/recortes/1.png",
-              "caja": [
-                0.08056,
-                0.23958,
-                0.26111,
-                0.34375
-              ]
-            },
-            {
-              "img": "carreras/mecanica/fondos/escena/recortes/2.png",
-              "caja": [
-                0.05463,
-                0.53073,
-                0.22963,
-                0.64844
-              ]
-            },
-            {
-              "img": "carreras/mecanica/fondos/escena/recortes/3.png",
-              "caja": [
-                0.73426,
-                0.22292,
-                0.91667,
-                0.34323
-              ]
-            },
-            {
-              "img": "carreras/mecanica/fondos/escena/recortes/4.png",
-              "caja": [
-                0.77222,
-                0.46354,
-                0.96759,
-                0.58177
-              ]
-            }
+          "cajas": [
+            [
+              0.80208,
+              0.34422,
+              0.86458,
+              0.59328
+            ],
+            [
+              0.88021,
+              0.56623,
+              0.98906,
+              0.66418
+            ],
+            [
+              0.02031,
+              0.41231,
+              0.33802,
+              0.96082
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "bomba-centrifuga",
-          "img": "carreras/mecanica/objetos/bomba-centrifuga/imagen.png",
-          "nombre": "Bomba centrífuga",
-          "descripcion": "Máquina hidráulica rotodinámica que transforma energía mecánica en presión para impulsar fluidos.",
-          "figura": "piston"
+          "id": "brazo-robot",
+          "img": "carreras/mecanica/objetos/brazo-robot/imagen.png",
+          "nombre": "Brazo robot",
+          "descripcion": "Robot articulado que realiza movimientos controlados para manipular objetos y probar tareas de automatización.",
+          "figura": "robot"
         },
         {
-          "id": "llave-dinamometrica",
-          "img": "carreras/mecanica/objetos/llave-dinamometrica/imagen.png",
-          "nombre": "Llave dinamométrica",
-          "descripcion": "Herramienta manual calibrada para aplicar un par de apriete exacto en uniones roscadas críticas.",
-          "figura": "llave"
+          "id": "celda-electroquimica",
+          "img": "carreras/mecanica/objetos/celda-electroquimica/imagen.png",
+          "nombre": "Celda electroquímica",
+          "descripcion": "Celda transparente con electrodos y cables, usada en el laboratorio para evaluar propiedades químicas y energéticas de materiales.",
+          "figura": "bateria"
         },
         {
-          "id": "motor-seccionado",
-          "img": "carreras/mecanica/objetos/motor-seccionado/imagen.png",
-          "nombre": "Motor de combustión interna",
-          "descripcion": "Corte didáctico de cilindros, pistones y cigüeñal para visualizar el ciclo termodinámico de potencia.",
-          "figura": "motor"
-        },
-        {
-          "id": "rotor-turbina",
-          "img": "carreras/mecanica/objetos/rotor-turbina/imagen.png",
-          "nombre": "Rotor de turbina",
-          "descripcion": "Conjunto rotativo de álabes aerodinámicos para expansión de vapor o gas y generación de potencia mecánica.",
-          "figura": "rodamiento"
-        },
-        {
-          "id": "torno-cnc",
-          "img": "carreras/mecanica/objetos/torno-cnc/imagen.png",
-          "nombre": "Torno CNC industrial",
-          "descripcion": "Máquina herramienta computarizada para mecanizado de revolución de alta velocidad y tolerancias micrométricas.",
+          "id": "torno-paralelo",
+          "img": "carreras/mecanica/objetos/torno-paralelo/imagen.png",
+          "nombre": "Torno mecánico industrial paralelo",
+          "descripcion": "Máquina que hace girar el metal mientras una herramienta corta el exceso para darle forma cilíndrica, hacer roscas o perforar.",
           "figura": "engranaje"
         }
       ]
@@ -1139,124 +1058,36 @@
       "nombre": "Ingeniería Naval",
       "color": "#5C6BC0",
       "maite": "naval",
-      "fondoActivo": "escena",
+      "fondoActivo": "taller",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/naval/fondos/escena/imagen.jpg",
+          "id": "taller",
+          "img": "carreras/naval/fondos/taller/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/naval/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.1469,
-            "y": 0.5844,
-            "escala": 0.17
+            "x": 0.1677,
+            "y": 0.6595,
+            "escala": 0.2188
           },
-          "escondites": [
-            {
-              "x": 0.85,
-              "y": 0.5625,
-              "escala": 0.17
-            },
-            {
-              "x": 0.485,
-              "y": 0.1993,
-              "escala": 0.16
-            },
-            {
-              "x": 0.825,
-              "y": 0.336,
-              "escala": 0.17
-            },
-            {
-              "x": 0.1728,
-              "y": 0.285,
-              "escala": 0.17
-            }
-          ],
-          "recortes": [
-            {
-              "img": "carreras/naval/fondos/escena/recortes/0.png",
-              "caja": [
-                0.06019,
-                0.5401,
-                0.23241,
-                0.64323
-              ]
-            },
-            {
-              "img": "carreras/naval/fondos/escena/recortes/1.png",
-              "caja": [
-                0.75093,
-                0.49375,
-                0.94815,
-                0.62604
-              ]
-            },
-            {
-              "img": "carreras/naval/fondos/escena/recortes/2.png",
-              "caja": [
-                0.39815,
-                0.13906,
-                0.575,
-                0.25781
-              ]
-            },
-            {
-              "img": "carreras/naval/fondos/escena/recortes/3.png",
-              "caja": [
-                0.73889,
-                0.2776,
-                0.91944,
-                0.40052
-              ]
-            },
-            {
-              "img": "carreras/naval/fondos/escena/recortes/4.png",
-              "caja": [
-                0.08056,
-                0.22448,
-                0.26852,
-                0.34948
-              ]
-            }
+          "escondites": [],
+          "cajas": [
+            [
+              0.05833,
+              0.49534,
+              0.27708,
+              0.82369
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "ancla",
-          "img": "carreras/naval/objetos/ancla/imagen.png",
-          "nombre": "Ancla tipo Hall",
-          "descripcion": "Dispositivo de acero forjado con brazos basculantes para asegurar buques al lecho marino por gravedad.",
-          "figura": "grua"
-        },
-        {
-          "id": "helice",
-          "img": "carreras/naval/objetos/helice/imagen.png",
-          "nombre": "Hélice marina de bronce",
-          "descripcion": "Propulsor de cuatro palas hidrodinámicas de aleación marina para generar empuje hacia adelante del casco.",
-          "figura": "engranaje"
-        },
-        {
-          "id": "remolcador",
-          "img": "carreras/naval/objetos/remolcador/imagen.png",
-          "nombre": "Remolcador portuario",
-          "descripcion": "Embarcación de gran potencia y maniobrabilidad para asistir el atraque y desatraque de grandes buques.",
-          "figura": "puente"
-        },
-        {
-          "id": "rov",
-          "img": "carreras/naval/objetos/rov/imagen.png",
-          "nombre": "Vehículo submarino ROV",
-          "descripcion": "Robot submarino operado a distancia con cámaras y propulsores para inspección subacuática de cascos.",
-          "figura": "robot"
-        },
-        {
-          "id": "timon",
-          "img": "carreras/naval/objetos/timon/imagen.png",
-          "nombre": "Rueda de timón",
-          "descripcion": "Mando de navegación para accionar la pala del timón y controlar el rumbo y la maniobrabilidad del barco.",
-          "figura": "rodamiento"
+          "id": "microscopio-optico",
+          "img": "carreras/naval/objetos/microscopio-optico/imagen.png",
+          "nombre": "Microscopio óptico",
+          "descripcion": "Equipo que analiza la estructura, corrosión y desgaste de los metales y materiales de los barcos.",
+          "figura": "prisma"
         }
       ]
     },

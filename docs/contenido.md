@@ -285,13 +285,24 @@ Las partes que no necesitan la GPU tienen pruebas:
 ### O se fotografían (`npm run ubicar`)
 
 Una ingeniería puede traer, en vez de una escena generada, **una foto real** con
-sus objetos adentro, y el PNG de cada objeto recortado aparte. Es el caso de
-**Química**: la foto del laboratorio con la cristalería y las placas de Petri
-sobre la mesada y el secador túnel al fondo. Ahí el espejo no saca el objeto de
-la foto: cuando la mano pasa por encima, **levanta el PNG del propio objeto**,
-puesto exactamente sobre el que se ve, iluminado y con un resplandor dorado que
-sigue su silueta. No crece, como los pintados: la foto sigue debajo con el mismo
-objeto, y un grupo de cosas agrandado se vería doble.
+sus objetos adentro, y el PNG de cada objeto recortado aparte. Ahí el espejo no
+saca el objeto de la foto: cuando la mano pasa por encima, **levanta el PNG del
+propio objeto**, puesto exactamente sobre el que se ve, iluminado y con un
+resplandor dorado que sigue su silueta. No crece, como los pintados: la foto
+sigue debajo con el mismo objeto, y un grupo de cosas agrandado se vería doble.
+Hoy son cinco:
+
+| Carrera | Fondo | Objetos (el primero va al carrusel) |
+|---|---|---|
+| Química | `laboratorio`: la cristalería y las placas de Petri sobre la mesada, el secador túnel al fondo | derivados de la madera, orujo y pectina, secador tipo túnel |
+| Alimentos | `laboratorio`: el baño de ultrasonido y el espectrofotómetro en la mesada de la izquierda, los tubos Falcon, la probeta y el matraz en la de la derecha | baño de ultrasonido, espectrofotómetro, probeta y matraz, tubos Falcon |
+| Computación | `laboratorio`: Jacky y Pipe en el piso, Robotito y la computadora en la mesada de la derecha, el dispositivo edge y el libro en la de la izquierda | computadora, dispositivo edge computing, Jacky, libro de base de datos, Pipe, Robotito |
+| Mecánica | `taller`: el torno adelante a la izquierda, el brazo robot y la celda electroquímica en las mesadas de la derecha | brazo robot, celda electroquímica, torno paralelo |
+| Naval | `taller`: el microscopio óptico en la mesa de adelante | microscopio óptico |
+
+**Traen los objetos que se fotografiaron, no cinco.** Naval tiene uno solo: después
+de elegirlo no queda nada escondido, sólo su propia ficha. Cuando lleguen más
+PNG de esa foto se suman como carpetas y se vuelve a correr `ubicar`.
 
 Lo que hace falta, por carrera:
 
@@ -310,7 +321,8 @@ contenido/carreras/quimica/
       metadata.json            ← lo escribe `npm run ubicar`
 ```
 
-1. **La foto**, en JPEG. Química se pasó a 1920 de ancho: más no se ve.
+1. **La foto**, en JPEG, a 1920 de ancho: más no se ve. Las cinco vinieron de
+   2752×1536 y quedaron en 1920×1072, calidad 92.
 2. **Cada PNG es el objeto como aparece en esa foto** —recortado de ella, o el
    que se pegó para armarla—, con fondo transparente y recortado a lo que se ve.
    Puede estar a otro tamaño que en la foto; lo que no puede es ser otra foto
@@ -326,27 +338,52 @@ contenido/carreras/quimica/
 **El orden de las carpetas es el de los objetos**: el primero alfabético va al
 carrusel y vuela a su lugar en la foto, así que conviene que sea el que mejor
 representa a la carrera en chiquito. En Química es la cristalería
-(`derivados-de-la-madera`), no el secador. Para cambiarlo se renombran las
-carpetas y se vuelve a correr `ubicar`.
+(`derivados-de-la-madera`), no el secador; en Computación, la computadora. Para
+cambiarlo se renombran las carpetas y se vuelve a correr `ubicar`.
 
 **Los textos van a la ficha**: el `nombre` es el título —corto, en una o dos
-líneas— y la `descripcion` no pasa de 130 caracteres. De la planilla de Química
-(`fotos-fondos/quimica/Objetos.xlsx`) se acortó el título de los dos grupos, que
-era la lista de lo que hay, y una descripción que pasaba el límite.
+líneas— y la `descripcion` no pasa de 130 caracteres. Salen de la planilla
+(`fotos-fondos/Objetos.xlsx`, con los textos de todas las carreras), y de ahí se
+acortaron los títulos que eran la lista de lo que hay (los dos grupos de
+Química), las descripciones que pasaban el límite (el baño de ultrasonido, la
+probeta y el matraz —que eran dos descripciones—, el torno, la celda), y se
+corrigió lo mal tipeado (espectrofotómetro, matraz, microscopio). El material
+original de cada carrera —la foto y los PNG con los nombres de la planilla,
+`al_id1.png`…— queda en `fotos-fondos/<carrera>/`.
+
+**Lo que le pasa por delante.** El PNG es el objeto entero: lo que en la foto lo
+tapa en parte —la mesa delante del torno, la probeta delante de los tubos
+Falcon— queda debajo mientras se lo lee, y se lee como que el objeto se
+adelanta. Por eso esos dos calzan con un parecido más bajo (0,85 y 0,78: la
+parte tapada no se parece); la hoja de `--hoja` muestra que el contorno sigue al
+objeto.
 
 **Lo que la foto decide y el código no.** Los objetos están donde los dejó la
 foto, así que las reglas de la composición de los fondos generados —la
 periferia, el alcance del brazo, el aire entre blancos— no se le aplican; lo que
 sí se prueba es que el blanco de la mano y el aterrizaje caigan exactamente
 sobre cada objeto, en cualquier pantalla. Y **la orientación de la foto
-importa**: la de Química es apaisada, perfecta para una pantalla horizontal; en
-el espejo vertical se ve como una franja en el medio, con la misma foto
+importa**: las cinco son apaisadas, perfectas para una pantalla horizontal; en
+el espejo vertical se ven como una franja en el medio, con la misma foto
 desenfocada arriba y abajo, y los objetos chicos. Para un espejo vertical hace
 falta una foto vertical.
 
+**Las fichas, en una foto apretada.** La ficha va pegada debajo de su objeto; si
+ahí no entra prueba arriba y al costado, después el lugar limpio más cercano si
+queda pegado, y si no, achica la letra para quedarse a su lado (ver «Dónde va la
+ficha» en `docs/arquitectura.md`). Dos
+objetos no tienen lugar pegado con la letra pedida: **Robotito** y la **celda
+electroquímica**, chicos, en un rincón de abajo de su foto y con un vecino grande
+justo encima (la computadora, el brazo robot). Abajo está el nombre de la
+ingeniería —y en apaisado su franja ocupa el 38 % de la pantalla—, así que en el
+espejo su ficha se achica para quedar a su lado, y en apaisado se va arriba del
+vecino. `tests/integracion/fichas.test.js` los tiene nombrados como excepción
+(`SIN_LUGAR_EN_LA_FOTO`); lo que los arreglaría es que la zona prohibida del pie
+sea el nombre y no una franja a lo ancho.
+
 Un fondo es generado o fotografiado, no las dos cosas: con `recortes` y `cajas`
 a la vez el catálogo no se arma. Y `escenas.py` no genera las carreras de foto
-real (Química no está en sus guiones), para no ponerles otra escena encima.
+real (no están en sus guiones), para no ponerles otra escena encima.
 
 ### Qué hace que un fondo sirva
 

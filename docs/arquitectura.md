@@ -2,7 +2,7 @@
 
 ## 1. Visión General
 
-El **Espejo Mágico** es una instalación interactiva para eventos y stands institucionales. Un visitante se ubica frente a un televisor montado verticalmente (enmarcado como espejo) con una cámara web superior. El sistema detecta su presencia, llena la pantalla de humo y, al disiparse, le ofrece un **carrusel con las doce ingenierías**, un objeto por cada una, que gira lento a su alrededor. La persona **sostiene la mano** sobre el que quiere y esa es su elección, una sola: los demás objetos se apagan y aparece el fondo de esa ingeniería detrás suyo —recortado contra su silueta— con el objeto volando a su lugar dentro del fondo y el nombre de la ingeniería al pie. En ese fondo ya están, **pintados adentro de la escena**, los otros cuatro objetos de esa ingeniería, latiendo apenas; pasando la mano sobre cualquiera de los cinco, el objeto se **recorta del propio fondo**, se levanta iluminado delante de la persona y aparece su **ficha** debajo, con el nombre del objeto y una descripción corta.
+El **Espejo Mágico** es una instalación interactiva para eventos y stands institucionales. Un visitante se ubica frente a un televisor montado verticalmente (enmarcado como espejo) con una cámara web superior. El sistema detecta su presencia, llena la pantalla de humo y, al disiparse, le ofrece un **carrusel con las doce ingenierías**, un objeto por cada una, que gira lento a su alrededor. La persona **sostiene la mano** sobre el que quiere y esa es su elección, una sola: los demás objetos se apagan y aparece el fondo de esa ingeniería detrás suyo —recortado contra su silueta— con el objeto volando a su lugar dentro del fondo y el nombre de la ingeniería al pie. En ese fondo ya están, **pintados adentro de la escena**, los otros cuatro objetos de esa ingeniería, latiendo apenas; pasando la mano sobre cualquiera de los cinco, el objeto se **recorta del propio fondo**, se levanta iluminado delante de la persona y aparece su **ficha** debajo, con el nombre del objeto y una descripción corta. En cinco ingenierías —Química, Alimentos, Computación, Mecánica y Naval— el fondo es una **foto real** del laboratorio o del taller con sus objetos fotografiados adentro, y lo que se levanta es el PNG del propio objeto, calzado sobre el que se ve.
 
 Toda la experiencia vive en una sola pestaña de Chrome, en una sola PC. No hay segundas pantallas ni estado compartido. La única comunicación que sale es un aviso de ida a **MAITE**, el proyecto de las tablets, para que muestren a la gente de la carrera elegida — y el espejo funciona igual si del otro lado no hay nadie.
 
@@ -108,7 +108,7 @@ Servidor de archivos estáticos escrito sobre Node.js nativo. **Sin dependencias
 La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la experiencia:
 
 ```
-      ┌────────── sin rostro 4 s, o tope de sesión (180 s) ─────────┐
+      ┌── sin rostro 4 s en el enganche, o sin completar en 180 s ─┐
       │                                                            │
       ▼          rostro continuo                    3 s            │
 ┌───────────┐        2 s        ┌───────────┐                ┌───────────┐
@@ -116,17 +116,17 @@ La máquina de estados (`espejo/maquina-estados.js`) gobierna el flujo de la exp
 └─────▲─────┘                   └───────────┘  se barajan    └─────┬─────┘
       │                                        las doce            │
       │ 3 s                                                        ▼
-┌─────┴─────┐  sin rostro 4 s   ┌─────────────────────────────────────────┐
+┌─────┴─────┐  sin cara ni      ┌─────────────────────────────────────────┐
 │  CIERRE   │◄──────────────────┤             EXPLORACION                 │
-└───────────┘  o tope 180 s     │                                         │
+└───────────┘  cuerpo 4 s       │                                         │
       │                         │   mirar(id) ──► POST /api/carrera       │
       │                         │                                         │
       └── POST /api/humo        │   y de ahí en más mirar() no mueve nada  │
                                 └─────────────────────────────────────────┘
-                                  sin duración propia; a los 10 s sin que
-                                  nadie agarre nada, refuerza la consigna;
-                                  a los 30 s cierra sin asignar carrera;
-                                  exige una ausencia antes de rearmarse
+                                  sin duración propia ni tope: la persona
+                                  se queda lo que quiera; a los 10 s sin que
+                                  nadie agarre nada, refuerza la consigna
+                                  una vez, y nada más
 ```
 
 **Se elige una sola vez.** `mirar` no hace nada si ya hay `carrera`: la
@@ -158,9 +158,11 @@ reales:
 `tests/integracion/presencia.test.js` fija las dos puntas con la CONFIG de
 verdad, para que mover una no rompa la otra en silencio.
 
-> **Límite conocido:** por debajo de esos seis segundos el sistema no distingue a
-> dos personas. Si una se levanta y otra se sienta muy rápido, la segunda hereda
-> la carrera y el reloj de la primera. Separarlas de verdad pide comparar la
+> **Límite conocido:** el sistema no distingue a dos personas. Si una se levanta
+> y otra se sienta sin que pasen unos seis segundos sin nadie a la vista —ni
+> cara ni cuerpo—, la segunda hereda la carrera de la primera; como el cuerpo
+> también sostiene la sesión, pasa aunque la cara de la primera ya no se vea.
+> El equipo del stand lo resuelve con `R`. Separarlas de verdad pide comparar la
 > posición y el tamaño del rostro entre la desaparición y la reaparición, no
 > acortar plazos: acortarlos vuelve a cortarle la escena a quien no se movió.
 
@@ -171,9 +173,9 @@ Lo ofrecido, la carrera y el número de sesión viajan en la salida
 falta.
 
 1. **`ATRACCION`**: El espejo descansa cubierto de humo (`CONFIG.humo.enReposo`) y de nubes, con el video atenuado y desenfocado y el texto de invitación respirando. Al entrar se le pide a MAITE que vuelva a su humo. Tras cerrar una sesión no vuelve a arrancar con el mismo rostro: primero tiene que observar una ausencia y rearmarse para la persona siguiente.
-2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. El tope de sesión también vigila este estado, para que un rostro intermitente no lo deje trabado. **Las nubes no se abren**: se agitan, la invitación se apaga y el humo del reposo empieza a espesarse (`humo.enEnganche`). Abrirlas acá dejaba el espejo limpio un momento y enseguida el humo lo volvía a tapar: se leía como nubes que se iban y volvían.
+2. **`ENGANCHE`**: Hay rostro estable. Exige **rostro continuo** durante `tiempos.enganche`: si parpadea, el contador vuelve a cero. `tiempos.engancheMaximo` (180 s) lo vigila, para que un rostro intermitente no lo deje trabado: no es un plazo para la persona, la experiencia todavía no empezó. **Las nubes no se abren**: se agitan, la invitación se apaga y el humo del reposo empieza a espesarse (`humo.enEnganche`). Abrirlas acá dejaba el espejo limpio un momento y enseguida el humo lo volvía a tapar: se leía como nubes que se iban y volvían.
 3. **`HUMO`**: El humo sigue espesándose desde donde lo dejó el enganche hasta tapar la pantalla, con las nubes todavía puestas y el espejo dormido. Debajo **se baraja el orden de las doce carreras** que se van a ofrecer en el carrusel. Los doce objetos representativos ya se cargaron antes de iniciar; el fondo de una ingeniería —con sus objetos ya adentro— y las máscaras de sus recortes se piden en segundo plano recién cuando se la elige.
-4. **`EXPLORACION`**: Todo se despeja a la vez, una sola vez: el humo se disipa, las nubes se apartan hacia los costados y el espejo se despierta —deja de verse desenfocado y oscuro— (`CONFIG.niebla.espejoDormido`). Queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Los otros cuatro objetos de la carrera ya están pintados adentro de ese fondo, y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cinco, el objeto se recorta del fondo, se levanta y se abre su ficha debajo. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia:** dura mientras siga sentada. `tiempos.ayudaEleccion` (10 s) repite el gesto y `tiempos.eleccionMaxima` (30 s) libera el espejo sin revelar una carrera si nadie eligió.
+4. **`EXPLORACION`**: Todo se despeja a la vez, una sola vez: el humo se disipa, las nubes se apartan hacia los costados y el espejo se despierta —deja de verse desenfocado y oscuro— (`CONFIG.niebla.espejoDormido`). Queda el carrusel girando despacio alrededor de los hombros: una ranura por carrera, cinco o seis a la vista. La persona sostiene la mano sobre uno, el carrusel se detiene, un anillo se llena y aparece esa ingeniería: el fondo, el objeto volando a su lugar dentro del fondo, y el nombre al pie. **Ahí se cierra la elección**: los demás objetos se apagan con el vuelo del elegido y el carrusel desaparece junto con su consigna. Los otros cuatro objetos de la carrera ya están pintados adentro de ese fondo, y la mano pasa a servir para otra cosa: pasándola sobre cualquiera de los cinco, el objeto se recorta del fondo, se levanta y se abre su ficha debajo. El detector de manos sigue andando, a menos cuadros. La información se queda puesta el resto de la sesión. **No tiene duración propia ni tope:** dura mientras siga sentada, para elegir y para explorar. `tiempos.ayudaEleccion` (10 s) repite el gesto una vez si nadie agarró nada; el espejo no elige por la persona ni la echa. Si la detección se traba en verdadero (un póster), el equipo la cierra con `ESPACIO`, y el espejo espera una ausencia antes de rearmarse.
 5. **`CIERRE`**: Desvanecido general de objetos, fondo y textos. Las nubes vuelven a cubrir el espejo, más lento de lo que se abrieron.
 
 **Lo que se muestra se le informa a la máquina desde afuera**, con
@@ -183,11 +185,14 @@ emite nada — con la mano quieta el sostenido se repite cuadro a cuadro, y sin
 esa guarda MAITE recibiría cien avisos por segundo. La sesión se cuenta una sola
 vez por persona, la primera vez que mira algo.
 
-**El rostro es lo que sostiene la sesión.** Una pose (los hombros) ya no alcanza
-para mantenerla viva con la cara girada: en cuanto la cara deja de reconocerse,
-y pasado el colchón de la presencia, el espejo vuelve a su pantalla inicial y
-queda libre para el que sigue en la fila. Siguen siendo dos histéresis sobre dos
-señales distintas, pero la que manda es la del rostro.
+**El rostro arranca la sesión, y el cuerpo también la sostiene.** Sin cara no se
+engancha —un cuerpo de fondo no puede destapar el espejo—, pero una vez adentro
+de la experiencia (HUMO y EXPLORACION) la sesión sigue mientras se vea la cara o
+el cuerpo, y termina cuando no se ve ni una cosa ni la otra. Cortarla en cuanto
+la cara dejaba de reconocerse le terminaba la experiencia a quien seguía
+sentado, con la cabeza girada o la mano tapándole la cara al elegir. Siguen
+siendo dos histéresis sobre dos señales distintas: la del rostro arranca y
+sostiene el enganche; la de rostro o pose sostiene lo demás.
 
 ---
 
@@ -264,7 +269,13 @@ Cuatro detalles que no son decorativos:
   dependiera de dónde está cada objeto, respiraría cuadro a cuadro con el giro.
 - **El tamaño del objeto se acota a la cuerda entre vecinos**
   (`aireEntreObjetos`). Con doce a 30° y el radio achicado por el borde, dos
-  objetos se encimaban y el de atrás quedaba inelegible.
+  objetos se encimaban y el de atrás quedaba inelegible. Y el margen al
+  borde se mide con el objeto que se dibuja, no con el pedido: anillo y
+  objeto dependen uno del otro, y se busca el punto fijo. Medido con el
+  pedido, pedirlos más grandes los achicaba. En un espejo vertical doce no
+  entran más grandes que unos 190 px; en apaisado llegan a lo pedido
+  (`radioObjetoFactor`, 0,32 anchos de hombros desde que la pantalla es de
+  47").
 - **`congelar` detiene el ancla y la rotación, y se pone apenas empieza un
   sostenido.** Estirar el brazo mueve los hombros, y si el anillo los siguiera,
   el blanco se correría de abajo de la propia mano; y si siguiera girando,
@@ -475,10 +486,11 @@ al de la pantalla: el `destination-in` toca el lienzo entero, y sobre uno de
 1080×1920 son dos millones de píxeles por cuadro para recortar algo que mide
 doscientos. Un recorte que falte cae al PNG de siempre.
 
-**Y en una foto real están fotografiados.** Química no tiene escena generada: su
-fondo es una foto del laboratorio con los objetos adentro —la cristalería y las
-placas de Petri sobre la mesada, el secador túnel al fondo— y el PNG de cada uno
-recortado aparte. Ese fondo declara `cajas` en lugar de `recortes`: dónde calza
+**Y en una foto real están fotografiados.** Química, Alimentos, Computación,
+Mecánica y Naval no tienen escena generada: su fondo es una foto del laboratorio
+o del taller con los objetos adentro —en Química, la cristalería y las placas de
+Petri sobre la mesada y el secador túnel al fondo— y el PNG de cada uno recortado
+aparte. Traen los que se fotografiaron: de seis (Computación) a uno solo (Naval). Ese fondo declara `cajas` en lugar de `recortes`: dónde calza
 el PNG de cada objeto, normalizado a la foto y en el orden de `objetos`. Lo que
 se levanta cuando la mano pasa por encima es **ese PNG**, puesto exactamente
 sobre el que se ve (`dibujarFotoDelObjeto`, escena.js), y no un pedazo de la
@@ -495,6 +507,11 @@ reparto sin barajar y el aterrizaje encima del suyo. Cambian dos cosas:
   solo, sobre una foto clara, el secador casi no cambiaba.
 - **Entra fundiéndose** con la mano (su alfa por cuánto está en foco), en vez de
   aparecer entero: el PNG calza sobre la foto pero no es idéntico píxel a píxel.
+
+El PNG es el objeto entero, así que lo que en la foto le pasa por delante —la
+mesa delante del torno de Mecánica, la probeta delante de los tubos Falcon de
+Alimentos— queda debajo mientras se lo lee: el objeto se adelanta, como cuando
+pasa delante de la persona.
 
 Las cajas las escribe `npm run ubicar` (`herramientas/ubicar.py`), que busca
 cada PNG adentro de la foto —correlación normalizada sobre lo opaco del PNG, de
@@ -568,13 +585,21 @@ los objetos están donde los dejó la foto, y moverlos es sacar otra.
   corrida no es un adorno: en la columna de la periferia hay otro objeto más
   abajo, y centrada el cartel se lo comía, o sea que la persona iba a buscar
   algo que la propia ficha le tapó; el centro es la única franja sin objetos. Si
-  ninguno entra achica la letra; si ni así, va al sitio limpio más cercano al
-  objeto, con la letra pedida (`lugarLimpioMasCercano`): pasa con las placas de
-  Petri de Química, en un rincón de abajo con el pie debajo y la cristalería
-  encima. Y como último recurso muestra igual: una ficha que no aparece es peor
-  que una que pisa un borde. `dibujarFicha` le pasa los demás objetos
-  (`otros`): hasta octubre de 2026 se perdían en el camino, y la ficha esquivaba
-  a los vecinos en las pruebas pero no en la pantalla. Con objetos sueltos sigue
+  ninguno entra, el sitio limpio más cercano con la letra pedida
+  (`lugarLimpioMasCercano`), si queda pegado: a no más de
+  `fichas.distanciaDebajo` radios del objeto. Pasaba con la probeta de
+  Alimentos, con los tubos Falcon al lado: el sitio de arriba rozaba al vecino
+  por cuatro píxeles, y achicándose entraba debajo con letra chica. Más lejos ya
+  parece la ficha del vecino, así que ahí achica la letra para quedarse a su
+  lado; si ni así, va al sitio limpio más cercano aunque quede lejos: pasa con
+  las placas de Petri de Química, en un rincón de abajo con el pie debajo y la
+  cristalería encima. Y como último recurso muestra igual: una ficha que no
+  aparece es peor que una que pisa un borde. De su propio objeto la ficha cuida
+  lo mismo que de los otros, su resalte: el fotografiado no crece, y con el
+  ancla a su medida justa se le apoyaba encima. `dibujarFicha` le pasa todo lo
+  que armó `fichaDelObjeto`: de a uno, los demás objetos (`otros`) se perdían en
+  el camino hasta octubre de 2026, y la ficha esquivaba a los vecinos en las
+  pruebas pero no en la pantalla. Con objetos sueltos sigue
   yendo al cartel ancho de arriba de la cabeza (`disponerFicha`), que es la única
   franja donde una descripción legible a dos metros no le tapa la cara ni al
   vecino.
@@ -609,8 +634,8 @@ cuadro:
   completaba el sostenido: ahora se apagan con el carrusel.
 - El objeto elegido aterrizaba y en el mismo cuadro aparecían el halo entero y
   la flotación en una fase cualquiera: los dos entran en `fondo.msDeAterrizaje`.
-- Si el cierre llegaba en pleno vuelo —el tope de sesión, un `ESPACIO` en
-  manual—, el objeto saltaba a su lugar con el fondo entero antes de apagarse: el
+- Si el cierre llegaba en pleno vuelo —la persona que se va, un `ESPACIO` del
+  equipo—, el objeto saltaba a su lugar con el fondo entero antes de apagarse: el
   cierre arranca desde donde quedó la exploración, cada capa con su reloj
   multiplicada por la salida, y el objeto termina de volar mientras se apaga.
 - El borde de la ficha le dibujaba una raya a la base del pico, como si

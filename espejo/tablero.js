@@ -160,16 +160,30 @@ export function crearTablero({
         y: acotar(suave.y, radioPedido, Math.max(radioPedido, disposicion.alto - radioPedido)),
       };
 
-      const radio = Math.min(
-        suave.escala * radioFactor,
-        radioQueEntra(ventana, ancla, disposicion, radioPedido * margen),
-      );
-
+      // El anillo que entra en el lienzo dejando a un objeto de radio `r` entero
+      // adentro, con su margen.
+      const anilloPara = (r) =>
+        Math.min(suave.escala * radioFactor, radioQueEntra(ventana, ancla, disposicion, r * margen));
       // La cuerda entre dos ranuras vecinas es lo maximo que puede medir un
       // objeto sin pisar al de al lado. Con pocos objetos no manda; con doce
       // y el radio achicado por el borde, si.
-      const cuerda = cantidad > 1 ? radio * Math.sin(Math.PI / cantidad) : Infinity;
-      const radioObjeto = Math.min(radioPedido, cuerda / (1 + aireEntreObjetos));
+      const objetoPara = (radio) =>
+        Math.min(
+          radioPedido,
+          cantidad > 1 ? (radio * Math.sin(Math.PI / cantidad)) / (1 + aireEntreObjetos) : Infinity,
+        );
+
+      // EL MARGEN SE MIDE CON EL OBJETO QUE SE DIBUJA, NO CON EL PEDIDO. Con
+      // doce en un espejo vertical el tamaño lo fija la cuerda, y medir el
+      // margen con el pedido achicaba el anillo —y con el, por la cuerda, a los
+      // objetos— de mas: pedirlos mas grandes los achicaba. Anillo y objeto
+      // dependen uno del otro, asi que se busca el punto fijo: cada doble paso
+      // es una cota por arriba, mas ajustada, y se dibuja con ella, que deja a
+      // todos enteros adentro. Converge rapido: cuatro alcanzan.
+      let cota = radioPedido;
+      for (let paso = 0; paso < 4; paso++) cota = objetoPara(anilloPara(objetoPara(anilloPara(cota))));
+      const radio = anilloPara(cota);
+      const radioObjeto = Math.min(cota, objetoPara(radio));
 
       return {
         ancla,

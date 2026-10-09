@@ -508,10 +508,15 @@ describe('fichaDelObjeto de un objeto adentro de la foto', () => {
   const fotografiado = { id: 1, x: 200, y: 700, radio: 120, enLaFoto: { caja: [0, 0, 1, 1], mascara: null } };
 
   // La ficha va pegada a su objeto, y no le puede tapar lo que se levanta: el
-  // ancla mide lo que mide el objeto mientras se lo lee.
+  // ancla mide lo que mide el objeto mientras se lo lee, y nunca menos que su
+  // resalte, que es lo que se le cuida a cada uno de los otros. El fotografiado
+  // no crece, y con el ancla a su medida justa la ficha del dispositivo edge de
+  // Computacion se le apoyaba encima del resplandor.
   it('va debajo, anclada al objeto con lo que crece al leerlo', () => {
     const { opciones } = fichaDelObjeto(fotografiado, { ancho: 1920, alto: 1080 }, CONFIG_FALSA);
-    expect(opciones.ancla).toEqual({ x: 200, y: 700, radio: 120 });
+    expect(opciones.ancla.x).toBe(200);
+    expect(opciones.ancla.y).toBe(700);
+    expect(opciones.ancla.radio).toBeCloseTo(120 * 1.14);
     expect(opciones.anchoFactor).toBe(0.42);
 
     const pintado = { ...fotografiado, enLaFoto: { caja: [0, 0, 1, 1], mascara: 'r.png' } };

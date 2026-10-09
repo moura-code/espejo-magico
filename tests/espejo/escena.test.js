@@ -1049,6 +1049,22 @@ describe('calcularDisposicion', () => {
     expect(grande.pie.tamano).toBeGreaterThan(grande.texto.tamanoFrase);
   });
 
+  // LA PANTALLA DEL STAND ES DE 47 PULGADAS, y se lee a unos dos metros. Su lado
+  // corto mide 58,5 cm, parada o acostada, y la letra se mide contra el lado
+  // corto: la misma pantalla da la misma letra en las dos orientaciones. Con la
+  // de antes —32 px las frases— la consigna y las fichas se pidieron mas grandes.
+  it('en la pantalla de 47 pulgadas la letra se lee a dos metros', () => {
+    const CM_POR_PX = 58.5 / 1080;
+    for (const [ancho, alto] of [
+      [1080, 1920],
+      [1920, 1080],
+    ]) {
+      const { texto } = calcularDisposicion(ancho, alto);
+      expect(texto.tamanoFrase * CM_POR_PX).toBeGreaterThanOrEqual(2.3);
+      expect(texto.tamanoNombre * CM_POR_PX).toBeGreaterThanOrEqual(4);
+    }
+  });
+
   it('da una unidad de referencia positiva en cualquier pantalla', () => {
     for (const [ancho, alto] of [
       [1080, 1920],
@@ -1276,6 +1292,18 @@ describe('las dos tipografias', () => {
 
     const dichos = soloDe(ctx, 'fillText').map(([, texto]) => texto);
     expect(dichos).toContain('Sostené la mano sobre un objeto');
+  });
+
+  // Es lo primero que hay que leer, de pie o sentado a un par de metros: en la
+  // pantalla de 47" del stand, al menos 2,6 cm de letra en las dos orientaciones.
+  it('en la pantalla de 47 pulgadas la consigna se lee de lejos', () => {
+    const CM_POR_PX = 58.5 / 1080;
+    for (const pantalla of [disposicion, calcularDisposicion(1920, 1080)]) {
+      const ctx = ctxQueAnotaFuentes();
+      dibujarConsigna(ctx, pantalla, 1);
+      const [fuente] = fuentesDe(ctx);
+      expect(Number(fuente.match(/([\d.]+)px/)[1]) * CM_POR_PX).toBeGreaterThanOrEqual(2.6);
+    }
   });
 
   // Despues de elegir, el gesto es otro: ya no se agarra, se explora. La frase
@@ -1777,6 +1805,75 @@ describe('disponerFichaDebajo', () => {
     expect(ficha.caja.y + ficha.caja.alto).toBeLessThanOrEqual(1920 - disposicion.pie.alto);
     const letra = Number(ficha.fuenteTexto.match(/([\d.]+)px/)[1]);
     expect(letra).toBe(Math.round(disposicion.texto.tamanoFrase * tipografia.texto));
+  });
+
+  // LA PROBETA DE ALIMENTOS, en un rincon de abajo de la foto con los tubos
+  // Falcon al lado: debajo esta el nombre, y arriba el cartel rozaba a los
+  // tubos por cuatro pixeles. Achicando la letra entraba debajo, y la ficha se
+  // leia con letra chica teniendo un lugar limpio y pegado un poco mas arriba.
+  // Antes de achicarse, el lugar limpio mas cercano, si queda pegado.
+  it('antes de achicar la letra, busca un lugar limpio pegado al objeto', () => {
+    const objeto = { x: 1020, y: 1057, radio: 86 };
+    const otros = [
+      { x: 924, y: 1042, radio: 101 },
+      { x: 86, y: 1044, radio: 106 },
+      { x: 246, y: 1020, radio: 53 },
+    ];
+    const ficha = poner(objeto, otros);
+    const letra = Number(ficha.fuenteTexto.match(/([\d.]+)px/)[1]);
+    expect(letra).toBe(Math.round(disposicion.texto.tamanoFrase * tipografia.texto));
+    const { caja } = ficha;
+    const cercaX = Math.max(caja.x, Math.min(objeto.x, caja.x + caja.ancho));
+    const cercaY = Math.max(caja.y, Math.min(objeto.y, caja.y + caja.alto));
+    const distancia = Math.hypot(objeto.x - cercaX, objeto.y - cercaY);
+    expect(distancia).toBeGreaterThanOrEqual(objeto.radio);
+    expect(distancia).toBeLessThanOrEqual(2 * objeto.radio);
+    for (const { x, y, radio } of otros) {
+      const otroX = Math.max(caja.x, Math.min(x, caja.x + caja.ancho));
+      const otroY = Math.max(caja.y, Math.min(y, caja.y + caja.alto));
+      expect(Math.hypot(x - otroX, y - otroY)).toBeGreaterThanOrEqual(radio);
+    }
+    expect(caja.y + caja.alto).toBeLessThanOrEqual(1920 - disposicion.pie.alto);
+  });
+
+  // Lejos no: un objeto chico con su vecino grande encima no tiene donde
+  // ponerla pegada con la letra pedida, y a la otra punta de la pantalla la
+  // ficha parece del vecino. Ahi sigue achicandose para quedar a su lado.
+  it('si el lugar limpio queda lejos, achica la letra para quedarse a su lado', () => {
+    const objeto = { x: 1005, y: 1083, radio: 50 };
+    const otros = [{ x: 917, y: 965, radio: 97 }];
+    const robotito = {
+      nombre: 'Robotito',
+      descripcion:
+        'Pequeño robot móvil circular con ruedas omnidireccionales, usado en investigación y aprendizaje de robótica.',
+    };
+    // La letra de una ficha de 32 px, para que achicandose quepa debajo.
+    const chica = { texto: 0.75, titulo: 1.125 };
+    const ficha = disponerFichaDebajo(robotito, disposicion, medir, { objeto, otros, tipografia: chica });
+    const letra = Number(ficha.fuenteTexto.match(/([\d.]+)px/)[1]);
+    expect(letra).toBeLessThan(Math.round(disposicion.texto.tamanoFrase * chica.texto));
+    const { caja } = ficha;
+    const cercaX = Math.max(caja.x, Math.min(objeto.x, caja.x + caja.ancho));
+    const cercaY = Math.max(caja.y, Math.min(objeto.y, caja.y + caja.alto));
+    expect(Math.hypot(objeto.x - cercaX, objeto.y - cercaY)).toBeLessThanOrEqual(2 * objeto.radio);
+  });
+
+  // EN APAISADO, LA LETRA DE LA PANTALLA. La ficha se achicaba con la
+  // composicion vertical —cuando apaisado era solo el monitor de desarrollo— y
+  // en la pantalla de 47" acostada la descripcion quedaba en 18 px: un
+  // centimetro de letra para leer a dos metros. La misma pantalla, parada o
+  // acostada, tiene el mismo lado corto, y da la misma ficha.
+  it('en un monitor apaisado va con la misma letra y el mismo ancho que en el espejo', () => {
+    const apaisada = calcularDisposicion(1920, 1080);
+    const enElEspejo = poner({ x: 150, y: 500, radio: 90 });
+    const enApaisado = disponerFichaDebajo(textos, apaisada, medir, {
+      objeto: { x: 300, y: 300, radio: 90 },
+      tipografia,
+    });
+
+    expect(enApaisado.fuenteTexto).toBe(enElEspejo.fuenteTexto);
+    expect(enApaisado.titulo.fuente).toBe(enElEspejo.titulo.fuente);
+    expect(enApaisado.caja.ancho).toBeCloseTo(enElEspejo.caja.ancho, 6);
   });
 
   // La eleccion entre las dos fichas vive en un solo lado: el espejo, la

@@ -92,10 +92,11 @@ class OrdenDeObjetos(unittest.TestCase):
             carpetas = sorted(os.listdir(os.path.join(escenas.CARRERAS, cid, 'objetos')))
             self.assertEqual(escenas.orden_de_objetos(cid), carpetas, cid)
 
-    # Quimica tiene una foto real con los objetos fotografiados adentro:
-    # generarla le pondria otra escena encima.
+    # Las de foto real tienen los objetos fotografiados adentro: generarlas les
+    # pondria otra escena encima.
     def test_no_genera_las_carreras_de_foto_real(self):
-        self.assertNotIn('quimica', escenas.GUIONES)
+        for cid in ('quimica', 'alimentos', 'computacion', 'mecanica', 'naval'):
+            self.assertNotIn(cid, escenas.GUIONES)
 
 
 class SitioDe(unittest.TestCase):
@@ -891,11 +892,11 @@ class LineaDeComandos(unittest.TestCase):
     # que salio bien del PNG antes de que existiera el repaso no tiene por que
     # volver a tirarse.
     def test_repasar_repasa_solo_esos_objetos_y_no_carga_el_juez(self):
-        self.correr_main('--repasar', '--solo', 'electrica:panel-solar,naval:rov')
-        # panel-solar es el 3 de electrica; rov, el 3 de naval.
-        self.assertEqual(self.tandas, {'armonizar': (['electrica', 'naval'], 0)})
-        self.assertEqual(self.repasar, {'electrica': [3], 'naval': [3]})
-        self.assertEqual(self.solo, {'electrica': [3], 'naval': [3]})
+        self.correr_main('--repasar', '--solo', 'electrica:panel-solar,produccion:engranaje-industrial')
+        # panel-solar es el 3 de electrica; engranaje-industrial, el 3 de produccion.
+        self.assertEqual(self.tandas, {'armonizar': (['electrica', 'produccion'], 0)})
+        self.assertEqual(self.repasar, {'electrica': [3], 'produccion': [3]})
+        self.assertEqual(self.solo, {'electrica': [3], 'produccion': [3]})
         self.assertFalse(self.juez_creado)
 
     def test_repasar_sin_lista_no_hace_nada(self):

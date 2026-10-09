@@ -12,9 +12,10 @@
 //     la pantalla, una de cada seis fichas tapaba a un vecino y con la letra
 //     grande ya no entraban.
 //   - DEBAJO DE SU OBJETO, cuando el objeto vive adentro de la foto (un fondo
-//     generado). Ahi de cual habla ya no hay que adivinarlo —el objeto se
-//     levanta de la escena— pero el texto tiene que estar pegado a el, y el
-//     cartel se corre hacia el centro si abajo le tapa al vecino de la columna.
+//     generado, o una foto real con los objetos fotografiados). Ahi de cual
+//     habla ya no hay que adivinarlo —el objeto se levanta de la escena— pero
+//     el texto tiene que estar pegado a el, y el cartel se corre hacia el
+//     centro si abajo le tapa al vecino de la columna.
 //
 // Los objetos y lo que se le pasa a la ficha salen de las mismas funciones que
 // usa el espejo (objetosDelFondo, fichaDelObjeto y disponerFichaDeObjeto):
@@ -50,6 +51,38 @@ const tocaCirculo = (caja, { x, y, radio }) => {
   const cercaY = Math.max(caja.y, Math.min(y, caja.y + caja.alto));
   return Math.hypot(x - cercaX, y - cercaY) < radio;
 };
+
+/** Si la ficha de debajo se fue lejos de su objeto: mas de 2,2 radios de su centro. */
+const lejosDeSuObjeto = ({ objeto, ficha: { caja } }) => {
+  const cercaX = Math.max(caja.x, Math.min(objeto.x, caja.x + caja.ancho));
+  const cercaY = Math.max(caja.y, Math.min(objeto.y, caja.y + caja.alto));
+  return Math.hypot(objeto.x - cercaX, objeto.y - cercaY) > objeto.radio * 2.2;
+};
+
+const letraPedida = () =>
+  Math.round(calcularDisposicion(1080, 1920).texto.tamanoFrase * CONFIG.fichas.tipografia.texto);
+
+// UNA FOTO REAL PUEDE NO DEJAR LUGAR. Los objetos estan donde los dejo la foto
+// (tests/integracion/fondos.test.js), y dos quedaron chicos, en un rincon de
+// abajo y con un vecino grande justo encima: Robotito, debajo de la
+// computadora, y la celda electroquimica, debajo del brazo robot. Abajo esta el
+// nombre de la ingenieria y arriba el vecino, asi que su ficha no puede ser a la
+// vez pegada y con la letra pedida. En el espejo se achica para quedar a su
+// lado (disponerFichaDebajo prefiere eso: lejos, parece la ficha del vecino);
+// en apaisado, donde el pie es mas alto, ni achicandose entra, y va al lugar
+// limpio mas cercano. El tercero es el dispositivo edge de Computacion, chico,
+// entre el libro y el estante, con Jacky debajo: solo en apaisado, desde que la
+// ficha acostada tiene la letra de la pantalla y no la de la composicion. Lo
+// demas —no tapar a nadie, entrar en la pantalla, no bajar al nombre— lo
+// cumplen como todas. Lo que las arreglaria es que el pie prohibido sea el
+// nombre y no una franja a lo ancho, y si eso pasa o cambia la foto, la prueba
+// de abajo avisa que esta lista tiene que achicarse.
+const SIN_LUGAR_EN_LA_FOTO = new Set([
+  'carreras/computacion/fondos/laboratorio/imagen.jpg · Robotito',
+  'carreras/computacion/fondos/laboratorio/imagen.jpg · Dispositivo edge computing',
+  'carreras/mecanica/fondos/taller/imagen.jpg · Celda electroquímica',
+]);
+const conLugar = (caso) => !SIN_LUGAR_EN_LA_FOTO.has(caso.nombre);
 
 /**
  * Cada ficha de cada objeto de cada fondo del catalogo, dispuesta como en esa
@@ -139,12 +172,8 @@ describe('las fichas del catalogo real', () => {
     // al otro extremo de la pantalla seria el cartel de arriba, pero peor.
     it(`${donde}, las de debajo quedan al lado de su objeto`, async () => {
       const lejos = (await fichasDelCatalogo(pantalla))
-        .filter((caso) => caso.debajo)
-        .filter(({ objeto, ficha: { caja } }) => {
-          const cercaX = Math.max(caja.x, Math.min(objeto.x, caja.x + caja.ancho));
-          const cercaY = Math.max(caja.y, Math.min(objeto.y, caja.y + caja.alto));
-          return Math.hypot(objeto.x - cercaX, objeto.y - cercaY) > objeto.radio * 2.2;
-        });
+        .filter((caso) => caso.debajo && conLugar(caso))
+        .filter(lejosDeSuObjeto);
       expect(lejos.map((caso) => caso.nombre)).toEqual([]);
     });
 
@@ -166,13 +195,48 @@ describe('las fichas del catalogo real', () => {
   // catalogo de verdad no puede hacer falta: si hiciera, la letra de la config
   // estaria prometiendo algo que el espejo no muestra.
   it('en el espejo van con la letra que pide la config, sin achicarse', async () => {
-    const pedida = Math.round(
-      calcularDisposicion(1080, 1920).texto.tamanoFrase * CONFIG.fichas.tipografia.texto,
-    );
-    const achicadas = (await fichasDelCatalogo()).filter(
-      ({ ficha }) => px(ficha.fuenteTexto) !== pedida,
-    );
+    const achicadas = (await fichasDelCatalogo())
+      .filter(conLugar)
+      .filter(({ ficha }) => px(ficha.fuenteTexto) !== letraPedida());
     expect(achicadas.map((caso) => caso.nombre)).toEqual([]);
+  });
+
+  // LA PANTALLA DEL STAND ES DE 47 PULGADAS, y se lee a unos dos metros: su
+  // lado corto mide 58,5 cm, parada o acostada. Las fichas se pidieron mas
+  // grandes —eran de 1,7 cm de letra en el espejo y de 1 cm acostadas, porque
+  // se achicaban con la composicion—: la pedida es de unos 2 cm, y la que se
+  // achica para entrar (lo de arriba al centro, acostado) no baja de 1,4 cm.
+  // Las que la foto deja sin lugar se achican en el espejo para quedar a su
+  // lado, y quedan afuera.
+  it('en la pantalla de 47 pulgadas la letra de las fichas se lee a dos metros', async () => {
+    const CM_POR_PX = 58.5 / 1080;
+    expect(letraPedida() * CM_POR_PX).toBeGreaterThanOrEqual(1.9);
+
+    const chicas = [];
+    for (const pantalla of [ESPEJO, APAISADA]) {
+      for (const caso of (await fichasDelCatalogo(pantalla)).filter(conLugar)) {
+        const cm = px(caso.ficha.fuenteTexto) * CM_POR_PX;
+        if (cm < 1.4) chicas.push(`${caso.nombre} en ${pantalla.ancho}x${pantalla.alto}: ${cm.toFixed(2)} cm`);
+      }
+    }
+    expect(chicas).toEqual([]);
+  });
+
+  // La lista de las que la foto deja sin lugar no es un permiso: cada una tiene
+  // que seguir sin poder ser pegada y con la letra pedida. La que lo consigue
+  // —otra foto, otro texto, un pie mas chico— sale de la lista, y de ahi en mas
+  // las pruebas de arriba la vuelven a vigilar.
+  it('las que la foto deja sin lugar siguen sin lugar', async () => {
+    const enElEspejo = await fichasDelCatalogo();
+    const enApaisado = await fichasDelCatalogo(APAISADA);
+    const resueltas = [...SIN_LUGAR_EN_LA_FOTO].filter((nombre) => {
+      const espejo = enElEspejo.find((caso) => caso.nombre === nombre);
+      const apaisado = enApaisado.find((caso) => caso.nombre === nombre);
+      if (!espejo || !apaisado) return true; // ya no esta en el catalogo
+      const achicada = px(espejo.ficha.fuenteTexto) !== letraPedida();
+      return !achicada && !lejosDeSuObjeto(espejo) && !lejosDeSuObjeto(apaisado);
+    });
+    expect(resueltas, 'estas ya tienen lugar: sacarlas de SIN_LUGAR_EN_LA_FOTO').toEqual([]);
   });
 
   it('el nombre y cada renglon entran en el panel', async () => {
