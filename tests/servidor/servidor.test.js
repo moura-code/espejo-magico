@@ -10,6 +10,7 @@ import {
   cargarCertificadosHttps,
   interpretarRango,
   obtenerUrlsDeAcceso,
+  validarEstado,
   resolverRutasCertificados,
 } from '../../servidor/servidor.js';
 
@@ -300,5 +301,61 @@ describe('servidor', () => {
     const catalogo = await respuesta.json();
     expect(catalogo.carreras).toHaveLength(1);
     expect(catalogo.carreras[0].id).toBe('computacion');
+  });
+
+  // El tablon que lee MAITE: arranca en humo, el espejo lo pisa con POST y
+  // cada aviso sube la version aunque repita carrera.
+  describe('/estado.json', () => {
+    const avisar = (puerto, cuerpo) =>
+      fetch(`http://localhost:${puerto}/estado.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: typeof cuerpo === 'string' ? cuerpo : JSON.stringify(cuerpo),
+      });
+
+    it('arranca en humo', async () => {
+      servidor = crearServidor();
+      const puerto = await servidor.escuchar(0);
+      const respuesta = await fetch(`http://localhost:${puerto}/estado.json`);
+      expect(respuesta.status).toBe(200);
+      expect(respuesta.headers.get('cache-control')).toBe('no-store');
+      expect(await respuesta.json()).toMatchObject({ mode: 'humo', carreraId: null, version: 0 });
+    });
+
+    it('guarda la carrera que avisa el espejo y vuelve al humo', async () => {
+      servidor = crearServidor();
+      const puerto = await servidor.escuchar(0);
+
+      expect((await avisar(puerto, { mode: 'carrera', carreraId: 'sistemas' })).status).toBe(200);
+      const elegida = await (await fetch(`http://localhost:${puerto}/estado.json`)).json();
+      expect(elegida).toMatchObject({ mode: 'carrera', carreraId: 'sistemas', version: 1 });
+
+      await avisar(puerto, { mode: 'humo' });
+      const reposo = await (await fetch(`http://localhost:${puerto}/estado.json`)).json();
+      expect(reposo).toMatchObject({ mode: 'humo', carreraId: null, version: 2 });
+      expect(reposo.arranque).toBe(elegida.arranque);
+    });
+
+    it('rechaza un aviso inválido sin tocar el estado', async () => {
+      servidor = crearServidor();
+      const puerto = await servidor.escuchar(0);
+
+      expect((await avisar(puerto, 'no es json')).status).toBe(400);
+      expect((await avisar(puerto, { mode: 'carrera' })).status).toBe(400);
+      expect((await avisar(puerto, { mode: 'carrera', carreraId: '../x' })).status).toBe(400);
+      expect((await avisar(puerto, 'x'.repeat(5000))).status).toBe(400);
+      const estado = await (await fetch(`http://localhost:${puerto}/estado.json`)).json();
+      expect(estado).toMatchObject({ mode: 'humo', version: 0 });
+    });
+
+    it('valida la forma del aviso', () => {
+      expect(validarEstado({ mode: 'humo', carreraId: 'x' })).toEqual({ mode: 'humo', carreraId: null });
+      expect(validarEstado({ mode: 'carrera', carreraId: 'fisico_matematica' })).toEqual({
+        mode: 'carrera',
+        carreraId: 'fisico_matematica',
+      });
+      expect(validarEstado({ mode: 'otro' })).toBeNull();
+      expect(validarEstado(null)).toBeNull();
+    });
   });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { crearPuente } from '../../espejo/maite.js';
 
-const BASE = { url: 'http://localhost:3000', tiempoLimiteMs: 1500 };
+const BASE = { url: '', tiempoLimiteMs: 1500 };
 
 /** Un fetch de mentira que anota lo que le piden. */
 function espia(respuesta = { ok: true, status: 200 }) {
@@ -17,7 +17,7 @@ function espia(respuesta = { ok: true, status: 200 }) {
 const callado = () => vi.fn();
 
 describe('crearPuente', () => {
-  it('le manda a MAITE el id de la carrera', async () => {
+  it('anota en /estado.json el id de MAITE de la carrera', async () => {
     const { enviar, llamadas } = espia();
     const puente = crearPuente({ ...BASE, enviar, avisar: callado() });
 
@@ -25,9 +25,12 @@ describe('crearPuente', () => {
 
     expect(resultado.ok).toBe(true);
     expect(llamadas).toHaveLength(1);
-    expect(llamadas[0].url).toBe('http://localhost:3000/api/carrera');
+    expect(llamadas[0].url).toBe('/estado.json');
     expect(llamadas[0].opciones.method).toBe('POST');
-    expect(JSON.parse(llamadas[0].opciones.body)).toEqual({ carreraId: 'sistemas' });
+    expect(JSON.parse(llamadas[0].opciones.body)).toEqual({
+      mode: 'carrera',
+      carreraId: 'sistemas',
+    });
   });
 
   it('pide volver al humo al terminar la sesion', async () => {
@@ -35,7 +38,8 @@ describe('crearPuente', () => {
     const puente = crearPuente({ ...BASE, enviar, avisar: callado() });
 
     await puente.humo();
-    expect(llamadas[0].url).toBe('http://localhost:3000/api/humo');
+    expect(llamadas[0].url).toBe('/estado.json');
+    expect(JSON.parse(llamadas[0].opciones.body)).toEqual({ mode: 'humo' });
   });
 
   // LA REGLA QUE NO SE NEGOCIA. Si esto lanzara, se llevaria puesto el bucle de
@@ -154,5 +158,29 @@ describe('crearPuente', () => {
 
     await puente.humo();
     expect(puente.ultimo()).toEqual({ estado: 'humo', enviado: null, ok: true });
+  });
+
+  // Cada humo le reinicia a las tablets su video de reposo: al empezar una
+  // eleccion nueva despues de un cierre no se manda dos veces seguidas.
+  it('no repite el humo si las tablets ya estan en humo', async () => {
+    const { enviar, llamadas } = espia();
+    const puente = crearPuente({ ...BASE, enviar, avisar: callado() });
+
+    await puente.humo();
+    await puente.humo();
+    expect(llamadas).toHaveLength(1);
+
+    await puente.carrera('sistemas');
+    await puente.humo();
+    expect(llamadas).toHaveLength(3);
+  });
+
+  it('reintenta el humo si el anterior no llego', async () => {
+    const { enviar, llamadas } = espia({ ok: false, status: 500 });
+    const puente = crearPuente({ ...BASE, enviar, avisar: callado() });
+
+    await puente.humo();
+    await puente.humo();
+    expect(llamadas).toHaveLength(2);
   });
 });
