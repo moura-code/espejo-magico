@@ -465,10 +465,14 @@ punto lo tapa, que es lo correcto. `calcularTransicionEscena` lleva la capa
 
 ### 5.8. Los objetos escondidos y sus fichas (`escondites.js`, `fichas.js`)
 
-**Los objetos no se dibujan encima del fondo: están pintados adentro de él.**
-Cada ingeniería trae **cinco objetos**, cada uno con su `nombre` y una
-`descripcion` corta, y el fondo de esa ingeniería se genera con los cinco ya
-metidos en la escena (`npm run escenas`, `herramientas/escenas.py`): el matraz
+**Los objetos no se dibujan encima del fondo: están adentro de él**, y hay dos
+formas de que lo estén. Hoy las doce ingenierías usan la segunda —una foto con
+los objetos fotografiados, más abajo—; la primera, la escena generada, es como
+estuvieron siete hasta octubre de 2026, y el espejo y sus pruebas la conservan.
+
+**Pintados adentro de una escena generada.** La ingeniería trae **cinco
+objetos**, cada uno con su `nombre` y una `descripcion` corta, y su fondo se
+genera con los cinco ya metidos en la escena (`npm run escenas`, `herramientas/escenas.py`): el matraz
 apoyado en la mesada, con su sombra de contacto y su reflejo, porque el modelo
 estaba mirando esa mesada mientras lo pintaba. Pegados encima —recortados en
 círculo, con halo dorado y un disco debajo— se leían como stickers, y el pedido
@@ -486,11 +490,13 @@ al de la pantalla: el `destination-in` toca el lienzo entero, y sobre uno de
 1080×1920 son dos millones de píxeles por cuadro para recortar algo que mide
 doscientos. Un recorte que falte cae al PNG de siempre.
 
-**Y en una foto real están fotografiados.** Química, Alimentos, Computación,
-Mecánica y Naval no tienen escena generada: su fondo es una foto del laboratorio
-o del taller con los objetos adentro —en Química, la cristalería y las placas de
-Petri sobre la mesada y el secador túnel al fondo— y el PNG de cada uno recortado
-aparte. Traen los que se fotografiaron: de seis (Computación) a uno solo (Naval). Ese fondo declara `cajas` en lugar de `recortes`: dónde calza
+**Y en una foto están fotografiados, que es como están hoy las doce.** Su fondo
+es una foto del laboratorio, del taller o del campo con los objetos adentro —en
+Química, la cristalería y las placas de Petri sobre la mesada y el secador túnel
+al fondo; en Agrimensura, la estación total y el receptor GNSS plantados en el
+campo— y el PNG de cada uno recortado aparte. Traen los que se fotografiaron:
+de seis (Computación) a uno solo (Naval), 37 entre las doce. Ese fondo declara
+`cajas` en lugar de `recortes`: dónde calza
 el PNG de cada objeto, normalizado a la foto y en el orden de `objetos`. Lo que
 se levanta cuando la mano pasa por encima es **ese PNG**, puesto exactamente
 sobre el que se ve (`dibujarFotoDelObjeto`, escena.js), y no un pedazo de la
@@ -593,8 +599,18 @@ los objetos están donde los dejó la foto, y moverlos es sacar otra.
   parece la ficha del vecino, así que ahí achica la letra para quedarse a su
   lado; si ni así, va al sitio limpio más cercano aunque quede lejos: pasa con
   las placas de Petri de Química, en un rincón de abajo con el pie debajo y la
-  cristalería encima. Y como último recurso muestra igual: una ficha que no
-  aparece es peor que una que pisa un borde. De su propio objeto la ficha cuida
+  cristalería encima. **Y si la letra pedida no entra en ningún lado de la
+  pantalla**, cada letra más chica busca también su lugar limpio más cercano
+  —no sólo sus sitios de siempre— y la ficha se queda con la más grande que
+  tenga uno: pegado al objeto si lo hay, lejos si no. Pasa en apaisado, donde el
+  pie es más alto y la foto llena la pantalla: con objetos que ocupan casi todo
+  el alto de la foto (la estación total y el receptor de Agrimensura) o con la
+  foto llena (la de Civil). Sin eso la estación total bajaba a 23 px —1,25 cm en
+  la pantalla de 47"— cuando con 29 ya tenía lugar a su lado, y los
+  transductores de Civil y el motor de Eléctrica caían en el último recurso, con
+  la letra mínima encima de sí mismos y del nombre de la ingeniería. Ese último
+  recurso es mostrar igual: una ficha que no aparece es peor que una que pisa
+  un borde. De su propio objeto la ficha cuida
   lo mismo que de los otros, su resalte: el fotografiado no crece, y con el
   ancla a su medida justa se le apoyaba encima. `dibujarFicha` le pasa todo lo
   que armó `fichaDelObjeto`: de a uno, los demás objetos (`otros`) se perdían en

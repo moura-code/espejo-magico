@@ -1,0 +1,5 @@
+{
+  "nombre": "Radio definida por software (SDR)",
+  "descripcion": "Recibe y transmite señales de radio procesándolas por software; se usa para experimentar con comunicaciones inalámbricas.",
+  "figura": "chip"
+}

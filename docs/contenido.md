@@ -107,6 +107,16 @@ la persona.
 
 ### Los fondos se generan (`npm run escenas`)
 
+> **Hoy ninguna ingeniería usa un fondo generado.** Las doce pasaron a una foto
+> con sus objetos fotografiados adentro (la sección que sigue, «O se
+> fotografían»): cinco en la primera semana de octubre de 2026 y las otras siete
+> el 13. Esta sección queda como la descripción de la herramienta y de lo que se
+> aprendió con ella, para una carrera que vuelva a generarse. `escenas.py` ya no
+> tiene guiones —sin ellos avisa y termina—; los siete últimos están, tal como
+> eran, en `tests/herramientas/guiones_de_prueba.py`, que es con lo que se
+> prueba la herramienta. Los ids de objeto que nombran los ejemplos de abajo
+> (`electrica:motor-trifasico`…) son los de entonces.
+
 **Los cinco instrumentos de cada ingeniería no se dibujan encima del fondo:
 están pintados adentro de él.** El fondo de cada carrera lo genera
 `herramientas/escenas.py`, local, en la GPU de la máquina de desarrollo. Son dos
@@ -290,19 +300,27 @@ saca el objeto de la foto: cuando la mano pasa por encima, **levanta el PNG del
 propio objeto**, puesto exactamente sobre el que se ve, iluminado y con un
 resplandor dorado que sigue su silueta. No crece, como los pintados: la foto
 sigue debajo con el mismo objeto, y un grupo de cosas agrandado se vería doble.
-Hoy son cinco:
+Hoy son las doce:
 
 | Carrera | Fondo | Objetos (el primero va al carrusel) |
 |---|---|---|
-| Química | `laboratorio`: la cristalería y las placas de Petri sobre la mesada, el secador túnel al fondo | derivados de la madera, orujo y pectina, secador tipo túnel |
+| Agrimensura | `campo`: la estación total a la izquierda y el receptor GNSS a la derecha, plantados en el campo | estación total, receptor GNSS |
 | Alimentos | `laboratorio`: el baño de ultrasonido y el espectrofotómetro en la mesada de la izquierda, los tubos Falcon, la probeta y el matraz en la de la derecha | baño de ultrasonido, espectrofotómetro, probeta y matraz, tubos Falcon |
+| Civil | `laboratorio`: los transductores y la prensa a la izquierda, la hormigonera en el piso, los cilindros con su sensor en la mesa de la derecha | hormigonera, prensa de ensayo, sensor de temperatura, transductores ultrasónicos |
 | Computación | `laboratorio`: Jacky y Pipe en el piso, Robotito y la computadora en la mesada de la derecha, el dispositivo edge y el libro en la de la izquierda | computadora, dispositivo edge computing, Jacky, libro de base de datos, Pipe, Robotito |
+| Comunicación | `laboratorio`: la bobina de fibra en la mesa de la izquierda, el analizador de espectro y la radio SDR en la de la derecha | analizador de espectro, bobina de fibra óptica, radio SDR |
+| Eléctrica | `laboratorio`: el osciloscopio en el banco de la izquierda, el panel solar y el motor de inducción a la derecha | motor de inducción, osciloscopio, panel solar |
+| Físico-Matemática | `laboratorio`: el fotómetro solar y los testers en la mesada de la izquierda, el prisma en la mesa óptica de la derecha | prisma óptico, fotómetro solar (`seguidor-solar`), tester |
+| Forestal | `laboratorio`: el medidor de humedad y el calibre en la mesa de la izquierda, la balanza y la cristalería en la mesada de la derecha | balanza analítica, derivados de la madera, medidor de humedad y calibre |
 | Mecánica | `taller`: el torno adelante a la izquierda, el brazo robot y la celda electroquímica en las mesadas de la derecha | brazo robot, celda electroquímica, torno paralelo |
 | Naval | `taller`: el microscopio óptico en la mesa de adelante | microscopio óptico |
+| Producción | `planta`: el tablero Kanban en la pared de la izquierda, el lote de envases sobre el pallet de la derecha | tablero Kanban (`kanban`), lote de envases |
+| Química | `laboratorio`: la cristalería y las placas de Petri sobre la mesada, el secador túnel al fondo | derivados de la madera, orujo y pectina, secador tipo túnel |
 
-**Traen los objetos que se fotografiaron, no cinco.** Naval tiene uno solo: después
-de elegirlo no queda nada escondido, sólo su propia ficha. Cuando lleguen más
-PNG de esa foto se suman como carpetas y se vuelve a correr `ubicar`.
+**Traen los objetos que se fotografiaron, no cinco**: 37 entre las doce. Naval
+tiene uno solo: después de elegirlo no queda nada escondido, sólo su propia
+ficha; en Agrimensura y en Producción queda uno. Cuando lleguen más PNG de una
+foto se suman como carpetas y se vuelve a correr `ubicar`.
 
 Lo que hace falta, por carrera:
 
@@ -321,8 +339,14 @@ contenido/carreras/quimica/
       metadata.json            ← lo escribe `npm run ubicar`
 ```
 
-1. **La foto**, en JPEG, a 1920 de ancho: más no se ve. Las cinco vinieron de
-   2752×1536 y quedaron en 1920×1072, calidad 92.
+1. **La foto**, en JPEG, a 1920 de ancho: más no se ve. Diez vinieron de
+   2752×1536 y quedaron en 1920×1072, calidad 92, progresivo. La de Comunicación
+   vino de 2848×1504 (quedó en 1920×1014) y la de Físico-Matemática, de
+   1889×1055, quedó a su medida: no se agranda. **La de Agrimensura vino con una
+   franja negra arriba y otra abajo**, y se le recortaron (quedó en 1920×871):
+   la foto se dibuja entera, y las franjas se habrían visto como dos barras
+   negras adentro de la escena. Lo que una foto más panorámica deja libre lo
+   cubre el relleno desenfocado, como siempre.
 2. **Cada PNG es el objeto como aparece en esa foto** —recortado de ella, o el
    que se pegó para armarla—, con fondo transparente y recortado a lo que se ve.
    Puede estar a otro tamaño que en la foto; lo que no puede es ser otra foto
@@ -338,8 +362,14 @@ contenido/carreras/quimica/
 **El orden de las carpetas es el de los objetos**: el primero alfabético va al
 carrusel y vuela a su lugar en la foto, así que conviene que sea el que mejor
 representa a la carrera en chiquito. En Química es la cristalería
-(`derivados-de-la-madera`), no el secador; en Computación, la computadora. Para
-cambiarlo se renombran las carpetas y se vuelve a correr `ubicar`.
+(`derivados-de-la-madera`), no el secador; en Computación, la computadora. En
+dos carreras el nombre natural de las carpetas ponía primero a otro, y se
+eligió el nombre para el orden: en Físico-Matemática va el prisma con su
+arcoíris —el fotómetro solar es una caja gris que en chiquito no dice nada, y
+su carpeta se llama `seguidor-solar` para quedar después de `prisma-optico`—, y
+en Producción el tablero Kanban (`kanban`) y no el lote de envases, que de
+lejos se confunde con los bidones de un laboratorio. Para cambiarlo se
+renombran las carpetas y se vuelve a correr `ubicar`.
 
 **Los textos van a la ficha**: el `nombre` es el título —corto, en una o dos
 líneas— y la `descripcion` no pasa de 130 caracteres. Salen de la planilla
@@ -347,9 +377,17 @@ líneas— y la `descripcion` no pasa de 130 caracteres. Salen de la planilla
 acortaron los títulos que eran la lista de lo que hay (los dos grupos de
 Química), las descripciones que pasaban el límite (el baño de ultrasonido, la
 probeta y el matraz —que eran dos descripciones—, el torno, la celda), y se
-corrigió lo mal tipeado (espectrofotómetro, matraz, microscopio). El material
-original de cada carrera —la foto y los PNG con los nombres de la planilla,
-`al_id1.png`…— queda en `fotos-fondos/<carrera>/`.
+corrigió lo mal tipeado (espectrofotómetro, matraz, microscopio). En las siete
+del 13 de octubre se acortaron doce descripciones que pasaban el límite y dos
+títulos (la balanza, sin «con protector de vidrio», y la cristalería de
+Forestal, que en la planilla es la lista de lo que hay y quedó como la de
+Química, «Derivados de la madera»); y **una descripción se escribió acá**,
+porque la planilla repetía el título: la del medidor de humedad y calibre de
+Forestal. En la planilla, además, la bobina de fibra figura como `sc_id1`
+igual que la radio: su PNG es `sc_id2.png`. El material original de cada
+carrera —la foto y los PNG con los nombres de la planilla, `al_id1.png`…—
+queda en `fotos-fondos/<carrera>/`, con la carpeta nombrada por el id de la
+carrera en el espejo (`comunicacion`, `fisico-matematico`, `produccion`).
 
 **Lo que le pasa por delante.** El PNG es el objeto entero: lo que en la foto lo
 tapa en parte —la mesa delante del torno, la probeta delante de los tubos
@@ -363,7 +401,7 @@ foto, así que las reglas de la composición de los fondos generados —la
 periferia, el alcance del brazo, el aire entre blancos— no se le aplican; lo que
 sí se prueba es que el blanco de la mano y el aterrizaje caigan exactamente
 sobre cada objeto, en cualquier pantalla. Y **la orientación de la foto
-importa**: las cinco son apaisadas, perfectas para una pantalla horizontal; en
+importa**: las doce son apaisadas, perfectas para una pantalla horizontal; en
 el espejo vertical se ven como una franja en el medio, con la misma foto
 desenfocada arriba y abajo, y los objetos chicos. Para un espejo vertical hace
 falta una foto vertical.
@@ -371,19 +409,32 @@ falta una foto vertical.
 **Las fichas, en una foto apretada.** La ficha va pegada debajo de su objeto; si
 ahí no entra prueba arriba y al costado, después el lugar limpio más cercano si
 queda pegado, y si no, achica la letra para quedarse a su lado (ver «Dónde va la
-ficha» en `docs/arquitectura.md`). Dos
-objetos no tienen lugar pegado con la letra pedida: **Robotito** y la **celda
-electroquímica**, chicos, en un rincón de abajo de su foto y con un vecino grande
-justo encima (la computadora, el brazo robot). Abajo está el nombre de la
-ingeniería —y en apaisado su franja ocupa el 38 % de la pantalla—, así que en el
-espejo su ficha se achica para quedar a su lado, y en apaisado se va arriba del
-vecino. `tests/integracion/fichas.test.js` los tiene nombrados como excepción
-(`SIN_LUGAR_EN_LA_FOTO`); lo que los arreglaría es que la zona prohibida del pie
-sea el nombre y no una franja a lo ancho.
+ficha» en `docs/arquitectura.md`). Cinco
+objetos no tienen lugar pegado con la letra pedida. Tres son chicos, en un
+rincón de su foto y con un vecino grande justo al lado: **Robotito** (la
+computadora), la **celda electroquímica** (el brazo robot) y el **dispositivo
+edge** (el libro y Jacky). Abajo está el nombre de la ingeniería —y en apaisado
+su franja ocupa el 38 % de la pantalla—, así que en el espejo su ficha se achica
+para quedar a su lado, y en apaisado se va arriba del vecino. Los otros dos son
+grandes, pero están en el mismo rincón de abajo con un vecino más grande
+todavía encima: los **transductores ultrasónicos** de Civil (la prensa) y el
+**motor de inducción** de Eléctrica (el panel solar); su ficha se aleja en las
+dos orientaciones. `tests/integracion/fichas.test.js` los tiene nombrados como
+excepción (`SIN_LUGAR_EN_LA_FOTO`); lo que los arreglaría es que la zona
+prohibida del pie sea el nombre y no una franja a lo ancho.
+
+**En apaisado, una foto con objetos muy grandes deja poco lugar.** La ficha con
+la letra pedida mide unos 430 × 500 px, y arriba del pie quedan 670 de alto.
+Cuando no entra en ningún lado —entre la estación total y el receptor de
+Agrimensura, que van del medio de la foto al piso, o en la foto de Civil, con
+cuatro objetos grandes— la ficha va con la letra más grande que encuentre un
+lugar limpio: de 29 a 34 px en vez de 36, siempre por encima de los 26 (1,4 cm
+en la pantalla de 47") que exige la prueba. Si una foto nueva trae objetos más
+grandes todavía, es ahí donde se va a notar.
 
 Un fondo es generado o fotografiado, no las dos cosas: con `recortes` y `cajas`
 a la vez el catálogo no se arma. Y `escenas.py` no genera las carreras de foto
-real (no están en sus guiones), para no ponerles otra escena encima.
+(hoy, ninguna: no le queda ningún guion), para no ponerles otra escena encima.
 
 ### Qué hace que un fondo sirva
 

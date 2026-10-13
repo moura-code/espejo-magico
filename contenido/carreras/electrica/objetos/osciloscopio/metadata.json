@@ -1,0 +1,5 @@
+{
+  "nombre": "Osciloscopio",
+  "descripcion": "Muestra gráficamente cómo varían las señales eléctricas en el tiempo; es clave para analizar y diagnosticar circuitos.",
+  "figura": "onda"
+}

@@ -1858,6 +1858,72 @@ describe('disponerFichaDebajo', () => {
     expect(Math.hypot(objeto.x - cercaX, objeto.y - cercaY)).toBeLessThanOrEqual(2 * objeto.radio);
   });
 
+  // CUANDO LA LETRA PEDIDA NO ENTRA EN NINGUN LADO. En una pantalla apaisada el
+  // pie es mas alto y la foto la llena: con dos objetos que ocupan casi todo su
+  // alto, o con la foto llena de objetos, la ficha con la letra pedida no tiene
+  // un solo sitio limpio. Las dos pruebas son fotos del catalogo, con la letra
+  // y el ancho de la config.
+  describe('cuando la letra pedida no entra en ningun lado', () => {
+    const apaisada = calcularDisposicion(1920, 1080);
+    const deLaConfig = { tipografia: { texto: 0.84, titulo: 1.25 }, anchoFactor: 0.44 };
+    const pedida = Math.round(apaisada.texto.tamanoFrase * deLaConfig.tipografia.texto);
+    const letraDe = (ficha) => Number(ficha.fuenteTexto.match(/([\d.]+)px/)[1]);
+    const distancia = ({ caja }, { x, y }) => {
+      const cercaX = Math.max(caja.x, Math.min(x, caja.x + caja.ancho));
+      const cercaY = Math.max(caja.y, Math.min(y, caja.y + caja.alto));
+      return Math.hypot(x - cercaX, y - cercaY);
+    };
+    const limpia = (ficha, circulos) => {
+      for (const circulo of circulos) {
+        expect(distancia(ficha, circulo)).toBeGreaterThanOrEqual(circulo.radio);
+      }
+      expect(ficha.caja.y).toBeGreaterThanOrEqual(0);
+      expect(ficha.caja.y + ficha.caja.alto).toBeLessThanOrEqual(1080 - apaisada.pie.alto);
+    };
+
+    // La estacion total de Agrimensura, con el receptor GNSS del otro lado: los
+    // dos van del medio de la foto al piso. La ficha se achicaba hasta caber en
+    // uno de sus sitios de siempre —23 px, 1,25 cm en la pantalla de 47"—
+    // cuando con 29 ya tenia un lugar limpio pegado al objeto.
+    it('se queda con la mas grande que tenga un lugar limpio pegado al objeto', () => {
+      const objeto = { x: 449, y: 628, radio: 396 };
+      const otros = [{ x: 1587, y: 584, radio: 446 }];
+      const estacion = {
+        nombre: 'Estación total',
+        descripcion:
+          'Equipo óptico-electrónico que mide ángulos y distancias con precisión para relevar terrenos, delimitar predios y apoyar obras.',
+      };
+      const ficha = disponerFichaDebajo(estacion, apaisada, medir, { objeto, otros, ...deLaConfig });
+      limpia(ficha, [objeto, ...otros]);
+      expect(letraDe(ficha)).toBeLessThan(pedida);
+      expect(letraDe(ficha)).toBeGreaterThanOrEqual(Math.round(pedida * 0.72));
+      expect(distancia(ficha, objeto)).toBeLessThanOrEqual(2 * objeto.radio);
+    });
+
+    // Los transductores de Civil, abajo a la izquierda de una foto con cuatro
+    // objetos grandes: ni achicandose tiene un lugar pegado. Se mostraba igual
+    // en su primer sitio, con la letra minima, encima de si misma y del nombre
+    // de la ingenieria. Va al lugar limpio mas cercano, con la letra mas grande
+    // que entre.
+    it('y si ninguna queda pegada, va a un lugar limpio con la mas grande que entre', () => {
+      const objeto = { x: 262, y: 734, radio: 239 };
+      const otros = [
+        { x: 1266, y: 640, radio: 184 },
+        { x: 592, y: 450, radio: 308 },
+        { x: 1644, y: 660, radio: 236 },
+      ];
+      const transductores = {
+        nombre: 'Transductores ultrasónicos',
+        descripcion:
+          'Sensores que envían y reciben ultrasonido a través del hormigón para estudiar su interior sin romperlo y detectar poros o fallas.',
+      };
+      const ficha = disponerFichaDebajo(transductores, apaisada, medir, { objeto, otros, ...deLaConfig });
+      limpia(ficha, [objeto, ...otros]);
+      expect(letraDe(ficha)).toBeLessThan(pedida);
+      expect(letraDe(ficha)).toBeGreaterThanOrEqual(Math.round(pedida * 0.72));
+    });
+  });
+
   // EN APAISADO, LA LETRA DE LA PANTALLA. La ficha se achicaba con la
   // composicion vertical —cuando apaisado era solo el monitor de desarrollo— y
   // en la pantalla de 47" acostada la descripcion quedaba en 18 px: un

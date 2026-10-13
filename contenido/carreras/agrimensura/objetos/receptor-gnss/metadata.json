@@ -1,5 +1,5 @@
 {
-  "nombre": "Receptor GNSS geodésico",
-  "descripcion": "Antena satelital RTK de precisión centimétrica para posicionamiento geográfico y cartografía territorial.",
+  "nombre": "Receptor GNSS",
+  "descripcion": "Antena de posicionamiento satelital de alta precisión que determina coordenadas en el terreno con bajo margen de error.",
   "figura": "pi"
 }
