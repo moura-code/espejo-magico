@@ -94,11 +94,11 @@ puesta hasta que se levanta, y el que sigue en la fila arranca de cero. Si
 alguien insiste, que se vuelva a sentar cuando las nubes hayan tapado la
 pantalla. Desde la PC, las teclas de números fuerzan cualquier ingeniería en
 cualquier momento. Mientras tanto hay algo para hacer: en el fondo de su
-ingeniería hay objetos escondidos adentro de la escena —cinco en la mayoría; en
-las cinco que tienen una foto real del laboratorio o del taller, los que están
-en la foto, y en Naval uno solo—, y pasando la mano sobre cada uno se levanta de
-la foto y se abre su ficha. Están donde uno los esperaría —sobre una mesada, en
-un estante— y hay que encontrarlos: es parte de la propuesta.
+ingeniería —una foto de su laboratorio, su taller o su campo— están los objetos
+de esa carrera: de dos a seis según la foto, y en Naval uno solo. Pasando la
+mano sobre cada uno se levanta de la foto y se abre su ficha. Están donde uno
+los esperaría —sobre una mesada, en un estante— y hay que encontrarlos: es parte
+de la propuesta.
 
 **No pasa nada al poner la mano sobre un objeto.**
 Si el carrusel ya se había apagado, la persona ya eligió y la mano ahora abre las

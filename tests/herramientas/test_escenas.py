@@ -5,6 +5,7 @@
 #
 #   python -m unittest discover -s tests/herramientas -v
 import io
+import json
 import os
 import re
 import sys
@@ -19,7 +20,25 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'herramientas'))
 
 import escenas  # noqa: E402
+from guiones_de_prueba import GUIONES as GUIONES_DE_PRUEBA  # noqa: E402
 from presencia import texto_del_objeto  # noqa: E402
+
+# LA HERRAMIENTA SE PRUEBA CON GUIONES DE PRUEBA. Las doce ingenierias pasaron a
+# una foto real y escenas.GUIONES quedo vacio, pero lo que se prueba aca —el
+# orden de los objetos, las semillas, el reintento, la armonia— necesita
+# guiones: mientras corre este modulo, escenas usa los de guiones_de_prueba.py.
+# Los de verdad se guardan aparte, para las dos pruebas que los comparan con el
+# contenido.
+GUIONES_REALES = dict(escenas.GUIONES)
+_guiones = mock.patch.dict(escenas.GUIONES, GUIONES_DE_PRUEBA, clear=True)
+
+
+def setUpModule():
+    _guiones.start()
+
+
+def tearDownModule():
+    _guiones.stop()
 
 
 def leer(ruta):
@@ -87,16 +106,30 @@ class OrdenDeObjetos(unittest.TestCase):
              'transformador-trifasico'],
         )
 
+    # Con los guiones de verdad, los de escenas.py: hoy no queda ninguno, y el
+    # dia que vuelva uno tiene que nombrar las carpetas que existen.
     def test_coincide_con_las_carpetas_del_contenido(self):
-        for cid in escenas.GUIONES:
+        for cid, guion in GUIONES_REALES.items():
             carpetas = sorted(os.listdir(os.path.join(escenas.CARRERAS, cid, 'objetos')))
-            self.assertEqual(escenas.orden_de_objetos(cid), carpetas, cid)
+            self.assertEqual(sorted(oid for oid, _ in guion['objetos']), carpetas, cid)
 
     # Las de foto real tienen los objetos fotografiados adentro: generarlas les
-    # pondria otra escena encima.
+    # pondria otra escena encima. Cual es de foto real lo dice el contenido: su
+    # fondo activo declara `cajas`, que escribe herramientas/ubicar.py.
     def test_no_genera_las_carreras_de_foto_real(self):
-        for cid in ('quimica', 'alimentos', 'computacion', 'mecanica', 'naval'):
-            self.assertNotIn(cid, escenas.GUIONES)
+        de_foto_real = []
+        for cid in sorted(os.listdir(escenas.CARRERAS)):
+            carpeta = os.path.join(escenas.CARRERAS, cid)
+            with open(os.path.join(carpeta, 'carrera.json'), encoding='utf-8') as f:
+                fondo = json.load(f).get('fondo')
+            ruta = os.path.join(carpeta, 'fondos', fondo or '', 'metadata.json')
+            if not fondo or not os.path.exists(ruta):
+                continue
+            with open(ruta, encoding='utf-8') as f:
+                if json.load(f).get('cajas'):
+                    de_foto_real.append(cid)
+        self.assertIn('quimica', de_foto_real)
+        self.assertEqual([cid for cid in de_foto_real if cid in GUIONES_REALES], [])
 
 
 class SitioDe(unittest.TestCase):
@@ -922,6 +955,17 @@ class LineaDeComandos(unittest.TestCase):
     def test_semilla_llega_a_la_fase_de_objetos(self):
         self.correr_main('--fase', 'objetos', 'electrica', '--semilla', '1')
         self.assertEqual(self.tandas, {'fase_objetos': 1})
+
+    # SIN GUIONES NO HAY NADA QUE GENERAR, y es como quedo escenas.py cuando las
+    # doce ingenierias pasaron a una foto real. Lo dice y termina, antes de
+    # cargar un modelo de varios gigas para no pintar nada.
+    def test_sin_guiones_avisa_y_no_genera_nada(self):
+        with mock.patch.dict(escenas.GUIONES, {}, clear=True),                 mock.patch.object(escenas, 'fase_escenas',
+                                  lambda *a, **k: self.fail('no habia nada que generar')):
+            with self.assertRaises(SystemExit) as salida:
+                self.correr_main()
+        self.assertIn('foto real', str(salida.exception))
+        self.assertEqual(self.tandas, {})
 
     # LA LISTA ES EXPLICITA: un objeto presente que el juez diera por ausente se
     # arruinaria al repintarlo, asi que --repintar sin --solo no pinta nada.

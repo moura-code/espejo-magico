@@ -5,86 +5,38 @@
       "nombre": "Ingeniería en Agrimensura",
       "color": "#8D6E63",
       "maite": "agrimensura",
-      "fondoActivo": "escena",
+      "fondoActivo": "campo",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/agrimensura/fondos/escena/imagen.jpg",
+          "id": "campo",
+          "img": "carreras/agrimensura/fondos/campo/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/agrimensura/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.108,
-            "y": 0.5333,
-            "escala": 0.17
+            "x": 0.2341,
+            "y": 0.6016,
+            "escala": 0.3615
           },
           "escondites": [
             {
-              "x": 0.863,
-              "y": 0.526,
-              "escala": 0.17
-            },
-            {
-              "x": 0.8898,
-              "y": 0.3506,
-              "escala": 0.17
-            },
-            {
-              "x": 0.108,
-              "y": 0.3506,
-              "escala": 0.17
-            },
-            {
-              "x": 0.5109,
-              "y": 0.1993,
-              "escala": 0.16
+              "x": 0.8266,
+              "y": 0.5505,
+              "escala": 0.4078
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/agrimensura/fondos/escena/recortes/0.png",
-              "caja": [
-                0.0287,
-                0.4974,
-                0.2,
-                0.59635
-              ]
-            },
-            {
-              "img": "carreras/agrimensura/fondos/escena/recortes/1.png",
-              "caja": [
-                0.76574,
-                0.45885,
-                0.93333,
-                0.59635
-              ]
-            },
-            {
-              "img": "carreras/agrimensura/fondos/escena/recortes/2.png",
-              "caja": [
-                0.79444,
-                0.28802,
-                0.95,
-                0.39479
-              ]
-            },
-            {
-              "img": "carreras/agrimensura/fondos/escena/recortes/3.png",
-              "caja": [
-                0.03148,
-                0.30052,
-                0.20185,
-                0.38906
-              ]
-            },
-            {
-              "img": "carreras/agrimensura/fondos/escena/recortes/4.png",
-              "caja": [
-                0.44722,
-                0.13958,
-                0.5787,
-                0.26094
-              ]
-            }
+          "cajas": [
+            [
+              0.11719,
+              0.20321,
+              0.35104,
+              1
+            ],
+            [
+              0.76406,
+              0.10103,
+              0.88906,
+              1
+            ]
           ]
         }
       ],
@@ -93,35 +45,14 @@
           "id": "estacion-total",
           "img": "carreras/agrimensura/objetos/estacion-total/imagen.png",
           "nombre": "Estación total",
-          "descripcion": "Instrumento electro-óptico para medición precisa de ángulos y distancias en levantamientos topográficos.",
+          "descripcion": "Equipo óptico-electrónico que mide ángulos y distancias con precisión para relevar terrenos, delimitar predios y apoyar obras.",
           "figura": "teodolito"
-        },
-        {
-          "id": "mira-estadal",
-          "img": "carreras/agrimensura/objetos/mira-estadal/imagen.png",
-          "nombre": "Mira estadal",
-          "descripcion": "Regla graduada vertical para medir desniveles y determinar alturas relativas junto a un nivel óptico.",
-          "figura": "plano"
-        },
-        {
-          "id": "nivel-automatico",
-          "img": "carreras/agrimensura/objetos/nivel-automatico/imagen.png",
-          "nombre": "Nivel óptico automático",
-          "descripcion": "Instrumento topográfico con compensador interno para definir líneas de puntería horizontales exactas.",
-          "figura": "teodolito"
-        },
-        {
-          "id": "prisma-topografico",
-          "img": "carreras/agrimensura/objetos/prisma-topografico/imagen.png",
-          "nombre": "Prisma topográfico",
-          "descripcion": "Reflector de vidrio de alta precisión que devuelve la señal láser a la estación total para medir distancias.",
-          "figura": "prisma"
         },
         {
           "id": "receptor-gnss",
           "img": "carreras/agrimensura/objetos/receptor-gnss/imagen.png",
-          "nombre": "Receptor GNSS geodésico",
-          "descripcion": "Antena satelital RTK de precisión centimétrica para posicionamiento geográfico y cartografía territorial.",
+          "nombre": "Receptor GNSS",
+          "descripcion": "Antena de posicionamiento satelital de alta precisión que determina coordenadas en el terreno con bajo margen de error.",
           "figura": "pi"
         }
       ]
@@ -224,124 +155,91 @@
       "nombre": "Ingeniería Civil",
       "color": "#FF8A3D",
       "maite": "civil",
-      "fondoActivo": "escena",
+      "fondoActivo": "laboratorio",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/civil/fondos/escena/imagen.jpg",
+          "id": "laboratorio",
+          "img": "carreras/civil/fondos/laboratorio/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/civil/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.108,
-            "y": 0.3798,
-            "escala": 0.17
+            "x": 0.6596,
+            "y": 0.5933,
+            "escala": 0.1677
           },
           "escondites": [
             {
-              "x": 0.825,
-              "y": 0.285,
-              "escala": 0.17
+              "x": 0.3081,
+              "y": 0.4165,
+              "escala": 0.2818
             },
             {
-              "x": 0.1469,
-              "y": 0.5844,
-              "escala": 0.17
+              "x": 0.8562,
+              "y": 0.6119,
+              "escala": 0.2156
             },
             {
-              "x": 0.85,
-              "y": 0.5771,
-              "escala": 0.17
-            },
-            {
-              "x": 0.485,
-              "y": 0.192,
-              "escala": 0.16
+              "x": 0.1362,
+              "y": 0.6814,
+              "escala": 0.2182
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/civil/fondos/escena/recortes/0.png",
-              "caja": [
-                0.03889,
-                0.37344,
-                0.19444,
-                0.44323
-              ]
-            },
-            {
-              "img": "carreras/civil/fondos/escena/recortes/1.png",
-              "caja": [
-                0.75185,
-                0.22656,
-                0.89815,
-                0.33958
-              ]
-            },
-            {
-              "img": "carreras/civil/fondos/escena/recortes/2.png",
-              "caja": [
-                0.06389,
-                0.52187,
-                0.23981,
-                0.64792
-              ]
-            },
-            {
-              "img": "carreras/civil/fondos/escena/recortes/3.png",
-              "caja": [
-                0.75,
-                0.51562,
-                0.95,
-                0.6401
-              ]
-            },
-            {
-              "img": "carreras/civil/fondos/escena/recortes/4.png",
-              "caja": [
-                0.39444,
-                0.15052,
-                0.58148,
-                0.23385
-              ]
-            }
+          "cajas": [
+            [
+              0.58021,
+              0.4431,
+              0.73906,
+              0.74347
+            ],
+            [
+              0.23594,
+              0.16418,
+              0.38021,
+              0.66884
+            ],
+            [
+              0.74844,
+              0.51026,
+              0.96406,
+              0.71362
+            ],
+            [
+              0.02708,
+              0.57743,
+              0.24531,
+              0.78545
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "casco-seguridad",
-          "img": "carreras/civil/objetos/casco-seguridad/imagen.png",
-          "nombre": "Casco de seguridad",
-          "descripcion": "Elemento de protección personal indispensable para la seguridad de operarios e ingenieros en obra.",
-          "figura": "grua"
-        },
-        {
-          "id": "cono-abrams",
-          "img": "carreras/civil/objetos/cono-abrams/imagen.png",
-          "nombre": "Cono de Abrams",
-          "descripcion": "Molde troncocónico con varilla para medir la consistencia y trabajabilidad del hormigón fresco.",
-          "figura": "tubo"
-        },
-        {
           "id": "hormigonera",
           "img": "carreras/civil/objetos/hormigonera/imagen.png",
-          "nombre": "Hormigonera portátil",
-          "descripcion": "Tambor rotativo para la mezcla homogénea de áridos, cemento, agua y aditivos en obras civiles.",
+          "nombre": "Hormigonera",
+          "descripcion": "Equipo que mezcla cemento, agua y áridos para producir hormigón de forma uniforme, con buena calidad para su uso en construcción.",
           "figura": "engranaje"
         },
         {
-          "id": "puente-atirantado",
-          "img": "carreras/civil/objetos/puente-atirantado/imagen.png",
-          "nombre": "Puente atirantado",
-          "descripcion": "Estructura de ingeniería vial con tirantes de acero anclados a pilones para salvar grandes luces.",
-          "figura": "puente"
+          "id": "prensa-de-ensayo",
+          "img": "carreras/civil/objetos/prensa-de-ensayo/imagen.png",
+          "nombre": "Prensa de ensayo para mezclas asfálticas",
+          "descripcion": "Aplica cargas controladas a muestras de asfalto para evaluar su resistencia y ayudar a diseñar pavimentos más seguros y duraderos.",
+          "figura": "piston"
         },
         {
-          "id": "viga-acero",
-          "img": "carreras/civil/objetos/viga-acero/imagen.png",
-          "nombre": "Viga de acero estructural",
-          "descripcion": "Perfil laminado de alta resistencia mecánica a flexión empleado en pórticos y grandes estructuras.",
-          "figura": "viga"
+          "id": "sensor-de-temperatura",
+          "img": "carreras/civil/objetos/sensor-de-temperatura/imagen.png",
+          "nombre": "Sensor de temperatura para hormigón",
+          "descripcion": "Monitorea el hormigón durante su fraguado y ayuda a estimar cuándo alcanza la resistencia necesaria.",
+          "figura": "chip"
+        },
+        {
+          "id": "transductores-ultrasonicos",
+          "img": "carreras/civil/objetos/transductores-ultrasonicos/imagen.png",
+          "nombre": "Transductores ultrasónicos",
+          "descripcion": "Sensores que envían y reciben ultrasonido a través del hormigón para estudiar su interior sin romperlo y detectar poros o fallas.",
+          "figura": "onda"
         }
       ]
     },
@@ -479,86 +377,49 @@
       "nombre": "Ingeniería en Sistemas de Comunicación",
       "color": "#E040FB",
       "maite": "comunicacion",
-      "fondoActivo": "escena",
+      "fondoActivo": "laboratorio",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/comunicacion/fondos/escena/imagen.jpg",
+          "id": "laboratorio",
+          "img": "carreras/comunicacion/fondos/laboratorio/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/comunicacion/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.1469,
-            "y": 0.5771,
-            "escala": 0.17
+            "x": 0.8729,
+            "y": 0.6331,
+            "escala": 0.1802
           },
           "escondites": [
             {
-              "x": 0.85,
-              "y": 0.5844,
-              "escala": 0.17
+              "x": 0.1867,
+              "y": 0.6967,
+              "escala": 0.2276
             },
             {
-              "x": 0.108,
-              "y": 0.4162,
-              "escala": 0.17
-            },
-            {
-              "x": 0.485,
-              "y": 0.1993,
-              "escala": 0.16
-            },
-            {
-              "x": 0.8769,
-              "y": 0.3142,
-              "escala": 0.17
+              "x": 0.7669,
+              "y": 0.715,
+              "escala": 0.1651
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/comunicacion/fondos/escena/recortes/0.png",
-              "caja": [
-                0.0537,
-                0.53958,
-                0.24537,
-                0.64375
-              ]
-            },
-            {
-              "img": "carreras/comunicacion/fondos/escena/recortes/1.png",
-              "caja": [
-                0.76667,
-                0.52292,
-                0.90185,
-                0.64844
-              ]
-            },
-            {
-              "img": "carreras/comunicacion/fondos/escena/recortes/2.png",
-              "caja": [
-                0.04074,
-                0.38385,
-                0.15833,
-                0.4776
-              ]
-            },
-            {
-              "img": "carreras/comunicacion/fondos/escena/recortes/3.png",
-              "caja": [
-                0.44722,
-                0.20833,
-                0.55926,
-                0.25469
-              ]
-            },
-            {
-              "img": "carreras/comunicacion/fondos/escena/recortes/4.png",
-              "caja": [
-                0.78333,
-                0.26198,
-                0.96852,
-                0.37396
-              ]
-            }
+          "cajas": [
+            [
+              0.78281,
+              0.53452,
+              0.96302,
+              0.73176
+            ],
+            [
+              0.07292,
+              0.58777,
+              0.30052,
+              0.80572
+            ],
+            [
+              0.68437,
+              0.63215,
+              0.84948,
+              0.79783
+            ]
           ]
         }
       ],
@@ -566,37 +427,23 @@
         {
           "id": "analizador-espectro",
           "img": "carreras/comunicacion/objetos/analizador-espectro/imagen.png",
-          "nombre": "Analizador de espectro RF",
-          "descripcion": "Instrumento para medir la potencia y distribución frecuencial de ondas electromagnéticas y señales.",
-          "figura": "onda"
-        },
-        {
-          "id": "antena-parabolica",
-          "img": "carreras/comunicacion/objetos/antena-parabolica/imagen.png",
-          "nombre": "Antena parabólica",
-          "descripcion": "Reflector parabólico directivo para enlaces terrestres y satelitales de alta ganancia en microondas.",
+          "nombre": "Analizador de espectro",
+          "descripcion": "Muestra las señales de radio presentes en el aire y permite estudiar frecuencias, interferencias y calidad de transmisión.",
           "figura": "onda"
         },
         {
           "id": "bobina-fibra",
           "img": "carreras/comunicacion/objetos/bobina-fibra/imagen.png",
           "nombre": "Bobina de fibra óptica",
-          "descripcion": "Guía de ondas de vidrio ultrapuro para transmisión de datos a gran velocidad mediante pulsos de luz.",
+          "descripcion": "Cable de vidrio o plástico que transmite información con pulsos de luz a gran velocidad, usado en internet y telecomunicaciones.",
           "figura": "curva"
         },
         {
-          "id": "satelite-comunicaciones",
-          "img": "carreras/comunicacion/objetos/satelite-comunicaciones/imagen.png",
-          "nombre": "Satélite de comunicaciones",
-          "descripcion": "Plataforma espacial para retransmisión de señales de voz, televisión y conectividad global de datos.",
-          "figura": "dron"
-        },
-        {
-          "id": "torre-telecomunicaciones",
-          "img": "carreras/comunicacion/objetos/torre-telecomunicaciones/imagen.png",
-          "nombre": "Torre de telecomunicaciones",
-          "descripcion": "Mástil estructurado para soporte de antenas de telefonía móvil, enlaces de microondas y radiodifusión.",
-          "figura": "onda"
+          "id": "radio-sdr",
+          "img": "carreras/comunicacion/objetos/radio-sdr/imagen.png",
+          "nombre": "Radio definida por software (SDR)",
+          "descripcion": "Recibe y transmite señales de radio procesándolas por software; se usa para experimentar con comunicaciones inalámbricas.",
+          "figura": "chip"
         }
       ]
     },
@@ -605,124 +452,73 @@
       "nombre": "Ingeniería Eléctrica",
       "color": "#FFD23F",
       "maite": "electronica",
-      "fondoActivo": "escena",
+      "fondoActivo": "laboratorio",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/electrica/fondos/escena/imagen.jpg",
+          "id": "laboratorio",
+          "img": "carreras/electrica/fondos/laboratorio/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/electrica/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.5109,
-            "y": 0.192,
-            "escala": 0.16
+            "x": 0.8115,
+            "y": 0.716,
+            "escala": 0.2427
           },
           "escondites": [
             {
-              "x": 0.108,
-              "y": 0.5844,
-              "escala": 0.17
+              "x": 0.2143,
+              "y": 0.6754,
+              "escala": 0.2984
             },
             {
-              "x": 0.1728,
-              "y": 0.285,
-              "escala": 0.17
-            },
-            {
-              "x": 0.825,
-              "y": 0.4162,
-              "escala": 0.17
-            },
-            {
-              "x": 0.863,
-              "y": 0.5771,
-              "escala": 0.17
+              "x": 0.7174,
+              "y": 0.4911,
+              "escala": 0.3203
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/electrica/fondos/escena/recortes/0.png",
-              "caja": [
-                0.46296,
-                0.12448,
-                0.55926,
-                0.25885
-              ]
-            },
-            {
-              "img": "carreras/electrica/fondos/escena/recortes/1.png",
-              "caja": [
-                0.03056,
-                0.54896,
-                0.19722,
-                0.64583
-              ]
-            },
-            {
-              "img": "carreras/electrica/fondos/escena/recortes/2.png",
-              "caja": [
-                0.09352,
-                0.22396,
-                0.26759,
-                0.34896
-              ]
-            },
-            {
-              "img": "carreras/electrica/fondos/escena/recortes/3.png",
-              "caja": [
-                0.73056,
-                0.35625,
-                0.91852,
-                0.4776
-              ]
-            },
-            {
-              "img": "carreras/electrica/fondos/escena/recortes/4.png",
-              "caja": [
-                0.81667,
-                0.5151,
-                0.93241,
-                0.6401
-              ]
-            }
+          "cajas": [
+            [
+              0.6901,
+              0.55037,
+              0.93281,
+              0.88153
+            ],
+            [
+              0.0651,
+              0.56063,
+              0.36354,
+              0.79011
+            ],
+            [
+              0.56302,
+              0.20429,
+              0.87187,
+              0.77799
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "cadena-aisladores",
-          "img": "carreras/electrica/objetos/cadena-aisladores/imagen.png",
-          "nombre": "Cadena de aisladores",
-          "descripcion": "Conjunto de discos de porcelana o vidrio para soportar conductores de alta tensión sin fugas eléctricas.",
-          "figura": "resistencia"
-        },
-        {
-          "id": "motor-trifasico",
-          "img": "carreras/electrica/objetos/motor-trifasico/imagen.png",
-          "nombre": "Motor trifásico de inducción",
-          "descripcion": "Máquina eléctrica que convierte energía eléctrica trifásica en par mecánico mediante campos magnéticos.",
+          "id": "motor-de-induccion",
+          "img": "carreras/electrica/objetos/motor-de-induccion/imagen.png",
+          "nombre": "Motor de inducción",
+          "descripcion": "Máquina que transforma energía eléctrica en movimiento, usada para estudiar el funcionamiento y control de motores industriales.",
           "figura": "motor"
         },
         {
-          "id": "multimetro",
-          "img": "carreras/electrica/objetos/multimetro/imagen.png",
-          "nombre": "Multímetro digital",
-          "descripcion": "Instrumento portátil para medir tensión, corriente, resistencia y continuidad en circuitos eléctricos.",
-          "figura": "rayo"
+          "id": "osciloscopio",
+          "img": "carreras/electrica/objetos/osciloscopio/imagen.png",
+          "nombre": "Osciloscopio",
+          "descripcion": "Muestra gráficamente cómo varían las señales eléctricas en el tiempo; es clave para analizar y diagnosticar circuitos.",
+          "figura": "onda"
         },
         {
           "id": "panel-solar",
           "img": "carreras/electrica/objetos/panel-solar/imagen.png",
           "nombre": "Panel solar fotovoltaico",
-          "descripcion": "Módulo semiconductor que transforma la radiación solar incidente directamente en energía eléctrica limpia.",
+          "descripcion": "Dispositivo que convierte la luz del sol en electricidad, usado para generar energía renovable e integrarla a la red.",
           "figura": "panel-solar"
-        },
-        {
-          "id": "transformador-trifasico",
-          "img": "carreras/electrica/objetos/transformador-trifasico/imagen.png",
-          "nombre": "Transformador trifásico",
-          "descripcion": "Equipo electromagnético para elevar o reducir los niveles de tensión en redes de transmisión y distribución.",
-          "figura": "rayo"
         }
       ]
     },
@@ -731,124 +527,73 @@
       "nombre": "Ingeniería Físico-Matemática",
       "color": "#A78BFA",
       "maite": "fisico_matematica",
-      "fondoActivo": "escena",
+      "fondoActivo": "laboratorio",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/fisico-matematico/fondos/escena/imagen.jpg",
+          "id": "laboratorio",
+          "img": "carreras/fisico-matematico/fondos/laboratorio/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/fisico-matematico/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.8639,
-            "y": 0.3652,
-            "escala": 0.17
+            "x": 0.8483,
+            "y": 0.7251,
+            "escala": 0.1959
           },
           "escondites": [
             {
-              "x": 0.108,
-              "y": 0.5333,
-              "escala": 0.17
+              "x": 0.1988,
+              "y": 0.5697,
+              "escala": 0.2022
             },
             {
-              "x": 0.485,
-              "y": 0.192,
-              "escala": 0.16
-            },
-            {
-              "x": 0.108,
-              "y": 0.3433,
-              "escala": 0.17
-            },
-            {
-              "x": 0.8759,
-              "y": 0.5188,
-              "escala": 0.17
+              "x": 0.0932,
+              "y": 0.6621,
+              "escala": 0.2229
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/fisico-matematico/fondos/escena/recortes/0.png",
-              "caja": [
-                0.79444,
-                0.30156,
-                0.95185,
-                0.42448
-              ]
-            },
-            {
-              "img": "carreras/fisico-matematico/fondos/escena/recortes/1.png",
-              "caja": [
-                0.04815,
-                0.49479,
-                0.19907,
-                0.57969
-              ]
-            },
-            {
-              "img": "carreras/fisico-matematico/fondos/escena/recortes/2.png",
-              "caja": [
-                0.41111,
-                0.14062,
-                0.52963,
-                0.23177
-              ]
-            },
-            {
-              "img": "carreras/fisico-matematico/fondos/escena/recortes/3.png",
-              "caja": [
-                0.01944,
-                0.28437,
-                0.20556,
-                0.40573
-              ]
-            },
-            {
-              "img": "carreras/fisico-matematico/fondos/escena/recortes/4.png",
-              "caja": [
-                0.79074,
-                0.46615,
-                0.92778,
-                0.57031
-              ]
-            }
+          "cajas": [
+            [
+              0.75384,
+              0.54976,
+              0.94283,
+              0.90047
+            ],
+            [
+              0.10905,
+              0.38863,
+              0.28851,
+              0.75071
+            ],
+            [
+              0.00265,
+              0.46256,
+              0.1837,
+              0.86161
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "giroscopio",
-          "img": "carreras/fisico-matematico/objetos/giroscopio/imagen.png",
-          "nombre": "Giroscopio de precisión",
-          "descripcion": "Dispositivo mecánico para estudiar la conservación del momento angular y la precesión giroscópica.",
-          "figura": "atomo"
-        },
-        {
-          "id": "osciloscopio",
-          "img": "carreras/fisico-matematico/objetos/osciloscopio/imagen.png",
-          "nombre": "Osciloscopio digital",
-          "descripcion": "Instrumento que grafica señales eléctricas variables en el tiempo para análisis de formas de onda.",
-          "figura": "onda"
-        },
-        {
-          "id": "pendulo-foucault",
-          "img": "carreras/fisico-matematico/objetos/pendulo-foucault/imagen.png",
-          "nombre": "Péndulo de Foucault",
-          "descripcion": "Péndulo esférico largo cuyo plano de oscilación rota demostrando de forma directa la rotación terrestre.",
-          "figura": "pi"
-        },
-        {
           "id": "prisma-optico",
           "img": "carreras/fisico-matematico/objetos/prisma-optico/imagen.png",
           "nombre": "Prisma óptico",
-          "descripcion": "Elemento de vidrio que refracta y descompone la luz blanca en sus diferentes longitudes de onda visibles.",
+          "descripcion": "Elemento que descompone la luz blanca en los colores del arcoíris, ayudando a entender cómo se comporta la luz y la materia.",
           "figura": "prisma"
         },
         {
-          "id": "superficie-3d",
-          "img": "carreras/fisico-matematico/objetos/superficie-3d/imagen.png",
-          "nombre": "Superficie matemática 3D",
-          "descripcion": "Modelo geométrico tridimensional para el estudio de variedades diferenciales, curvatura y topología.",
-          "figura": "integral"
+          "id": "seguidor-solar",
+          "img": "carreras/fisico-matematico/objetos/seguidor-solar/imagen.png",
+          "nombre": "Fotómetro solar",
+          "descripcion": "Sistema óptico de seguimiento solar utilizado para medir aerosoles y gases atmosféricos mediante técnicas de sensado remoto.",
+          "figura": "lampara"
+        },
+        {
+          "id": "tester",
+          "img": "carreras/fisico-matematico/objetos/tester/imagen.png",
+          "nombre": "Tester",
+          "descripcion": "Instrumento de medición electrónico que sirve para analizar magnitudes en circuitos eléctricos.",
+          "figura": "rayo"
         }
       ]
     },
@@ -857,124 +602,73 @@
       "nombre": "Ingeniería Forestal",
       "color": "#66BB6A",
       "maite": "forestal",
-      "fondoActivo": "escena",
+      "fondoActivo": "laboratorio",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/forestal/fondos/escena/imagen.jpg",
+          "id": "laboratorio",
+          "img": "carreras/forestal/fondos/laboratorio/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/forestal/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.8759,
-            "y": 0.5844,
-            "escala": 0.17
+            "x": 0.7828,
+            "y": 0.6073,
+            "escala": 0.1417
           },
           "escondites": [
             {
-              "x": 0.485,
-              "y": 0.192,
-              "escala": 0.16
+              "x": 0.8818,
+              "y": 0.6987,
+              "escala": 0.2229
             },
             {
-              "x": 0.108,
-              "y": 0.2923,
-              "escala": 0.17
-            },
-            {
-              "x": 0.8898,
-              "y": 0.3069,
-              "escala": 0.17
-            },
-            {
-              "x": 0.1469,
-              "y": 0.5844,
-              "escala": 0.17
+              "x": 0.2188,
+              "y": 0.7444,
+              "escala": 0.1333
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/forestal/fondos/escena/recortes/0.png",
-              "caja": [
-                0.78519,
-                0.52292,
-                0.96481,
-                0.64479
-              ]
-            },
-            {
-              "img": "carreras/forestal/fondos/escena/recortes/1.png",
-              "caja": [
-                0.39167,
-                0.14219,
-                0.55185,
-                0.2526
-              ]
-            },
-            {
-              "img": "carreras/forestal/fondos/escena/recortes/2.png",
-              "caja": [
-                0.02685,
-                0.22604,
-                0.2037,
-                0.3526
-              ]
-            },
-            {
-              "img": "carreras/forestal/fondos/escena/recortes/3.png",
-              "caja": [
-                0.79537,
-                0.24635,
-                0.975,
-                0.36667
-              ]
-            },
-            {
-              "img": "carreras/forestal/fondos/escena/recortes/4.png",
-              "caja": [
-                0.05278,
-                0.53333,
-                0.23796,
-                0.65625
-              ]
-            }
+          "cajas": [
+            [
+              0.71198,
+              0.4944,
+              0.85365,
+              0.72015
+            ],
+            [
+              0.77031,
+              0.59235,
+              0.99323,
+              0.80504
+            ],
+            [
+              0.15208,
+              0.67351,
+              0.28542,
+              0.8153
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "autocargador",
-          "img": "carreras/forestal/objetos/autocargador/imagen.png",
-          "nombre": "Autocargador forestal",
-          "descripcion": "Tractor articulado con grúa hidráulica y caja de carga para extracción de madera desde el bosque.",
-          "figura": "grua"
+          "id": "balanza-analitica",
+          "img": "carreras/forestal/objetos/balanza-analitica/imagen.png",
+          "nombre": "Balanza analítica de precisión",
+          "descripcion": "Determina con exactitud el peso de reactivos secos, biopolímeros, catalizadores y muestras en estudios de procesos forestales.",
+          "figura": "pipeta"
         },
         {
-          "id": "dron-multiespectral",
-          "img": "carreras/forestal/objetos/dron-multiespectral/imagen.png",
-          "nombre": "Dron multiespectral",
-          "descripcion": "Aeronave no tripulada con sensores ópticos para inventario forestal y evaluación del vigor de copas.",
-          "figura": "dron"
+          "id": "derivados-de-la-madera",
+          "img": "carreras/forestal/objetos/derivados-de-la-madera/imagen.png",
+          "nombre": "Derivados de la madera",
+          "descripcion": "Elementos para estudiar y desarrollar procesos a partir de madera: chips, biomasa triturada, film translúcido y extractos.",
+          "figura": "matraz"
         },
         {
-          "id": "forcipula",
-          "img": "carreras/forestal/objetos/forcipula/imagen.png",
-          "nombre": "Forcípula forestal",
-          "descripcion": "Calibre de gran formato para medir el diámetro a la altura del pecho (DAP) de árboles en pie.",
+          "id": "medidor-de-humedad-y-calibre",
+          "img": "carreras/forestal/objetos/medidor-de-humedad-y-calibre/imagen.png",
+          "nombre": "Medidor digital de humedad y calibre",
+          "descripcion": "El medidor indica cuánta humedad tiene la madera; el calibre mide con precisión diámetros y espesores.",
           "figura": "viga"
-        },
-        {
-          "id": "motosierra",
-          "img": "carreras/forestal/objetos/motosierra/imagen.png",
-          "nombre": "Motosierra profesional",
-          "descripcion": "Herramienta motorizada de cadena dentada para apeo, desrame y tronzado en operaciones forestales.",
-          "figura": "engranaje"
-        },
-        {
-          "id": "plantin",
-          "img": "carreras/forestal/objetos/plantin/imagen.png",
-          "nombre": "Plantín forestal en tubete",
-          "descripcion": "Ejemplar juvenil cultivado en vivero con sustrato controlado para plantación en campo y reforestación.",
-          "figura": "gota"
         }
       ]
     },
@@ -1096,123 +790,54 @@
       "nombre": "Ingeniería de Producción",
       "color": "#26C6DA",
       "maite": "produccion",
-      "fondoActivo": "escena",
+      "fondoActivo": "planta",
       "fondos": [
         {
-          "id": "escena",
-          "img": "carreras/produccion/fondos/escena/imagen.jpg",
+          "id": "planta",
+          "img": "carreras/produccion/fondos/planta/imagen.jpg",
           "video": null,
-          "apaisada": "carreras/produccion/fondos/escena/imagen-apaisada.jpg",
+          "apaisada": null,
           "lugar": {
-            "x": 0.85,
-            "y": 0.5698,
-            "escala": 0.17
+            "x": 0.226,
+            "y": 0.4664,
+            "escala": 0.3958
           },
           "escondites": [
             {
-              "x": 0.1728,
-              "y": 0.3871,
-              "escala": 0.17
-            },
-            {
-              "x": 0.5109,
-              "y": 0.192,
-              "escala": 0.16
-            },
-            {
-              "x": 0.8898,
-              "y": 0.3579,
-              "escala": 0.17
-            },
-            {
-              "x": 0.1339,
-              "y": 0.5844,
-              "escala": 0.17
+              "x": 0.8346,
+              "y": 0.6077,
+              "escala": 0.3307
             }
           ],
-          "recortes": [
-            {
-              "img": "carreras/produccion/fondos/escena/recortes/0.png",
-              "caja": [
-                0.75648,
-                0.50729,
-                0.94167,
-                0.63125
-              ]
-            },
-            {
-              "img": "carreras/produccion/fondos/escena/recortes/1.png",
-              "caja": [
-                0.07593,
-                0.33125,
-                0.26759,
-                0.45
-              ]
-            },
-            {
-              "img": "carreras/produccion/fondos/escena/recortes/2.png",
-              "caja": [
-                0.42685,
-                0.13229,
-                0.58241,
-                0.24792
-              ]
-            },
-            {
-              "img": "carreras/produccion/fondos/escena/recortes/3.png",
-              "caja": [
-                0.79444,
-                0.29688,
-                0.98426,
-                0.42292
-              ]
-            },
-            {
-              "img": "carreras/produccion/fondos/escena/recortes/4.png",
-              "caja": [
-                0.03889,
-                0.52552,
-                0.22963,
-                0.64583
-              ]
-            }
+          "cajas": [
+            [
+              0.09115,
+              0.11194,
+              0.36094,
+              0.8209
+            ],
+            [
+              0.66927,
+              0.43377,
+              1,
+              0.78172
+            ]
           ]
         }
       ],
       "objetos": [
         {
-          "id": "brazo-robotico",
-          "img": "carreras/produccion/objetos/brazo-robotico/imagen.png",
-          "nombre": "Brazo robótico articulado",
-          "descripcion": "Manipulador industrial de seis grados de libertad para soldadura, pintura, ensamblaje y paletizado rápido.",
-          "figura": "robot"
+          "id": "kanban",
+          "img": "carreras/produccion/objetos/kanban/imagen.png",
+          "nombre": "Tablero Kanban",
+          "descripcion": "Organiza a la vista tareas y flujos de trabajo para planificar la producción, evitar cuellos de botella y reducir desperdicios.",
+          "figura": "plano"
         },
         {
-          "id": "calibre-digital",
-          "img": "carreras/produccion/objetos/calibre-digital/imagen.png",
-          "nombre": "Calibre digital vernier",
-          "descripcion": "Instrumento de metrología dimensional con pantalla LCD para control de tolerancias en piezas manufacturadas.",
-          "figura": "viga"
-        },
-        {
-          "id": "cinta-transportadora",
-          "img": "carreras/produccion/objetos/cinta-transportadora/imagen.png",
-          "nombre": "Cinta transportadora",
-          "descripcion": "Sistema de transporte continuo para movimiento automatizado de materiales y productos en plantas fabriles.",
-          "figura": "rodamiento"
-        },
-        {
-          "id": "engranaje-industrial",
-          "img": "carreras/produccion/objetos/engranaje-industrial/imagen.png",
-          "nombre": "Engranaje industrial",
-          "descripcion": "Rueda dentada de acero templado para transmisión de potencia mecánica y sincronización en líneas de ensamble.",
-          "figura": "engranaje"
-        },
-        {
-          "id": "pallet",
-          "img": "carreras/produccion/objetos/pallet/imagen.png",
-          "nombre": "Pallet con carga",
-          "descripcion": "Unidad de carga para almacenamiento, logística interna y transporte de mercaderías.",
+          "id": "lote-de-envases",
+          "img": "carreras/produccion/objetos/lote-de-envases/imagen.png",
+          "nombre": "Lote de envases con etiqueta de trazabilidad",
+          "descripcion": "Envases de producto terminado con número de lote, que permite rastrear su origen, sus materias primas y los controles de calidad.",
           "figura": "ladrillo"
         }
       ]

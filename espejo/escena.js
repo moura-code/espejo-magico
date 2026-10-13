@@ -1252,10 +1252,12 @@ export function disponerFichaDebajo(
     !tocaAlgunCirculo(caja, [objeto, ...otros]);
 
   // La ficha con la letra pedida y el lugar limpio mas cercano para ella: se
-  // buscan una sola vez, con la primera vuelta, y los usan los dos recursos de
-  // abajo.
+  // buscan una sola vez, con la primera vuelta. Y si para la pedida no hay
+  // ninguno en toda la pantalla, la mas grande que tenga alguno: como la letra
+  // va de mayor a menor, es la primera que aparece.
   let entera = null;
   let libre = null;
+  let conLugar = null;
   for (let achique = 1; achique > 0.55; achique -= 0.07) {
     const base = armarFicha(textos, disposicion, medir, tipografia, achique, anchoPedido);
     if (!base) return null;
@@ -1285,15 +1287,35 @@ export function disponerFichaDebajo(
       if (libre && libre.distancia <= distancia * objeto.radio) {
         return moverFicha(entera, libre.x - entera.caja.x, libre.y - entera.caja.y);
       }
+    } else if (!libre) {
+      // LA PEDIDA NO ENTRA EN NINGUN LADO. Pasa en una pantalla apaisada, donde
+      // el pie es mas alto, con objetos que ocupan casi todo el alto de la foto
+      // —la estacion total y el receptor de Agrimensura— o con la foto llena
+      // —la de Civil—. Ahi cada letra busca tambien su lugar limpio mas
+      // cercano, no solo sus sitios de siempre: la ficha seguia achicandose
+      // hasta caber en uno de ellos cuando un poco mas grande ya tenia donde
+      // ir, pegada al objeto.
+      const cerca = lugarLimpioMasCercano(base.caja, objeto, disposicion, limpia);
+      if (cerca && cerca.distancia <= distancia * objeto.radio) {
+        return moverFicha(base, cerca.x - base.caja.x, cerca.y - base.caja.y);
+      }
+      if (cerca) conLugar ??= { ficha: base, x: cerca.x, y: cerca.y };
     }
     // Con la letra mas chica el cartel es mas bajo y puede entrar donde no
     // entraba. Si ni achicandose encuentra lugar, el sitio limpio mas cercano
     // al objeto, con la letra pedida, aunque quede lejos: pasa con un objeto en
     // un rincon de abajo y otro justo encima, como las placas de Petri de la
-    // foto de Quimica. Y si tampoco hay, se muestra igual en el primer sitio:
-    // una ficha que no aparece es peor que una que pisa un borde.
+    // foto de Quimica. Si la pedida no tiene ninguno, con la mas grande que lo
+    // tenga: los transductores de Civil y el motor de Electrica, en apaisado,
+    // se mostraban con la letra minima encima de si mismos y del nombre de la
+    // ingenieria. Y si no hay sitio para ninguna, se muestra igual en el
+    // primero: una ficha que no aparece es peor que una que pisa un borde.
     if (achique <= 0.62) {
       if (libre) return moverFicha(entera, libre.x - entera.caja.x, libre.y - entera.caja.y);
+      if (conLugar) {
+        const { ficha, x, y } = conLugar;
+        return moverFicha(ficha, x - ficha.caja.x, y - ficha.caja.y);
+      }
       return moverFicha(base, primera.x - base.caja.x, primera.y - base.caja.y);
     }
   }

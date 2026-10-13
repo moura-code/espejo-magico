@@ -1,0 +1,5 @@
+{
+  "nombre": "Sensor de temperatura para hormigón",
+  "descripcion": "Monitorea el hormigón durante su fraguado y ayuda a estimar cuándo alcanza la resistencia necesaria.",
+  "figura": "chip"
+}

@@ -72,14 +72,21 @@ const letraPedida = () =>
 // en apaisado, donde el pie es mas alto, ni achicandose entra, y va al lugar
 // limpio mas cercano. El tercero es el dispositivo edge de Computacion, chico,
 // entre el libro y el estante, con Jacky debajo: solo en apaisado, desde que la
-// ficha acostada tiene la letra de la pantalla y no la de la composicion. Lo
-// demas —no tapar a nadie, entrar en la pantalla, no bajar al nombre— lo
-// cumplen como todas. Lo que las arreglaria es que el pie prohibido sea el
-// nombre y no una franja a lo ancho, y si eso pasa o cambia la foto, la prueba
-// de abajo avisa que esta lista tiene que achicarse.
+// ficha acostada tiene la letra de la pantalla y no la de la composicion. Y dos
+// mas, grandes pero en el mismo rincon de abajo y con un vecino mas grande
+// todavia encima: los transductores de Civil, debajo de la prensa, y el motor
+// de Electrica, debajo del panel solar. Su ficha se aleja en las dos
+// orientaciones, y en apaisado, donde la letra pedida no entra en ningun lado
+// de esas dos fotos, va con la mas grande que entre. Lo demas —no tapar a
+// nadie, entrar en la pantalla, no bajar al nombre— lo cumplen como todas. Lo
+// que las arreglaria es que el pie prohibido sea el nombre y no una franja a lo
+// ancho, y si eso pasa o cambia la foto, la prueba de abajo avisa que esta
+// lista tiene que achicarse.
 const SIN_LUGAR_EN_LA_FOTO = new Set([
+  'carreras/civil/fondos/laboratorio/imagen.jpg · Transductores ultrasónicos',
   'carreras/computacion/fondos/laboratorio/imagen.jpg · Robotito',
   'carreras/computacion/fondos/laboratorio/imagen.jpg · Dispositivo edge computing',
+  'carreras/electrica/fondos/laboratorio/imagen.jpg · Motor de inducción',
   'carreras/mecanica/fondos/taller/imagen.jpg · Celda electroquímica',
 ]);
 const conLugar = (caso) => !SIN_LUGAR_EN_LA_FOTO.has(caso.nombre);
