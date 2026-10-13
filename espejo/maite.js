@@ -1,8 +1,9 @@
 // El unico puente que sale de esta PC.
 //
-// Le avisa a MAITE (el proyecto de las tablets, en localhost:3000) que carrera
-// eligio la persona, para que las cuatro tablets muestren a la gente de esa
-// ingenieria. Va y no vuelve: el espejo no lee nada de MAITE ni espera nada suyo.
+// Anota en el servidor del espejo (POST /estado.json) que carrera eligio la
+// persona; MAITE (el proyecto de las tablets) lee ese JSON y las cuatro tablets
+// muestran a la gente de esa ingenieria. Va y no vuelve: el espejo no lee nada
+// de MAITE ni espera nada suyo.
 //
 // LA REGLA QUE NO SE NEGOCIA: ESTO NUNCA PUEDE ROMPER EL ESPEJO. Si MAITE no
 // esta levantado, si tarda, si contesta cualquier cosa o si alguien desenchufo
@@ -40,7 +41,7 @@ export function crearPuente({
       });
 
       if (!respuesta?.ok) {
-        avisar(`MAITE contestó ${respuesta?.status ?? '?'} en ${camino}`);
+        avisar(`El aviso para MAITE contestó ${respuesta?.status ?? '?'} en ${camino}`);
         return { ok: false, motivo: `http ${respuesta?.status ?? '?'}` };
       }
       return { ok: true };
@@ -48,7 +49,7 @@ export function crearPuente({
       // Incluye el corte por tiempo, que es un abort. No se distingue a
       // proposito: para el espejo "no contesto a tiempo" y "no contesto" son
       // exactamente lo mismo.
-      avisar(`MAITE no respondió (${camino}):`, error?.message ?? error);
+      avisar(`El aviso para MAITE no llegó (${camino}):`, error?.message ?? error);
       return { ok: false, motivo: 'sin respuesta' };
     } finally {
       cancelar(reloj);
@@ -66,15 +67,20 @@ export function crearPuente({
         return { ok: false, motivo: 'la carrera no tiene id de MAITE' };
       }
 
-      const resultado = await pegar('/api/carrera', { carreraId: id });
+      const resultado = await pegar('/estado.json', { mode: 'carrera', carreraId: id });
       ultimo = { estado: 'carrera', enviado: id, ok: resultado.ok };
       return resultado;
     },
 
-    /** Se termino la sesion: las tablets vuelven a su humo de reposo. */
+    /**
+     * Las tablets vuelven a su humo de reposo: al terminar la sesion y al
+     * empezar una eleccion nueva. Si ya estan en humo no se repite, porque
+     * cada aviso le reinicia a las tablets el video de humo.
+     */
     async humo() {
       if (!activo) return NADA;
-      const resultado = await pegar('/api/humo', {});
+      if (ultimo.estado === 'humo' && ultimo.ok) return { ok: true, repetido: true };
+      const resultado = await pegar('/estado.json', { mode: 'humo' });
       ultimo = { estado: 'humo', enviado: null, ok: resultado.ok };
       return resultado;
     },

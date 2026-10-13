@@ -457,6 +457,9 @@ function atender(salida, ahora) {
     if (evento.tipo !== 'entra') continue;
 
     if (evento.estado === ESTADOS.HUMO) {
+      // Una eleccion nueva arranca con las tablets en humo: lo que mostraban
+      // era de la persona anterior.
+      puente.humo();
       sesionContenido.iniciar(salida.opciones);
       prepararOfrecidos(salida.opciones);
       eleccion.reiniciar();

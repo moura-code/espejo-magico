@@ -610,15 +610,16 @@ export const CONFIG = {
     distanciaDebajo: 2,
   },
 
-  // El unico puente que sale de esta PC. Le avisa a MAITE que carrera se eligio
-  // para que las tablets muestren a la gente de esa ingenieria.
+  // El puente con MAITE. El espejo anota que carrera se eligio en su propio
+  // servidor (/estado.json) y MAITE lo lee para que las tablets muestren a la
+  // gente de esa ingenieria. `url` vacia = el mismo servidor que sirve el espejo.
   //
   // El espejo NO depende de esto: si MAITE no esta levantado, no contesta o
   // tarda, la experiencia sigue igual y lo unico que queda es un aviso en la
   // consola. En false ni se intenta.
   maite: {
     activo: true,
-    url: 'http://localhost:3000',
+    url: '',
     tiempoLimiteMs: 1500,
   },
 

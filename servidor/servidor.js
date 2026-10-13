@@ -1,6 +1,6 @@
-// Servidor de archivos estaticos, y nada mas. El espejo corre entero en el
-// navegador de una sola PC: no hay estado que compartir con nadie, asi que aca
-// no vive ni una linea de logica de la experiencia.
+// Servidor de archivos estaticos y, ademas, el tablon donde el espejo anota que
+// ingenieria esta mostrando (/estado.json) para que MAITE lo lea. Nada mas: la
+// logica de la experiencia vive entera en el navegador.
 
 import { createServer as createHttpServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
@@ -105,14 +105,89 @@ export function interpretarRango(encabezado, tamano) {
   return { inicio, fin: Math.min(fin, tamano - 1) };
 }
 
-export function crearServidor({ raiz = RAIZ_POR_DEFECTO, tls } = {}) {
+// Lo que el espejo esta mostrando, para que MAITE lo lea (GET /estado.json).
+// El espejo lo escribe con POST /estado.json: { mode: 'carrera', carreraId } o
+// { mode: 'humo' }. `version` sube con cada aviso y `arranque` cambia si el
+// servidor se reinicia, asi MAITE reconoce un aviso nuevo aunque repita carrera.
+export function validarEstado(cuerpo) {
+  if (cuerpo?.mode === 'humo') return { mode: 'humo', carreraId: null };
+  if (
+    cuerpo?.mode === 'carrera' &&
+    typeof cuerpo.carreraId === 'string' &&
+    /^[\w-]{1,64}$/.test(cuerpo.carreraId)
+  ) {
+    return { mode: 'carrera', carreraId: cuerpo.carreraId };
+  }
+  return null;
+}
+
+const LIMITE_DEL_AVISO = 1024;
+
+function leerCuerpo(pedido) {
+  return new Promise((ok, falla) => {
+    let texto = '';
+    pedido.setEncoding('utf8');
+    pedido.on('data', (pedazo) => {
+      texto += pedazo;
+      if (texto.length > LIMITE_DEL_AVISO) falla(new Error('Aviso demasiado largo'));
+    });
+    pedido.on('end', () => ok(texto));
+    pedido.on('error', falla);
+  });
+}
+
+export function crearServidor({ raiz = RAIZ_POR_DEFECTO, tls, ahora = () => new Date() } = {}) {
+  let estado = {
+    mode: 'humo',
+    carreraId: null,
+    version: 0,
+    arranque: ahora().toISOString(),
+    actualizado: ahora().toISOString(),
+  };
+
+  const atenderEstado = async (pedido, respuesta) => {
+    const encabezados = {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+    };
+    if (pedido.method === 'POST') {
+      let nuevo = null;
+      try {
+        nuevo = validarEstado(JSON.parse(await leerCuerpo(pedido)));
+      } catch {
+        nuevo = null;
+      }
+      if (!nuevo) {
+        respuesta.writeHead(400, encabezados).end(JSON.stringify({ error: 'Aviso inválido' }));
+        return;
+      }
+      estado = {
+        ...estado,
+        ...nuevo,
+        version: estado.version + 1,
+        actualizado: ahora().toISOString(),
+      };
+    } else if (pedido.method !== 'GET' && pedido.method !== 'HEAD') {
+      respuesta.writeHead(405, { Allow: 'GET, HEAD, POST' }).end();
+      return;
+    }
+    const cuerpo = JSON.stringify(estado);
+    respuesta.writeHead(200, { ...encabezados, 'Content-Length': Buffer.byteLength(cuerpo) });
+    respuesta.end(pedido.method === 'HEAD' ? undefined : cuerpo);
+  };
+
   const atender = async (pedido, respuesta) => {
+    const ruta = new URL(pedido.url, 'http://local').pathname;
+    if (ruta === '/estado.json') {
+      await atenderEstado(pedido, respuesta);
+      return;
+    }
+
     if (pedido.method !== 'GET' && pedido.method !== 'HEAD') {
       respuesta.writeHead(405, { Allow: 'GET, HEAD' }).end();
       return;
     }
 
-    const ruta = new URL(pedido.url, 'http://local').pathname;
     const absoluta = resolve(raiz, '.' + (ruta === '/' ? '/espejo/espejo.html' : ruta));
 
     if (absoluta !== raiz && !absoluta.startsWith(raiz + sep)) {
@@ -207,16 +282,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     } catch (error) {
       console.error('Aviso: No se pudo generar catalogo.json al iniciar:', error.message);
     }
-    const tls = await cargarCertificadosHttps(resolverRutasCertificados());
-    const servidor = crearServidor({ tls });
+    // HTTP plano: Chrome trata a http://localhost como contexto seguro y
+    // entrega la camara igual, sin pelear con certificados. Por IP no anda.
+    const servidor = crearServidor();
     const host = process.env.HOST || '0.0.0.0';
     const puerto = await servidor.escuchar(Number(process.env.PUERTO) || 8080, host);
-    console.log(`Espejo HTTPS escuchando en ${host}:${puerto}`);
-    console.log('Abrir en:');
-    for (const url of obtenerUrlsDeAcceso(puerto, networkInterfaces(), host, 'https')) {
-      console.log(`  ${url}`);
-    }
-    console.log('Los dispositivos deben confiar en la autoridad local de mkcert.');
+    console.log(`Espejo HTTP escuchando en ${host}:${puerto}`);
+    console.log('Abrir en (sólo por localhost, por IP Chrome no entrega la cámara):');
+    console.log(`  ${obtenerUrlsDeAcceso(puerto, networkInterfaces(), host, 'http')[0]}`);
+    console.log(`MAITE lee la carrera de http://localhost:${puerto}/estado.json`);
   } catch (error) {
     console.error(`No se pudo iniciar el Espejo: ${error.message}`);
     process.exitCode = 1;
