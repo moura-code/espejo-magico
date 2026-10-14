@@ -260,7 +260,7 @@ marco": existe, gira y no se dibuja. Cada ranura sale con un `alfa` de ventana
 —0 afuera, 1 adentro, una rampa de `gradosDeFundido` en cada borde— y **sólo son
 blancos las ranuras enteras** (`alfa === 1`).
 
-Cuatro detalles que no son decorativos:
+Cinco detalles que no son decorativos:
 
 - **El anillo se achica para entrar en el lienzo, no se recortan los puntos de
   a uno.** Recortar cada punto contra su borde deforma el anillo y amontona dos
@@ -276,6 +276,16 @@ Cuatro detalles que no son decorativos:
   entran más grandes que unos 190 px; en apaisado llegan a lo pedido
   (`radioObjetoFactor`, 0,32 anchos de hombros desde que la pantalla es de
   47").
+- **Cada objeto entra entero en su círculo.** Los PNG vienen recortados al ras
+  de lo que se ve —así calzan sobre la foto de su fondo— y con el lado más
+  largo de diámetro el círculo les cortaba las puntas: al prisma, la cuarta
+  parte. La cátedra pidió guardarlos con más margen; el margen se calcula. El
+  banco mide una sola vez, al cargar, el círculo mínimo que contiene lo opaco
+  de cada PNG (`banco.circuloDe`, sobre una copia de 160 px) y `dibujarObjeto`
+  lo mete adentro con `tablero.aireEnElCirculo` de aire, centrado en lo que se
+  ve y no en la imagen. El elegido vuela de ahí (`encaje` 1) a calzar con su
+  caja en la foto (`encaje` 0), al ritmo del tamaño: aterriza exactamente
+  encima del objeto fotografiado, como antes.
 - **`congelar` detiene el ancla y la rotación, y se pone apenas empieza un
   sostenido.** Estirar el brazo mueve los hombros, y si el anillo los siguiera,
   el blanco se correría de abajo de la propia mano; y si siguiera girando,

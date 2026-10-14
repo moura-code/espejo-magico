@@ -57,7 +57,7 @@
     import { figurasDisponibles } from '../espejo/figuras.js';
     import { dibujarEscenario } from '../espejo/escenarios.js';
     import { cargarContenido, fondoActivo, objetoDeCarrera } from '../espejo/contenido.js';
-    import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
+    import { crearBanco, cargarImagenDelNavegador, leerAlfaDelNavegador } from '../espejo/imagenes.js';
     import {
       calcularDisposicion,
       dibujarFondo,
@@ -91,7 +91,11 @@
 
     await document.fonts.load(`${PESO_TITULO} 32px ${TITULO_SOLO}`).catch(() => {});
     const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
-    const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
+    const banco = crearBanco({
+      cargar: cargarImagenDelNavegador,
+      raiz: '/contenido/',
+      leerAlfa: leerAlfaDelNavegador,
+    });
     await banco.precargar(contenido.todasLasImagenes());
 
     // --- el nombre ---
@@ -197,7 +201,12 @@
         opacidad: opcion.relleno,
         radioFactor: CONFIG.carga.radioDelDisco,
       });
-      dibujarObjeto(ctx, { definicion: objetoDeCarrera(carrera), ...objeto }, banco, CONFIG.paleta.nombre);
+      dibujarObjeto(
+        ctx,
+        { definicion: objetoDeCarrera(carrera), ...objeto, aire: CONFIG.tablero.aireEnElCirculo },
+        banco,
+        CONFIG.paleta.nombre,
+      );
       dibujarAnilloDeProgreso(ctx, {
         ...objeto,
         progreso,

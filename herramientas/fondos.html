@@ -50,7 +50,7 @@
     import { dibujarEscenario } from '../espejo/escenarios.js';
     import { figurasDisponibles } from '../espejo/figuras.js';
     import { cargarContenido, objetoDeCarrera, escondidosDeCarrera } from '../espejo/contenido.js';
-    import { crearBanco, cargarImagenDelNavegador } from '../espejo/imagenes.js';
+    import { crearBanco, cargarImagenDelNavegador, leerAlfaDelNavegador } from '../espejo/imagenes.js';
     import { cargarVideoDelNavegador, crearBancoDeVideos } from '../espejo/videos.js';
     import {
       aspectoDelObjeto,
@@ -105,7 +105,11 @@
     await document.fonts.load(`${PESO_TITULO} 32px ${TITULO_SOLO}`).catch(() => {});
 
     const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
-    const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
+    const banco = crearBanco({
+      cargar: cargarImagenDelNavegador,
+      raiz: '/contenido/',
+      leerAlfa: leerAlfaDelNavegador,
+    });
     await banco.precargar(
       contenido.carreras.flatMap((c) => [
         ...(c.fondos ?? []).flatMap((f) => [f.img, ...(f.recortes ?? []).map((r) => r.img)]),
@@ -259,7 +263,15 @@
         );
         dibujarObjetoApoyado(
           ctx,
-          { definicion: objeto.definicion, x: objeto.x, y: objeto.y + dy, radio, giro, halo },
+          {
+            definicion: objeto.definicion,
+            x: objeto.x,
+            y: objeto.y + dy,
+            radio,
+            giro,
+            halo,
+            aire: CONFIG.tablero.aireEnElCirculo,
+          },
           banco,
           CONFIG.paleta.nombre,
         );
@@ -289,8 +301,11 @@
         disposicion,
         { ...opciones, colores: COLORES_DE_FICHA },
       );
-      dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, CONFIG.paleta.nombre);
-      dibujarConsigna(ctx, disposicion, 1, 'Pasá la mano sobre los objetos del fondo');
+      // Como en el espejo: la consigna de explorar va encima del nombre.
+      const techoDelNombre = dibujarNombreDeCarrera(ctx, carrera, disposicion, 1, CONFIG.paleta.nombre);
+      dibujarConsigna(ctx, disposicion, 1, 'Pasá la mano sobre los objetos del fondo', {
+        hasta: techoDelNombre,
+      });
 
       // Y se muestra achicado.
       const vista = lienzo.getContext('2d');

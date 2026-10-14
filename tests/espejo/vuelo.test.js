@@ -120,8 +120,10 @@ describe('lugarEnLaFoto', () => {
 });
 
 describe('posicionEnVuelo', () => {
-  const origen = { x: 100, y: 900, radio: 80 };
-  const destino = { x: 300, y: 500, radio: 60 };
+  // Sale de su ranura entero adentro de su circulo (encaje 1) y aterriza
+  // calzando con su caja en la foto (encaje 0).
+  const origen = { x: 100, y: 900, radio: 80, encaje: 1 };
+  const destino = { x: 300, y: 500, radio: 60, encaje: 0 };
 
   it('arranca en el origen y termina en el destino', () => {
     expect(posicionEnVuelo({ origen, destino, t: 0 })).toEqual(origen);
@@ -133,6 +135,30 @@ describe('posicionEnVuelo', () => {
     expect(medio.x).toBeCloseTo(200);
     expect(medio.y).toBeCloseTo(700);
     expect(medio.radio).toBeCloseTo(70);
+    expect(medio.encaje).toBeCloseTo(0.5);
+  });
+
+  // El encaje sigue el mismo easing que el tamaño: si fuera lineal mientras el
+  // radio arranca despacio, el objeto creceria adentro de su circulo antes de
+  // empezar a volar.
+  it('el encaje cambia al ritmo del tamaño', () => {
+    for (const t of [0.1, 0.25, 0.8]) {
+      const { radio, encaje } = posicionEnVuelo({ origen, destino, t });
+      const avance = (radio - origen.radio) / (destino.radio - origen.radio);
+      expect(1 - encaje).toBeCloseTo(avance);
+    }
+  });
+
+  // Sin un encaje pedido el objeto va entero en su circulo, como lo dibuja
+  // dibujarObjeto por defecto: un fondo de PNGs sueltos no tiene caja con que
+  // calzar.
+  it('sin encaje pedido vuela entero en su circulo', () => {
+    const sinEncaje = { x: 300, y: 500, radio: 60 };
+    for (const t of [0, 0.5, 1]) {
+      expect(
+        posicionEnVuelo({ origen: { x: 100, y: 900, radio: 80 }, destino: sinEncaje, t }).encaje,
+      ).toBe(1);
+    }
   });
 
   it('avanza sin volver atras', () => {

@@ -93,16 +93,25 @@ export function lugarEnLaFoto(lugar, rectangulo) {
  * su lugar); el tamaño se interpola a la vez, para que el objeto parezca
  * alejarse hacia la escena en vez de deslizarse por encima.
  *
+ * Y el `encaje` (dibujarObjeto): en la ranura el objeto va entero adentro de
+ * su circulo (1), y en una foto con los objetos adentro aterriza calzando con
+ * su caja (0), encima del mismo objeto fotografiado. Cambia al ritmo del
+ * tamaño, asi el objeto no crece adentro de su circulo antes de despegar. Sin
+ * encaje pedido, entero.
+ *
  * Sin origen —una carrera forzada por teclado— no hay
  * ranura de donde salir: el objeto crece en su lugar desde cero.
  */
 export function posicionEnVuelo({ origen, destino, t }) {
   const avance = suavizar(t);
-  const desde = origen ?? { x: destino.x, y: destino.y, radio: 0 };
+  const llegada = destino.encaje ?? 1;
+  const desde = origen ?? { x: destino.x, y: destino.y, radio: 0, encaje: llegada };
+  const salida = desde.encaje ?? 1;
   return {
     x: desde.x + (destino.x - desde.x) * avance,
     y: desde.y + (destino.y - desde.y) * avance,
     radio: desde.radio + (destino.radio - desde.radio) * avance,
+    encaje: salida + (llegada - salida) * avance,
   };
 }
 
