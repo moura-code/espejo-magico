@@ -147,6 +147,99 @@ describe('dibujarObjeto', () => {
     expect(ctx.llamadas[0]).toEqual(['save']);
     expect(ctx.llamadas.at(-1)).toEqual(['restore']);
   });
+
+  // LAS IMAGENES CORTADAS DEL CARRUSEL. Los PNG vienen recortados al ras del
+  // objeto —asi calzan sobre la foto de su fondo— y, con el lado mas largo de
+  // diametro, el circulo les cortaba las puntas: la catedra pidio guardarlas
+  // con mas margen. El margen sale de lo que ocupa cada uno: un PNG de 200x100
+  // cuyo objeto entra en un circulo de 0,4 lados, corrido (0,1; -0,05) del
+  // centro de la imagen. Con radio 60 y un aire de 0,1, ese circulo tiene que
+  // quedar centrado y de radio 54: escala 0,675, imagen de 135x67,5, y su
+  // centro corrido (-13,5; 6,75) para que el del objeto caiga en el medio.
+  it('mete lo que se ve del objeto entero en su circulo, con el aire pedido', () => {
+    const ctx = crearCtxFalso();
+    const png = imagen(200, 100);
+    const banco = {
+      obtener: (ruta) => (ruta === definicion.img ? png : null),
+      circuloDe: (ruta) => (ruta === definicion.img ? { x: 0.1, y: -0.05, radio: 0.4 } : null),
+    };
+
+    dibujarObjeto(ctx, { definicion, x: 300, y: 400, radio: 60, aire: 0.1 }, banco, '#fff');
+
+    expect(soloDe(ctx, 'drawImage')).toEqual([['drawImage', png, -81, -27, 135, 67.5]]);
+  });
+
+  // Al aterrizar, el PNG tiene que caer exactamente encima del objeto que ya
+  // esta en la foto: ahi el lado mas largo es el diametro, como siempre, y el
+  // centro de la imagen es el centro del lugar.
+  it('con encaje cero calza con su caja: el lado mas largo es el diametro', () => {
+    const ctx = crearCtxFalso();
+    const png = imagen(200, 100);
+    const banco = {
+      obtener: () => png,
+      circuloDe: () => ({ x: 0.1, y: -0.05, radio: 0.4 }),
+    };
+
+    dibujarObjeto(ctx, { definicion, x: 300, y: 400, radio: 60, encaje: 0, aire: 0.1 }, banco, '#fff');
+
+    expect(soloDe(ctx, 'drawImage')).toEqual([['drawImage', png, -60, -30, 120, 60]]);
+  });
+
+  // Al aterrizar, el PNG tiene que calzar ENTERO sobre el de la foto: con el
+  // lado mas largo de diametro sus puntas pasan el circulo, y recortadas
+  // dejaban ver por las esquinas la foto todavia a medio entrar. El circulo
+  // crece hasta contener lo que se ve; en el carrusel es el del blanco.
+  it('el circulo nunca le corta nada al objeto: crece hasta contenerlo en su caja', () => {
+    const banco = {
+      obtener: () => imagen(200, 100),
+      circuloDe: () => ({ x: 0.1, y: -0.05, radio: 0.4 }),
+    };
+    const recorteCon = (encaje) => {
+      const ctx = crearCtxFalso();
+      dibujarObjeto(ctx, { definicion, x: 0, y: 0, radio: 60, encaje, aire: 0.1 }, banco, '#fff');
+      return soloDe(ctx, 'arc')[0][3];
+    };
+
+    expect(recorteCon(1)).toBe(60);
+    // Con encaje 0 lo que se ve mide 0,4 x 200 x 0,6 = 48 de radio, con su
+    // centro corrido hypot(0,1; 0,05) x 120 = 13,4 del centro: llega a 61,4.
+    expect(recorteCon(0)).toBeGreaterThanOrEqual(61.4);
+    expect(recorteCon(0)).toBeLessThan(63);
+  });
+
+  // El vuelo va de la ranura (entero en su circulo) a la caja de la foto: el
+  // objeto tiene que crecer de a poco, no saltar de un tamaño al otro.
+  it('entre el circulo y la caja crece de a poco', () => {
+    const ctx = crearCtxFalso();
+    const banco = {
+      obtener: () => imagen(200, 100),
+      circuloDe: () => ({ x: 0.1, y: -0.05, radio: 0.4 }),
+    };
+
+    dibujarObjeto(ctx, { definicion, x: 0, y: 0, radio: 60, encaje: 0.5, aire: 0.1 }, banco, '#fff');
+
+    const [[, , , , ancho]] = soloDe(ctx, 'drawImage');
+    expect(ancho).toBeGreaterThan(120);
+    expect(ancho).toBeLessThan(135);
+  });
+
+  // Las herramientas, o una imagen que no se dejo leer: sin saber que ocupa el
+  // objeto, entra la imagen entera —sus cuatro esquinas sobre el circulo—. Mas
+  // chico que lo justo, pero nunca cortado.
+  it('sin saber que ocupa el objeto, mete la imagen entera', () => {
+    const ctx = crearCtxFalso();
+    dibujarObjeto(
+      ctx,
+      { definicion, x: 300, y: 400, radio: 60 },
+      bancoCon({ 'assets/civil/grua.png': imagen(200, 100) }),
+      '#fff',
+    );
+
+    const [[, , x, y, ancho, alto]] = soloDe(ctx, 'drawImage');
+    expect(x).toBeCloseTo(-ancho / 2);
+    expect(y).toBeCloseTo(-alto / 2);
+    expect(Math.hypot(ancho / 2, alto / 2)).toBeCloseTo(60);
+  });
 });
 
 describe('dibujarAnilloDeProgreso', () => {
@@ -877,6 +970,46 @@ describe('dibujarNombreDeCarrera', () => {
     expect(orden.indexOf('stroke')).toBeLessThan(orden.indexOf('fillText'));
   });
 
+  // "EL NOMBRE DE LA INGENIERIA QUEDO MUY ARRIBA": la catedra, mirando la
+  // notebook. Iba al 80 % del alto acostada y al 84 % parada, a la altura del
+  // pecho, encima de la consigna de explorar. Va al pie, como el texto de las
+  // tablets de MAITE, en el decimo de abajo de la pantalla.
+  it('va al pie de la pantalla, no a la altura del pecho', () => {
+    for (const [ancho, alto] of [
+      [1080, 1920],
+      [1920, 1080],
+      [1512, 770],
+    ]) {
+      const pantalla = calcularDisposicion(ancho, alto);
+      const ctx = crearCtxFalso();
+      dibujarNombreDeCarrera(ctx, carrera, pantalla, 1);
+
+      const [[, , , y]] = soloDe(ctx, 'fillText');
+      expect(y).toBeGreaterThanOrEqual(alto * 0.9);
+      expect(y + pantalla.pie.tamano * 0.3).toBeLessThan(alto);
+    }
+  });
+
+  // La linea iba a una altura fija de la pantalla, y con un nombre de dos
+  // renglones le pasaba por encima al primero. Va justo encima del nombre,
+  // tenga los renglones que tenga.
+  it('la linea dorada va justo encima del nombre, tambien con dos renglones', () => {
+    const tamano = disposicion.pie.tamano;
+    for (const nombre of ['Ingeniería Civil', 'Ingeniería en Sistemas de Comunicación']) {
+      const ctx = crearCtxFalso();
+      ctx.measureText = (texto) => ({
+        width: texto.length * Number(ctx.font.match(/([\d.]+)px/)[1]) * 0.5,
+      });
+      dibujarNombreDeCarrera(ctx, { nombre }, disposicion, 1);
+
+      const [[, , yDeLaLinea]] = soloDe(ctx, 'moveTo');
+      const [[, , , primerRenglon]] = soloDe(ctx, 'fillText');
+      const arribaDeLasLetras = primerRenglon - tamano * 0.8;
+      expect(yDeLaLinea).toBeLessThan(arribaDeLasLetras);
+      expect(arribaDeLasLetras - yDeLaLinea).toBeLessThan(tamano);
+    }
+  });
+
   // La catedra pidio no distinguir las ingenierias por color: el nombre va en
   // el que se le pide —el de los nombres en las tablets de MAITE—, nunca en el
   // de la carrera.
@@ -892,8 +1025,48 @@ describe('dibujarNombreDeCarrera', () => {
       [null, 1],
     ]) {
       const ctx = crearCtxFalso();
-      dibujarNombreDeCarrera(ctx, c, disposicion, alfa);
+      expect(dibujarNombreDeCarrera(ctx, c, disposicion, alfa)).toBeNull();
       expect(ctx.llamadas).toEqual([]);
+    }
+  });
+
+  // La consigna de explorar entra cuando el nombre ya esta puesto, y el pie es
+  // de el: va encima, sin pisarlo. Lo que ocupa el nombre lo dice quien lo
+  // dibujo, como el rectangulo del fondo: calculado aparte, una linea mas en
+  // el nombre y la consigna le caeria encima.
+  it('la consigna de explorar va encima del nombre, sin taparlo', () => {
+    const anchoPorLetra = (ctx) => (texto) => ({
+      width: texto.length * Number(ctx.font.match(/([\d.]+)px/)[1]) * 0.5,
+    });
+    for (const [ancho, alto] of [
+      [1080, 1920],
+      [1920, 1080],
+      [1512, 770],
+    ]) {
+      const pantalla = calcularDisposicion(ancho, alto);
+      for (const nombre of ['Ingeniería Civil', 'Ingeniería en Sistemas de Comunicación']) {
+        const delNombre = crearCtxFalso();
+        delNombre.measureText = anchoPorLetra(delNombre);
+        const techo = dibujarNombreDeCarrera(delNombre, { nombre }, pantalla, 1);
+
+        const deLaConsigna = crearCtxFalso();
+        deLaConsigna.measureText = anchoPorLetra(deLaConsigna);
+        dibujarConsigna(deLaConsigna, pantalla, 1, 'Pasá la mano sobre los objetos del fondo', {
+          hasta: techo,
+        });
+
+        // Nada del nombre sube por encima de su techo: ni la linea ni las letras.
+        const [[, , yDeLaLinea]] = soloDe(delNombre, 'moveTo');
+        const [[, , , primerRenglon]] = soloDe(delNombre, 'fillText');
+        expect(yDeLaLinea).toBeGreaterThanOrEqual(techo);
+        expect(primerRenglon - pantalla.pie.tamano * 0.8).toBeGreaterThan(techo);
+
+        // La pastilla termina antes del techo y no sube hasta la cara: queda
+        // en el pie, la franja donde no va ninguna ficha.
+        const bordes = soloDe(deLaConsigna, 'arcTo').flatMap(([, , y1, , y2]) => [y1, y2]);
+        expect(Math.max(...bordes)).toBeLessThan(techo);
+        expect(Math.min(...bordes)).toBeGreaterThan(alto - pantalla.pie.alto);
+      }
     }
   });
 
@@ -951,6 +1124,24 @@ describe('dibujarObjetoApoyado', () => {
     const ctx = crearCtxFalso();
     dibujarObjetoApoyado(ctx, { ...apoyado, alfa: 0 }, bancoCon(), '#FF8A3D');
     expect(ctx.llamadas).toEqual([]);
+  });
+
+  // Cuando la mano lo toca, dibujarObjetosDelante lo vuelve a dibujar delante
+  // de la persona con dibujarObjeto y el mismo dibujo: si el de atras perdiera
+  // el aire o el encaje en el camino, al pasar adelante cambiaria de tamaño.
+  it('se dibuja del mismo tamaño que su copia de delante', () => {
+    const banco = {
+      obtener: () => imagen(200, 100),
+      circuloDe: () => ({ x: 0.1, y: -0.05, radio: 0.4 }),
+    };
+    for (const pedido of [{ aire: 0.1 }, { aire: 0.1, encaje: 0 }, { encaje: 0.5 }]) {
+      const dibujo = { ...apoyado, ...pedido };
+      const atras = crearCtxFalso();
+      const delante = crearCtxFalso();
+      dibujarObjetoApoyado(atras, dibujo, banco, '#FF8A3D');
+      dibujarObjeto(delante, dibujo, banco, '#FF8A3D');
+      expect(soloDe(atras, 'drawImage')).toEqual(soloDe(delante, 'drawImage'));
+    }
   });
 });
 

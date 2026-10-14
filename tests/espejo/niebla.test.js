@@ -195,8 +195,18 @@ describe('calcularTransicionEscena', () => {
     const despues = en(ESTADOS.EXPLORACION, 6000, 1000);
     expect(despues.objetos).toBe(0);
     expect(despues.fondo).toBeCloseTo(0.5);
-    expect(despues.contenido).toBeCloseTo(0.5);
     expect(despues.vuelo).toBe(1);
+  });
+
+  // EL NOMBRE Y LA CONSIGNA DE LA ELECCION COMPARTEN EL PIE: la consigna se
+  // apaga con el carrusel, y el nombre entra recien cuando ella ya se fue.
+  // Entrando con el fondo, durante el vuelo se leian los dos textos encimados.
+  it('el nombre entra cuando el carrusel y su consigna ya se apagaron', () => {
+    for (const t of [0, 250, 500, 750, 1000]) {
+      expect(en(ESTADOS.EXPLORACION, 5000 + t, t).contenido).toBe(0);
+    }
+    expect(en(ESTADOS.EXPLORACION, 6500, 1500).contenido).toBeCloseTo(0.5);
+    expect(en(ESTADOS.EXPLORACION, 7000, 2000).contenido).toBe(1);
   });
 
   // El carrusel se vacia con el mismo plazo que dura el vuelo: el anillo termina

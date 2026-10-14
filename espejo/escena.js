@@ -17,11 +17,16 @@ export function calcularDisposicion(ancho, alto) {
     // El pie: el nombre de la ingenieria, sobre una sombra ceñida al texto que lo
     // despega del fondo. Es el mismo lugar donde las tablets de MAITE ponen su texto, para
     // que espejo y tablets se lean como una sola cosa, y no puede ir al medio,
-    // que es donde esta la cara. `base` es la linea de base del ultimo renglon.
+    // que es donde esta la cara. `base` es la linea de base del ultimo renglon:
+    // abajo de todo, donde antes de elegir va la consigna de la eleccion. Iba al
+    // 80 % del alto acostada y al 84 % parada, a la altura del pecho, y la
+    // catedra lo pidio mas abajo. `alto` es la franja que el pie se reserva:
+    // ninguna ficha baja hasta ahi, y la consigna de explorar va adentro,
+    // encima del nombre.
     pie: {
       alto: alto * (vertical ? 0.3 : 0.38),
       margen: ancho * 0.08,
-      base: alto * (vertical ? 0.84 : 0.8),
+      base: alto * 0.93,
       tamano: Math.round(corto * 0.075),
       interlinea: 1.1,
     },
@@ -589,8 +594,25 @@ function dibujarSustituto(ctx, radio, color) {
  * figura vectorial si no, y un circulo de `color` como ultimo recurso —el
  * espejo le pasa el dorado de la paleta, el mismo para las doce—. Un objeto
  * que no se dibuja es una opcion que no se puede elegir.
+ *
+ * EL OBJETO ENTRA ENTERO EN SU CIRCULO. Los PNG vienen recortados al ras de lo
+ * que se ve —asi calzan sobre la foto de su fondo— y con el lado mas largo de
+ * diametro el circulo les cortaba las puntas: al prisma, la cuarta parte. La
+ * catedra pidio guardarlos con mas margen; el margen sale de lo que ocupa cada
+ * uno (banco.circuloDe), y `aire` es lo que queda entre el objeto y el borde,
+ * en radios. Sin saber lo que ocupa, entra la imagen entera.
+ *
+ * `encaje` va de 1 —entero en su circulo, como en el carrusel— a 0 —el lado
+ * mas largo de diametro, que es como calza el PNG con su caja en la foto—. El
+ * objeto elegido vuela de uno al otro: sale de su ranura y aterriza encima del
+ * suyo en la foto.
  */
-export function dibujarObjeto(ctx, { definicion, x, y, radio, alfa = 1, giro = 0 }, banco, color) {
+export function dibujarObjeto(
+  ctx,
+  { definicion, x, y, radio, alfa = 1, giro = 0, encaje = 1, aire = 0 },
+  banco,
+  color,
+) {
   if (!definicion || alfa <= 0 || radio <= 0) return;
 
   const imagen = banco.obtener(definicion.img);
@@ -603,18 +625,33 @@ export function dibujarObjeto(ctx, { definicion, x, y, radio, alfa = 1, giro = 0
   ctx.shadowBlur = radio * 0.4;
 
   if (imagen) {
+    const { width: ancho, height: alto } = imagen;
+    const lado = Math.max(ancho, alto);
+    const medido = banco.circuloDe?.(definicion.img);
+    const ocupa =
+      medido?.radio > 0 ? medido : { x: 0, y: 0, radio: Math.hypot(ancho, alto) / 2 / lado };
+    const enLaCaja = (radio * 2) / lado;
+    const enElCirculo = (radio * (1 - aire)) / (ocupa.radio * lado);
+    const escala = enLaCaja + (enElCirculo - enLaCaja) * encaje;
+    // El centro de lo que se ve va al centro del circulo, no el de la imagen.
+    const centroX = -ocupa.x * lado * escala * encaje;
+    const centroY = -ocupa.y * lado * escala * encaje;
+    // EL CIRCULO NUNCA LE CORTA NADA AL OBJETO. En la ranura lo que se ve ya
+    // entra con aire; calzando con su caja las puntas lo pasan, y recortadas
+    // dejaban ver por las esquinas la foto todavia a medio entrar. Crece hasta
+    // contenerlo, y con el la sombra que lo dibuja.
+    const hastaLoQueSeVe =
+      Math.hypot(ocupa.x, ocupa.y) * lado * escala * (1 - encaje) + ocupa.radio * lado * escala;
     ctx.save();
     ctx.beginPath();
-    ctx.arc(0, 0, radio, 0, Math.PI * 2);
+    ctx.arc(0, 0, Math.max(radio, hastaLoQueSeVe + 1), 0, Math.PI * 2);
     ctx.clip();
-    const lado = radio * 2;
-    const escala = lado / Math.max(imagen.width, imagen.height);
     ctx.drawImage(
       imagen,
-      (-imagen.width * escala) / 2,
-      (-imagen.height * escala) / 2,
-      imagen.width * escala,
-      imagen.height * escala,
+      centroX - (ancho * escala) / 2,
+      centroY - (alto * escala) / 2,
+      ancho * escala,
+      alto * escala,
     );
     ctx.restore();
   } else if (!dibujarFigura(ctx, definicion.figura, radio, color)) {
@@ -780,11 +817,14 @@ export const PESO_TITULO = 400;
  * `color` es el mismo para las doce: la catedra pidio no distinguir las
  * ingenierias por color, y el que se usa es el de los nombres en las tablets
  * de MAITE, que estan a dos metros en el mismo stand.
+ *
+ * Devuelve hasta donde llega por arriba —su linea—, para que la consigna de
+ * explorar vaya encima sin pisarlo; null si no dibujo nada.
  */
 export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, color = '#ffffff') {
-  if (!carrera || alfa <= 0) return;
+  if (!carrera || alfa <= 0) return null;
 
-  const { pie, ancho, alto } = disposicion;
+  const { pie, ancho } = disposicion;
   const disponible = ancho - pie.margen * 2;
 
   ctx.save();
@@ -826,8 +866,10 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, colo
   ctx.restore();
 
   // Una linea corta basta para que el pie se lea como una pieza editorial y
-  // no como texto suelto sobre el cuerpo. Usa el mismo dorado que el nombre.
-  const yDeLaLinea = alto - pie.alto * 0.8;
+  // no como texto suelto sobre el cuerpo. Usa el mismo dorado que el nombre, y
+  // va justo encima del primer renglon: a una altura fija de la pantalla, un
+  // nombre de dos renglones le pasaba por encima.
+  const yDeLaLinea = arriba - tamano * 0.6;
   ctx.beginPath();
   ctx.moveTo(ancho * 0.39, yDeLaLinea);
   ctx.lineTo(ancho * 0.61, yDeLaLinea);
@@ -848,6 +890,7 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, colo
   });
 
   ctx.restore();
+  return yDeLaLinea;
 }
 
 /**
@@ -859,7 +902,7 @@ export function dibujarNombreDeCarrera(ctx, carrera, disposicion, alfa = 1, colo
  */
 export function dibujarObjetoApoyado(
   ctx,
-  { definicion, x, y, radio, alfa = 1, giro = 0, halo = 0 },
+  { definicion, x, y, radio, alfa = 1, giro = 0, halo = 0, encaje, aire },
   banco,
   color,
 ) {
@@ -889,7 +932,7 @@ export function dibujarObjetoApoyado(
     ctx.restore();
   }
 
-  dibujarObjeto(ctx, { definicion, x, y, radio, alfa, giro }, banco, color);
+  dibujarObjeto(ctx, { definicion, x, y, radio, alfa, giro, encaje, aire }, banco, color);
 }
 
 /** Resplandor lleno: brillante en el centro y apagandose hacia el borde. */
@@ -1062,15 +1105,20 @@ export function dibujarInvitacion(ctx, disposicion, pulso, alfa = 1) {
  * Hay dos, y la frase la decide quien dibuja: la de la eleccion (la de por
  * defecto), que se apaga con el carrusel, y la de explorar el fondo, que se va
  * la primera vez que alguien abre una ficha.
+ *
+ * Las dos van al pie. La de la eleccion le deja su lugar al nombre de la
+ * ingenieria, y la de explorar entra con el nombre ya puesto: va encima,
+ * terminando un poco antes de `hasta` —lo de mas arriba que dibujo el nombre—.
  */
 export function dibujarConsigna(
   ctx,
   disposicion,
   alfa = 1,
   frase = 'Sostené la mano sobre un objeto',
+  { hasta } = {},
 ) {
   if (alfa <= 0) return;
-  const { ancho, alto, texto } = disposicion;
+  const { ancho, pie, texto } = disposicion;
 
   ctx.save();
   ctx.globalAlpha = Math.min(1, alfa) * 0.9;
@@ -1081,13 +1129,14 @@ export function dibujarConsigna(
   ctx.font = `600 ${tamano}px ${FAMILIA_TEXTO}`;
   const lineas = partirEnLineas(frase, ancho * 0.85, (linea) => ctx.measureText(linea).width);
   const paso = tamano * 1.2;
-  const base = alto * 0.93;
 
   // La pastilla separa la instruccion del titulo y evita que dependa de una
   // zona oscura concreta de cada fotografia. Es deliberadamente compacta: el
   // pie sigue perteneciendo a la escena, no a una interfaz de botones.
   const rellenoX = tamano * 1.05;
   const rellenoY = tamano * 0.48;
+  // La pastilla baja `rellenoY * 0.65` por debajo de la base del texto.
+  const base = hasta > 0 ? hasta - tamano * 0.5 - rellenoY * 0.65 : pie.base;
   const anchoDelTexto = Math.max(...lineas.map((linea) => ctx.measureText(linea).width));
   const altoDelTexto = tamano + (lineas.length - 1) * paso;
   const panel = {

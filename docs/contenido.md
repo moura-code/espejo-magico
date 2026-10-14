@@ -350,7 +350,9 @@ contenido/carreras/quimica/
 2. **Cada PNG es el objeto como aparece en esa foto** —recortado de ella, o el
    que se pegó para armarla—, con fondo transparente y recortado a lo que se ve.
    Puede estar a otro tamaño que en la foto; lo que no puede es ser otra foto
-   del mismo objeto, porque entonces no calza.
+   del mismo objeto, porque entonces no calza. **No hace falta dejarle margen**
+   para el círculo del carrusel: el espejo mide lo que ocupa cada objeto adentro
+   de su PNG y lo mete entero en su círculo (`tablero.aireEnElCirculo`).
 3. **`npm run ubicar -- quimica`** busca cada PNG adentro de la foto y escribe
    en el `metadata.json` del fondo dónde calza (`cajas`, una por objeto, en su
    orden) y, a partir de eso, `lugar` y `escondites`. Dice cuánto se parece cada

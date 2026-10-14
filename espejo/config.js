@@ -326,6 +326,14 @@ export const CONFIG = {
     // apaisado llegan a lo que se pide aca.
     radioObjetoFactor: 0.32,
 
+    // Lo que queda entre cada objeto y el borde de su circulo, en radios. Los
+    // PNG vienen recortados al ras —asi calzan sobre la foto de su fondo— y con
+    // el lado mas largo de diametro el circulo les cortaba las puntas; la
+    // catedra pidio guardarlos con mas margen. El espejo mide lo que ocupa cada
+    // uno y lo achica lo justo para que entre entero, con este aire alrededor.
+    // Mas aire, objetos mas chicos adentro del mismo circulo.
+    aireEnElCirculo: 0.08,
+
     // La ventana visible, en grados, medidos como en el lienzo: 180 es a la
     // izquierda, 270 es arriba, 0 es a la derecha. Pasa por encima de la
     // cabeza y baja hasta la altura de los hombros a cada lado: con doce a 30

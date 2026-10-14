@@ -6,7 +6,7 @@
 import { CONFIG } from './config.js';
 import { cargarContenido, objetoDeCarrera, fondoActivo, objetosEnLaFoto } from './contenido.js';
 import { crearSesionContenido } from './sesion.js';
-import { crearBanco, cargarImagenDelNavegador } from './imagenes.js';
+import { crearBanco, cargarImagenDelNavegador, leerAlfaDelNavegador } from './imagenes.js';
 import { abrirCamara, crearReintentador, dormir } from './camara.js';
 import { crearDetectorMediaPipe, crearFuenteSintetica } from './rostro.js';
 import {
@@ -159,7 +159,13 @@ aviso('cargando…');
 // ---------- contenido ----------
 const contenido = await cargarContenido({ figurasValidas: figurasDisponibles() });
 const sesionContenido = crearSesionContenido({ contenido });
-const banco = crearBanco({ cargar: cargarImagenDelNavegador, raiz: '/contenido/' });
+// El banco mide ademas cuanto ocupa cada objeto adentro de su PNG, para meterlo
+// entero en su circulo del carrusel (dibujarObjeto).
+const banco = crearBanco({
+  cargar: cargarImagenDelNavegador,
+  raiz: '/contenido/',
+  leerAlfa: leerAlfaDelNavegador,
+});
 const jugables = contenido.idsJugables();
 const idsOfrecidos = jugables.length > 0 ? jugables : contenido.ids;
 
@@ -175,6 +181,10 @@ function informarImagenesFaltantes(informe, contexto) {
 // objetos escondidos de una carrera se piden cuando alguien la elige.
 const informeInicial = await banco.precargar(contenido.imagenesIniciales(idsOfrecidos));
 informarImagenesFaltantes(informeInicial, 'del carrusel');
+// Lo que ocupa cada objeto adentro de su PNG se mide ahora, mientras dice
+// "cargando…": leer los pixeles cuesta hasta unos milisegundos por imagen, y en
+// el primer cuadro del carrusel aparecen cinco o seis juntas.
+for (const ruta of contenido.imagenesIniciales(idsOfrecidos)) banco.circuloDe(ruta);
 
 // Los fondos que se mueven. NO se esperan aca: se cargan al final, con el bucle
 // ya andando, y hasta que llegan se ve la foto del mismo fondo. Un video pesa
@@ -443,9 +453,12 @@ function atender(salida, ahora) {
       objetoMostrado =
         ofrecidos.find((ofrecido) => ofrecido.id === evento.carrera)?.definicion ??
         sesionContenido.representanteDe(evento.carrera);
+      // Sale de la ranura como se lo veia en ella: entero adentro de su circulo.
       const ranura = blancos.find((blanco) => blanco.id === evento.carrera);
       origenDelVuelo =
-        ranura && ranura.alfa > 0 ? { x: ranura.x, y: ranura.y, radio: ranura.radio } : null;
+        ranura && ranura.alfa > 0
+          ? { x: ranura.x, y: ranura.y, radio: ranura.radio, encaje: 1 }
+          : null;
       // Una ingenieria nueva se descubre de cero. En el uso normal no hay nada
       // que cerrar —antes de elegir no hay fondo—, pero una carrera forzada con
       // el teclado encima de otra traeria las fichas y la consigna de la anterior.
@@ -924,7 +937,17 @@ function cuadro(ahora) {
       pantalla: disposicion,
       config: CONFIG,
     });
-    const enVuelo = posicionEnVuelo({ origen: origenDelVuelo, destino: quieto, t: transicion.vuelo });
+    // Sale de su ranura entero adentro de su circulo y, en una foto con los
+    // objetos adentro, aterriza calzando con su caja: encima del mismo objeto
+    // fotografiado, para fundirse con el. Sobre un fondo de PNGs sueltos sigue
+    // entero en su circulo, como en el carrusel. Lo decide lo que declara el
+    // fondo y no si su foto ya cargo: la foto se pide al elegir y puede llegar
+    // en pleno vuelo, y cambiar el destino ahi seria un salto.
+    const enVuelo = posicionEnVuelo({
+      origen: origenDelVuelo,
+      destino: { ...quieto, encaje: objetosEnLaFoto(fondo) ? 0 : 1 },
+      t: transicion.vuelo,
+    });
     const aterrizo = transicion.vuelo >= 1;
 
     // Las fichas se leen sobre los objetos QUIETOS, no sobre su vaiven: si el
@@ -1069,6 +1092,7 @@ function cuadro(ahora) {
         giro,
         alfa: transicion.escondidos,
         halo,
+        aire: CONFIG.tablero.aireEnElCirculo,
       };
       acumuladorDeDibujo.medir('objects', () =>
         dibujarObjetoApoyado(ctx, dibujo, banco, CONFIG.paleta.nombre),
@@ -1091,6 +1115,8 @@ function cuadro(ahora) {
       y: enVuelo.y + comoSeVe.dy,
       radio: comoSeVe.radio,
       giro: comoSeVe.giro,
+      encaje: enVuelo.encaje,
+      aire: CONFIG.tablero.aireEnElCirculo,
       aterrizo,
     };
 
@@ -1240,11 +1266,18 @@ function cuadro(ahora) {
           alfa: alfaDelBlanco,
         }),
       );
+      // Entero adentro de su circulo: los PNG vienen recortados al ras y, con
+      // el lado mas largo de diametro, el circulo les cortaba las puntas.
       if (!esElMostrado) {
         acumuladorDeDibujo.medir('objects', () =>
           dibujarObjeto(
             ctx,
-            { definicion: blanco.definicion, ...donde, alfa: alfaDelBlanco },
+            {
+              definicion: blanco.definicion,
+              ...donde,
+              alfa: alfaDelBlanco,
+              aire: CONFIG.tablero.aireEnElCirculo,
+            },
             banco,
             CONFIG.paleta.nombre,
           ),
@@ -1282,6 +1315,8 @@ function cuadro(ahora) {
           x: apoyado.x,
           y: apoyado.y,
           radio: apoyado.radio,
+          encaje: apoyado.encaje,
+          aire: apoyado.aire,
           alfa: transicion.elegido,
         },
         banco,
@@ -1330,8 +1365,10 @@ function cuadro(ahora) {
     );
   }
 
-  // Un solo color para el nombre de las doce: el de los nombres de MAITE.
-  acumuladorDeDibujo.medir('ui', () =>
+  // Un solo color para el nombre de las doce: el de los nombres de MAITE. Va
+  // al pie, y lo de mas arriba que dibujo es donde termina la consigna de
+  // explorar, que entra encima de el.
+  const techoDelNombre = acumuladorDeDibujo.medir('ui', () =>
     dibujarNombreDeCarrera(ctx, carrera, disposicion, transicion.contenido, CONFIG.paleta.nombre),
   );
 
@@ -1397,8 +1434,9 @@ function cuadro(ahora) {
   // La consigna ensena el gesto, y es lo unico que lo hace. La de la eleccion
   // sale de abajo del humo —encendida de golpe encima del humo espeso era un
   // golpe de luz— y se apaga con el carrusel: elegida la ingenieria, ya no hay
-  // nada que agarrar. La de explorar entra con la escena entera y se va para
-  // siempre la primera vez que alguien abre una ficha: el gesto ya se aprendio.
+  // nada que agarrar, y su lugar al pie pasa a ser del nombre. La de explorar
+  // entra con la escena entera, encima del nombre, y se va para siempre la
+  // primera vez que alguien abre una ficha: el gesto ya se aprendio.
   if (estado === ESTADOS.EXPLORACION) {
     acumuladorDeDibujo.medir('ui', () =>
       dibujarConsigna(
@@ -1413,7 +1451,9 @@ function cuadro(ahora) {
     );
   }
   acumuladorDeDibujo.medir('ui', () =>
-    dibujarConsigna(ctx, disposicion, transicion.explorar, 'Pasá la mano sobre los objetos del fondo'),
+    dibujarConsigna(ctx, disposicion, transicion.explorar, 'Pasá la mano sobre los objetos del fondo', {
+      hasta: techoDelNombre,
+    }),
   );
   acumuladorDeDibujo.registrarEn(metricas);
   metricas.registrar('frame', performance.now() - inicioCuadro);

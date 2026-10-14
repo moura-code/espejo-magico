@@ -106,10 +106,17 @@ export function calcularTransicionEscena({
   };
 
   // Las capas de la exploracion con la ingenieria ya elegida, en este momento.
+  // El nombre comparte el pie con la consigna de la eleccion, que se apaga con
+  // el carrusel: entra recien cuando ella se fue, y termina con el fondo.
+  // Entrando con el fondo, durante el vuelo se leian los dos textos encimados.
   const conLaMirada = () => {
     const t = progreso(desdeLaMirada, tiempos.aparicion);
     const vuelo = progreso(desdeLaMirada, tiempos.vuelo);
-    return { objetos: 1 - vuelo, elegido: 1, fondo: t, contenido: t, vuelo, ...delFondo() };
+    const contenido = progreso(
+      desdeLaMirada - tiempos.vuelo,
+      tiempos.aparicion - tiempos.vuelo,
+    );
+    return { objetos: 1 - vuelo, elegido: 1, fondo: t, contenido, vuelo, ...delFondo() };
   };
 
   // Todas las capas, apagadas salvo las que se pidan. En el reposo y en el
