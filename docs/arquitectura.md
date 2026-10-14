@@ -281,11 +281,12 @@ Cinco detalles que no son decorativos:
   largo de diámetro el círculo les cortaba las puntas: al prisma, la cuarta
   parte. La cátedra pidió guardarlos con más margen; el margen se calcula. El
   banco mide una sola vez, al cargar, el círculo mínimo que contiene lo opaco
-  de cada PNG (`banco.circuloDe`, sobre una copia de 160 px) y `dibujarObjeto`
+  de cada PNG (`banco.circuloDe`, a resolución completa) y `dibujarObjeto`
   lo mete adentro con `tablero.aireEnElCirculo` de aire, centrado en lo que se
   ve y no en la imagen. El elegido vuela de ahí (`encaje` 1) a calzar con su
   caja en la foto (`encaje` 0), al ritmo del tamaño: aterriza exactamente
-  encima del objeto fotografiado, como antes.
+  encima del objeto fotografiado, como antes, y entero: el círculo crece
+  hasta contener lo que se ve en vez de cortarle las puntas.
 - **`congelar` detiene el ancla y la rotación, y se pone apenas empieza un
   sostenido.** Estirar el brazo mueve los hombros, y si el anillo los siguiera,
   el blanco se correría de abajo de la propia mano; y si siguiera girando,

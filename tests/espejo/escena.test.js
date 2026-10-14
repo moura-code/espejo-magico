@@ -185,6 +185,28 @@ describe('dibujarObjeto', () => {
     expect(soloDe(ctx, 'drawImage')).toEqual([['drawImage', png, -60, -30, 120, 60]]);
   });
 
+  // Al aterrizar, el PNG tiene que calzar ENTERO sobre el de la foto: con el
+  // lado mas largo de diametro sus puntas pasan el circulo, y recortadas
+  // dejaban ver por las esquinas la foto todavia a medio entrar. El circulo
+  // crece hasta contener lo que se ve; en el carrusel es el del blanco.
+  it('el circulo nunca le corta nada al objeto: crece hasta contenerlo en su caja', () => {
+    const banco = {
+      obtener: () => imagen(200, 100),
+      circuloDe: () => ({ x: 0.1, y: -0.05, radio: 0.4 }),
+    };
+    const recorteCon = (encaje) => {
+      const ctx = crearCtxFalso();
+      dibujarObjeto(ctx, { definicion, x: 0, y: 0, radio: 60, encaje, aire: 0.1 }, banco, '#fff');
+      return soloDe(ctx, 'arc')[0][3];
+    };
+
+    expect(recorteCon(1)).toBe(60);
+    // Con encaje 0 lo que se ve mide 0,4 x 200 x 0,6 = 48 de radio, con su
+    // centro corrido hypot(0,1; 0,05) x 120 = 13,4 del centro: llega a 61,4.
+    expect(recorteCon(0)).toBeGreaterThanOrEqual(61.4);
+    expect(recorteCon(0)).toBeLessThan(63);
+  });
+
   // El vuelo va de la ranura (entero en su circulo) a la caja de la foto: el
   // objeto tiene que crecer de a poco, no saltar de un tamaño al otro.
   it('entre el circulo y la caja crece de a poco', () => {

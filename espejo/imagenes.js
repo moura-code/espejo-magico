@@ -186,12 +186,14 @@ export function cargarImagenDelNavegador(ruta) {
 }
 
 /**
- * El canal alfa de una imagen, achicada a `lado` pixeles de lado mas largo:
- * para saber cuanto ocupa el objeto no hace falta cada pixel, y el osciloscopio
- * leido entero son casi un millon. Achicar suma un borde de alfa parcial
- * alrededor del objeto: el circulo sale apenas mas grande, nunca mas chico.
+ * El canal alfa de una imagen, A RESOLUCION COMPLETA. Achicarla abarataba la
+ * lectura, pero el reescalado se saltea las lineas finas: a 160 px los tubos
+ * Falcon salian un 1,3 % mas chicos de lo que son, y con poco aire se les
+ * habria cortado una punta. Enteras, las 37 imagenes se miden en 64 ms, una
+ * sola vez, al cargar. `lado` es solo el tope para una imagen gigante, que
+ * ahi si se achica.
  */
-export function leerAlfaDelNavegador(imagen, lado = 160) {
+export function leerAlfaDelNavegador(imagen, lado = 2048) {
   const escala = Math.min(1, lado / Math.max(imagen.width, imagen.height));
   const ancho = Math.max(1, Math.round(imagen.width * escala));
   const alto = Math.max(1, Math.round(imagen.height * escala));

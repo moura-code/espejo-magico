@@ -625,10 +625,6 @@ export function dibujarObjeto(
   ctx.shadowBlur = radio * 0.4;
 
   if (imagen) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(0, 0, radio, 0, Math.PI * 2);
-    ctx.clip();
     const { width: ancho, height: alto } = imagen;
     const lado = Math.max(ancho, alto);
     const medido = banco.circuloDe?.(definicion.img);
@@ -640,6 +636,16 @@ export function dibujarObjeto(
     // El centro de lo que se ve va al centro del circulo, no el de la imagen.
     const centroX = -ocupa.x * lado * escala * encaje;
     const centroY = -ocupa.y * lado * escala * encaje;
+    // EL CIRCULO NUNCA LE CORTA NADA AL OBJETO. En la ranura lo que se ve ya
+    // entra con aire; calzando con su caja las puntas lo pasan, y recortadas
+    // dejaban ver por las esquinas la foto todavia a medio entrar. Crece hasta
+    // contenerlo, y con el la sombra que lo dibuja.
+    const hastaLoQueSeVe =
+      Math.hypot(ocupa.x, ocupa.y) * lado * escala * (1 - encaje) + ocupa.radio * lado * escala;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, Math.max(radio, hastaLoQueSeVe + 1), 0, Math.PI * 2);
+    ctx.clip();
     ctx.drawImage(
       imagen,
       centroX - (ancho * escala) / 2,
